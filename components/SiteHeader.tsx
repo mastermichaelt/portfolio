@@ -21,7 +21,7 @@ export function SiteHeader() {
   }, []);
 
   const closeMenu = () => setOpen(false);
-  // Mobile: Home · Projects · Articles + About CTA (desktop keeps separate Contact CTA).
+  // Mobile: Home · Projects · Articles + Contact CTA (same /about destination as desktop).
   const mobileNav = primaryNav.filter((item) => item.href !== "/about");
 
   return (
@@ -80,7 +80,7 @@ export function SiteHeader() {
           onClick={closeMenu}
           aria-current={isNavCurrent(pathname, "/about") ? "page" : undefined}
         >
-          About
+          Contact
         </Link>
       </div>
     </header>
