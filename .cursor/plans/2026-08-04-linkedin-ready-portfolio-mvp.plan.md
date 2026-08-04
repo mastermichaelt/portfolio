@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: linkedin-surfaces
     content: "PR: brand shell, nav, home/projects/[slug]/articles/about (thin About; projects carry weight); remove under-construction UX; update README"
-    status: pending
+    status: completed
   - id: prototype-cleanup
     content: "PR: after surfaces ship, delete temporary HTML prototype package and scrub README/AGENTS prototype pointers"
     status: pending

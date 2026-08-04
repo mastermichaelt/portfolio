@@ -1,29 +1,68 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Newsreader, Source_Sans_3 } from "next/font/google";
+import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
+import { getPortfolioRepository } from "@/lib/portfolio";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const newsreader = Newsreader({
   subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const sourceSans = Source_Sans_3({
   subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
 });
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
+const siteUrl = "https://portfolio-multipliers-dev.vercel.app";
 
 export const metadata: Metadata = {
-  title: "Portfolio",
-  description: "Personal engineering portfolio and project knowledge base",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Michael Truong · AI engineering systems",
+    template: "%s · Michael Truong",
+  },
+  description:
+    "Senior software engineer in Sydney. Production AI systems, editorial workflows, and evidence-backed engineering field reports.",
+  openGraph: {
+    type: "website",
+    siteName: "Michael Truong",
+    title: "Michael Truong · AI engineering systems",
+    description:
+      "Senior software engineer in Sydney. Production AI systems, editorial workflows, and evidence-backed engineering field reports.",
+    locale: "en_AU",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Michael Truong · AI engineering systems",
+    description:
+      "Senior software engineer in Sydney. Production AI systems, editorial workflows, and evidence-backed engineering field reports.",
+  },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const profile = await getPortfolioRepository().getProfile();
+
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${newsreader.variable} ${sourceSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <SiteHeader />
+        {children}
+        <SiteFooter profile={profile} />
+      </body>
     </html>
   );
 }

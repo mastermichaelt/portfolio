@@ -94,6 +94,10 @@ describe("content-foundation inventory", () => {
 
     const featured = listed.filter((article) => article.featured);
     expect(featured.length).toBeGreaterThan(0);
+    expect(featured.length).toBeLessThanOrEqual(3);
     expect(featured.length).toBeLessThan(listed.length);
+    expect(
+      new Set(featured.map((article) => article.relatedProjectSlug)).size,
+    ).toBe(featured.length);
   });
 });

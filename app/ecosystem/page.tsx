@@ -1,10 +1,15 @@
 export default function EcosystemPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-6 py-16">
-      <h1 className="text-2xl font-semibold tracking-tight">Ecosystem</h1>
-      <p className="mt-3 text-foreground/70">
-        This page is under construction.
-      </p>
+    <main id="content">
+      <section className="section hero">
+        <div className="container" style={{ maxWidth: 720 }}>
+          <p className="eyebrow">Ecosystem</p>
+          <h1>System map coming later.</h1>
+          <p className="lead" style={{ marginTop: 16 }}>
+            This route is intentionally unlinked from primary nav for the MVP.
+          </p>
+        </div>
+      </section>
     </main>
   );
 }
