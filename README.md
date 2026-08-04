@@ -36,11 +36,13 @@ npm run lint
 npm run typecheck
 npm run format
 npm run format:check
+npm test
+npm run test:coverage
 npm run build
 npm start
 ```
 
-Pre-commit (Husky): runs `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Husky install is skipped when `CI` is set.
+Pre-commit (Husky): runs `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Coverage runs in CI (`test:coverage`), not on every commit. Husky install is skipped when `CI` is set.
 
 Local app: [http://localhost:3000](http://localhost:3000)
 

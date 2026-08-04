@@ -1,0 +1,77 @@
+---
+description: Merge-safe PRs, execution authority, and staged-plan rules
+alwaysApply: true
+---
+
+# Merge-safe PRs and planning
+
+We merge every PR into `main`. **Each PR must be merge-safe on its own.**
+
+Full standards: [.cursor/standards/planning-standards.md](../standards/planning-standards.md)
+
+## Default execution authority
+
+Authority hierarchy (narrowest → broadest): **Plan-only PR** → **Open PR only** → **Merge granted**. Full policy: [planning-standards.md § Recommended execution authority](../standards/planning-standards.md#recommended-execution-authority). Branch protection and human review are the final gate.
+
+**Orthogonal execution mode (non-PR):** **Manual verification gate** — run only the specified verification, do not perform implementation work, write only allowed gitignored outputs if needed, report the verdict, and stop. No commit, no PR, no tracked-file edits. Full policy: [planning-standards.md § Manual verification gate (non-PR)](../standards/planning-standards.md#manual-verification-gate-non-pr).
+
+### Plan-only PR
+
+When the user prompt (or a plan slice) implies plan review only — see alias phrases in [planning-standards § Plan-only PR](../standards/planning-standards.md#plan-only-pr) — authority is **Plan-only PR**, narrower than Open PR only:
+
+- **Allowed:** plan artifacts only (`.cursor/plans/*.plan.md` and planning-standard alignment)
+- **Stop after opening the PR**
+- **Do not begin implementation slices**
+- **Do not merge**
+
+### Open PR only (repo default)
+
+**Open PR only** — implement the slice (or unplanned task) and open a PR; do not merge unless either the current committed plan slice **or** the user’s explicit instruction for the current unplanned task grants **Merge granted** with rationale. User prompts that match [alias phrases](../standards/planning-standards.md#alias-phrases) route to **Plan-only PR**, not Open PR only (Open PR only assumes implementation is in scope). If no plan slice applies, the user has not granted Merge granted, authority is omitted, or authority is unclear, stop after opening the PR. If branch protection blocks merge, stop and escalate.
+
+### Repository topology invariant
+
+This invariant prevents accidental stacked PRs. Multi-slice plans stack execution order, not Git branches.
+
+The repository integration branch is `main` unless documented otherwise. Each slice represents only its own changes and targets the integration branch by default. Do not infer branch topology or PR target from the current branch, a prior slice branch, another open PR, or local git state.
+
+**Phased summary:**
+
+1. **Before implementation** — start from the latest integration branch (typically `git fetch` then a fresh branch from `origin/main`).
+2. **Before opening the PR** — verify the branch represents only the current slice; previous-slice work is present through the integration branch, not through branch ancestry.
+3. **After opening the PR** — verify the GitHub PR base branch is `main`, and the PR diff does not include previous-slice work except through merged `main`.
+
+Stop on mismatch; do not continue implementation work on that PR. Full policy: [planning-standards.md § Repository topology invariant](../standards/planning-standards.md#repository-topology-invariant).
+
+## Lightweight vs staged planning
+
+Not every change needs a multi-slice plan. See [planning-standards.md § Lightweight vs staged planning](../standards/planning-standards.md#lightweight-vs-staged-planning):
+
+| Work shape | Path |
+| --- | --- |
+| Typo, copy tweak, or small content fix | Direct small PR; no multi-slice plan |
+| One page, component, or content-module update | Single implementation PR |
+| Cross-cutting work spanning multiple concerns | Staged multi-PR plan via `.cursor/plans/` |
+
+## Do not defer to a later PR
+
+Do not defer known gaps that the current PR already exposes:
+
+- repository contract or domain-type correctness
+- route / content behavior this PR introduces
+- coverage and tests for logic this PR introduces
+- lifecycle / reset wiring when this PR adds client state
+
+## Staged plans
+
+When writing or executing `.cursor/plans/*.md`: per-PR acceptance must be merge-safe. Do not assign correctness fixes exclusively to a later PR if the current PR already exposes the gap.
+
+Multi-PR `.plan.md` files must:
+
+- End frontmatter `todos` with a **`plan-closure`** todo (docs-only archive PR after the last implementation slice). Use [`.cursor/plans/_template.plan.md`](../plans/_template.plan.md) when authoring new plans.
+- Include an **Agent prompts (copy/paste for Cursor)** section with one ready-to-paste prompt per agent-executable frontmatter todo, including `plan-closure` (see [planning-standards.md](../standards/planning-standards.md) item 7). Each prompt must reference `@.cursor/plans/<slug>.plan.md`, name the slice id, state scope boundaries (`only`, `do not start …`), and instruct marking the slice todo `completed` in frontmatter in the same PR as the code when the slice opens a PR.
+
+Treat `.cursor/plans/*.plan.md` as active work, excluding `.cursor/plans/archive/` and the boilerplate [`.cursor/plans/_template.plan.md`](../plans/_template.plan.md). Treat `.cursor/plans/archive/` as historical-only and ignore it unless the user explicitly asks for historical context. Do not execute `_template.plan.md` as a plan.
+
+Do not archive a plan inside an implementation PR unless that PR is explicitly designated as the docs-only closure PR.
+
+Each implementation PR must mark its slice todo `completed` in plan frontmatter in the same PR as the production code. After the last implementation PR merges, create a docs-only closure PR: verify slice todos, add a `# Shipped` closure note, move the plan to `.cursor/plans/archive/`, mark `plan-closure` completed, and update references. Keep active `.cursor/plans/` for in-progress plans only.
