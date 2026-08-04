@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
+import { ExternalLink } from "@/components/ExternalLink";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
 export const metadata: Metadata = {
   title: "Articles",
   description:
     "Engineering field reports on DEV.to — agents, evaluation, governance, and AI product systems.",
+  alternates: {
+    canonical: "/articles",
+  },
+  openGraph: {
+    url: "/articles",
+  },
 };
 
 export default async function ArticlesPage() {
@@ -26,11 +33,10 @@ export default async function ArticlesPage() {
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="container fade-in delay-1">
           {articles.map((article) => (
-            <a
+            <ExternalLink
               key={article.slug}
               className="log-row"
               href={article.url}
-              rel="noopener noreferrer"
             >
               <span className="meta">{article.year}</span>
               <div>
@@ -59,7 +65,7 @@ export default async function ArticlesPage() {
                 ) : null}
               </div>
               <span className="meta pull">DEV →</span>
-            </a>
+            </ExternalLink>
           ))}
         </div>
       </section>

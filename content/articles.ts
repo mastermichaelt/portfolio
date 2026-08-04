@@ -4,7 +4,8 @@ import type { Article } from "@/domain/article";
  * Full published DEV.to inventory from sibling
  * `codenames-ai-guesser/docs/dev.to/published/`.
  * Titles/URLs from frontmatter; summaries compressed from openings — no invented claims.
- * `featured` marks homepage candidates; project pages filter via `relatedProjectSlug`.
+ * `featured` marks a small homepage set (≈ one post per flagship case study);
+ * project pages filter via `relatedProjectSlug`.
  */
 export const articles: Article[] = [
   {
@@ -68,7 +69,6 @@ export const articles: Article[] = [
     tags: ["ai", "automation", "governance"],
     url: "https://dev.to/michaeltruong/the-agent-plan-had-every-step-except-where-to-stop-357h",
     relatedProjectSlug: "renovate-governance",
-    featured: true,
   },
   {
     slug: "active-players-which-sessions-counted",
@@ -79,7 +79,6 @@ export const articles: Article[] = [
     tags: ["ai", "analytics"],
     url: "https://dev.to/michaeltruong/active-players-looked-real-until-we-asked-which-sessions-counted-11em",
     relatedProjectSlug: "codenames-ai",
-    featured: true,
   },
   {
     slug: "one-example-beats-style-guide",
@@ -90,7 +89,6 @@ export const articles: Article[] = [
     tags: ["ai", "writing"],
     url: "https://dev.to/michaeltruong/one-good-example-beat-every-ai-writing-rule-i-wrote-7oo",
     relatedProjectSlug: "editorial-workflow",
-    featured: true,
   },
   {
     slug: "schema-first-valid-json-wasnt-enough",
@@ -101,6 +99,5 @@ export const articles: Article[] = [
     tags: ["ai", "typescript", "validation"],
     url: "https://dev.to/michaeltruong/schema-first-prompt-second-valid-json-wasnt-enough-3nhm",
     relatedProjectSlug: "codenames-ai",
-    featured: true,
   },
 ];

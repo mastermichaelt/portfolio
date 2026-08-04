@@ -36,7 +36,6 @@ export const metadata: Metadata = {
     "Senior software engineer in Sydney. Production AI systems, editorial workflows, and evidence-backed engineering field reports.",
   openGraph: {
     type: "website",
-    url: siteUrl,
     siteName: "Michael Truong",
     title: "Michael Truong · AI engineering systems",
     description:
@@ -48,9 +47,6 @@ export const metadata: Metadata = {
     title: "Michael Truong · AI engineering systems",
     description:
       "Senior software engineer in Sydney. Production AI systems, editorial workflows, and evidence-backed engineering field reports.",
-  },
-  alternates: {
-    canonical: siteUrl,
   },
 };
 

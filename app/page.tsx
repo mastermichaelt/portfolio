@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ExternalLink } from "@/components/ExternalLink";
 import { SystemsDiagram } from "@/components/SystemsDiagram";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
@@ -9,6 +10,12 @@ export const metadata: Metadata = {
   },
   description:
     "Senior software engineer in Sydney. Browse production AI systems, editorial workflows, and field reports.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    url: "/",
+  },
 };
 
 export default async function HomePage() {
@@ -108,11 +115,10 @@ export default async function HomePage() {
             </div>
             <div>
               {featuredArticles.map((article) => (
-                <a
+                <ExternalLink
                   key={article.slug}
                   className="log-row"
                   href={article.url}
-                  rel="noopener noreferrer"
                 >
                   <span className="meta">{article.year}</span>
                   <div>
@@ -125,7 +131,7 @@ export default async function HomePage() {
                     </p>
                   </div>
                   <span className="meta pull">DEV →</span>
-                </a>
+                </ExternalLink>
               ))}
             </div>
           </div>

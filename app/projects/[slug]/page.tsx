@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CaseStudyToc } from "@/components/CaseStudyToc";
+import { ExternalLink } from "@/components/ExternalLink";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
 type ProjectPageProps = PageProps<"/projects/[slug]">;
@@ -19,12 +20,17 @@ export async function generateMetadata({
   if (!project) {
     return { title: "Project not found" };
   }
+  const path = `/projects/${project.slug}`;
   return {
     title: project.title,
     description: project.summary,
+    alternates: {
+      canonical: path,
+    },
     openGraph: {
       title: `${project.title} · Michael Truong`,
       description: project.summary,
+      url: path,
     },
   };
 }
@@ -40,7 +46,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       title: section.title,
     })),
     ...(project.relatedLinks?.length || project.evidence?.length
-      ? [{ id: "related", title: "Related & evidence" }]
+      ? [{ id: "links", title: "Links" }]
       : []),
   ];
 
@@ -91,21 +97,20 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             ))}
 
             {(project.relatedLinks?.length || project.evidence?.length) && (
-              <div className="detail-block" id="related">
-                <h2>Related &amp; evidence</h2>
+              <div className="detail-block" id="links">
+                <h2>Links</h2>
                 {project.relatedLinks?.map((link) =>
                   link.url ? (
-                    <a
+                    <ExternalLink
                       key={link.id}
                       className="evidence-item"
                       href={link.url}
-                      rel="noopener noreferrer"
                     >
                       <div>
                         <strong>{link.label}</strong>
                       </div>
                       <span className="meta">Open →</span>
-                    </a>
+                    </ExternalLink>
                   ) : (
                     <div key={link.id} className="evidence-item">
                       <div>
@@ -116,17 +121,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 )}
                 {project.evidence?.map((item) =>
                   item.url ? (
-                    <a
+                    <ExternalLink
                       key={item.id}
                       className="evidence-item"
                       href={item.url}
-                      rel="noopener noreferrer"
                     >
                       <div>
                         <strong>{item.label}</strong>
                       </div>
                       <span className="meta">Open →</span>
-                    </a>
+                    </ExternalLink>
                   ) : (
                     <div key={item.id} className="evidence-item">
                       <div>

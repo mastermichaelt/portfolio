@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ExternalLink } from "@/components/ExternalLink";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
 export const metadata: Metadata = {
   title: "About",
   description:
     "Michael Truong — senior software engineer in Sydney. Contact via email, LinkedIn, GitHub, and DEV.",
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    url: "/about",
+  },
 };
 
 export default async function AboutPage() {
@@ -45,19 +52,15 @@ export default async function AboutPage() {
                 <a href={`mailto:${profile.email}`}>{profile.email}</a>
               </li>
               <li>
-                <a href={profile.links.linkedin} rel="noopener noreferrer">
+                <ExternalLink href={profile.links.linkedin}>
                   LinkedIn
-                </a>
+                </ExternalLink>
               </li>
               <li>
-                <a href={profile.links.github} rel="noopener noreferrer">
-                  GitHub
-                </a>
+                <ExternalLink href={profile.links.github}>GitHub</ExternalLink>
               </li>
               <li>
-                <a href={profile.links.blog} rel="noopener noreferrer">
-                  DEV blog
-                </a>
+                <ExternalLink href={profile.links.blog}>DEV blog</ExternalLink>
               </li>
             </ul>
             {profile.skillClusters?.length ? (

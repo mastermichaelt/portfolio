@@ -6,6 +6,12 @@ export const metadata: Metadata = {
   title: "Projects",
   description:
     "Four interconnected systems: Codenames AI, AI-assisted editorial workflow, resume knowledge architecture, and Renovate governance.",
+  alternates: {
+    canonical: "/projects",
+  },
+  openGraph: {
+    url: "/projects",
+  },
 };
 
 export default async function ProjectsPage() {

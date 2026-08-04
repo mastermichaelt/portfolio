@@ -365,6 +365,17 @@ h3 {
   color: var(--fg);
 }
 
+.mobile-nav-cta {
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.mobile-nav a.mobile-nav-cta:hover,
+.mobile-nav a.mobile-nav-cta[aria-current="page"] {
+  background: color-mix(in oklch, var(--accent) 82%, black);
+  color: var(--surface);
+}
+
 .pagefoot {
   padding-block: var(--gap-xl);
   color: var(--muted);

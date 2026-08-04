@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExternalLink } from "@/components/ExternalLink";
 import type { Profile } from "@/domain/profile";
 import { primaryNav } from "@/lib/nav";
 
@@ -17,9 +18,7 @@ export function SiteFooter({ profile }: { profile: Profile }) {
               {item.label}
             </Link>
           ))}
-          <a href={profile.links.github} rel="noopener noreferrer">
-            GitHub
-          </a>
+          <ExternalLink href={profile.links.github}>GitHub</ExternalLink>
         </nav>
       </div>
     </footer>
