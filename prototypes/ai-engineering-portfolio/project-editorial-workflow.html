@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI-assisted editorial workflow · Michael Truong</title>
+    <meta
+      name="description"
+      content="Case study: human-in-the-loop editorial pipeline with retrieval and critique."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/site.css" />
+  </head>
+  <body>
+    <header class="topnav" data-od-id="topnav">
+      <div class="container topnav-inner">
+        <a class="logo" href="index.html">Michael Truong <em>· systems</em></a>
+        <nav aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="projects.html" aria-current="page">Projects</a>
+          <a href="system.html">System</a>
+          <a href="articles.html">Articles</a>
+          <a href="about.html">About</a>
+        </nav>
+        <a class="btn btn-primary" href="about.html">Contact</a>
+        <button
+          class="nav-toggle"
+          type="button"
+          data-nav-toggle
+          aria-expanded="false"
+          aria-label="Open menu"
+        >
+          <span></span>
+        </button>
+      </div>
+      <div class="mobile-nav" data-mobile-nav>
+        <a href="index.html">Home</a>
+        <a href="projects.html" aria-current="page">Projects</a>
+        <a href="system.html">System</a>
+        <a href="articles.html">Articles</a>
+        <a href="about.html">About</a>
+        <a href="about.html">Contact</a>
+      </div>
+    </header>
+    <main id="content">
+      <section
+        class="section hero"
+        data-od-id="project-hero"
+        style="padding-bottom: 40px"
+      >
+        <div class="container">
+          <p class="meta" style="margin-bottom: 12px">
+            <a href="projects.html">Projects</a> / AI-assisted editorial
+            workflow
+          </p>
+          <p class="eyebrow">Workflow · Case study</p>
+          <h1>AI-assisted editorial workflow</h1>
+          <p class="lead" style="margin-top: 16px">
+            A production-minded drafting pipeline where retrieval, generation,
+            and critique are separate stages — and humans approve anything
+            irreversible.
+          </p>
+          <div class="project-hero-meta">
+            <span class="pill">Workflow</span><span class="tag">Outputs</span
+            ><span class="tag">Eval</span><span class="tag">HITL</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" data-od-id="project-body" style="padding-top: 0">
+        <div class="container grid-1-2">
+          <aside>
+            <nav class="toc card" data-toc aria-label="On this page">
+              <p class="meta" style="margin: 0 0 8px">On this page</p>
+              <a href="#problem">Problem</a>
+              <a href="#role">Role</a>
+              <a href="#overview">System overview</a>
+              <a href="#decisions">Key decisions</a>
+              <a href="#outcomes">Outcomes</a>
+              <a href="#evidence">Evidence</a>
+              <a href="#related">Related</a>
+            </nav>
+          </aside>
+          <div>
+            <div class="detail-block" id="problem" data-od-id="problem">
+              <h2>Problem</h2>
+              <p class="lead" style="margin-top: 12px">
+                Editorial teams want AI speed without losing voice, brand, or
+                accountability. Monolithic “write the article” prompts hide
+                failure modes until publish time.
+              </p>
+            </div>
+            <div class="detail-block" id="role" data-od-id="role">
+              <h2>Role</h2>
+              <p style="margin-top: 12px; color: var(--muted); max-width: 62ch">
+                Systems designer for the stage machine; defined interfaces
+                between brief intake, knowledge retrieval, draft generation,
+                critique, and publish readiness.
+              </p>
+            </div>
+            <div class="detail-block" id="overview" data-od-id="overview">
+              <h2>System overview</h2>
+              <p style="margin-top: 12px; color: var(--muted); max-width: 62ch">
+                Each stage emits a typed artifact. Critique agents score
+                clarity, brand fit, and claim support. Publish readiness is a
+                checklist, not a vibes vote. Editorial MCP supplies tools; this
+                workflow orchestrates them.
+              </p>
+              <div
+                class="ph-img diagram"
+                style="margin-top: 24px"
+                aria-label="System overview diagram"
+              >
+                <span>System overview · AI-assisted editorial workflow</span>
+              </div>
+            </div>
+            <div class="detail-block" id="decisions" data-od-id="decisions">
+              <h2>Key engineering decisions</h2>
+              <div style="margin-top: 8px">
+                <div class="decision" data-od-id="decision-1">
+                  <div class="label">Decision 01</div>
+                  <div>
+                    <strong
+                      style="font-family: var(--font-display); font-weight: 500"
+                      >Stage contracts</strong
+                    >
+                    <p style="margin: 6px 0 0; color: var(--muted)">
+                      Separate retrieve / draft / critique so regressions are
+                      attributable.
+                    </p>
+                  </div>
+                </div>
+                <div class="decision" data-od-id="decision-2">
+                  <div class="label">Decision 02</div>
+                  <div>
+                    <strong
+                      style="font-family: var(--font-display); font-weight: 500"
+                      >Human gates</strong
+                    >
+                    <p style="margin: 6px 0 0; color: var(--muted)">
+                      No auto-publish. Critique can fail closed; humans reopen.
+                    </p>
+                  </div>
+                </div>
+                <div class="decision" data-od-id="decision-3">
+                  <div class="label">Decision 03</div>
+                  <div>
+                    <strong
+                      style="font-family: var(--font-display); font-weight: 500"
+                      >Claim support</strong
+                    >
+                    <p style="margin: 6px 0 0; color: var(--muted)">
+                      Unsupported assertions become explicit TODOs instead of
+                      confident prose.
+                    </p>
+                  </div>
+                </div>
+                <div class="decision" data-od-id="decision-4">
+                  <div class="label">Decision 04</div>
+                  <div>
+                    <strong
+                      style="font-family: var(--font-display); font-weight: 500"
+                      >Reuse skills</strong
+                    >
+                    <p style="margin: 6px 0 0; color: var(--muted)">
+                      Prompt skills live in the knowledge store — versioned, not
+                      copy-pasted.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="detail-block" id="outcomes" data-od-id="outcomes">
+              <h2>Outcomes</h2>
+              <ul style="margin: 16px 0 0; padding-left: 18px">
+                <li style="margin: 0 0 10px; color: var(--muted)">
+                  Editors review structured packets (brief, sources, draft,
+                  critique) instead of raw chat logs.
+                </li>
+                <li style="margin: 0 0 10px; color: var(--muted)">
+                  Failures localize to a stage — retrieval miss vs. generation
+                  drift vs. weak critique.
+                </li>
+                <li style="margin: 0 0 10px; color: var(--muted)">
+                  Same workflow powers multiple output types without forking the
+                  orchestration.
+                </li>
+              </ul>
+              <p class="meta" style="margin-top: 16px">
+                No invented KPIs — outcomes are qualitative until you supply
+                measured results.
+              </p>
+            </div>
+            <div class="detail-block" id="evidence" data-od-id="evidence">
+              <h2>Evidence</h2>
+              <div style="margin-top: 8px">
+                <div class="evidence-item" data-od-id="evidence-1">
+                  <div>
+                    <strong
+                      style="font-family: var(--font-display); font-weight: 500"
+                      >Stage diagram</strong
+                    >
+                    <p>Brief → Retrieve → Draft → Critique → Ready.</p>
+                  </div>
+                  <a class="btn btn-ghost btn-arrow" href="system.html">Open</a>
+                </div>
+                <div class="evidence-item" data-od-id="evidence-2">
+                  <div>
+                    <strong
+                      style="font-family: var(--font-display); font-weight: 500"
+                      >Related article</strong
+                    >
+                    <p>Editorial MCP: tools as policy surfaces.</p>
+                  </div>
+                  <a
+                    class="btn btn-ghost btn-arrow"
+                    href="articles.html#mcp-editorial"
+                    >Open</a
+                  >
+                </div>
+                <div class="evidence-item" data-od-id="evidence-3">
+                  <div>
+                    <strong
+                      style="font-family: var(--font-display); font-weight: 500"
+                      >Sibling project</strong
+                    >
+                    <p>Editorial MCP tool contracts.</p>
+                  </div>
+                  <a
+                    class="btn btn-ghost btn-arrow"
+                    href="project-editorial-mcp.html"
+                    >Open</a
+                  >
+                </div>
+              </div>
+              <details class="disclosure" style="margin-top: 20px">
+                <summary>Deep evidence pack</summary>
+                <div class="body">
+                  Decision log excerpts, eval notes, and implementation tickets
+                  live here in the shipped product. This prototype keeps the
+                  disclosure pattern without fabricating private artifacts.
+                </div>
+              </details>
+            </div>
+            <div class="detail-block" id="related" data-od-id="related">
+              <h2>Related writing and work</h2>
+              <div style="margin-top: 8px">
+                <a
+                  class="related-link"
+                  href="project-editorial-mcp.html"
+                  data-od-id="related-1"
+                >
+                  <strong>Editorial MCP</strong>
+                  <p class="meta" style="margin: 4px 0 0">Platform layer</p>
+                </a>
+                <a
+                  class="related-link"
+                  href="articles.html#mcp-editorial"
+                  data-od-id="related-2"
+                >
+                  <strong>Tools as policy surfaces</strong>
+                  <p class="meta" style="margin: 4px 0 0">Article</p>
+                </a>
+                <a
+                  class="related-link"
+                  href="system.html"
+                  data-od-id="related-3"
+                >
+                  <strong>Workflows node</strong>
+                  <p class="meta" style="margin: 4px 0 0">Graph</p>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="section"
+        data-od-id="project-cta"
+        style="text-align: center"
+      >
+        <div class="container" style="max-width: 560px">
+          <h2>See how this connects.</h2>
+          <p class="lead" style="margin: 16px auto 28px">
+            Open the system map to inspect agents, workflows, and knowledge
+            edges for this project.
+          </p>
+          <a class="btn btn-primary" href="system.html">Open system map</a>
+        </div>
+      </section>
+    </main>
+    <footer class="pagefoot" data-od-id="footer">
+      <div class="container row-between">
+        <span>© 2026 Michael Truong · AI engineering systems</span>
+        <span class="meta"
+          ><a href="system.html">System map</a> ·
+          <a href="about.html">Contact</a> ·
+          <a href="articles.html">Writing</a></span
+        >
+      </div>
+    </footer>
+
+    <script src="js/site.js"></script>
+  </body>
+</html>

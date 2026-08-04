@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Projects · Michael Truong</title>
+    <meta
+      name="description"
+      content="Filterable systems portfolio: Codenames AI, editorial workflow, Renovate governance, Editorial MCP."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/site.css" />
+  </head>
+  <body>
+    <header class="topnav" data-od-id="topnav">
+      <div class="container topnav-inner">
+        <a class="logo" href="index.html">Michael Truong <em>· systems</em></a>
+        <nav aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="projects.html" aria-current="page">Projects</a>
+          <a href="system.html">System</a>
+          <a href="articles.html">Articles</a>
+          <a href="about.html">About</a>
+        </nav>
+        <a class="btn btn-primary" href="about.html">Contact</a>
+        <button
+          class="nav-toggle"
+          type="button"
+          data-nav-toggle
+          aria-expanded="false"
+          aria-label="Open menu"
+        >
+          <span></span>
+        </button>
+      </div>
+      <div class="mobile-nav" data-mobile-nav>
+        <a href="index.html">Home</a>
+        <a href="projects.html" aria-current="page">Projects</a>
+        <a href="system.html">System</a>
+        <a href="articles.html">Articles</a>
+        <a href="about.html">About</a>
+        <a href="about.html">Contact</a>
+      </div>
+    </header>
+    <main id="content">
+      <section
+        class="section hero"
+        data-od-id="projects-hero"
+        style="padding-bottom: 32px"
+      >
+        <div class="container" style="max-width: 720px">
+          <p class="eyebrow">Projects</p>
+          <h1>Work arranged as systems, not a résumé dump.</h1>
+          <p class="lead">
+            Filter by layer — product, workflow, governance, platform — then
+            open a case for problem, role, decisions, and evidence.
+          </p>
+        </div>
+      </section>
+
+      <section
+        class="section"
+        data-od-id="projects-index"
+        style="padding-top: 0"
+      >
+        <div class="container" data-filter-root>
+          <div class="filter-bar" style="margin-bottom: 28px">
+            <input
+              class="input"
+              type="search"
+              data-filter-q
+              placeholder="Search projects, tags, outcomes…"
+              aria-label="Search projects"
+            />
+            <button
+              type="button"
+              class="tag tag-active"
+              data-filter-tag="all"
+              aria-pressed="true"
+            >
+              All
+            </button>
+            <button
+              type="button"
+              class="tag"
+              data-filter-tag="product"
+              aria-pressed="false"
+            >
+              Product
+            </button>
+            <button
+              type="button"
+              class="tag"
+              data-filter-tag="workflow"
+              aria-pressed="false"
+            >
+              Workflow
+            </button>
+            <button
+              type="button"
+              class="tag"
+              data-filter-tag="governance"
+              aria-pressed="false"
+            >
+              Governance
+            </button>
+            <button
+              type="button"
+              class="tag"
+              data-filter-tag="platform"
+              aria-pressed="false"
+            >
+              Platform
+            </button>
+            <button
+              type="button"
+              class="tag"
+              data-filter-tag="meta"
+              aria-pressed="false"
+            >
+              Meta
+            </button>
+          </div>
+          <div class="grid-2" data-od-id="project-grid">
+            <a
+              class="card card-interactive work-card"
+              href="project-codenames-ai.html"
+              data-filter-item
+              data-tags="product agents eval"
+              data-od-id="proj-codenames"
+            >
+              <div class="kicker">
+                <span class="pill">Product</span
+                ><span class="meta">Codenames AI</span>
+              </div>
+              <h3>Codenames AI</h3>
+              <p>
+                AI Spymaster / AI Operative gameplay with first-visit onboarding
+                tuned for solo confidence and progressive disclosure.
+              </p>
+              <div class="links">
+                <span class="tag">agents</span><span class="tag">UX</span
+                ><span class="tag">eval</span>
+              </div>
+            </a>
+            <a
+              class="card card-interactive work-card"
+              href="project-editorial-workflow.html"
+              data-filter-item
+              data-tags="workflow outputs eval"
+              data-od-id="proj-editorial"
+            >
+              <div class="kicker">
+                <span class="pill">Workflow</span
+                ><span class="meta">Editorial pipeline</span>
+              </div>
+              <h3>AI-assisted editorial workflow</h3>
+              <p>
+                Brief → retrieve → draft → critique → publish-ready, with human
+                checkpoints at every irreversible step.
+              </p>
+              <div class="links">
+                <span class="tag">workflows</span
+                ><span class="tag">outputs</span>
+              </div>
+            </a>
+            <a
+              class="card card-interactive work-card"
+              href="project-renovate-governance.html"
+              data-filter-item
+              data-tags="governance automation ops"
+              data-od-id="proj-renovate"
+            >
+              <div class="kicker">
+                <span class="pill">Governance</span
+                ><span class="meta">Dependencies</span>
+              </div>
+              <h3>Renovate governance ladder</h3>
+              <p>
+                Graduated autonomy for dependency PRs — policy, trust tiers, and
+                auditability without freezing the repo.
+              </p>
+              <div class="links">
+                <span class="tag">governance</span><span class="tag">ops</span>
+              </div>
+            </a>
+            <a
+              class="card card-interactive work-card"
+              href="project-editorial-mcp.html"
+              data-filter-item
+              data-tags="platform knowledge skills"
+              data-od-id="proj-mcp"
+            >
+              <div class="kicker">
+                <span class="pill">Platform</span><span class="meta">MCP</span>
+              </div>
+              <h3>Editorial MCP</h3>
+              <p>
+                Tool contracts for brand knowledge, skills, and reviewable
+                generation — the connective tissue for editorial agents.
+              </p>
+              <div class="links">
+                <span class="tag">MCP</span><span class="tag">skills</span>
+              </div>
+            </a>
+            <a
+              class="card card-interactive work-card"
+              href="project-portfolio-system.html"
+              data-filter-item
+              data-tags="meta platform knowledge"
+              data-od-id="proj-portfolio"
+            >
+              <div class="kicker">
+                <span class="pill">Meta</span
+                ><span class="meta">This site</span>
+              </div>
+              <h3>Portfolio as engineering system</h3>
+              <p>
+                The site itself models projects, agents, workflows, governance,
+                knowledge, skills, outputs, and articles as one graph.
+              </p>
+              <div class="links">
+                <span class="tag">IA</span><span class="tag">knowledge</span>
+              </div>
+            </a>
+          </div>
+          <p class="meta" data-filter-empty hidden style="margin-top: 24px">
+            No projects match that filter.
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer class="pagefoot" data-od-id="footer">
+      <div class="container row-between">
+        <span>© 2026 Michael Truong · AI engineering systems</span>
+        <span class="meta"
+          ><a href="system.html">System map</a> ·
+          <a href="about.html">Contact</a> ·
+          <a href="articles.html">Writing</a></span
+        >
+      </div>
+    </footer>
+
+    <script src="js/site.js"></script>
+  </body>
+</html>
