@@ -56,7 +56,14 @@ Placeholder routes:
 
 ## Deployment
 
-Designed for Vercel. Connect the GitHub repository and deploy the Next.js app with default settings. No env vars are required for the skeleton.
+Designed for Vercel. The GitHub repository is connected; the Next.js app deploys with default settings. No env vars are required for the skeleton.
+
+Stable production URLs (Multipliers Dev team):
+
+- Production: [https://portfolio-multipliers-dev.vercel.app](https://portfolio-multipliers-dev.vercel.app)
+- `main` branch alias: [https://portfolio-git-main-multipliers-dev.vercel.app](https://portfolio-git-main-multipliers-dev.vercel.app)
+
+Per-deploy `*.vercel.app` hosts change every build and are not documented here. Add a custom domain here when one is configured.
 
 ## Layout
 
