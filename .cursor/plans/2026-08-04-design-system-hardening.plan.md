@@ -128,7 +128,7 @@ Add a small set of measure/spacing utilities in `components.css` (using existing
 
 - `.measure` — ~62ch / content-narrow reading width (and/or `.measure-md` for 720px list heroes)
 - `.measure-sm` — ~40ch / ~34ch short positioning blocks if one class covers both use cases; otherwise keep the closer tokenized pair
-- Hero CTA top spacing via existing `.hero-cta` rule instead of `marginTop: 28`
+- Hero CTA top spacing: production `.hero-cta` today only sets flex layout (`display`, `gap`, `flex-wrap`) — it has **no** top margin. Before removing inline `marginTop: 28` on home/about, **add** `margin-top` to `.hero-cta` in CSS (prefer a `--gap-*` token if visual parity holds; otherwise keep `28px` and note the exception). Do not drop the inline style without adding the CSS rule first.
 - Compact hero bottom padding via a modifier (e.g. `.hero.hero-compact`) replacing repeated `paddingBottom: 32|40`
 - Stack gap variants (e.g. `.stack-lg`) replacing `style={{ gap: 40 }}` where used
 
