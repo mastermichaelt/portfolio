@@ -1,6 +1,6 @@
 ---
 name: Job-search-ready portfolio MVP
-overview: "Ship a Next.js static-content MVP (home, projects, two case studies, articles, about) as a recruiter link, resume companion, interview reference, and public portfolio — using the HTML prototype for IA/brand only, and workspace evidence from resumes + codenames-ai-guesser for all claims and article links."
+overview: "Ship a Next.js static-content MVP (home, projects, three case studies, articles, about) as a recruiter link, resume companion, interview reference, and public portfolio — using the HTML prototype for IA/brand only, and workspace evidence from resumes + codenames-ai-guesser for all claims and article links."
 todos:
   - id: plan-review
     content: "Plan-only PR — commit plan artifact and open PR for review; do not implement"
@@ -49,12 +49,12 @@ The repository integration branch is `main`. Implementation slices start from an
 ## Locked decisions
 
 - **Ship path:** Production Next.js routes under [`app/`](../../app/), fed by typed modules under [`content/`](../../content/) via [`StaticPortfolioRepository`](../../repositories/static-portfolio-repository.ts). Do **not** serve or import [`prototypes/`](../../prototypes/) into the build ([architecture](../../docs/architecture/overview.md)).
-- **Case studies (exactly two):** **Codenames AI** and **Renovate governance ladder**.
+- **Case studies (exactly three):** **Codenames AI**, **AI-assisted editorial workflow**, and **Renovate governance ladder** (narrative order: product → systems/workflows differentiator → operational governance).
 - **Visual bar:** Brand-close to the prototype (tokens, Newsreader / Source Sans 3 / IBM Plex Mono, shared top nav) — not a pixel port. Skip system map, search/filter chrome, and contact form.
 - **HTML prototype is temporary:** [`prototypes/ai-engineering-portfolio/`](../../prototypes/ai-engineering-portfolio/) (lands via [portfolio#6](https://github.com/mastermichaelt/portfolio/pull/6)) is a disposable IA/brand review artifact. Use it during `linkedin-surfaces`, then **delete it** in `prototype-cleanup`. Do not keep it as a long-lived second design source of truth.
 - **Contact:** Mailto + LinkedIn + GitHub + DEV blog (no form). Identity from sibling workspace `resumes/meta/profile.yml`.
-- **Articles:** Index entries that link out to published DEV.to posts (canonical markdown in sibling `codenames-ai-guesser`). No full article detail routes in this plan.
-- **Out of scope:** `/ecosystem` map, remaining prototype project pages, chatbot, Supabase, Atlassian case-study pages (facts may appear lightly on About only).
+- **Articles:** Full published DEV.to inventory (canonical markdown in sibling `codenames-ai-guesser`); optional `featured` for homepage. No full article detail routes in this plan.
+- **Out of scope:** `/ecosystem` map, remaining prototype project pages (e.g. editorial-MCP deep-dive, portfolio-as-project), chatbot, Supabase, Atlassian case-study pages (facts may appear lightly on About only).
 - **Project section model:** Flexible typed sections (see below). The prototype’s case-study sequence is the **preferred pattern**, not a mandatory schema. Include only sections supported by evidence.
 - **About is not a resume:** `/about` stays short identity + contact + light career flavor. **Projects carry the weight** of the portfolio (case-study depth, decisions, evidence). Do not port full role bullets, metric stacks, or resume-length timelines onto About.
 
@@ -95,6 +95,7 @@ interface ProjectSection {
 - Every project must include: **context or system**, **contribution or role**, and **evidence**.
 - **Outcomes are optional** when no defensible outcome claim exists (prefer linking field reports / public artifacts over invented KPIs).
 - Renovate may emphasize `system` / `operation` / `constraints` / `decisions` (governance, automation layers, authority boundaries, stop conditions) rather than a conventional product-outcomes arc.
+- Editorial may emphasize `system` / `constraints` / `decisions` / `operation` (lifecycle stages, ownership model, critique-before-score, human publish gates) with outcomes only when defensible (e.g. weekly published series — not invented editorial KPIs).
 - Codenames may follow the preferred product case-study sequence when evidence supports each section.
 
 ## Content authority (workspace sources)
@@ -110,7 +111,7 @@ Sibling repos are local workspace checkouts next to this repository (not importe
 | **Published writing**                 | `codenames-ai-guesser/docs/dev.to/published/`                                                                                              | Article index titles/summaries + live DEV URLs                                                                |
 | **Application prose (optional tone)** | `resumes/applications/riot-sydney-2026/` (`brief.yml` / `include.yml` / generated `out/`)                                                  | Selection/emphasis hints only — do not invent facts; do not use `research.md`                                 |
 | **IA / brand (temporary)**            | `prototypes/ai-engineering-portfolio/` ([portfolio#6](https://github.com/mastermichaelt/portfolio/pull/6); deleted in `prototype-cleanup`) | Preferred section pattern, nav, visual tokens while porting — omit unsupported sections; not production truth |
-| **Secondary (not MVP case studies)**  | `ai-learning/`                                                                                                                             | Optional later lab link; not one of the two shipped case studies                                              |
+| **Secondary (not MVP case studies)**  | `ai-learning/`                                                                                                                             | Optional later lab link; not one of the three shipped case studies                                            |
 
 **Stop rules (same spirit as resumes facts-vs-prose):**
 
@@ -138,7 +139,7 @@ The production URL should work as a **job-search-ready** surface: recruiter link
 A hiring manager opening the production URL can:
 
 1. Land on a real homepage (not “under construction”)
-2. Browse `/projects` and open **two** case studies grounded in workspace evidence (projects carry portfolio depth)
+2. Browse `/projects` and open **three** case studies grounded in workspace evidence (projects carry portfolio depth)
 3. Browse `/articles` with links to real published posts
 4. Reach a short `/about` with email + LinkedIn + GitHub (+ blog) — not a resume page
 
@@ -169,7 +170,18 @@ Keep About **thin**. Identity, contact, and optional short flavor only — no re
 | Preferred section IA (omit if unsupported) | Prototype [`project-codenames-ai.html`](../../prototypes/ai-engineering-portfolio/project-codenames-ai.html) — product case-study arc when evidence supports it |
 | Related writing                            | `codenames-ai-guesser/docs/dev.to/published/` — schema-first Zod, model experiments, active-players sessions                                                    |
 
-### Case study 2 — Renovate governance ladder
+### Case study 2 — AI-assisted editorial workflow
+
+Treat as a **workflow / systems** case study (the portfolio differentiator): reusable agent skills for capture → triage → context → draft → critique → publish, with explicit ownership and human gates. Prefer `system` / `constraints` / `decisions` / `operation` / `evidence`; outcomes only when inventory-backed (weekly field-report series).
+
+| Need                                       | Canonical source                                                                                                                                                                                 |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Series + editorial system claims           | `resumes/facts/writing-field-reports.yml`, `resumes/facts/ai-engineering-workflows.yml` (`editorial-workflows`)                                                                                  |
+| Lifecycle / ownership / skills             | `codenames-ai-guesser/docs/editorial-workflow.md`                                                                                                                                                |
+| Public narrative                           | `one-example-beats-style-guide.md`, `reviewers-analysis-before-scoring.md`, `my-ai-reviewer-improved-by-separating-kinds-of-reasoning-not-expanding-its-rubric.md`                               |
+| Preferred section IA (omit if unsupported) | Prototype [`project-editorial-workflow.html`](../../prototypes/ai-engineering-portfolio/project-editorial-workflow.html) — reshape to workflow kinds as evidence allows; omit unsupported stages |
+
+### Case study 3 — Renovate governance ladder
 
 Treat as an **operational / governance system** (automation layers, failure controls, authority boundaries), not a conventional “project with outcomes.” Prefer `system` / `operation` / `constraints` / `decisions` / `evidence` over inventing product-style outcomes.
 
@@ -182,15 +194,13 @@ Treat as an **operational / governance system** (automation layers, failure cont
 
 ### Articles index (link out)
 
-Populate from published markdown (title + short summary + canonical DEV URL). Prefer posts tied to the two case studies; 4–6 entries is enough for MVP:
+Populate the **full** published inventory from sibling `codenames-ai-guesser/docs/dev.to/published/` (title + short summary + canonical DEV URL). `listArticles()` is the complete archive — not a featured-only list.
 
-- Schema-first / Zod guardrails
-- Model experiments as architectural stress test
-- Active players / session counting
-- Evidence-driven dependency upgrades
-- Agent plans & authority handoffs
+- Relate posts to a case-study project via `relatedProjectSlug` when appropriate; leave unset only when no MVP case study fits (e.g. cloud-agent / ai-learning).
+- Mark homepage candidates with optional `featured?: boolean`; surfaces filter (`articles.filter((a) => a.featured)`) rather than a second repository method unless needed later.
+- Omit only posts that are obsolete, substantially weaker, or outside the professional narrative.
 
-Optional extras later: editorial critique posts, cloud-agent post (ai-learning tagged).
+Initial featured set (content defaults; surfaces may change prominence): case-study-tied highlights across Codenames, editorial, and Renovate.
 
 ### Production targets
 
@@ -251,7 +261,7 @@ Optional extras later: editorial critique posts, cloud-agent post (ai-learning t
 
 **Acceptance:**
 
-- Two projects (Codenames AI, Renovate governance) and 4–6 articles load via repository
+- Three projects (Codenames AI, editorial workflow, Renovate governance) and the full published DEV article inventory load via repository (`featured` optional for homepage selection)
 - Each project includes context/system, contribution/role, and evidence; outcomes only when defensible
 - Claims do not invent metrics beyond inventory; evidence URLs point at real public artifacts where possible
 - About/profile content stays identity-scale (not resume-length); project content holds case-study depth
@@ -358,7 +368,7 @@ Do not archive inside implementation PRs.
 - Contact form / server actions
 - Hosting full article bodies in Next.js / MDX blog
 - Search/tag filters
-- Editorial / MCP / portfolio-as-project case studies (evidence exists; not in this MVP)
+- Editorial-MCP deep-dive and portfolio-as-project case studies (prototype pages exist; not MVP case studies)
 - Atlassian growth/AIM deep case studies (facts stay in resumes; About may use title/date flavor only)
 - Resume-length About page (full role bullets, metric stacks, or skills inventory)
 - Pixel-perfect CSS port of `site.css`

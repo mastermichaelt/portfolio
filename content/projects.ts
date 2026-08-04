@@ -84,6 +84,88 @@ export const projects: Project[] = [
     ],
   },
   {
+    slug: "editorial-workflow",
+    title: "AI-assisted editorial workflow",
+    summary:
+      "A human-in-the-loop editorial system that turns engineering artifacts into weekly field reports through planning, retrieval, drafting, critique, verification, and publication.",
+    tags: ["agents", "workflows", "writing", "evaluation", "Notion"],
+    eyebrow: "Workflow case study",
+    kind: "workflow",
+    sections: [
+      {
+        id: "problem",
+        kind: "problem",
+        title: "Problem",
+        body: "Publishing thoughtful engineering writing every week is less about pressing a publish button and more about keeping voice, evidence, and judgment intact while agents help with capture, drafting, and critique. A longer style rule did not stabilize voice; score-first review produced QA feedback when the draft needed editorial judgment.",
+      },
+      {
+        id: "role",
+        kind: "role",
+        title: "Contribution",
+        body: "I designed and built the AI-assisted editorial workflows — planning, retrieval, drafting, critique, verification, and publication — as reusable role-based skills with explicit contracts, while developing production software and publishing the field-report series they produce.",
+      },
+      {
+        id: "system",
+        kind: "system",
+        title: "System",
+        body: "Ideas live as Notion cards; article bodies live as repo markdown; DEV.to is the publish surface. Operator skills cover the lifecycle Inbox → Candidate → Drafting → Published: capture/triage, weekly schedule (one Drafting card at a time), bounded context retrieval, draft generation, adversarial critique, and draft sync — with humans editing markdown and approving irreversible publish steps.",
+      },
+      {
+        id: "constraints",
+        kind: "constraints",
+        title: "Constraints",
+        body: "Ownership is explicit: Notion wins for idea metadata, the repo wins for article body, DEV.to wins for the live post, and skill files win for agent behavior. Humans remain in the loop for revision and final publish. Cover-image review is an explicit gate after a post shipped without one. Cadence defaults to one thoughtful DEV post per week.",
+      },
+      {
+        id: "decisions",
+        kind: "decisions",
+        title: "Decisions",
+        body: "Retrieval, generation, and critique are separate stages rather than one prompt. Critique analyzes before it scores. Voice training prefers a strong structural exemplar over an ever-growing style encyclopedia. MCP-backed Notion and GitHub integrations supply grounded context without letting agents silently rewrite the source of truth.",
+      },
+      {
+        id: "outcomes",
+        kind: "outcomes",
+        title: "Outcomes",
+        body: "The system continuously produces a public weekly engineering field-report series on DEV — covering agents, LLMs, evaluation, analytics, and AI-assisted engineering practices from production software workflows — through structured context retrieval, critique, and evidence-based refinement rather than one-off chatbot drafting.",
+      },
+      {
+        id: "evidence",
+        kind: "evidence",
+        title: "Evidence",
+        body: "Public runbook and field reports linked below. Prefer those artifacts over invented editorial KPIs.",
+      },
+    ],
+    relatedLinks: [
+      {
+        id: "editorial-workflow-doc",
+        label: "Editorial workflow (runbook)",
+        url: "https://github.com/mastermichaelt/codenames-ai-guesser/blob/main/docs/editorial-workflow.md",
+      },
+      {
+        id: "devto-blog",
+        label: "DEV.to field reports",
+        url: "https://dev.to/michaeltruong",
+      },
+    ],
+    evidence: [
+      {
+        id: "article-one-example",
+        label: "One good example beat every AI writing rule I wrote",
+        url: "https://dev.to/michaeltruong/one-good-example-beat-every-ai-writing-rule-i-wrote-7oo",
+      },
+      {
+        id: "article-reviewers-scoring",
+        label: "The AI reviewer scored 23/25 and missed the point",
+        url: "https://dev.to/michaeltruong/the-ai-reviewer-scored-2325-and-missed-the-point-51mh",
+      },
+      {
+        id: "article-reviewer-reasoning",
+        label: "I fixed my AI reviewer. Then I kept solving the wrong problem",
+        url: "https://dev.to/michaeltruong/i-fixed-my-ai-reviewer-then-i-kept-solving-the-wrong-problem-58am",
+      },
+    ],
+  },
+  {
     slug: "renovate-governance",
     title: "Renovate governance ladder",
     summary:

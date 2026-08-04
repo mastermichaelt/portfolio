@@ -14,7 +14,6 @@ export const profile: Profile = {
     linkedin: "https://www.linkedin.com/in/michael-truong-dev",
     github: "https://github.com/mastermichaelt",
     blog: "https://dev.to/michaeltruong",
-    portfolio: "https://codenames-ai.com",
   },
   skillClusters: [
     "Frontend",

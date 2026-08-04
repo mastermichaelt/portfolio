@@ -2,8 +2,6 @@ export interface ProfileLinks {
   linkedin: string;
   github: string;
   blog: string;
-  /** Optional product or site URL from career inventory. */
-  portfolio?: string;
 }
 
 /** Identity-scale About content — not a resume dump. */

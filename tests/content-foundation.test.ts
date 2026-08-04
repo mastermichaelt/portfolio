@@ -25,11 +25,11 @@ describe("content-foundation inventory", () => {
     expect(profile.bio.length).toBeLessThan(500);
   });
 
-  it("loads two evidence-backed case studies via the repository", async () => {
+  it("loads three evidence-backed case studies via the repository", async () => {
     const listed = await repository.listProjects();
-    expect(listed).toHaveLength(2);
-    expect(listed.map((project) => project.slug).sort()).toEqual([
+    expect(listed.map((project) => project.slug)).toEqual([
       "codenames-ai",
+      "editorial-workflow",
       "renovate-governance",
     ]);
 
@@ -57,16 +57,33 @@ describe("content-foundation inventory", () => {
     ).toBe(false);
   });
 
-  it("loads 4–6 external articles with DEV URLs", async () => {
+  it("loads the full article inventory with valid fields and project refs", async () => {
     const listed = await repository.listArticles();
-    expect(listed.length).toBeGreaterThanOrEqual(4);
-    expect(listed.length).toBeLessThanOrEqual(6);
+    expect(listed.length).toBeGreaterThan(0);
     expect(listed).toEqual(articles);
 
+    const projectSlugs = new Set(
+      (await repository.listProjects()).map((project) => project.slug),
+    );
+    const slugs = listed.map((article) => article.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
+
+    const urls = listed.map((article) => article.url);
+    expect(new Set(urls).size).toBe(urls.length);
+
     for (const article of listed) {
-      expect(article.url).toMatch(/^https:\/\/dev\.to\//);
-      expect(article.year).toBeGreaterThanOrEqual(2026);
+      expect(article.title.trim().length).toBeGreaterThan(0);
       expect(article.summary.trim().length).toBeGreaterThan(0);
+      expect(article.url).toMatch(/^https:\/\/dev\.to\//);
+      expect(article.year).toBeGreaterThanOrEqual(2020);
+      expect(article.tags.length).toBeGreaterThan(0);
+      if (article.relatedProjectSlug !== undefined) {
+        expect(projectSlugs.has(article.relatedProjectSlug)).toBe(true);
+      }
     }
+
+    const featured = listed.filter((article) => article.featured);
+    expect(featured.length).toBeGreaterThan(0);
+    expect(featured.length).toBeLessThan(listed.length);
   });
 });
