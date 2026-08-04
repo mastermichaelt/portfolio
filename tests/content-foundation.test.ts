@@ -25,12 +25,19 @@ describe("content-foundation inventory", () => {
     expect(profile.bio.length).toBeLessThan(500);
   });
 
-  it("loads three evidence-backed case studies via the repository", async () => {
+  it("loads four evidence-backed projects with two homepage flagships", async () => {
     const listed = await repository.listProjects();
     expect(listed.map((project) => project.slug)).toEqual([
       "codenames-ai",
       "editorial-workflow",
+      "resume-generator",
       "renovate-governance",
+    ]);
+
+    const featured = listed.filter((project) => project.featured);
+    expect(featured.map((project) => project.slug)).toEqual([
+      "codenames-ai",
+      "editorial-workflow",
     ]);
 
     for (const project of listed) {
@@ -46,7 +53,10 @@ describe("content-foundation inventory", () => {
       );
       expect(project.evidence?.length ?? 0).toBeGreaterThan(0);
       for (const item of project.evidence ?? []) {
-        expect(item.url).toMatch(/^https:\/\//);
+        expect(item.label.trim().length).toBeGreaterThan(0);
+        if (item.url !== undefined) {
+          expect(item.url).toMatch(/^https:\/\//);
+        }
       }
     }
 
