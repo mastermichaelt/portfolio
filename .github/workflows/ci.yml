@@ -36,17 +36,106 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Path-aware gate: job always reports a status (required-check safe).
+      # Skip Playwright only when every changed path is on the docs-only allowlist.
+      # Unknown / future paths fail closed → run e2e.
+      - name: Determine e2e profile
+        id: profile
+        run: |
+          set -euo pipefail
+
+          is_docs_only() {
+            local file="$1"
+            case "$file" in
+              docs/*|.cursor/*)
+                return 0
+                ;;
+              README.md|AGENTS.md|CLAUDE.md)
+                return 0
+                ;;
+              .github/pull_request_template.md|.github/CODEOWNERS|.github/dependabot.yml)
+                return 0
+                ;;
+              .github/ISSUE_TEMPLATE/*)
+                return 0
+                ;;
+            esac
+            return 1
+          }
+
+          run=true
+          reason="run e2e"
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            run=true
+            reason="main push (trusted gate)"
+          else
+            base_sha="${{ github.event.pull_request.base.sha }}"
+            head_sha="${{ github.event.pull_request.head.sha }}"
+            # Fail closed (keep run=true) if fetch/diff cannot classify the PR.
+            if [ -z "$base_sha" ] || [ -z "$head_sha" ]; then
+              run=true
+              reason="fail-closed: missing PR base or head SHA"
+            elif ! git fetch origin "$base_sha" --depth=1; then
+              run=true
+              reason="fail-closed: git fetch failed for base SHA $base_sha"
+            elif ! git fetch origin "$head_sha" --depth=1; then
+              run=true
+              reason="fail-closed: git fetch failed for head SHA $head_sha"
+            else
+              # Two-point diff between PR event SHAs — shallow-safe (no merge-base lookup).
+              classified=false
+              changed_files="$(git diff --name-only "$base_sha" "$head_sha")" || {
+                run=true
+                reason="fail-closed: git diff failed"
+                classified=true
+              }
+              if [ "$classified" = false ]; then
+                if [ -z "$changed_files" ]; then
+                  run=true
+                  reason="fail-closed: empty diff output"
+                else
+                  run=false
+                  reason="docs-only PR (skip Playwright)"
+                  while IFS= read -r file; do
+                    [ -z "$file" ] && continue
+                    if ! is_docs_only "$file"; then
+                      run=true
+                      reason="non-docs path: $file"
+                      break
+                    fi
+                  done <<< "$changed_files"
+                fi
+              fi
+            fi
+          fi
+
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "E2E profile: run=$run ($reason)"
+
+      - name: Skip Playwright
+        if: steps.profile.outputs.run != 'true'
+        run: echo "Docs-only PR; Playwright skipped."
+
       - uses: actions/setup-node@v5
+        if: steps.profile.outputs.run == 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
 
-      - run: npm ci
-      - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - if: steps.profile.outputs.run == 'true'
+        run: npm ci
 
-      - if: failure()
+      - if: steps.profile.outputs.run == 'true'
+        run: npm run build
+
+      - if: steps.profile.outputs.run == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - if: steps.profile.outputs.run == 'true'
+        run: npm run test:e2e
+
+      - if: failure() && steps.profile.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
