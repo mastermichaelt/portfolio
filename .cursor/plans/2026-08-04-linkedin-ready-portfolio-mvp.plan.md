@@ -11,6 +11,9 @@ todos:
   - id: linkedin-surfaces
     content: "PR: brand shell, nav, home/projects/[slug]/articles/about (thin About; projects carry weight); remove under-construction UX; update README"
     status: pending
+  - id: prototype-cleanup
+    content: "PR: after surfaces ship, delete temporary HTML prototype package and scrub README/AGENTS prototype pointers"
+    status: pending
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/YYYY-MM-DD-linkedin-ready-portfolio-mvp.plan.md"
     status: pending
@@ -26,6 +29,7 @@ isProject: false
 | plan-review        | Plan-only PR          | Do not implement. Stop after opening the plan-only PR. |
 | content-foundation | Open PR only          | Do not merge. Stop after opening the PR.               |
 | linkedin-surfaces  | Open PR only          | Do not merge. Stop after opening the PR.               |
+| prototype-cleanup  | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure       | Open PR only          | Do not merge. Stop after opening the PR.               |
 
 Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
@@ -47,6 +51,7 @@ The repository integration branch is `main`. Implementation slices start from an
 - **Ship path:** Production Next.js routes under [`app/`](../../app/), fed by typed modules under [`content/`](../../content/) via [`StaticPortfolioRepository`](../../repositories/static-portfolio-repository.ts). Do **not** serve or import [`prototypes/`](../../prototypes/) into the build ([architecture](../../docs/architecture/overview.md)).
 - **Case studies (exactly two):** **Codenames AI** and **Renovate governance ladder**.
 - **Visual bar:** Brand-close to the prototype (tokens, Newsreader / Source Sans 3 / IBM Plex Mono, shared top nav) — not a pixel port. Skip system map, search/filter chrome, and contact form.
+- **HTML prototype is temporary:** [`prototypes/ai-engineering-portfolio/`](../../prototypes/ai-engineering-portfolio/) (lands via [portfolio#6](https://github.com/mastermichaelt/portfolio/pull/6)) is a disposable IA/brand review artifact. Use it during `linkedin-surfaces`, then **delete it** in `prototype-cleanup`. Do not keep it as a long-lived second design source of truth.
 - **Contact:** Mailto + LinkedIn + GitHub + DEV blog (no form). Identity from sibling workspace `resumes/meta/profile.yml`.
 - **Articles:** Index entries that link out to published DEV.to posts (canonical markdown in sibling `codenames-ai-guesser`). No full article detail routes in this plan.
 - **Out of scope:** `/ecosystem` map, remaining prototype project pages, chatbot, Supabase, Atlassian case-study pages (facts may appear lightly on About only).
@@ -98,14 +103,14 @@ Claims must follow this stack. Prototype copy is **IA / brand preference only**,
 
 Sibling repos are local workspace checkouts next to this repository (not imported at build time). Manual transcription into `content/*.ts` for MVP.
 
-| Layer                                 | Workspace path                                                                            | Role                                                                                                      |
-| ------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Career facts (canonical)**          | `resumes/facts/`, `resumes/meta/`, `resumes/roles/`                                       | Only source for titles, employers, metrics, product claims, contact                                       |
-| **Project systems / ops**             | `codenames-ai-guesser/docs/`, `codenames-ai-guesser/README.md`                            | Case-study depth: pipeline, Renovate ladder, editorial runbooks                                           |
-| **Published writing**                 | `codenames-ai-guesser/docs/dev.to/published/`                                             | Article index titles/summaries + live DEV URLs                                                            |
-| **Application prose (optional tone)** | `resumes/applications/riot-sydney-2026/` (`brief.yml` / `include.yml` / generated `out/`) | Selection/emphasis hints only — do not invent facts; do not use `research.md`                             |
-| **IA / brand (design-only)**          | `prototypes/ai-engineering-portfolio/` (this repo)                                        | Preferred section pattern, nav, visual tokens — replace placeholder email/KPIs; omit unsupported sections |
-| **Secondary (not MVP case studies)**  | `ai-learning/`                                                                            | Optional later lab link; not one of the two shipped case studies                                          |
+| Layer                                 | Workspace path                                                                                                                             | Role                                                                                                          |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| **Career facts (canonical)**          | `resumes/facts/`, `resumes/meta/`, `resumes/roles/`                                                                                        | Only source for titles, employers, metrics, product claims, contact                                           |
+| **Project systems / ops**             | `codenames-ai-guesser/docs/`, `codenames-ai-guesser/README.md`                                                                             | Case-study depth: pipeline, Renovate ladder, editorial runbooks                                               |
+| **Published writing**                 | `codenames-ai-guesser/docs/dev.to/published/`                                                                                              | Article index titles/summaries + live DEV URLs                                                                |
+| **Application prose (optional tone)** | `resumes/applications/riot-sydney-2026/` (`brief.yml` / `include.yml` / generated `out/`)                                                  | Selection/emphasis hints only — do not invent facts; do not use `research.md`                                 |
+| **IA / brand (temporary)**            | `prototypes/ai-engineering-portfolio/` ([portfolio#6](https://github.com/mastermichaelt/portfolio/pull/6); deleted in `prototype-cleanup`) | Preferred section pattern, nav, visual tokens while porting — omit unsupported sections; not production truth |
+| **Secondary (not MVP case studies)**  | `ai-learning/`                                                                                                                             | Optional later lab link; not one of the two shipped case studies                                              |
 
 **Stop rules (same spirit as resumes facts-vs-prose):**
 
@@ -268,7 +273,7 @@ Optional extras later: editorial critique posts, cloud-agent post (ai-learning t
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Prerequisite:** `content-foundation` merged to `main`.
+**Prerequisite:** `content-foundation` merged to `main`. HTML prototype package available on `main` (merge [portfolio#6](https://github.com/mastermichaelt/portfolio/pull/6) first if not already landed) so brand-spec / visual reference can be ported.
 
 **Goal:** Replace under-construction UX with brand-close pages wired to the repository.
 
@@ -292,6 +297,39 @@ Optional extras later: editorial critique posts, cloud-agent post (ai-learning t
 - Mark `linkedin-surfaces` completed in plan frontmatter in the same PR
 
 **Verify:** `npm run typecheck && npm run test:coverage && npm run lint && npm run build`; manual check of five surfaces + mobile nav
+
+---
+
+## Slice — prototype-cleanup
+
+**Recommended authority:** Open PR only
+
+**Rationale:**
+
+- Removes the temporary HTML design package after production surfaces exist, so agents do not keep dual-sourcing brand/IA from `prototypes/`
+- Merge-safe on its own: delete + doc scrub only; does not change shipped routes
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Prerequisite:** `linkedin-surfaces` merged to `main` (production pages already brand-close without needing the HTML package).
+
+**Goal:** Throw away the disposable prototype after the port.
+
+**Work:**
+
+- Delete [`prototypes/ai-engineering-portfolio/`](../../prototypes/ai-engineering-portfolio/) (the package from [portfolio#6](https://github.com/mastermichaelt/portfolio/pull/6))
+- If `prototypes/` has no remaining packages, remove the empty `prototypes/` tree and its root README
+- Scrub [`README.md`](../../README.md) / [`AGENTS.md`](../../AGENTS.md) (and architecture docs if needed) so they no longer point at the deleted package as an active design source
+- Do **not** revert production CSS/fonts/content ported in `linkedin-surfaces`
+
+**Acceptance:**
+
+- No `prototypes/ai-engineering-portfolio/` tree remains
+- Docs no longer instruct agents to treat that package as the live brand/IA source
+- `npm run typecheck`, `npm run test:coverage`, `npm run lint`, `npm run build` pass
+- Mark `prototype-cleanup` completed in plan frontmatter in the same PR
+
+**Verify:** `npm run typecheck && npm run test:coverage && npm run lint && npm run build`
 
 ---
 
@@ -336,10 +374,13 @@ Use a **fresh Agent-mode chat** per slice.
   - "Execute plan-review from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Redraft or commit the plan artifact per repo planning standards. Start from latest `origin/main`, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not implement. Stop after opening the plan-only PR. Mark `plan-review` completed in plan frontmatter. Do not start implementation slices."
 
 - **Slice — content-foundation**
-  - "Implement content-foundation from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisite: plan-review merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Populate content from sibling workspace resumes + codenames-ai-guesser evidence (not prototype KPIs). Use the flexible `ProjectSection` model — preferred prototype sequence is not mandatory; include only evidence-backed sections; Renovate may omit outcomes. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `content-foundation` completed in plan frontmatter. Do not start linkedin-surfaces or later slices. Do not archive the plan."
+  - "Implement content-foundation from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisite: plan-review merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Populate content from sibling workspace resumes + codenames-ai-guesser evidence (not prototype KPIs). Use the flexible `ProjectSection` model — preferred prototype sequence is not mandatory; include only evidence-backed sections; Renovate may omit outcomes. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `content-foundation` completed in plan frontmatter. Do not start linkedin-surfaces, prototype-cleanup, or later slices. Do not archive the plan."
 
 - **Slice — linkedin-surfaces**
-  - "Implement linkedin-surfaces from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisite: content-foundation merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `linkedin-surfaces` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
+  - "Implement linkedin-surfaces from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisite: content-foundation merged; HTML prototype on `main` (portfolio#6) if not already. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `linkedin-surfaces` completed in plan frontmatter. Do not start prototype-cleanup or later slices. Do not archive the plan."
+
+- **Slice — prototype-cleanup**
+  - "Implement prototype-cleanup from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisite: linkedin-surfaces merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Delete the temporary `prototypes/ai-engineering-portfolio/` package and scrub docs; do not revert production port. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `prototype-cleanup` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
 
 - **Plan closure — plan-closure**
-  - "Execute plan-closure from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisites: all implementation slices merged and already marked completed in frontmatter. Start this slice from the latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/YYYY-MM-DD-linkedin-ready-portfolio-mvp.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
+  - "Execute plan-closure from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisites: all implementation slices (including prototype-cleanup) merged and already marked completed in frontmatter. Start this slice from the latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/YYYY-MM-DD-linkedin-ready-portfolio-mvp.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
