@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Articles · Michael Truong</title>
+    <meta
+      name="description"
+      content="Technical writing on governance, MCP, and AI product onboarding."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/site.css" />
+  </head>
+  <body>
+    <header class="topnav" data-od-id="topnav">
+      <div class="container topnav-inner">
+        <a class="logo" href="index.html">Michael Truong <em>· systems</em></a>
+        <nav aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="projects.html">Projects</a>
+          <a href="system.html">System</a>
+          <a href="articles.html" aria-current="page">Articles</a>
+          <a href="about.html">About</a>
+        </nav>
+        <a class="btn btn-primary" href="about.html">Contact</a>
+        <button
+          class="nav-toggle"
+          type="button"
+          data-nav-toggle
+          aria-expanded="false"
+          aria-label="Open menu"
+        >
+          <span></span>
+        </button>
+      </div>
+      <div class="mobile-nav" data-mobile-nav>
+        <a href="index.html">Home</a>
+        <a href="projects.html">Projects</a>
+        <a href="system.html">System</a>
+        <a href="articles.html" aria-current="page">Articles</a>
+        <a href="about.html">About</a>
+        <a href="about.html">Contact</a>
+      </div>
+    </header>
+    <main id="content">
+      <section
+        class="section hero"
+        data-od-id="articles-hero"
+        style="padding-bottom: 32px"
+      >
+        <div class="container" style="max-width: 720px">
+          <p class="eyebrow">Articles</p>
+          <h1>Writing that makes the system legible.</h1>
+          <p class="lead">
+            Short technical notes tied to real projects — governance, MCP
+            contracts, and product onboarding for AI-assisted play.
+          </p>
+        </div>
+      </section>
+
+      <section
+        class="section"
+        data-od-id="articles-list"
+        style="padding-top: 0"
+      >
+        <div class="container" data-filter-root>
+          <div class="filter-bar" style="margin-bottom: 20px">
+            <input
+              class="input"
+              type="search"
+              data-filter-q
+              placeholder="Search articles…"
+              aria-label="Search articles"
+            />
+            <button
+              type="button"
+              class="tag tag-active"
+              data-filter-tag="all"
+              aria-pressed="true"
+            >
+              All
+            </button>
+            <button
+              type="button"
+              class="tag"
+              data-filter-tag="governance"
+              aria-pressed="false"
+            >
+              Governance
+            </button>
+            <button
+              type="button"
+              class="tag"
+              data-filter-tag="platform"
+              aria-pressed="false"
+            >
+              Platform
+            </button>
+            <button
+              type="button"
+              class="tag"
+              data-filter-tag="product"
+              aria-pressed="false"
+            >
+              Product
+            </button>
+          </div>
+          <div>
+            <article
+              class="log-row"
+              id="governance-ladder"
+              data-filter-item
+              data-tags="governance ops"
+              data-od-id="article-governance"
+            >
+              <span class="meta">2026</span>
+              <div>
+                <h3>The governance ladder for agentic dependency updates</h3>
+                <p
+                  style="margin: 4px 0 0; color: var(--muted); font-size: 14px"
+                >
+                  Binary auto-merge is a false choice. A ladder with stop
+                  conditions lets Renovate earn autonomy per package family —
+                  and explains every merge.
+                </p>
+                <p style="margin: 12px 0 0">
+                  <a
+                    class="btn btn-ghost btn-arrow"
+                    href="project-renovate-governance.html"
+                    >Related project</a
+                  >
+                </p>
+              </div>
+              <span class="pull meta">Governance</span>
+            </article>
+            <article
+              class="log-row"
+              id="mcp-editorial"
+              data-filter-item
+              data-tags="platform knowledge"
+              data-od-id="article-mcp"
+            >
+              <span class="meta">2026</span>
+              <div>
+                <h3>Editorial MCP: tools as policy surfaces</h3>
+                <p
+                  style="margin: 4px 0 0; color: var(--muted); font-size: 14px"
+                >
+                  If an agent can retrieve brand truth or open a review packet,
+                  that capability should be a typed tool — versioned, scoped,
+                  and traceable.
+                </p>
+                <p style="margin: 12px 0 0">
+                  <a
+                    class="btn btn-ghost btn-arrow"
+                    href="project-editorial-mcp.html"
+                    >Related project</a
+                  >
+                </p>
+              </div>
+              <span class="pull meta">Platform</span>
+            </article>
+            <article
+              class="log-row"
+              id="onboarding-codenames"
+              data-filter-item
+              data-tags="product agents"
+              data-od-id="article-onboarding"
+            >
+              <span class="meta">2026</span>
+              <div>
+                <h3>First-visit confidence for AI-assisted play</h3>
+                <p
+                  style="margin: 4px 0 0; color: var(--muted); font-size: 14px"
+                >
+                  Teach the loop before the lore. AI Spymaster and AI Operative
+                  clarity first; Guess outcomes second; start the game from Got
+                  it.
+                </p>
+                <p style="margin: 12px 0 0">
+                  <a
+                    class="btn btn-ghost btn-arrow"
+                    href="project-codenames-ai.html"
+                    >Related project</a
+                  >
+                </p>
+              </div>
+              <span class="pull meta">Product</span>
+            </article>
+            <article
+              class="log-row"
+              id="portfolio-as-system"
+              data-filter-item
+              data-tags="product platform"
+              data-od-id="article-portfolio"
+            >
+              <span class="meta">2026</span>
+              <div>
+                <h3>Portfolios should expose judgment, not just artifacts</h3>
+                <p
+                  style="margin: 4px 0 0; color: var(--muted); font-size: 14px"
+                >
+                  A system map, decision logs, and dual-speed IA help hiring
+                  managers scan while senior engineers dig into evidence.
+                </p>
+                <p style="margin: 12px 0 0">
+                  <a
+                    class="btn btn-ghost btn-arrow"
+                    href="project-portfolio-system.html"
+                    >Related project</a
+                  >
+                </p>
+              </div>
+              <span class="pull meta">Meta</span>
+            </article>
+          </div>
+          <p class="meta" data-filter-empty hidden style="margin-top: 24px">
+            No articles match that filter.
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer class="pagefoot" data-od-id="footer">
+      <div class="container row-between">
+        <span>© 2026 Michael Truong · AI engineering systems</span>
+        <span class="meta"
+          ><a href="system.html">System map</a> ·
+          <a href="about.html">Contact</a> ·
+          <a href="articles.html">Writing</a></span
+        >
+      </div>
+    </footer>
+
+    <script src="js/site.js"></script>
+  </body>
+</html>

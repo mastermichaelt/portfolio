@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Engineering System · Michael Truong</title>
+    <meta
+      name="description"
+      content="Interactive map connecting projects, agents, workflows, governance, knowledge, skills, outputs, and articles."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/site.css" />
+  </head>
+  <body>
+    <header class="topnav" data-od-id="topnav">
+      <div class="container topnav-inner">
+        <a class="logo" href="index.html">Michael Truong <em>· systems</em></a>
+        <nav aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="projects.html">Projects</a>
+          <a href="system.html" aria-current="page">System</a>
+          <a href="articles.html">Articles</a>
+          <a href="about.html">About</a>
+        </nav>
+        <a class="btn btn-primary" href="about.html">Contact</a>
+        <button
+          class="nav-toggle"
+          type="button"
+          data-nav-toggle
+          aria-expanded="false"
+          aria-label="Open menu"
+        >
+          <span></span>
+        </button>
+      </div>
+      <div class="mobile-nav" data-mobile-nav>
+        <a href="index.html">Home</a>
+        <a href="projects.html">Projects</a>
+        <a href="system.html" aria-current="page">System</a>
+        <a href="articles.html">Articles</a>
+        <a href="about.html">About</a>
+        <a href="about.html">Contact</a>
+      </div>
+    </header>
+    <main id="content">
+      <section
+        class="section hero"
+        data-od-id="system-hero"
+        style="padding-bottom: 24px"
+      >
+        <div class="container" style="max-width: 760px">
+          <p class="eyebrow">AI Engineering System</p>
+          <h1>One graph. Projects, agents, workflows, and evidence.</h1>
+          <p class="lead">
+            Select a node to highlight relationships. This is the connective
+            tissue hiring panels usually never see.
+          </p>
+        </div>
+      </section>
+
+      <section class="section" data-od-id="system-map" style="padding-top: 0">
+        <div class="container-wide system-shell">
+          <aside class="stack" style="gap: 12px">
+            <p class="meta" style="margin: 0">Projects</p>
+            <div class="system-legend" data-od-id="system-legend">
+              <button
+                type="button"
+                class="legend-btn"
+                data-legend="codenames"
+                aria-pressed="false"
+              >
+                <strong
+                  style="
+                    font-family: var(--font-display);
+                    font-weight: 500;
+                    font-size: 15px;
+                  "
+                  >Codenames AI</strong
+                >
+                <span class="meta">Project</span>
+              </button>
+              <button
+                type="button"
+                class="legend-btn"
+                data-legend="editorial"
+                aria-pressed="false"
+              >
+                <strong
+                  style="
+                    font-family: var(--font-display);
+                    font-weight: 500;
+                    font-size: 15px;
+                  "
+                  >Editorial workflow</strong
+                >
+                <span class="meta">Project</span>
+              </button>
+              <button
+                type="button"
+                class="legend-btn"
+                data-legend="renovate"
+                aria-pressed="false"
+              >
+                <strong
+                  style="
+                    font-family: var(--font-display);
+                    font-weight: 500;
+                    font-size: 15px;
+                  "
+                  >Renovate ladder</strong
+                >
+                <span class="meta">Project</span>
+              </button>
+              <button
+                type="button"
+                class="legend-btn"
+                data-legend="mcp"
+                aria-pressed="false"
+              >
+                <strong
+                  style="
+                    font-family: var(--font-display);
+                    font-weight: 500;
+                    font-size: 15px;
+                  "
+                  >Editorial MCP</strong
+                >
+                <span class="meta">Project</span>
+              </button>
+              <button
+                type="button"
+                class="legend-btn"
+                data-legend="portfolio"
+                aria-pressed="false"
+              >
+                <strong
+                  style="
+                    font-family: var(--font-display);
+                    font-weight: 500;
+                    font-size: 15px;
+                  "
+                  >Portfolio system</strong
+                >
+                <span class="meta">Project</span>
+              </button>
+            </div>
+            <p class="meta" style="margin: 12px 0 0">
+              Tip: click a map node or legend item. Click again to clear.
+            </p>
+          </aside>
+          <div>
+            <div class="map-canvas" data-system-map data-od-id="map-canvas">
+              <svg
+                class="map-svg"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="codenames"
+                  data-to="agents"
+                  d="M 14 16 C 14 44.0, 14 44.0, 14 72"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="codenames"
+                  data-to="eval"
+                  d="M 14 16 C 14 54.0, 28 54.0, 28 92"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="codenames"
+                  data-to="outputs"
+                  d="M 14 16 C 14 34.0, 64 34.0, 64 52"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="codenames"
+                  data-to="article-onboarding"
+                  d="M 14 16 C 14 54.0, 10 54.0, 10 92"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="editorial"
+                  data-to="workflows"
+                  d="M 44 12 C 44 41.0, 36 41.0, 36 70"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="editorial"
+                  data-to="outputs"
+                  d="M 44 12 C 44 32.0, 64 32.0, 64 52"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="editorial"
+                  data-to="eval"
+                  d="M 44 12 C 44 52.0, 28 52.0, 28 92"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="editorial"
+                  data-to="mcp"
+                  d="M 44 12 C 44 27.0, 24 27.0, 24 42"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="renovate"
+                  data-to="governance"
+                  d="M 74 16 C 74 44.0, 58 44.0, 58 72"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="renovate"
+                  data-to="ops"
+                  d="M 74 16 C 74 54.0, 54 54.0, 54 92"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="renovate"
+                  data-to="workflows"
+                  d="M 74 16 C 74 43.0, 36 43.0, 36 70"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="renovate"
+                  data-to="article-gov"
+                  d="M 74 16 C 74 49.0, 90 49.0, 90 82"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="mcp"
+                  data-to="skills"
+                  d="M 24 42 C 24 44.0, 48 44.0, 48 46"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="mcp"
+                  data-to="knowledge"
+                  d="M 24 42 C 24 58.0, 80 58.0, 80 74"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="mcp"
+                  data-to="agents"
+                  d="M 24 42 C 24 57.0, 14 57.0, 14 72"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="mcp"
+                  data-to="workflows"
+                  d="M 24 42 C 24 56.0, 36 56.0, 36 70"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="portfolio"
+                  data-to="knowledge"
+                  d="M 78 44 C 78 59.0, 80 59.0, 80 74"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="portfolio"
+                  data-to="outputs"
+                  d="M 78 44 C 78 48.0, 64 48.0, 64 52"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="portfolio"
+                  data-to="article-portfolio"
+                  d="M 78 44 C 78 33.0, 92 33.0, 92 22"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="skills"
+                  data-to="agents"
+                  d="M 48 46 C 48 59.0, 14 59.0, 14 72"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="knowledge"
+                  data-to="skills"
+                  d="M 80 74 C 80 60.0, 48 60.0, 48 46"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="governance"
+                  data-to="ops"
+                  d="M 58 72 C 58 82.0, 54 82.0, 54 92"
+                />
+                <path
+                  class="map-edge"
+                  data-edge
+                  data-from="workflows"
+                  data-to="outputs"
+                  d="M 36 70 C 36 61.0, 64 61.0, 64 52"
+                />
+              </svg>
+              <button
+                type="button"
+                class="map-node"
+                data-node="codenames"
+                style="left: 8%; top: 12%"
+                data-od-id="node-codenames"
+              >
+                <div class="kind">Project</div>
+                <strong>Codenames AI</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="editorial"
+                style="left: 38%; top: 8%"
+                data-od-id="node-editorial"
+              >
+                <div class="kind">Project</div>
+                <strong>Editorial workflow</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="renovate"
+                style="left: 68%; top: 12%"
+                data-od-id="node-renovate"
+              >
+                <div class="kind">Project</div>
+                <strong>Renovate ladder</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="mcp"
+                style="left: 18%; top: 38%"
+                data-od-id="node-mcp"
+              >
+                <div class="kind">Project</div>
+                <strong>Editorial MCP</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="portfolio"
+                style="left: 72%; top: 40%"
+                data-od-id="node-portfolio"
+              >
+                <div class="kind">Project</div>
+                <strong>Portfolio system</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="agents"
+                style="left: 8%; top: 68%"
+                data-od-id="node-agents"
+              >
+                <div class="kind">Capability</div>
+                <strong>Agents</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="workflows"
+                style="left: 30%; top: 66%"
+                data-od-id="node-workflows"
+              >
+                <div class="kind">Capability</div>
+                <strong>Workflows</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="governance"
+                style="left: 52%; top: 68%"
+                data-od-id="node-governance"
+              >
+                <div class="kind">Capability</div>
+                <strong>Governance</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="knowledge"
+                style="left: 74%; top: 70%"
+                data-od-id="node-knowledge"
+              >
+                <div class="kind">Capability</div>
+                <strong>Knowledge</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="skills"
+                style="left: 42%; top: 42%"
+                data-od-id="node-skills"
+              >
+                <div class="kind">Capability</div>
+                <strong>Skills</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="outputs"
+                style="left: 58%; top: 48%"
+                data-od-id="node-outputs"
+              >
+                <div class="kind">Capability</div>
+                <strong>Outputs</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="eval"
+                style="left: 22%; top: 88%"
+                data-od-id="node-eval"
+              >
+                <div class="kind">Capability</div>
+                <strong>Eval</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="ops"
+                style="left: 48%; top: 88%"
+                data-od-id="node-ops"
+              >
+                <div class="kind">Capability</div>
+                <strong>Ops</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="article-gov"
+                style="left: 84%; top: 78%"
+                data-od-id="node-article-gov"
+              >
+                <div class="kind">Article</div>
+                <strong>Gov ladder essay</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="article-onboarding"
+                style="left: 4%; top: 88%"
+                data-od-id="node-article-onboarding"
+              >
+                <div class="kind">Article</div>
+                <strong>Onboarding note</strong>
+              </button>
+              <button
+                type="button"
+                class="map-node"
+                data-node="article-portfolio"
+                style="left: 86%; top: 18%"
+                data-od-id="node-article-portfolio"
+              >
+                <div class="kind">Article</div>
+                <strong>Portfolio essay</strong>
+              </button>
+            </div>
+            <div class="inspector" data-inspector data-od-id="inspector"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" data-od-id="system-layers">
+        <div class="container">
+          <div style="max-width: 40ch; margin-bottom: 36px">
+            <p class="eyebrow">Layers</p>
+            <h2>How to read the system.</h2>
+          </div>
+          <div class="grid-3">
+            <div class="card" data-od-id="layer-build">
+              <h3>Build</h3>
+              <p style="margin: 8px 0 0; color: var(--muted)">
+                Projects + agents + skills produce outputs under workflow
+                control.
+              </p>
+            </div>
+            <div class="card" data-od-id="layer-govern">
+              <h3>Govern</h3>
+              <p style="margin: 8px 0 0; color: var(--muted)">
+                Ladders and ops controls decide what may run without a human.
+              </p>
+            </div>
+            <div class="card" data-od-id="layer-learn">
+              <h3>Learn</h3>
+              <p style="margin: 8px 0 0; color: var(--muted)">
+                Knowledge stores, eval, and articles feed the next iteration.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="pagefoot" data-od-id="footer">
+      <div class="container row-between">
+        <span>© 2026 Michael Truong · AI engineering systems</span>
+        <span class="meta"
+          ><a href="system.html">System map</a> ·
+          <a href="about.html">Contact</a> ·
+          <a href="articles.html">Writing</a></span
+        >
+      </div>
+    </footer>
+
+    <script>
+      window.SYSTEM_GRAPH = {
+        codenames: {
+          kind: "Project",
+          title: "Codenames AI",
+          summary:
+            "AI Spymaster and AI Operative gameplay with progressive onboarding and eval-minded turn outcomes.",
+          href: "project-codenames-ai.html",
+          links: ["agents", "eval", "outputs", "article-onboarding"],
+          related: [
+            {
+              href: "project-codenames-ai.html",
+              label: "Case study",
+              meta: "Problem → evidence",
+            },
+            {
+              href: "articles.html#onboarding-codenames",
+              label: "First-visit confidence",
+              meta: "Article",
+            },
+          ],
+        },
+        editorial: {
+          kind: "Project",
+          title: "Editorial workflow",
+          summary:
+            "Staged human-in-the-loop pipeline from brief to publish-ready packet.",
+          href: "project-editorial-workflow.html",
+          links: ["workflows", "outputs", "eval", "mcp", "knowledge"],
+          related: [
+            {
+              href: "project-editorial-workflow.html",
+              label: "Case study",
+              meta: "Workflow",
+            },
+            {
+              href: "project-editorial-mcp.html",
+              label: "Editorial MCP",
+              meta: "Platform",
+            },
+          ],
+        },
+        renovate: {
+          kind: "Project",
+          title: "Renovate ladder",
+          summary:
+            "Graduated autonomy for dependency updates with auditable stop conditions.",
+          href: "project-renovate-governance.html",
+          links: ["governance", "workflows", "ops", "article-gov"],
+          related: [
+            {
+              href: "project-renovate-governance.html",
+              label: "Case study",
+              meta: "Governance",
+            },
+            {
+              href: "articles.html#governance-ladder",
+              label: "Governance ladder essay",
+              meta: "Article",
+            },
+          ],
+        },
+        mcp: {
+          kind: "Project",
+          title: "Editorial MCP",
+          summary:
+            "MCP tool contracts for brand knowledge, skills, drafting, and review packets.",
+          href: "project-editorial-mcp.html",
+          links: ["skills", "knowledge", "agents", "workflows", "editorial"],
+          related: [
+            {
+              href: "project-editorial-mcp.html",
+              label: "Case study",
+              meta: "Platform",
+            },
+            {
+              href: "articles.html#mcp-editorial",
+              label: "Tools as policy",
+              meta: "Article",
+            },
+          ],
+        },
+        portfolio: {
+          kind: "Project",
+          title: "Portfolio system",
+          summary:
+            "This site — a navigable graph of work, evidence, and operating principles.",
+          href: "project-portfolio-system.html",
+          links: ["knowledge", "outputs", "article-portfolio", "agents"],
+          related: [
+            {
+              href: "project-portfolio-system.html",
+              label: "Case study",
+              meta: "Meta",
+            },
+            { href: "index.html", label: "Home", meta: "Scan path" },
+          ],
+        },
+        agents: {
+          kind: "Capability",
+          title: "Agents",
+          summary:
+            "Role-bound agents (Spymaster, Operative, critique, retrieval) with explicit scopes.",
+          links: ["codenames", "mcp", "skills", "eval"],
+          related: [
+            {
+              href: "project-codenames-ai.html",
+              label: "Codenames AI",
+              meta: "Product agents",
+            },
+          ],
+        },
+        workflows: {
+          kind: "Capability",
+          title: "Workflows",
+          summary: "Stage machines that sequence tools and human gates.",
+          links: ["editorial", "renovate", "mcp", "outputs"],
+          related: [
+            {
+              href: "project-editorial-workflow.html",
+              label: "Editorial workflow",
+              meta: "Primary",
+            },
+          ],
+        },
+        governance: {
+          kind: "Capability",
+          title: "Governance",
+          summary:
+            "Ladders, stop conditions, and audit trails for autonomous actions.",
+          links: ["renovate", "ops", "workflows"],
+          related: [
+            {
+              href: "project-renovate-governance.html",
+              label: "Renovate ladder",
+              meta: "Primary",
+            },
+          ],
+        },
+        knowledge: {
+          kind: "Capability",
+          title: "Knowledge stores",
+          summary:
+            "Brand rules, prior work, and decision logs queryable by agents.",
+          links: ["mcp", "editorial", "skills", "portfolio"],
+          related: [
+            {
+              href: "project-editorial-mcp.html",
+              label: "Editorial MCP",
+              meta: "Adapters",
+            },
+          ],
+        },
+        skills: {
+          kind: "Capability",
+          title: "Skills",
+          summary:
+            "Versioned prompt/procedure packs loaded through MCP — owned and deprecate-able.",
+          links: ["mcp", "agents", "knowledge"],
+          related: [
+            {
+              href: "project-editorial-mcp.html",
+              label: "Skill packaging",
+              meta: "Platform",
+            },
+          ],
+        },
+        outputs: {
+          kind: "Capability",
+          title: "Outputs",
+          summary:
+            "Drafts, review packets, PRs, game turns — artifacts with provenance.",
+          links: ["editorial", "codenames", "workflows", "portfolio"],
+          related: [
+            {
+              href: "articles.html",
+              label: "Articles",
+              meta: "Public outputs",
+            },
+          ],
+        },
+        eval: {
+          kind: "Capability",
+          title: "Eval",
+          summary:
+            "Critique passes, onboarding comprehension, and trust promotion checks.",
+          links: ["codenames", "editorial", "agents"],
+          related: [
+            {
+              href: "project-codenames-ai.html",
+              label: "Turn outcomes",
+              meta: "Product eval",
+            },
+          ],
+        },
+        ops: {
+          kind: "Capability",
+          title: "Ops",
+          summary:
+            "Runtime controls: freezes, canaries, rollbacks for agentic automation.",
+          links: ["renovate", "governance"],
+          related: [
+            {
+              href: "project-renovate-governance.html",
+              label: "Stop conditions",
+              meta: "Ops",
+            },
+          ],
+        },
+        "article-gov": {
+          kind: "Article",
+          title: "Governance ladder",
+          summary: "Essay on graduated autonomy for dependency updates.",
+          href: "articles.html#governance-ladder",
+          links: ["renovate", "governance"],
+          related: [
+            {
+              href: "articles.html#governance-ladder",
+              label: "Read article",
+              meta: "2026",
+            },
+          ],
+        },
+        "article-onboarding": {
+          kind: "Article",
+          title: "First-visit confidence",
+          summary: "Onboarding notes for AI-assisted Codenames.",
+          href: "articles.html#onboarding-codenames",
+          links: ["codenames", "agents"],
+          related: [
+            {
+              href: "articles.html#onboarding-codenames",
+              label: "Read article",
+              meta: "2026",
+            },
+          ],
+        },
+        "article-portfolio": {
+          kind: "Article",
+          title: "Portfolios & judgment",
+          summary: "Why portfolios should expose decision quality.",
+          href: "articles.html#portfolio-as-system",
+          links: ["portfolio", "knowledge"],
+          related: [
+            {
+              href: "articles.html#portfolio-as-system",
+              label: "Read article",
+              meta: "2026",
+            },
+          ],
+        },
+      };
+    </script>
+
+    <script src="js/site.js"></script>
+  </body>
+</html>

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About · Michael Truong</title>
+    <meta
+      name="description"
+      content="About and contact for Michael Truong — senior AI engineer."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/site.css" />
+  </head>
+  <body>
+    <header class="topnav" data-od-id="topnav">
+      <div class="container topnav-inner">
+        <a class="logo" href="index.html">Michael Truong <em>· systems</em></a>
+        <nav aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="projects.html">Projects</a>
+          <a href="system.html">System</a>
+          <a href="articles.html">Articles</a>
+          <a href="about.html" aria-current="page">About</a>
+        </nav>
+        <a class="btn btn-secondary" href="system.html">View system</a>
+        <button
+          class="nav-toggle"
+          type="button"
+          data-nav-toggle
+          aria-expanded="false"
+          aria-label="Open menu"
+        >
+          <span></span>
+        </button>
+      </div>
+      <div class="mobile-nav" data-mobile-nav>
+        <a href="index.html">Home</a>
+        <a href="projects.html">Projects</a>
+        <a href="system.html">System</a>
+        <a href="articles.html">Articles</a>
+        <a href="about.html" aria-current="page">About</a>
+        <a href="about.html">Contact</a>
+      </div>
+    </header>
+    <main id="content">
+      <section
+        class="section hero"
+        data-od-id="about-hero"
+        style="padding-bottom: 32px"
+      >
+        <div class="container hero-split">
+          <div>
+            <p class="eyebrow">About · Contact</p>
+            <h1>I help teams ship AI systems that stay operable.</h1>
+            <p class="lead">
+              Senior AI engineer focused on agents, governance, and product
+              interfaces that make autonomy understandable.
+            </p>
+            <div class="hero-cta" style="margin-top: 28px">
+              <a class="btn btn-primary" href="mailto:hello@example.com"
+                >Email me</a
+              >
+              <a class="btn btn-secondary btn-arrow" href="system.html"
+                >Prefer the system map?</a
+              >
+            </div>
+          </div>
+          <div class="card" data-od-id="about-focus">
+            <p class="meta" style="margin: 0 0 12px">Currently interested in</p>
+            <ul
+              style="
+                margin: 0;
+                padding-left: 18px;
+                color: var(--muted);
+                display: grid;
+                gap: 10px;
+              "
+            >
+              <li>Agent platforms with real eval and policy surfaces</li>
+              <li>Human-in-the-loop editorial / knowledge systems</li>
+              <li>Product roles where AI behavior is the UX</li>
+            </ul>
+            <hr class="rule" style="margin: 20px 0" />
+            <p class="meta" style="margin: 0">
+              Replace name, email, and bio specifics with your résumé details
+              when ready.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" data-od-id="about-body">
+        <div class="container grid-2">
+          <div>
+            <h2>How I work</h2>
+            <div style="margin-top: 20px" class="stack">
+              <details class="disclosure" open>
+                <summary>Start from the interface contract</summary>
+                <div class="body">
+                  Whether the interface is an MCP tool, a Renovate tier, or a
+                  game dialog — name the inputs, outputs, and failure modes
+                  before scaling generation.
+                </div>
+              </details>
+              <details class="disclosure">
+                <summary>Make autonomy earned</summary>
+                <div class="body">
+                  Ladders beat toggles. Systems should show why an action was
+                  allowed — and how to freeze it.
+                </div>
+              </details>
+              <details class="disclosure">
+                <summary>Leave evidence</summary>
+                <div class="body">
+                  Decision logs and critique packets matter more than slideware
+                  metrics. If a number is not real, it does not ship.
+                </div>
+              </details>
+            </div>
+          </div>
+          <div>
+            <h2>Contact</h2>
+            <form
+              class="card stack"
+              data-contact-form
+              data-od-id="contact-form"
+              style="margin-top: 20px; gap: 16px"
+            >
+              <div class="field">
+                <label for="name">Name</label>
+                <input
+                  class="input"
+                  id="name"
+                  name="name"
+                  autocomplete="name"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="email">Email</label>
+                <input
+                  class="input"
+                  id="email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="topic">Topic</label>
+                <select class="select" id="topic" name="topic" required>
+                  <option value="">Select…</option>
+                  <option>Hiring conversation</option>
+                  <option>Technical deep-dive</option>
+                  <option>Collaboration</option>
+                  <option>Something else</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="message">Context</label>
+                <textarea
+                  class="textarea"
+                  id="message"
+                  name="message"
+                  placeholder="Role, team, or what you want to walk through on the system map…"
+                ></textarea>
+              </div>
+              <button class="btn btn-primary" type="submit">
+                Send message
+              </button>
+              <p class="meta" data-form-status hidden></p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="pagefoot" data-od-id="footer">
+      <div class="container row-between">
+        <span>© 2026 Michael Truong · AI engineering systems</span>
+        <span class="meta"
+          ><a href="system.html">System map</a> ·
+          <a href="about.html">Contact</a> ·
+          <a href="articles.html">Writing</a></span
+        >
+      </div>
+    </footer>
+
+    <script src="js/site.js"></script>
+  </body>
+</html>

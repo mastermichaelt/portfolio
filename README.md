@@ -67,14 +67,15 @@ Per-deploy `*.vercel.app` hosts change every build and are not documented here. 
 
 ## Layout
 
-| Path            | Role                                        |
-| --------------- | ------------------------------------------- |
-| `app/`          | App Router pages                            |
-| `components/`   | Shared UI (empty for now)                   |
-| `domain/`       | Lightweight domain interfaces               |
-| `content/`      | Static placeholder data                     |
-| `repositories/` | Storage abstraction + static implementation |
-| `lib/`          | Shared helpers (empty for now)              |
-| `docs/`         | Architecture notes and plans                |
+| Path            | Role                                          |
+| --------------- | --------------------------------------------- |
+| `app/`          | App Router pages                              |
+| `components/`   | Shared UI (empty for now)                     |
+| `domain/`       | Lightweight domain interfaces                 |
+| `content/`      | Static placeholder data                       |
+| `repositories/` | Storage abstraction + static implementation   |
+| `lib/`          | Shared helpers (empty for now)                |
+| `docs/`         | Architecture notes and plans                  |
+| `prototypes/`   | Standalone HTML design prototypes (not build) |
 
-See [docs/architecture/overview.md](docs/architecture/overview.md).
+See [docs/architecture/overview.md](docs/architecture/overview.md). The AI engineering portfolio HTML prototype lives under [`prototypes/ai-engineering-portfolio/`](prototypes/ai-engineering-portfolio/README.md).
