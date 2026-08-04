@@ -36,27 +36,27 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # Path-aware gate (codenames / resumes pattern): job always reports a status
-      # (required-check safe). Skip Playwright only when the PR touches no
-      # runtime-impacting paths (docs / .cursor / AGENTS / README, etc.).
+      # Path-aware gate: job always reports a status (required-check safe).
+      # Skip Playwright only when every changed path is on the docs-only allowlist.
+      # Unknown / future paths fail closed → run e2e.
       - name: Determine e2e profile
         id: profile
         run: |
           set -euo pipefail
 
-          is_runtime_impacting() {
+          is_docs_only() {
             local file="$1"
             case "$file" in
-              app/*|components/*|content/*|domain/*|repositories/*|lib/*|public/*|e2e/*|tests/*)
+              docs/*|.cursor/*)
                 return 0
                 ;;
-              .github/*|.husky/*)
+              README.md|AGENTS.md|CLAUDE.md)
                 return 0
                 ;;
-              package.json|package-lock.json|.nvmrc|.prettierrc|.prettierignore)
+              .github/pull_request_template.md|.github/CODEOWNERS|.github/dependabot.yml)
                 return 0
                 ;;
-              next.config.*|playwright.config.*|vitest.config.*|eslint.config.*|postcss.config.*|tsconfig*.json|next-env.d.ts)
+              .github/ISSUE_TEMPLATE/*)
                 return 0
                 ;;
             esac
@@ -99,9 +99,9 @@ jobs:
                   reason="docs-only PR (skip Playwright)"
                   while IFS= read -r file; do
                     [ -z "$file" ] && continue
-                    if is_runtime_impacting "$file"; then
+                    if ! is_docs_only "$file"; then
                       run=true
-                      reason="runtime-impacting path: $file"
+                      reason="non-docs path: $file"
                       break
                     fi
                   done <<< "$changed_files"
@@ -112,6 +112,10 @@ jobs:
 
           echo "run=$run" >> "$GITHUB_OUTPUT"
           echo "E2E profile: run=$run ($reason)"
+
+      - name: Skip Playwright
+        if: steps.profile.outputs.run != 'true'
+        run: echo "Docs-only PR; Playwright skipped."
 
       - uses: actions/setup-node@v5
         if: steps.profile.outputs.run == 'true'
