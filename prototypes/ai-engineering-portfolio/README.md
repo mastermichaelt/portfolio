@@ -1,6 +1,8 @@
-# AI engineering portfolio — HTML prototype
+# AI engineering portfolio — HTML prototype (temporary)
 
-Standalone Open Design prototype for the senior AI engineer portfolio. Not wired into the Next.js app; open the HTML files directly (or via any static server) for review.
+**Disposable** Open Design prototype for IA/brand review before the job-search-ready Next.js MVP. Not wired into the Next.js app; open the HTML files directly (or via any static server) for review.
+
+After production surfaces port tokens/chrome from this package, **delete this folder** (`prototype-cleanup` in the active MVP plan). Do not treat these files as a permanent design source of truth.
 
 ## Visual system
 
@@ -29,4 +31,4 @@ npx --yes serve .
 
 ## Scope boundary
 
-This package is a creative prototype for IA, visual direction, and interaction. Production routes remain under `app/`. Do not import these files into the Next.js build.
+This package is a temporary creative prototype for IA, visual direction, and interaction. Production routes remain under `app/`. Do not import these files into the Next.js build. Expected end state: removed from the tree once the production port ships.
