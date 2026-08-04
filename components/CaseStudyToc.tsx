@@ -1,0 +1,59 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+export interface TocItem {
+  id: string;
+  title: string;
+}
+
+export function CaseStudyToc({ items }: { items: TocItem[] }) {
+  const [activeId, setActiveId] = useState(items[0]?.id ?? "");
+
+  useEffect(() => {
+    if (items.length === 0) return;
+
+    const sections = items
+      .map((item) => {
+        const el = document.getElementById(item.id);
+        return el ? { id: item.id, el } : null;
+      })
+      .filter(
+        (value): value is { id: string; el: HTMLElement } => value !== null,
+      );
+
+    if (sections.length === 0) return;
+
+    const onScroll = () => {
+      const y = window.scrollY + 120;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.el.offsetTop <= y) current = section;
+      }
+      setActiveId(current.id);
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [items]);
+
+  if (items.length === 0) return null;
+
+  return (
+    <nav className="toc card" aria-label="On this page">
+      <p className="meta" style={{ margin: "0 0 8px" }}>
+        On this page
+      </p>
+      {items.map((item) => (
+        <a
+          key={item.id}
+          href={`#${item.id}`}
+          className={item.id === activeId ? "active" : undefined}
+        >
+          {item.title}
+        </a>
+      ))}
+    </nav>
+  );
+}
