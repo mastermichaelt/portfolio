@@ -40,9 +40,11 @@ npm test
 npm run test:coverage
 npm run build
 npm start
+npm run playwright:install   # once: Chromium for e2e
+npm run test:e2e             # happy-path Playwright (expects `npm run build` first)
 ```
 
-Pre-commit (Husky): runs `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Coverage runs in CI (`test:coverage`), not on every commit. Husky install is skipped when `CI` is set.
+Pre-commit (Husky): runs `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Coverage runs in CI (`test:coverage`), not on every commit. Playwright e2e runs in a separate CI job after `verify`. Husky install is skipped when `CI` is set.
 
 Local app: [http://localhost:3000](http://localhost:3000)
 

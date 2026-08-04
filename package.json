@@ -16,6 +16,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "playwright:install": "playwright install chromium",
     "prepare": "if [ -n \"$CI\" ]; then echo 'Skipping husky install in CI'; else husky; fi"
   },
   "dependencies": {
@@ -24,6 +26,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
