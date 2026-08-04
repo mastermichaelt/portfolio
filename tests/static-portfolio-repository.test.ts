@@ -1,16 +1,43 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("@/content/profile", () => ({
+  profile: {
+    name: "Test Person",
+    location: "Test City",
+    email: "test@example.com",
+    headline: "Engineer",
+    bio: "Short bio.",
+    links: {
+      linkedin: "https://example.com/in/test",
+      github: "https://example.com/test",
+      blog: "https://example.com/blog",
+    },
+  },
+}));
+
 vi.mock("@/content/projects", () => ({
   projects: [
     {
       slug: "test-project",
       title: "Test project",
+      summary: "Summary",
+      tags: ["test"],
+      sections: [],
     },
   ],
 }));
 
 vi.mock("@/content/articles", () => ({
-  articles: [{ slug: "test-article", title: "Test article" }],
+  articles: [
+    {
+      slug: "test-article",
+      title: "Test article",
+      summary: "Summary",
+      year: 2026,
+      tags: ["test"],
+      url: "https://example.com/article",
+    },
+  ],
 }));
 
 vi.mock("@/content/ecosystem", () => ({
@@ -30,12 +57,17 @@ vi.mock("@/content/timeline", () => ({
 
 import { articles } from "@/content/articles";
 import { entities, relationships } from "@/content/ecosystem";
+import { profile } from "@/content/profile";
 import { projects } from "@/content/projects";
 import { timelineEvents } from "@/content/timeline";
 import { StaticPortfolioRepository } from "@/repositories/static-portfolio-repository";
 
 describe("StaticPortfolioRepository", () => {
   const repository = new StaticPortfolioRepository();
+
+  it("returns the static profile", async () => {
+    await expect(repository.getProfile()).resolves.toEqual(profile);
+  });
 
   it("lists projects from the static content module", async () => {
     await expect(repository.listProjects()).resolves.toEqual(projects);
@@ -45,6 +77,9 @@ describe("StaticPortfolioRepository", () => {
     await expect(repository.getProject("test-project")).resolves.toEqual({
       slug: "test-project",
       title: "Test project",
+      summary: "Summary",
+      tags: ["test"],
+      sections: [],
     });
   });
 

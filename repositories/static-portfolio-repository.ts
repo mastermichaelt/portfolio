@@ -1,11 +1,16 @@
 import { articles } from "@/content/articles";
 import { entities, relationships } from "@/content/ecosystem";
+import { profile } from "@/content/profile";
 import { projects } from "@/content/projects";
 import { timelineEvents } from "@/content/timeline";
 import type { PortfolioRepository } from "@/repositories/portfolio-repository";
 
 /** In-memory / static content implementation. Replace later with Supabase. */
 export class StaticPortfolioRepository implements PortfolioRepository {
+  async getProfile() {
+    return profile;
+  }
+
   async listProjects() {
     return projects;
   }

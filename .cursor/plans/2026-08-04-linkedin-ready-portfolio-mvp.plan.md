@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: content-foundation
     content: "PR: extend domain/profile + flexible ProjectSection kinds; populate from resumes facts + codenames docs/articles (evidence-backed sections only); repository + test:coverage"
-    status: pending
+    status: completed
   - id: linkedin-surfaces
     content: "PR: brand shell, nav, home/projects/[slug]/articles/about (thin About; projects carry weight); remove under-construction UX; update README"
     status: pending
