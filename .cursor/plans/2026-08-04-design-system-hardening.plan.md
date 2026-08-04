@@ -1,12 +1,12 @@
 ---
 name: Design system hardening
-overview: "Promote surviving CSS tokens into a documented production design system: design-system.md, split globals.css into token/base/component layers, and replace repeated page-level inline spacing with semantic classes. No Storybook, Stylelint, or token build pipeline."
+overview: "Promote surviving CSS tokens into a documented production design system: design-system.md, split globals.css along clear layer boundaries, and reduce repeated page-level inline spacing via semantic classes where roles are truly shared. No Storybook, Stylelint, or token build pipeline."
 todos:
   - id: plan-review
     content: "Plan-only PR — commit plan artifact and open PR for review; do not implement"
     status: completed
   - id: design-system-hardening
-    content: "PR: docs/design-system.md, split app/globals.css into app/styles layers, replace repeated inline spacing with semantic classes"
+    content: "PR: docs/design-system.md, split app/globals.css by layer boundaries, reduce repeated inline spacing, substantiate visual neutrality with Playwright screenshot comparison"
     status: pending
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/YYYY-MM-DD-design-system-hardening.plan.md"
@@ -50,7 +50,7 @@ After [portfolio#11](https://github.com/mastermichaelt/portfolio/pull/11) delete
 
 Token values survived; the standalone brand rationale did not. Layout composition still uses ~30 page-level `style={{}}` spacings (plus Satori styles in [`app/opengraph-image.tsx`](../../app/opengraph-image.tsx), which stay as-is).
 
-**Out of scope for this plan:** Storybook, Stylelint, token build systems, broad Tailwind `@theme` expansion, visual redesign, OG image refactor.
+**Out of scope for this plan:** Storybook, Stylelint, token build systems, broad Tailwind `@theme` expansion, visual redesign, OG image refactor, permanent committed visual-regression baselines (temporary comparison artifacts only).
 
 ---
 
@@ -75,7 +75,7 @@ Token values survived; the standalone brand rationale did not. Layout compositio
 
 - Cross-cutting but small enough for one merge-safe PR (docs + CSS organization + repeated inline cleanup)
 - No behavior redesign; mediation through tokens/classes
-- Human review of CSS split and spacing class choices before merge
+- Human review of CSS layering, class choices, and visual-neutrality evidence before merge
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
@@ -83,25 +83,42 @@ Token values survived; the standalone brand rationale did not. Layout compositio
 
 ### 1. Document the production design system
 
-Add [`docs/design-system.md`](../../docs/design-system.md) as the durable brand/token guide. Seed it from the deleted prototype brand-spec (recoverable via `git show d828d1d^:prototypes/ai-engineering-portfolio/brand-spec.md`) plus current production tokens in `globals.css`.
+Add [`docs/design-system.md`](../../docs/design-system.md) as human guidance and rationale — not a second store of literal token values.
+
+**Source-of-truth layers (state explicitly in the doc):**
+
+| Layer                   | Normative home                                             | Role                                                                         |
+| ----------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Token values            | `tokens.css` (or the token layer file under `app/styles/`) | Hex/OKLch, spacing scale, type scale, radii — change values here             |
+| Implementation patterns | Production CSS under `app/styles/` + React components      | How tokens are applied (classes, chrome, page patterns)                      |
+| Guidance / rationale    | `docs/design-system.md`                                    | Principles, semantic meaning, when to use accent vs muted, a11y expectations |
+
+Where possible, the document should reference **token names and semantic roles** rather than copying every literal value into tables (tables that duplicate CSS will drift). Seed principles from the deleted prototype brand-spec (recoverable via `git show d828d1d^:prototypes/ai-engineering-portfolio/brand-spec.md`) and current production tokens.
 
 Document:
 
 - Visual principles (warm neutrals, single sage accent, soft depth, progressive disclosure)
-- Semantic meaning of each color/spacing/type/radius token
+- Semantic meaning of each color/spacing/type/radius **token name**
 - Typography roles (display / body / mono + `.h1`–`.meta` / `.eyebrow`)
 - Spacing conventions (`--gap-*`, section rhythm, measure widths)
 - Component posture (when `.card` / buttons / pills are appropriate)
 - Accent vs muted usage (accent ≤2 primary signals per screen; muted for secondary copy)
 - Accessibility expectations (contrast, focus rings, text-wrap)
-- Explicit source-of-truth note: tokens live in CSS; this doc explains them
 - Explicit Tailwind note: semantic CSS classes are primary; `@theme` only bridges background/foreground/fonts today — do not expand utilities in this PR
 
 Update pointers in [`README.md`](../../README.md) and [`AGENTS.md`](../../AGENTS.md) from “brand lives in `app/globals.css`” to also link `docs/design-system.md`. Optionally add a one-line pointer from [`docs/architecture/overview.md`](../../docs/architecture/overview.md) (that file is still skeleton-era and can stay light).
 
-### 2. Split CSS into layers
+### 2. Split CSS by layer boundaries (not a fixed file count)
 
-Keep [`app/layout.tsx`](../../app/layout.tsx) importing `./globals.css` as the single entry. Turn `globals.css` into a thin barrel:
+Keep [`app/layout.tsx`](../../app/layout.tsx) importing `./globals.css` as the single entry. Turn `globals.css` into a thin barrel that imports layered styles under [`app/styles/`](../../app/styles/) (colocated with the Next entry).
+
+**Required layer boundaries** (acceptance is about these roles, not exactly three filenames):
+
+1. **Tokens** — `:root` variables + `@theme inline` only
+2. **Base / reset** — `html`/`body`, element defaults, box model
+3. **Reusable layout and component styles** — layout utilities, chrome, buttons, surfaces, page patterns, motion, responsive rules
+
+A suggested starting topology:
 
 ```css
 @import "tailwindcss";
@@ -110,29 +127,33 @@ Keep [`app/layout.tsx`](../../app/layout.tsx) importing `./globals.css` as the s
 @import "./styles/components.css";
 ```
 
-New files under [`app/styles/`](../../app/styles/) (colocated with the Next entry):
+The implementer **may** split the reusable layer further if the current stylesheet naturally supports it (for example `layout.css` + `components.css`, or chrome/page-pattern files), as long as:
 
-- `tokens.css` — `:root` variables + `@theme inline` (token store + Tailwind bridge only)
-- `base.css` — reset, `html`/`body`, element defaults
-- `components.css` — layout utilities, chrome, buttons, surfaces, page patterns, motion, responsive block
+- `globals.css` remains the only entry imported from `layout.tsx`
+- Token values stay isolated in the token layer
+- Base/reset stays isolated from component chrome
+- The split does not recreate one giant catch-all under a new name without improving boundaries
+
+Do not treat “exactly three files” as an acceptance constraint.
 
 Remove the stale prototype comment; replace with a short pointer to `docs/design-system.md`.
 
 No behavioral/visual changes intended in the split — pure extraction.
 
-### 3. Replace repeated inline spacing with semantic classes
+### 3. Reduce repeated inline spacing (not eliminate all inline styles)
 
-Target repeated page patterns only (not one-offs that would force awkward API, not OG Satori styles).
+**Acceptance principle:** reduce repeated ad hoc styles, not necessarily all `style={{}}`. A handful of honest one-off inline values is better than a misleading utility vocabulary that flattens distinct layout needs.
 
-Add a small set of measure/spacing utilities in `components.css` (using existing `--gap-*` tokens where values map cleanly):
+Target repeated page patterns only when the **visual role is actually shared** (not OG Satori styles).
 
-- `.measure` — ~62ch / content-narrow reading width (and/or `.measure-md` for 720px list heroes)
-- `.measure-sm` — ~40ch / ~34ch short positioning blocks if one class covers both use cases; otherwise keep the closer tokenized pair
+Candidates (illustrative — only introduce a class when reuse and shared role hold):
+
+- Reading / measure widths that appear with the same role on multiple surfaces → e.g. `.measure` for a shared ~62ch body measure; do **not** force `40ch` and `34ch` into one `.measure-sm` if the roles differ
 - Hero CTA top spacing: production `.hero-cta` today only sets flex layout (`display`, `gap`, `flex-wrap`) — it has **no** top margin. Before removing inline `marginTop: 28` on home/about, **add** `margin-top` to `.hero-cta` in CSS (prefer a `--gap-*` token if visual parity holds; otherwise keep `28px` and note the exception). Do not drop the inline style without adding the CSS rule first.
-- Compact hero bottom padding via a modifier (e.g. `.hero.hero-compact`) replacing repeated `paddingBottom: 32|40`
-- Stack gap variants (e.g. `.stack-lg`) replacing `style={{ gap: 40 }}` where used
+- Compact hero bottom padding: only share a modifier (e.g. `.hero.hero-compact`) when `32` and `40` are intentionally the same role; otherwise keep distinct values (tokenized or honest inline)
+- Stack gap variants only where the same stack rhythm is reused
 
-Then scrub matching `style={{}}` from:
+Surfaces that may be touched when patterns match:
 
 - [`app/page.tsx`](../../app/page.tsx)
 - [`app/about/page.tsx`](../../app/about/page.tsx)
@@ -142,22 +163,32 @@ Then scrub matching `style={{}}` from:
 - [`app/ecosystem/page.tsx`](../../app/ecosystem/page.tsx)
 - light touch on [`components/SiteFooter.tsx`](../../components/SiteFooter.tsx) / [`components/CaseStudyToc.tsx`](../../components/CaseStudyToc.tsx) if the same patterns apply
 
-Leave non-spacing layout hints that have no token (e.g. `alignItems: "end"`, `flexWrap`) either as small utility classes (`.row-end`) or inline if a class would be a one-off with no reuse — prefer class only when reused ≥2 times.
+Leave non-spacing layout hints that have no token (e.g. `alignItems: "end"`, `flexWrap`) either as small utility classes when reused ≥2 times, or inline when one-off.
 
 **Desktop intentionally unchanged** in look; this is mediation through tokens/classes, not a redesign.
 
 ### Acceptance
 
-- `docs/design-system.md` exists and is linked from README/AGENTS
-- `app/globals.css` is a barrel importing `app/styles/{tokens,base,components}.css`
+- `docs/design-system.md` exists, is linked from README/AGENTS, and states the three source-of-truth layers (token values / implementation patterns / guidance)
+- Doc prefers token **names** and roles over duplicated literal value tables
+- `app/globals.css` is a barrel importing layered files under `app/styles/` that satisfy the required layer boundaries (file count flexible)
 - Stale `prototypes/.../brand-spec.md` comment removed from production CSS
-- Repeated page-level spacing `style={{}}` patterns replaced with semantic classes (OG image excluded)
+- Repeated **shared-role** page-level spacing patterns moved to semantic classes; remaining one-off `style={{}}` is acceptable (OG image excluded)
 - No intentional visual redesign
+- PR includes visual-neutrality evidence (see Verify) — not permanent snapshot baselines
 
 ### Verify
 
 - `npm run lint` / `typecheck` / `test` (and `format:check` / `build` as CI requires)
-- Manual: home, projects list, project detail, about at desktop and ~375px — no spacing regressions
+- Existing `npm run test:e2e` remains green
+- **Visual neutrality (required for this refactor):** using Playwright already in the repo, capture before/after screenshots (or temporary comparison artifacts) for at least:
+  - homepage desktop and mobile (~375px)
+  - projects index
+  - one long project detail (e.g. codenames-ai)
+  - About
+  - mobile menu open state
+- Store artifacts under gitignored `.agent-runs/design-system-hardening/` (add `.agent-runs/` to [`.gitignore`](../../.gitignore) in this PR if missing). Do **not** commit permanent visual baselines unless a later plan justifies it.
+- Human-review the before/after set (or attach to the PR / summarize deltas in the PR body) to substantiate “no visual changes”
 - No remaining references to `prototypes/ai-engineering-portfolio/brand-spec.md` in production code/docs (archived plan history may still mention it; leave archive alone)
 
 ### Explicitly skip
@@ -165,6 +196,7 @@ Leave non-spacing layout hints that have no token (e.g. `alignItems: "end"`, `fl
 - Expanding `@theme` to full `bg-surface` / `text-muted` utilities
 - Stylelint / custom drift tests
 - Storybook or component gallery
+- Permanent committed Playwright visual-regression snapshot suite
 
 ---
 
@@ -196,6 +228,6 @@ Use a **fresh Agent-mode chat** per slice.
 - **Plan review — plan-review**
   - "Execute plan-review from `@.cursor/plans/2026-08-04-design-system-hardening.plan.md` only. Redraft or commit the plan artifact per repo planning standards. **Agent instruction:** Do not implement. Stop after opening the plan-only PR. Mark `plan-review` completed in plan frontmatter. Do not start implementation slices."
 - **Slice — design-system-hardening**
-  - "Implement design-system-hardening from `@.cursor/plans/2026-08-04-design-system-hardening.plan.md` only. Prerequisite: plan-review merged (or plan accepted on `main`). Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Add `docs/design-system.md`, split `app/globals.css` into `app/styles/` layers, replace repeated inline spacing with semantic classes; do not expand Tailwind `@theme`, add Storybook, or Stylelint. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `design-system-hardening` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
+  - "Implement design-system-hardening from `@.cursor/plans/2026-08-04-design-system-hardening.plan.md` only. Prerequisite: plan-review merged (or plan accepted on `main`). Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Add `docs/design-system.md` with sharp source-of-truth layers; split `app/globals.css` by layer boundaries (file count flexible); reduce repeated shared-role inline spacing without inventing misleading utilities; capture Playwright before/after screenshots under gitignored `.agent-runs/design-system-hardening/` and note visual review in the PR. Do not expand Tailwind `@theme`, add Storybook, Stylelint, or permanent visual baselines. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `design-system-hardening` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
 - **Plan closure — plan-closure**
   - "Execute plan-closure from `@.cursor/plans/2026-08-04-design-system-hardening.plan.md` only. Prerequisites: all implementation slices merged and already marked completed in frontmatter. Start this slice from the latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/YYYY-MM-DD-design-system-hardening.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
