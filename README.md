@@ -6,7 +6,7 @@ Personal engineering portfolio and project knowledge base.
 
 Job-search-ready static MVP: recruiter link, resume companion, interview reference, and public portfolio. Home, projects (four case studies), articles (DEV.to archive), and a thin About/contact page — fed by typed content modules via `StaticPortfolioRepository`.
 
-**Current status:** static content MVP on production. Temporary HTML prototype under [`prototypes/`](prototypes/README.md) remains for brand/IA reference until a cleanup PR removes it. Supabase and chatbot work stay later.
+**Current status:** static content MVP on production. Brand and IA live in the Next.js app (`app/`, `components/`, `app/globals.css`). Supabase and chatbot work stay later.
 
 ## Tech stack
 
@@ -71,15 +71,14 @@ Per-deploy `*.vercel.app` hosts change every build and are not documented here. 
 
 ## Layout
 
-| Path            | Role                                                            |
-| --------------- | --------------------------------------------------------------- |
-| `app/`          | App Router pages                                                |
-| `components/`   | Shared UI (header, footer, case-study chrome)                   |
-| `domain/`       | Lightweight domain interfaces                                   |
-| `content/`      | Static content modules (evidence-backed)                        |
-| `repositories/` | Storage abstraction + static implementation                     |
-| `lib/`          | Shared helpers                                                  |
-| `docs/`         | Architecture notes and plans                                    |
-| `prototypes/`   | Temporary HTML design prototypes (not build; delete after port) |
+| Path            | Role                                          |
+| --------------- | --------------------------------------------- |
+| `app/`          | App Router pages                              |
+| `components/`   | Shared UI (header, footer, case-study chrome) |
+| `domain/`       | Lightweight domain interfaces                 |
+| `content/`      | Static content modules (evidence-backed)      |
+| `repositories/` | Storage abstraction + static implementation   |
+| `lib/`          | Shared helpers                                |
+| `docs/`         | Architecture notes and plans                  |
 
-See [docs/architecture/overview.md](docs/architecture/overview.md). The temporary AI engineering portfolio HTML prototype lives under [`prototypes/ai-engineering-portfolio/`](prototypes/ai-engineering-portfolio/README.md) until production surfaces absorb the brand/IA and the package is removed.
+See [docs/architecture/overview.md](docs/architecture/overview.md).

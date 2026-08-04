@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: prototype-cleanup
     content: "PR: after surfaces ship, delete temporary HTML prototype package and scrub README/AGENTS prototype pointers"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/YYYY-MM-DD-linkedin-ready-portfolio-mvp.plan.md"
     status: pending
