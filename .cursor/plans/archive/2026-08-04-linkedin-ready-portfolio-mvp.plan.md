@@ -15,10 +15,26 @@ todos:
     content: "PR: after surfaces ship, delete temporary HTML prototype package and scrub README/AGENTS prototype pointers"
     status: completed
   - id: plan-closure
-    content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/YYYY-MM-DD-linkedin-ready-portfolio-mvp.plan.md"
-    status: pending
+    content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/2026-08-04-linkedin-ready-portfolio-mvp.plan.md"
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-08-04.**
+
+| Slice              | Delivered                                                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| plan-review        | [#7](https://github.com/mastermichaelt/portfolio/pull/7) — plan artifact only (Plan-only PR)                                |
+| content-foundation | [#9](https://github.com/mastermichaelt/portfolio/pull/9) — domain/profile + four evidence-backed projects + article archive |
+| linkedin-surfaces  | [#10](https://github.com/mastermichaelt/portfolio/pull/10) — brand shell, nav, home/projects/articles/about                 |
+| prototype-cleanup  | [#11](https://github.com/mastermichaelt/portfolio/pull/11) — delete disposable HTML prototype + scrub docs                  |
+| plan-closure       | This PR — archive to `.cursor/plans/archive/2026-08-04-linkedin-ready-portfolio-mvp.plan.md`                                |
+
+**Deferred (out of scope):** ecosystem/system map; contact form; hosted article bodies/MDX; search/tag filters; editorial-MCP and portfolio-as-project case studies; Atlassian deep case studies; resume-length About; pixel-perfect CSS port; automated resumes YAML sync.
+
+This plan is archived. The work described here has shipped; the remaining content is preserved for historical context.
 
 # Job-search-ready portfolio MVP
 
@@ -32,7 +48,7 @@ isProject: false
 | prototype-cleanup  | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure       | Open PR only          | Do not merge. Stop after opening the PR.               |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ## Repository topology (default)
 
@@ -48,10 +64,10 @@ The repository integration branch is `main`. Implementation slices start from an
 
 ## Locked decisions
 
-- **Ship path:** Production Next.js routes under [`app/`](../../app/), fed by typed modules under [`content/`](../../content/) via [`StaticPortfolioRepository`](../../repositories/static-portfolio-repository.ts). Do **not** serve or import [`prototypes/`](../../prototypes/) into the build ([architecture](../../docs/architecture/overview.md)).
+- **Ship path:** Production Next.js routes under [`app/`](../../../app/), fed by typed modules under [`content/`](../../../content/) via [`StaticPortfolioRepository`](../../../repositories/static-portfolio-repository.ts). Do **not** serve or import [`prototypes/`](../../../prototypes/) into the build ([architecture](../../../docs/architecture/overview.md)).
 - **Projects (exactly four):** **Codenames AI** and **AI-assisted editorial workflow** (homepage flagships via `featured: true`); **Resume generator** (meta-infrastructure — canonical facts→prose inventory); **Renovate governance ladder** (operational governance). Narrative order on `/projects`: product → editorial systems → resume knowledge architecture → Renovate. Homepage features only the two flagships; later ecosystem pages (portfolio-as-project, Savepoints, editorial-MCP) stay out of this MVP.
 - **Visual bar:** Brand-close to the prototype (tokens, Newsreader / Source Sans 3 / IBM Plex Mono, shared top nav) — not a pixel port. Skip system map, search/filter chrome, and contact form.
-- **HTML prototype is temporary:** [`prototypes/ai-engineering-portfolio/`](../../prototypes/ai-engineering-portfolio/) (lands via [portfolio#6](https://github.com/mastermichaelt/portfolio/pull/6)) is a disposable IA/brand review artifact. Use it during `linkedin-surfaces`, then **delete it** in `prototype-cleanup`. Do not keep it as a long-lived second design source of truth.
+- **HTML prototype is temporary:** [`prototypes/ai-engineering-portfolio/`](../../../prototypes/ai-engineering-portfolio/) (lands via [portfolio#6](https://github.com/mastermichaelt/portfolio/pull/6)) is a disposable IA/brand review artifact. Use it during `linkedin-surfaces`, then **delete it** in `prototype-cleanup`. Do not keep it as a long-lived second design source of truth.
 - **Contact:** Mailto + LinkedIn + GitHub + DEV blog (no form). Identity from sibling workspace `resumes/meta/profile.yml`.
 - **Articles:** Full published DEV.to inventory (canonical markdown in sibling `codenames-ai-guesser`); optional `featured` for homepage. No full article detail routes in this plan.
 - **Out of scope:** `/ecosystem` map, remaining prototype project pages (e.g. editorial-MCP deep-dive, portfolio-as-project), chatbot, Supabase, Atlassian case-study pages (facts may appear lightly on About only).
@@ -153,37 +169,37 @@ Nav: Home · Projects · Articles · About (no System). Keep `/ecosystem` unlink
 
 Keep About **thin**. Identity, contact, and optional short flavor only — no resume dump. Depth lives on project case studies.
 
-| Need                                   | Canonical source                                                                                                 |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Name, location, email, links           | `resumes/meta/profile.yml` — email `michael@multipliers.dev`; LinkedIn / GitHub / `https://dev.to/michaeltruong` |
-| Skills clusters (optional, light)      | `resumes/meta/skills.yml` — cluster names only if useful; not a full skills inventory                            |
-| Education / awards (optional, light)   | `resumes/meta/education.yml`, `resumes/meta/awards.yml` — one-line mentions at most                              |
-| Role timeline flavor (optional, short) | `resumes/roles/` — Atlassian SWE/EM/AIM titles & dates only; no full bullet lists                                |
-| Homepage positioning IA                | Prototype [`index.html`](../../prototypes/ai-engineering-portfolio/index.html) — rewrite claims from facts below |
-| Brand tokens / type                    | Prototype [`brand-spec.md`](../../prototypes/ai-engineering-portfolio/brand-spec.md)                             |
+| Need                                   | Canonical source                                                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Name, location, email, links           | `resumes/meta/profile.yml` — email `michael@multipliers.dev`; LinkedIn / GitHub / `https://dev.to/michaeltruong`    |
+| Skills clusters (optional, light)      | `resumes/meta/skills.yml` — cluster names only if useful; not a full skills inventory                               |
+| Education / awards (optional, light)   | `resumes/meta/education.yml`, `resumes/meta/awards.yml` — one-line mentions at most                                 |
+| Role timeline flavor (optional, short) | `resumes/roles/` — Atlassian SWE/EM/AIM titles & dates only; no full bullet lists                                   |
+| Homepage positioning IA                | Prototype [`index.html`](../../../prototypes/ai-engineering-portfolio/index.html) — rewrite claims from facts below |
+| Brand tokens / type                    | Prototype [`brand-spec.md`](../../../prototypes/ai-engineering-portfolio/brand-spec.md)                             |
 
 ### Case study 1 — Codenames AI (homepage flagship)
 
 Mark `featured: true`.
 
-| Need                                       | Canonical source                                                                                                                                                |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Product claims / stack / production scope  | `resumes/facts/codenames-ai-e2e.yml`, `resumes/facts/codenames-ai-telemetry.yml`                                                                                |
-| Live product + modes                       | `codenames-ai-guesser/README.md` (`codenames-ai.com`)                                                                                                           |
-| Engineering depth (validation / outcomes)  | `codenames-ai-guesser/docs/ai-pipeline-outcome.md` (analytics/CI docs as needed)                                                                                |
-| Preferred section IA (omit if unsupported) | Prototype [`project-codenames-ai.html`](../../prototypes/ai-engineering-portfolio/project-codenames-ai.html) — product case-study arc when evidence supports it |
-| Related writing                            | `codenames-ai-guesser/docs/dev.to/published/` — schema-first Zod, model experiments, active-players sessions                                                    |
+| Need                                       | Canonical source                                                                                                                                                   |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Product claims / stack / production scope  | `resumes/facts/codenames-ai-e2e.yml`, `resumes/facts/codenames-ai-telemetry.yml`                                                                                   |
+| Live product + modes                       | `codenames-ai-guesser/README.md` (`codenames-ai.com`)                                                                                                              |
+| Engineering depth (validation / outcomes)  | `codenames-ai-guesser/docs/ai-pipeline-outcome.md` (analytics/CI docs as needed)                                                                                   |
+| Preferred section IA (omit if unsupported) | Prototype [`project-codenames-ai.html`](../../../prototypes/ai-engineering-portfolio/project-codenames-ai.html) — product case-study arc when evidence supports it |
+| Related writing                            | `codenames-ai-guesser/docs/dev.to/published/` — schema-first Zod, model experiments, active-players sessions                                                       |
 
 ### Case study 2 — AI-assisted editorial workflow (homepage flagship)
 
 Treat as a **workflow / systems** case study (the portfolio differentiator): reusable agent skills for capture → triage → context → draft → critique → publish, with explicit ownership and human gates. Prefer `system` / `constraints` / `decisions` / `operation` / `evidence`; outcomes only when inventory-backed (weekly field-report series). Mark `featured: true`.
 
-| Need                                       | Canonical source                                                                                                                                                                                 |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Series + editorial system claims           | `resumes/facts/writing-field-reports.yml`, `resumes/facts/ai-engineering-workflows.yml` (`editorial-workflows`)                                                                                  |
-| Lifecycle / ownership / skills             | `codenames-ai-guesser/docs/editorial-workflow.md`                                                                                                                                                |
-| Public narrative                           | `one-example-beats-style-guide.md`, `reviewers-analysis-before-scoring.md`, `my-ai-reviewer-improved-by-separating-kinds-of-reasoning-not-expanding-its-rubric.md`                               |
-| Preferred section IA (omit if unsupported) | Prototype [`project-editorial-workflow.html`](../../prototypes/ai-engineering-portfolio/project-editorial-workflow.html) — reshape to workflow kinds as evidence allows; omit unsupported stages |
+| Need                                       | Canonical source                                                                                                                                                                                    |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Series + editorial system claims           | `resumes/facts/writing-field-reports.yml`, `resumes/facts/ai-engineering-workflows.yml` (`editorial-workflows`)                                                                                     |
+| Lifecycle / ownership / skills             | `codenames-ai-guesser/docs/editorial-workflow.md`                                                                                                                                                   |
+| Public narrative                           | `one-example-beats-style-guide.md`, `reviewers-analysis-before-scoring.md`, `my-ai-reviewer-improved-by-separating-kinds-of-reasoning-not-expanding-its-rubric.md`                                  |
+| Preferred section IA (omit if unsupported) | Prototype [`project-editorial-workflow.html`](../../../prototypes/ai-engineering-portfolio/project-editorial-workflow.html) — reshape to workflow kinds as evidence allows; omit unsupported stages |
 
 ### Case study 3 — Resume generator (supporting / meta-infrastructure)
 
@@ -199,12 +215,12 @@ Treat as **knowledge architecture**, not a resume-builder demo: canonical fact i
 
 Treat as an **operational / governance system** (automation layers, failure controls, authority boundaries), not a conventional “project with outcomes.” Prefer `system` / `operation` / `constraints` / `decisions` / `evidence` over inventing product-style outcomes.
 
-| Need                                       | Canonical source                                                                                                                                                                                   |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ladder / authority / stop causes           | `codenames-ai-guesser/docs/renovate-workflow.md`                                                                                                                                                   |
-| Cross-cutting agent workflow facts         | `resumes/facts/ai-engineering-workflows.yml`                                                                                                                                                       |
-| Public narrative                           | `codenames-ai-guesser/docs/dev.to/published/evidence-driven-dependency-upgrades.md`, `agent-plans-authority-handoffs.md`                                                                           |
-| Preferred section IA (omit if unsupported) | Prototype [`project-renovate-governance.html`](../../prototypes/ai-engineering-portfolio/project-renovate-governance.html) — reshape to governance/ops kinds as evidence allows; outcomes optional |
+| Need                                       | Canonical source                                                                                                                                                                                      |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ladder / authority / stop causes           | `codenames-ai-guesser/docs/renovate-workflow.md`                                                                                                                                                      |
+| Cross-cutting agent workflow facts         | `resumes/facts/ai-engineering-workflows.yml`                                                                                                                                                          |
+| Public narrative                           | `codenames-ai-guesser/docs/dev.to/published/evidence-driven-dependency-upgrades.md`, `agent-plans-authority-handoffs.md`                                                                              |
+| Preferred section IA (omit if unsupported) | Prototype [`project-renovate-governance.html`](../../../prototypes/ai-engineering-portfolio/project-renovate-governance.html) — reshape to governance/ops kinds as evidence allows; outcomes optional |
 
 ### Articles index (link out)
 
@@ -218,14 +234,14 @@ Initial featured set (content defaults; surfaces may change prominence): case-st
 
 ### Production targets
 
-| Surface        | Route                                                                                |
-| -------------- | ------------------------------------------------------------------------------------ |
-| Home           | [`app/page.tsx`](../../app/page.tsx)                                                 |
-| Projects index | [`app/projects/page.tsx`](../../app/projects/page.tsx)                               |
-| Case studies   | `app/projects/[slug]/page.tsx`                                                       |
-| Articles       | [`app/articles/page.tsx`](../../app/articles/page.tsx)                               |
-| About          | [`app/about/page.tsx`](../../app/about/page.tsx)                                     |
-| Brand / fonts  | [`app/globals.css`](../../app/globals.css), [`app/layout.tsx`](../../app/layout.tsx) |
+| Surface        | Route                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------ |
+| Home           | [`app/page.tsx`](../../../app/page.tsx)                                                    |
+| Projects index | [`app/projects/page.tsx`](../../../app/projects/page.tsx)                                  |
+| Case studies   | `app/projects/[slug]/page.tsx`                                                             |
+| Articles       | [`app/articles/page.tsx`](../../../app/articles/page.tsx)                                  |
+| About          | [`app/about/page.tsx`](../../../app/about/page.tsx)                                        |
+| Brand / fonts  | [`app/globals.css`](../../../app/globals.css), [`app/layout.tsx`](../../../app/layout.tsx) |
 
 ---
 
@@ -266,12 +282,12 @@ Initial featured set (content defaults; surfaces may change prominence): case-st
 
 **Work:**
 
-- Extend [`domain/project.ts`](../../domain/project.ts) / [`domain/article.ts`](../../domain/article.ts):
-  - **Project:** `slug`, `title`, `summary`, `tags`, `kind`/`eyebrow`, ordered `sections: ProjectSection[]` using the flexible `ProjectSectionKind` model above (preferred prototype sequence when evidence supports it — **not** a fixed required list), related links. Evidence via [`domain/evidence.ts`](../../domain/evidence.ts).
+- Extend [`domain/project.ts`](../../../domain/project.ts) / [`domain/article.ts`](../../../domain/article.ts):
+  - **Project:** `slug`, `title`, `summary`, `tags`, `kind`/`eyebrow`, ordered `sections: ProjectSection[]` using the flexible `ProjectSectionKind` model above (preferred prototype sequence when evidence supports it — **not** a fixed required list), related links. Evidence via [`domain/evidence.ts`](../../../domain/evidence.ts).
   - **Article:** `slug`, `title`, `summary`, `year`, `tags`, `url` (external DEV), optional `relatedProjectSlug`.
-  - **Profile:** `domain/profile.ts` + `content/profile.ts` from `resumes/meta/profile.yml` (+ short bio composed from facts). Add `getProfile()` on [`PortfolioRepository`](../../repositories/portfolio-repository.ts).
-- Populate [`content/projects.ts`](../../content/projects.ts) and [`content/articles.ts`](../../content/articles.ts) by transcribing/compressing workspace evidence (manual copy; no YAML import at build time). Audit evidence **before** choosing which section kinds to include; omit unsupported kinds (especially Renovate `outcomes`).
-- Update [`tests/static-portfolio-repository.test.ts`](../../tests/static-portfolio-repository.test.ts).
+  - **Profile:** `domain/profile.ts` + `content/profile.ts` from `resumes/meta/profile.yml` (+ short bio composed from facts). Add `getProfile()` on [`PortfolioRepository`](../../../repositories/portfolio-repository.ts).
+- Populate [`content/projects.ts`](../../../content/projects.ts) and [`content/articles.ts`](../../../content/articles.ts) by transcribing/compressing workspace evidence (manual copy; no YAML import at build time). Audit evidence **before** choosing which section kinds to include; omit unsupported kinds (especially Renovate `outcomes`).
+- Update [`tests/static-portfolio-repository.test.ts`](../../../tests/static-portfolio-repository.test.ts).
 
 **Acceptance:**
 
@@ -310,7 +326,7 @@ Initial featured set (content defaults; surfaces may change prominence): case-st
 - About: short identity + contact + light flavor only; do not render a resume-style experience
 - Article rows link out to DEV.to
 - Metadata suitable for social / LinkedIn link previews
-- Update [`README.md`](../../README.md): job-search-ready static MVP + production URL note
+- Update [`README.md`](../../../README.md): job-search-ready static MVP + production URL note
 - Nav: Home · Projects · Articles · About (no System / ecosystem)
 
 **Acceptance:**
@@ -341,9 +357,9 @@ Initial featured set (content defaults; surfaces may change prominence): case-st
 
 **Work:**
 
-- Delete [`prototypes/ai-engineering-portfolio/`](../../prototypes/ai-engineering-portfolio/) (the package from [portfolio#6](https://github.com/mastermichaelt/portfolio/pull/6))
+- Delete [`prototypes/ai-engineering-portfolio/`](../../../prototypes/ai-engineering-portfolio/) (the package from [portfolio#6](https://github.com/mastermichaelt/portfolio/pull/6))
 - If `prototypes/` has no remaining packages, remove the empty `prototypes/` tree and its root README
-- Scrub [`README.md`](../../README.md) / [`AGENTS.md`](../../AGENTS.md) (and architecture docs if needed) so they no longer point at the deleted package as an active design source
+- Scrub [`README.md`](../../../README.md) / [`AGENTS.md`](../../../AGENTS.md) (and architecture docs if needed) so they no longer point at the deleted package as an active design source
 - Do **not** revert production CSS/fonts/content ported in `linkedin-surfaces`
 
 **Acceptance:**
@@ -371,7 +387,7 @@ After the last implementation slice merges, open a final docs-only closure PR:
 
 1. Verify all implementation todos are already `completed` (or `cancelled` if deferred); fix stragglers only
 2. Add a `# Shipped` closure note at the top of the plan body
-3. Move this file to `.cursor/plans/archive/YYYY-MM-DD-linkedin-ready-portfolio-mvp.plan.md`
+3. Move this file to `.cursor/plans/archive/2026-08-04-linkedin-ready-portfolio-mvp.plan.md`
 4. Mark `plan-closure` `completed` and update agent prompt references to the archived path
 
 Do not archive inside implementation PRs.
@@ -395,16 +411,16 @@ Do not archive inside implementation PRs.
 Use a **fresh Agent-mode chat** per slice.
 
 - **Plan review — plan-review**
-  - "Execute plan-review from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Redraft or commit the plan artifact per repo planning standards. Start from latest `origin/main`, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not implement. Stop after opening the plan-only PR. Mark `plan-review` completed in plan frontmatter. Do not start implementation slices."
+  - "Execute plan-review from `@.cursor/plans/archive/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Redraft or commit the plan artifact per repo planning standards. Start from latest `origin/main`, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not implement. Stop after opening the plan-only PR. Mark `plan-review` completed in plan frontmatter. Do not start implementation slices."
 
 - **Slice — content-foundation**
-  - "Implement content-foundation from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisite: plan-review merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Populate content from sibling workspace resumes + codenames-ai-guesser evidence (not prototype KPIs). Use the flexible `ProjectSection` model — preferred prototype sequence is not mandatory; include only evidence-backed sections; Renovate may omit outcomes. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `content-foundation` completed in plan frontmatter. Do not start linkedin-surfaces, prototype-cleanup, or later slices. Do not archive the plan."
+  - "Implement content-foundation from `@.cursor/plans/archive/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisite: plan-review merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Populate content from sibling workspace resumes + codenames-ai-guesser evidence (not prototype KPIs). Use the flexible `ProjectSection` model — preferred prototype sequence is not mandatory; include only evidence-backed sections; Renovate may omit outcomes. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `content-foundation` completed in plan frontmatter. Do not start linkedin-surfaces, prototype-cleanup, or later slices. Do not archive the plan."
 
 - **Slice — linkedin-surfaces**
-  - "Implement linkedin-surfaces from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisite: content-foundation merged; HTML prototype on `main` (portfolio#6) if not already. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `linkedin-surfaces` completed in plan frontmatter. Do not start prototype-cleanup or later slices. Do not archive the plan."
+  - "Implement linkedin-surfaces from `@.cursor/plans/archive/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisite: content-foundation merged; HTML prototype on `main` (portfolio#6) if not already. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `linkedin-surfaces` completed in plan frontmatter. Do not start prototype-cleanup or later slices. Do not archive the plan."
 
 - **Slice — prototype-cleanup**
-  - "Implement prototype-cleanup from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisite: linkedin-surfaces merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Delete the temporary `prototypes/ai-engineering-portfolio/` package and scrub docs; do not revert production port. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `prototype-cleanup` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
+  - "Implement prototype-cleanup from `@.cursor/plans/archive/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisite: linkedin-surfaces merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Delete the temporary `prototypes/ai-engineering-portfolio/` package and scrub docs; do not revert production port. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `prototype-cleanup` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
 
 - **Plan closure — plan-closure**
-  - "Execute plan-closure from `@.cursor/plans/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisites: all implementation slices (including prototype-cleanup) merged and already marked completed in frontmatter. Start this slice from the latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/YYYY-MM-DD-linkedin-ready-portfolio-mvp.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
+  - "Execute plan-closure from `@.cursor/plans/archive/2026-08-04-linkedin-ready-portfolio-mvp.plan.md` only. Prerequisites: all implementation slices (including prototype-cleanup) merged and already marked completed in frontmatter. Start this slice from the latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/2026-08-04-linkedin-ready-portfolio-mvp.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
