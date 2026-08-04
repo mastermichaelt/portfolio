@@ -25,10 +25,14 @@ export function CaseStudyToc({ items }: { items: TocItem[] }) {
     if (sections.length === 0) return;
 
     const onScroll = () => {
-      const y = window.scrollY + 120;
+      // Viewport-relative tops stay correct when ancestors use CSS transform
+      // (e.g. `.fade-in`), unlike offsetTop which becomes transform-local.
+      const marker = 120;
       let current = sections[0];
       for (const section of sections) {
-        if (section.el.offsetTop <= y) current = section;
+        if (section.el.getBoundingClientRect().top <= marker) {
+          current = section;
+        }
       }
       setActiveId(current.id);
     };

@@ -150,5 +150,20 @@ test.describe("portfolio happy path", () => {
     await expect(
       page.getByRole("heading", { name: "Michael Truong" }),
     ).toBeVisible();
+    await expect(mobile).toBeHidden();
+  });
+
+  test("mobile nav closes on browser back", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/projects");
+    await page.goto("/");
+
+    await page.getByRole("button", { name: "Open menu" }).click();
+    const mobile = page.locator("#mobile-nav");
+    await expect(mobile).toBeVisible();
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/projects$/);
+    await expect(mobile).toBeHidden();
   });
 });

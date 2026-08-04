@@ -10,6 +10,13 @@ const DESKTOP_MIN = "(min-width: 921px)";
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [menuPath, setMenuPath] = useState(pathname);
+
+  // Close on route change (including browser back/forward) without an effect.
+  if (menuPath !== pathname) {
+    setMenuPath(pathname);
+    if (open) setOpen(false);
+  }
 
   useEffect(() => {
     const media = window.matchMedia(DESKTOP_MIN);
