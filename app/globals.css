@@ -365,9 +365,13 @@ h3 {
   color: var(--fg);
 }
 
-.mobile-nav-cta {
+/* Beat `.mobile-nav a { color: muted }` so primary CTA label stays readable. */
+.mobile-nav a.mobile-nav-cta {
   justify-content: center;
   margin-top: 8px;
+  color: var(--surface);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .mobile-nav a.mobile-nav-cta:hover,

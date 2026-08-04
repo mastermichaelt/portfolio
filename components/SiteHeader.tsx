@@ -21,7 +21,7 @@ export function SiteHeader() {
   }, []);
 
   const closeMenu = () => setOpen(false);
-  // Mobile menu keeps Contact as the CTA to /about — omit the duplicate About row.
+  // Mobile: Home · Projects · Articles + About CTA (desktop keeps separate Contact CTA).
   const mobileNav = primaryNav.filter((item) => item.href !== "/about");
 
   return (
@@ -80,7 +80,7 @@ export function SiteHeader() {
           onClick={closeMenu}
           aria-current={isNavCurrent(pathname, "/about") ? "page" : undefined}
         >
-          Contact
+          About
         </Link>
       </div>
     </header>
