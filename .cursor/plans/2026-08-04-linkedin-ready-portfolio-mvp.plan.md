@@ -1,15 +1,15 @@
 ---
-name: LinkedIn-ready portfolio MVP
-overview: "Ship a Next.js static-content MVP (home, projects, two case studies, articles, about) using the HTML prototype for IA/brand only, and workspace evidence from resumes + codenames-ai-guesser for all claims and article links."
+name: Job-search-ready portfolio MVP
+overview: "Ship a Next.js static-content MVP (home, projects, two case studies, articles, about) as a recruiter link, resume companion, interview reference, and public portfolio — using the HTML prototype for IA/brand only, and workspace evidence from resumes + codenames-ai-guesser for all claims and article links."
 todos:
   - id: plan-review
     content: "Plan-only PR — commit plan artifact and open PR for review; do not implement"
     status: completed
   - id: content-foundation
-    content: "PR: extend domain/profile + flexible ProjectSection kinds; populate from resumes facts + codenames docs/articles (evidence-backed sections only); repository + tests"
+    content: "PR: extend domain/profile + flexible ProjectSection kinds; populate from resumes facts + codenames docs/articles (evidence-backed sections only); repository + test:coverage"
     status: pending
   - id: linkedin-surfaces
-    content: "PR: brand shell, nav, home/projects/[slug]/articles/about; remove under-construction UX; update README"
+    content: "PR: brand shell, nav, home/projects/[slug]/articles/about (thin About; projects carry weight); remove under-construction UX; update README"
     status: pending
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/YYYY-MM-DD-linkedin-ready-portfolio-mvp.plan.md"
@@ -17,7 +17,7 @@ todos:
 isProject: false
 ---
 
-# LinkedIn-ready portfolio MVP
+# Job-search-ready portfolio MVP
 
 ## Recommended execution authority
 
@@ -51,6 +51,7 @@ The repository integration branch is `main`. Implementation slices start from an
 - **Articles:** Index entries that link out to published DEV.to posts (canonical markdown in sibling `codenames-ai-guesser`). No full article detail routes in this plan.
 - **Out of scope:** `/ecosystem` map, remaining prototype project pages, chatbot, Supabase, Atlassian case-study pages (facts may appear lightly on About only).
 - **Project section model:** Flexible typed sections (see below). The prototype’s case-study sequence is the **preferred pattern**, not a mandatory schema. Include only sections supported by evidence.
+- **About is not a resume:** `/about` stays short identity + contact + light career flavor. **Projects carry the weight** of the portfolio (case-study depth, decisions, evidence). Do not port full role bullets, metric stacks, or resume-length timelines onto About.
 
 ## Project section model (flexible)
 
@@ -127,12 +128,14 @@ flowchart LR
 
 ## User-facing acceptance (done when true)
 
+The production URL should work as a **job-search-ready** surface: recruiter link, resume companion, interview reference, and public portfolio (broader than LinkedIn link-preview alone).
+
 A hiring manager opening the production URL can:
 
 1. Land on a real homepage (not “under construction”)
-2. Browse `/projects` and open **two** case studies grounded in workspace evidence
+2. Browse `/projects` and open **two** case studies grounded in workspace evidence (projects carry portfolio depth)
 3. Browse `/articles` with links to real published posts
-4. Reach `/about` with email + LinkedIn + GitHub (+ blog)
+4. Reach a short `/about` with email + LinkedIn + GitHub (+ blog) — not a resume page
 
 Nav: Home · Projects · Articles · About (no System). Keep `/ecosystem` unlinked in primary nav.
 
@@ -140,12 +143,14 @@ Nav: Home · Projects · Articles · About (no System). Keep `/ecosystem` unlink
 
 ### About / contact / homepage identity
 
+Keep About **thin**. Identity, contact, and optional short flavor only — no resume dump. Depth lives on project case studies.
+
 | Need                                   | Canonical source                                                                                                 |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | Name, location, email, links           | `resumes/meta/profile.yml` — email `michael@multipliers.dev`; LinkedIn / GitHub / `https://dev.to/michaeltruong` |
-| Skills clusters (optional About)       | `resumes/meta/skills.yml`                                                                                        |
-| Education / awards (optional About)    | `resumes/meta/education.yml`, `resumes/meta/awards.yml`                                                          |
-| Role timeline flavor (optional, short) | `resumes/roles/` — Atlassian SWE/EM/AIM titles & dates                                                           |
+| Skills clusters (optional, light)      | `resumes/meta/skills.yml` — cluster names only if useful; not a full skills inventory                            |
+| Education / awards (optional, light)   | `resumes/meta/education.yml`, `resumes/meta/awards.yml` — one-line mentions at most                              |
+| Role timeline flavor (optional, short) | `resumes/roles/` — Atlassian SWE/EM/AIM titles & dates only; no full bullet lists                                |
 | Homepage positioning IA                | Prototype [`index.html`](../../prototypes/ai-engineering-portfolio/index.html) — rewrite claims from facts below |
 | Brand tokens / type                    | Prototype [`brand-spec.md`](../../prototypes/ai-engineering-portfolio/brand-spec.md)                             |
 
@@ -244,10 +249,11 @@ Optional extras later: editorial critique posts, cloud-agent post (ai-learning t
 - Two projects (Codenames AI, Renovate governance) and 4–6 articles load via repository
 - Each project includes context/system, contribution/role, and evidence; outcomes only when defensible
 - Claims do not invent metrics beyond inventory; evidence URLs point at real public artifacts where possible
-- `npm run typecheck`, `npm test`, `npm run lint` pass
+- About/profile content stays identity-scale (not resume-length); project content holds case-study depth
+- `npm run typecheck`, `npm run test:coverage`, `npm run lint` pass
 - Mark `content-foundation` completed in plan frontmatter in the same PR
 
-**Verify:** `npm run typecheck && npm test && npm run lint`
+**Verify:** `npm run typecheck && npm run test:coverage && npm run lint`
 
 ---
 
@@ -257,7 +263,7 @@ Optional extras later: editorial critique posts, cloud-agent post (ai-learning t
 
 **Rationale:**
 
-- User-facing LinkedIn URL replacement; needs visual/content review on Vercel preview
+- User-facing job-search surfaces (recruiter link / resume companion / interview reference / public portfolio); needs visual/content review on Vercel preview
 - Depends on content-foundation merged to `main`
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
@@ -271,19 +277,21 @@ Optional extras later: editorial critique posts, cloud-agent post (ai-learning t
 - Shared `SiteHeader` / `SiteFooter` (mobile nav clears open state on widen)
 - Next font loaders for Newsreader, Source Sans 3, IBM Plex Mono; brand-spec CSS variables
 - Pages: home, `/projects`, `/projects/[slug]`, `/articles`, `/about` via repository
-- Case study: render each project’s `sections` in order + desktop TOC (section set may differ per project); `notFound()` for unknown slugs
+- Case study: render each project’s `sections` in order + desktop TOC (section set may differ per project); `notFound()` for unknown slugs — **projects carry portfolio weight**
+- About: short identity + contact + light flavor only; do not render a resume-style experience
 - Article rows link out to DEV.to
-- Metadata suitable for LinkedIn link previews
-- Update [`README.md`](../../README.md): LinkedIn-ready static MVP + production URL note
+- Metadata suitable for social / LinkedIn link previews
+- Update [`README.md`](../../README.md): job-search-ready static MVP + production URL note
 - Nav: Home · Projects · Articles · About (no System / ecosystem)
 
 **Acceptance:**
 
 - User-facing acceptance checklist above is true on local `npm run dev` and Vercel preview
+- About remains thin; case studies hold depth
 - Desktop intentionally changed (full shell); verify mobile nav at ~375px as well
 - Mark `linkedin-surfaces` completed in plan frontmatter in the same PR
 
-**Verify:** `npm run typecheck && npm test && npm run lint && npm run build`; manual check of five surfaces + mobile nav
+**Verify:** `npm run typecheck && npm run test:coverage && npm run lint && npm run build`; manual check of five surfaces + mobile nav
 
 ---
 
@@ -313,7 +321,8 @@ Do not archive inside implementation PRs.
 - Hosting full article bodies in Next.js / MDX blog
 - Search/tag filters
 - Editorial / MCP / portfolio-as-project case studies (evidence exists; not in this MVP)
-- Atlassian growth/AIM deep case studies (facts stay in resumes for About flavor only)
+- Atlassian growth/AIM deep case studies (facts stay in resumes; About may use title/date flavor only)
+- Resume-length About page (full role bullets, metric stacks, or skills inventory)
 - Pixel-perfect CSS port of `site.css`
 - Automated sync from resumes YAML into portfolio `content/` (manual port for MVP)
 
