@@ -1,4 +1,33 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/content/projects", () => ({
+  projects: [
+    {
+      slug: "test-project",
+      title: "Test project",
+    },
+  ],
+}));
+
+vi.mock("@/content/articles", () => ({
+  articles: [{ slug: "test-article", title: "Test article" }],
+}));
+
+vi.mock("@/content/ecosystem", () => ({
+  entities: [{ id: "entity-1", name: "Entity" }],
+  relationships: [
+    {
+      id: "relationship-1",
+      fromId: "entity-1",
+      toId: "entity-1",
+    },
+  ],
+}));
+
+vi.mock("@/content/timeline", () => ({
+  timelineEvents: [{ id: "event-1", title: "Event" }],
+}));
+
 import { articles } from "@/content/articles";
 import { entities, relationships } from "@/content/ecosystem";
 import { projects } from "@/content/projects";
@@ -12,18 +41,15 @@ describe("StaticPortfolioRepository", () => {
     await expect(repository.listProjects()).resolves.toEqual(projects);
   });
 
-  it("returns null for an unknown project slug", async () => {
-    await expect(repository.getProject("missing")).resolves.toBeNull();
+  it("returns a project when the slug matches", async () => {
+    await expect(repository.getProject("test-project")).resolves.toEqual({
+      slug: "test-project",
+      title: "Test project",
+    });
   });
 
-  it("returns a project when the slug matches", async () => {
-    const match = projects[0];
-    if (!match) {
-      await expect(repository.getProject("any")).resolves.toBeNull();
-      return;
-    }
-
-    await expect(repository.getProject(match.slug)).resolves.toEqual(match);
+  it("returns null for an unknown project slug", async () => {
+    await expect(repository.getProject("missing")).resolves.toBeNull();
   });
 
   it("lists articles from the static content module", async () => {
