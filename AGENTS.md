@@ -32,19 +32,18 @@ Prefer the **most mature first-class interface** for each problem — use the to
 
 ## Repository layout
 
-| Path            | Role                                                            |
-| --------------- | --------------------------------------------------------------- |
-| `app/`          | App Router pages                                                |
-| `components/`   | Shared UI                                                       |
-| `domain/`       | Lightweight domain interfaces                                   |
-| `content/`      | Static content modules                                          |
-| `repositories/` | Storage abstraction + static implementation                     |
-| `lib/`          | Shared helpers                                                  |
-| `docs/`         | Architecture notes and product roadmap                          |
-| `prototypes/`   | Temporary HTML design prototypes (not build; delete after port) |
-| `.cursor/`      | Agent standards, rules, and staged plans                        |
+| Path            | Role                                        |
+| --------------- | ------------------------------------------- |
+| `app/`          | App Router pages                            |
+| `components/`   | Shared UI                                   |
+| `domain/`       | Lightweight domain interfaces               |
+| `content/`      | Static content modules                      |
+| `repositories/` | Storage abstraction + static implementation |
+| `lib/`          | Shared helpers                              |
+| `docs/`         | Architecture notes and product roadmap      |
+| `.cursor/`      | Agent standards, rules, and staged plans    |
 
-Temporary Open Design HTML prototypes live under [`prototypes/`](prototypes/README.md). Do not import them into the Next.js build; delete the package after the production port. See [docs/architecture/overview.md](docs/architecture/overview.md).
+Brand and IA live in production routes (`app/`, `components/`, `app/globals.css`). See [docs/architecture/overview.md](docs/architecture/overview.md).
 
 ### Commands
 
