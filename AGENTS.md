@@ -62,7 +62,7 @@ npm run playwright:install   # once: Chromium for e2e
 npm run test:e2e             # happy-path Playwright (build first)
 ```
 
-Pre-commit (Husky): `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Coverage is a CI gate, not a pre-commit step. Playwright e2e runs in CI after `verify`. Husky install is skipped when `CI` is set.
+Pre-commit (Husky): `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Coverage is a CI gate, not a pre-commit step. Playwright e2e runs in CI after `verify`. The `e2e` job always reports a status (required-check safe) but **skips Playwright on PRs whose diff has no runtime-impacting paths** (e.g. `docs/**`, `.cursor/**`, `README.md`, `AGENTS.md`); `main` pushes always run e2e. Husky install is skipped when `CI` is set.
 
 ### Non-obvious notes
 
