@@ -64,7 +64,7 @@ Pre-commit (Husky): `lint-staged` (Prettier on staged files), then full `lint`, 
 
 ### Non-obvious notes
 
-- **Node**: `.nvmrc` pins Node 24; `package.json` `engines` requires **>=22.22.1**. Use a Node that meets that floor for install, hooks, and CI scripts.
+- **Node**: `.nvmrc` and `package.json` `engines` pin Node **24.x**. Use Node 24 for install, hooks, and CI scripts.
 - **No env vars** are required for the skeleton. Supabase comes later behind `PortfolioRepository`.
 - Pages and UI should depend on `PortfolioRepository`, not on concrete storage adapters.
 - Staged multi-PR plans live under `.cursor/plans/`. Product roadmap stubs under `docs/plans/` are not execution plans unless promoted.
