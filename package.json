@@ -10,7 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint-staged": "lint-staged",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "prepare": "if [ -n \"$CI\" ]; then echo 'Skipping husky install in CI'; else husky; fi"
   },
   "dependencies": {
