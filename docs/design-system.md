@@ -89,13 +89,14 @@ Honest one-off spacing (distinct roles, single use) may stay as `style={{}}` or 
 
 ## Component posture
 
-| Pattern                                          | When appropriate                                           |
-| ------------------------------------------------ | ---------------------------------------------------------- |
-| `.card` / `.card-interactive`                    | Interactive containers (project tiles, TOC, contact panel) |
-| `.btn-primary` / `.btn-secondary` / `.btn-ghost` | CTAs; primary = accent fill; secondary = surface + border  |
-| `.pill`                                          | Kind / status chip with accent wash                        |
-| `.tag`                                           | Neutral topic chip                                         |
-| Hero / log-row / work-card                       | Page composition patterns already owned by CSS             |
+| Pattern                                          | When appropriate                                                      |
+| ------------------------------------------------ | --------------------------------------------------------------------- |
+| `.card` / `.card-interactive`                    | Interactive containers (project tiles, TOC, contact panel)            |
+| `.btn-primary` / `.btn-secondary` / `.btn-ghost` | CTAs; primary = accent fill; secondary = surface + border             |
+| `.pill`                                          | Kind / status chip with accent wash                                   |
+| `.tag`                                           | Neutral topic chip                                                    |
+| `.text-link`                                     | Links embedded in prose; underlined by default, accent on hover/focus |
+| Hero / log-row / work-card                       | Page composition patterns already owned by CSS                        |
 
 Default: **no cards in the hero**. Cards exist for interaction or dense grouped content (contact, TOC), not for decorative boxing.
 

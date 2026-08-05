@@ -475,6 +475,24 @@
   text-decoration: underline;
 }
 
+/* Inline prose links: underline first, accent on interaction (not CTA chrome). */
+.text-link {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: from-font;
+}
+
+.text-link:hover,
+.text-link:focus-visible {
+  color: var(--accent);
+}
+
+.text-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 .skill-row {
   display: flex;
   flex-wrap: wrap;
