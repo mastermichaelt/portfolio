@@ -22,7 +22,7 @@ Seeded from the pre-production brand posture that landed in production tokens:
 2. **Single sage accent** — `--accent` for primary signals only (eyebrow, primary CTA). Aim for ≤2 primary accent uses per screen.
 3. **Soft depth** — hairline `--border`; `--shadow` / `--shadow-sm` only on interactive surfaces (cards, secondary buttons). Avoid stacked decorative shadows.
 4. **Progressive disclosure** — case studies and evidence packs favor scannable sections over dense dumps.
-5. **8px baseline** — spacing tokens are multiples of 8 (`--gap-xs` … `--gap-2xl`); radii stay modest (`--radius`, `--radius-lg`).
+5. **Predominantly 4px/8px rhythm** — spacing tokens are 4px/8px-derived (`--gap-xs` … `--gap-2xl`), not a strict multiples-of-8 scale (`--gap-sm` is 12px, `--gap-md` is 20px); radii stay modest (`--radius`, `--radius-lg`).
 
 ## Color token roles
 
