@@ -19,11 +19,11 @@ export default async function ProjectsPage() {
 
   return (
     <main id="content">
-      <section className="section hero" style={{ paddingBottom: 32 }}>
-        <div className="container fade-in" style={{ maxWidth: 720 }}>
+      <section className="section hero hero-compact">
+        <div className="container container-narrow fade-in">
           <p className="eyebrow">Projects</p>
           <h1>Work arranged as systems, not a résumé dump.</h1>
-          <p className="lead" style={{ marginTop: 16 }}>
+          <p className="lead lead-follow">
             Four case studies grounded in production evidence — product,
             editorial workflow, knowledge architecture, and dependency
             governance.
@@ -31,7 +31,7 @@ export default async function ProjectsPage() {
         </div>
       </section>
 
-      <section className="section" style={{ paddingTop: 0 }}>
+      <section className="section section-flush">
         <div className="container fade-in delay-1">
           <div className="grid-2">
             {projects.map((project) => (

@@ -28,6 +28,9 @@
 .DS_Store
 *.pem
 
+# local agent run artifacts (screenshots, reports)
+.agent-runs/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

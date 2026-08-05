@@ -1,0 +1,160 @@
+.container {
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.container-narrow {
+  max-width: 720px;
+}
+
+.section {
+  padding-block: clamp(48px, 8vw, var(--gap-2xl));
+}
+
+.section + .section {
+  border-top: 1px solid var(--border);
+}
+
+.section-flush {
+  padding-top: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.stack > * + * {
+  margin-top: var(--gap-md);
+}
+
+/* Between --gap-lg (32) and --gap-xl (56); keeps prior flex gap + stack margin. */
+.stack-feature {
+  gap: 40px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-md);
+}
+
+.section-heading {
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.section-heading-spaced {
+  margin-bottom: 28px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gap-lg);
+}
+
+.grid-1-2 {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--gap-xl);
+  align-items: start;
+}
+
+.h1,
+h1 {
+  font-size: var(--fs-h1);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.h2,
+h2 {
+  font-size: var(--fs-h2);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.h3,
+h3 {
+  font-family: var(--font-display-stack);
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.lead {
+  font-size: var(--fs-lead);
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 56ch;
+  margin: 0;
+}
+
+.lead-follow {
+  margin-top: 16px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono-stack);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 var(--gap-md);
+}
+
+.meta {
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  color: var(--muted);
+}
+
+.meta-flush {
+  margin: 0;
+}
+
+.brand-mark {
+  font-family: var(--font-display-stack);
+  font-size: clamp(48px, 7vw, 84px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: 0 0 var(--gap-md);
+}
+
+.positioning {
+  font-family: var(--font-display-stack);
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--gap-md);
+  max-width: 28ch;
+  color: var(--muted);
+}
+
+.measure {
+  max-width: 62ch;
+}
+
+.measure-intro {
+  max-width: 40ch;
+}
+
+.breadcrumb {
+  margin-bottom: var(--gap-sm);
+}

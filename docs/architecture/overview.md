@@ -1,5 +1,7 @@
 # Architecture overview
 
+Design tokens and visual guidance: [docs/design-system.md](../design-system.md).
+
 ## Goals
 
 This repository will eventually serve four purposes:

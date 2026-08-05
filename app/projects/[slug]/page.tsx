@@ -52,18 +52,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <main id="content">
-      <section className="section hero" style={{ paddingBottom: 40 }}>
+      <section className="section hero hero-case">
         <div className="container fade-in">
-          <p className="meta" style={{ marginBottom: 12 }}>
+          <p className="meta breadcrumb">
             <Link href="/projects">Projects</Link> / {project.title}
           </p>
           {project.eyebrow ? (
             <p className="eyebrow">{project.eyebrow}</p>
           ) : null}
           <h1>{project.title}</h1>
-          <p className="lead" style={{ marginTop: 16 }}>
-            {project.summary}
-          </p>
+          <p className="lead lead-follow">{project.summary}</p>
           <div className="project-hero-meta">
             {project.kind ? <span className="pill">{project.kind}</span> : null}
             {project.tags.map((tag) => (
@@ -75,7 +73,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </div>
       </section>
 
-      <section className="section" style={{ paddingTop: 0 }}>
+      <section className="section section-flush">
         <div className="container grid-1-2 fade-in delay-1">
           <aside className="case-study-aside">
             <CaseStudyToc items={tocItems} />
@@ -84,15 +82,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             {project.sections.map((section) => (
               <div key={section.id} className="detail-block" id={section.id}>
                 <h2>{section.title}</h2>
-                <p
-                  style={{
-                    marginTop: 12,
-                    color: "var(--muted)",
-                    maxWidth: "62ch",
-                  }}
-                >
-                  {section.body}
-                </p>
+                <p className="detail-body">{section.body}</p>
               </div>
             ))}
 

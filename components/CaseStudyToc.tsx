@@ -46,9 +46,7 @@ export function CaseStudyToc({ items }: { items: TocItem[] }) {
 
   return (
     <nav className="toc card" aria-label="On this page">
-      <p className="meta" style={{ margin: "0 0 8px" }}>
-        On this page
-      </p>
+      <p className="meta">On this page</p>
       {items.map((item) => (
         <a
           key={item.id}

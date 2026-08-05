@@ -129,8 +129,31 @@ jobs:
       - if: steps.profile.outputs.run == 'true'
         run: npm run build
 
-      - if: steps.profile.outputs.run == 'true'
+      - name: Get Playwright version
+        if: steps.profile.outputs.run == 'true'
+        id: playwright-version
+        run: |
+          VERSION="$(node -p "require('@playwright/test/package.json').version")"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # https://playwright.dev/docs/ci#caching-browsers
+      - name: Cache Playwright browsers
+        if: steps.profile.outputs.run == 'true'
+        uses: actions/cache@v6
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ steps.playwright-version.outputs.version }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-playwright-
+
+      - name: Install Playwright browsers
+        if: steps.profile.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright OS dependencies
+        if: steps.profile.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
 
       - if: steps.profile.outputs.run == 'true'
         run: npm run test:e2e
