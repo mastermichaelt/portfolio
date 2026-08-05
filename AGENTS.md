@@ -43,7 +43,7 @@ Prefer the **most mature first-class interface** for each problem — use the to
 | `docs/`         | Architecture notes and product roadmap      |
 | `.cursor/`      | Agent standards, rules, and staged plans    |
 
-Brand and IA live in production routes (`app/`, `components/`, `app/globals.css`). See [docs/architecture/overview.md](docs/architecture/overview.md).
+Brand and IA live in production routes (`app/`, `components/`, layered CSS under `app/styles/` via `app/globals.css`). Design-system guidance: [docs/design-system.md](docs/design-system.md). Architecture: [docs/architecture/overview.md](docs/architecture/overview.md).
 
 ### Commands
 

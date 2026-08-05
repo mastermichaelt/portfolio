@@ -1,0 +1,56 @@
+/* Token values — see docs/design-system.md for roles and guidance. */
+:root {
+  --bg: #f6f2eb;
+  --surface: #fffdf9;
+  --fg: #1a1916;
+  --muted: #6e6860;
+  --border: #e2dbd0;
+  --accent: #5c7359;
+
+  --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+  --fg-soft: color-mix(in oklch, var(--fg) 5%, transparent);
+  --shadow:
+    0 1px 0 color-mix(in oklch, var(--fg) 4%, transparent),
+    0 12px 32px color-mix(in oklch, var(--fg) 6%, transparent);
+  --shadow-sm:
+    0 1px 0 color-mix(in oklch, var(--fg) 4%, transparent),
+    0 4px 14px color-mix(in oklch, var(--fg) 5%, transparent);
+
+  --font-display-stack:
+    var(--font-display), "Iowan Old Style", "Charter", Georgia,
+    "Times New Roman", serif;
+  --font-body-stack:
+    var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono-stack:
+    var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --fs-h1: clamp(40px, 5.4vw, 68px);
+  --fs-h2: clamp(28px, 3.4vw, 42px);
+  --fs-h3: 21px;
+  --fs-lead: 19px;
+  --fs-body: 16px;
+  --fs-meta: 13px;
+
+  --gap-xs: 8px;
+  --gap-sm: 12px;
+  --gap-md: 20px;
+  --gap-lg: 32px;
+  --gap-xl: 56px;
+  --gap-2xl: 96px;
+  --container: 1120px;
+  --gutter: 32px;
+
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  --background: var(--bg);
+  --foreground: var(--fg);
+}
+
+/* Tailwind bridge only — do not expand utilities here without a plan. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body-stack);
+  --font-mono: var(--font-mono-stack);
+}

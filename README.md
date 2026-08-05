@@ -6,7 +6,7 @@ Personal engineering portfolio and project knowledge base.
 
 Job-search-ready static MVP: recruiter link, resume companion, interview reference, and public portfolio. Home, projects (four case studies), articles (DEV.to archive), and a thin About/contact page — fed by typed content modules via `StaticPortfolioRepository`.
 
-**Current status:** static content MVP on production. Brand and IA live in the Next.js app (`app/`, `components/`, `app/globals.css`). Supabase and chatbot work stay later.
+**Current status:** static content MVP on production. Brand and IA live in the Next.js app (`app/`, `components/`, layered CSS under `app/styles/` via `app/globals.css`). Design-system guidance: [docs/design-system.md](docs/design-system.md). Supabase and chatbot work stay later.
 
 ## Tech stack
 

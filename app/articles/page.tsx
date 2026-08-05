@@ -19,18 +19,18 @@ export default async function ArticlesPage() {
 
   return (
     <main id="content">
-      <section className="section hero" style={{ paddingBottom: 32 }}>
-        <div className="container fade-in" style={{ maxWidth: 720 }}>
+      <section className="section hero hero-compact">
+        <div className="container container-narrow fade-in">
           <p className="eyebrow">Articles</p>
           <h1>Writing that makes the system legible.</h1>
-          <p className="lead" style={{ marginTop: 16 }}>
+          <p className="lead lead-follow">
             Full published field-report archive on DEV.to — linked from real
             projects where they fit.
           </p>
         </div>
       </section>
 
-      <section className="section" style={{ paddingTop: 0 }}>
+      <section className="section section-flush">
         <div className="container fade-in delay-1">
           {articles.map((article) => (
             <ExternalLink
@@ -41,21 +41,9 @@ export default async function ArticlesPage() {
               <span className="meta">{article.year}</span>
               <div>
                 <h3>{article.title}</h3>
-                <p
-                  className="meta"
-                  style={{ margin: "6px 0 0", maxWidth: "62ch" }}
-                >
-                  {article.summary}
-                </p>
+                <p className="meta log-summary">{article.summary}</p>
                 {article.tags.length > 0 ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: 8,
-                      marginTop: 10,
-                    }}
-                  >
+                  <div className="tag-row">
                     {article.tags.map((tag) => (
                       <span key={tag} className="tag">
                         {tag}

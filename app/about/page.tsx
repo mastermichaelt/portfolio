@@ -20,7 +20,7 @@ export default async function AboutPage() {
 
   return (
     <main id="content">
-      <section className="section hero" style={{ paddingBottom: 32 }}>
+      <section className="section hero hero-compact">
         <div className="container hero-split fade-in">
           <div>
             <p className="eyebrow">About · Contact</p>
@@ -34,7 +34,7 @@ export default async function AboutPage() {
               {profile.headline} in {profile.location}.
             </p>
             <p className="lead">{profile.bio}</p>
-            <div className="hero-cta" style={{ marginTop: 28 }}>
+            <div className="hero-cta">
               <a className="btn btn-primary" href={`mailto:${profile.email}`}>
                 Email me
               </a>
@@ -44,9 +44,7 @@ export default async function AboutPage() {
             </div>
           </div>
           <div className="card">
-            <p className="meta" style={{ margin: "0 0 12px" }}>
-              Contact
-            </p>
+            <p className="meta card-label">Contact</p>
             <ul className="contact-list">
               <li>
                 <a href={`mailto:${profile.email}`}>{profile.email}</a>
@@ -65,10 +63,8 @@ export default async function AboutPage() {
             </ul>
             {profile.skillClusters?.length ? (
               <>
-                <hr className="rule" style={{ margin: "20px 0" }} />
-                <p className="meta" style={{ margin: 0 }}>
-                  Focus areas
-                </p>
+                <hr className="rule rule-block" />
+                <p className="meta meta-flush">Focus areas</p>
                 <div className="skill-row">
                   {profile.skillClusters.map((cluster) => (
                     <span key={cluster} className="tag">

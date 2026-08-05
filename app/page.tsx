@@ -39,7 +39,7 @@ export default async function HomePage() {
             </p>
             <h1 className="brand-mark">{profile.name}</h1>
             <p className="lead">{profile.bio}</p>
-            <div className="hero-cta" style={{ marginTop: 28 }}>
+            <div className="hero-cta">
               <Link className="btn btn-primary" href="/projects">
                 Browse projects
               </Link>
@@ -53,12 +53,9 @@ export default async function HomePage() {
       </section>
 
       <section className="section">
-        <div className="container stack fade-in delay-1" style={{ gap: 40 }}>
-          <div
-            className="row-between"
-            style={{ alignItems: "end", flexWrap: "wrap", gap: 16 }}
-          >
-            <div style={{ maxWidth: "40ch" }}>
+        <div className="container stack stack-feature fade-in delay-1">
+          <div className="row-between section-heading">
+            <div className="measure-intro">
               <p className="eyebrow">Selected work</p>
               <h2>Flagship systems for a two-minute scan.</h2>
             </div>
@@ -96,16 +93,8 @@ export default async function HomePage() {
       {featuredArticles.length > 0 ? (
         <section className="section">
           <div className="container fade-in delay-2">
-            <div
-              className="row-between"
-              style={{
-                alignItems: "end",
-                flexWrap: "wrap",
-                gap: 16,
-                marginBottom: 28,
-              }}
-            >
-              <div style={{ maxWidth: "40ch" }}>
+            <div className="row-between section-heading section-heading-spaced">
+              <div className="measure-intro">
                 <p className="eyebrow">Writing</p>
                 <h2>Field reports from production work.</h2>
               </div>
@@ -123,12 +112,7 @@ export default async function HomePage() {
                   <span className="meta">{article.year}</span>
                   <div>
                     <h3>{article.title}</h3>
-                    <p
-                      className="meta"
-                      style={{ margin: "6px 0 0", maxWidth: "62ch" }}
-                    >
-                      {article.summary}
-                    </p>
+                    <p className="meta log-summary">{article.summary}</p>
                   </div>
                   <span className="meta pull">DEV →</span>
                 </ExternalLink>

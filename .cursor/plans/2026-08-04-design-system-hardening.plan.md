@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: design-system-hardening
     content: "PR: docs/design-system.md, split app/globals.css by layer boundaries, reduce repeated inline spacing, substantiate visual neutrality with Playwright screenshot comparison"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/YYYY-MM-DD-design-system-hardening.plan.md"
     status: pending
