@@ -9,10 +9,24 @@ todos:
     content: "PR: docs/design-system.md, split app/globals.css by layer boundaries, reduce repeated inline spacing, substantiate visual neutrality with Playwright screenshot comparison"
     status: completed
   - id: plan-closure
-    content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/YYYY-MM-DD-design-system-hardening.plan.md"
-    status: pending
+    content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/2026-08-05-design-system-hardening.plan.md"
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-08-05.**
+
+| Slice                   | Delivered                                                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| plan-review             | [#13](https://github.com/mastermichaelt/portfolio/pull/13) — plan artifact only (Plan-only PR)                                       |
+| design-system-hardening | [#15](https://github.com/mastermichaelt/portfolio/pull/15) — `docs/design-system.md`, CSS layer split, shared-role spacing mediation |
+| plan-closure            | This PR — archive to `.cursor/plans/archive/2026-08-05-design-system-hardening.plan.md`                                              |
+
+**Deferred (out of scope):** Storybook; Stylelint; token build pipeline; broad Tailwind `@theme` expansion; visual redesign; OG image refactor; permanent committed visual-regression baselines.
+
+This plan is archived. The work described here has shipped; the remaining content is preserved for historical context.
 
 # Design-system hardening
 
@@ -24,7 +38,7 @@ isProject: false
 | design-system-hardening | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure            | Open PR only          | Do not merge. Stop after opening the PR.               |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ## Repository topology (default)
 
@@ -42,13 +56,13 @@ The repository integration branch is `main`. Implementation slices start from an
 
 ## Context
 
-After [portfolio#11](https://github.com/mastermichaelt/portfolio/pull/11) deleted the HTML prototype, [`app/globals.css`](../../app/globals.css) is the sole live design source of truth, but it still points at a deleted file:
+After [portfolio#11](https://github.com/mastermichaelt/portfolio/pull/11) deleted the HTML prototype, [`app/globals.css`](../../../app/globals.css) is the sole live design source of truth, but it still points at a deleted file:
 
 ```css
 /* Brand tokens from prototypes/ai-engineering-portfolio/brand-spec.md */
 ```
 
-Token values survived; the standalone brand rationale did not. Layout composition still uses ~30 page-level `style={{}}` spacings (plus Satori styles in [`app/opengraph-image.tsx`](../../app/opengraph-image.tsx), which stay as-is).
+Token values survived; the standalone brand rationale did not. Layout composition still uses ~30 page-level `style={{}}` spacings (plus Satori styles in [`app/opengraph-image.tsx`](../../../app/opengraph-image.tsx), which stay as-is).
 
 **Out of scope for this plan:** Storybook, Stylelint, token build systems, broad Tailwind `@theme` expansion, visual redesign, OG image refactor, permanent committed visual-regression baselines (temporary comparison artifacts only).
 
@@ -83,7 +97,7 @@ Token values survived; the standalone brand rationale did not. Layout compositio
 
 ### 1. Document the production design system
 
-Add [`docs/design-system.md`](../../docs/design-system.md) as human guidance and rationale — not a second store of literal token values.
+Add [`docs/design-system.md`](../../../docs/design-system.md) as human guidance and rationale — not a second store of literal token values.
 
 **Source-of-truth layers (state explicitly in the doc):**
 
@@ -106,11 +120,11 @@ Document:
 - Accessibility expectations (contrast, focus rings, text-wrap)
 - Explicit Tailwind note: semantic CSS classes are primary; `@theme` only bridges background/foreground/fonts today — do not expand utilities in this PR
 
-Update pointers in [`README.md`](../../README.md) and [`AGENTS.md`](../../AGENTS.md) from “brand lives in `app/globals.css`” to also link `docs/design-system.md`. Optionally add a one-line pointer from [`docs/architecture/overview.md`](../../docs/architecture/overview.md) (that file is still skeleton-era and can stay light).
+Update pointers in [`README.md`](../../../README.md) and [`AGENTS.md`](../../../AGENTS.md) from “brand lives in `app/globals.css`” to also link `docs/design-system.md`. Optionally add a one-line pointer from [`docs/architecture/overview.md`](../../../docs/architecture/overview.md) (that file is still skeleton-era and can stay light).
 
 ### 2. Split CSS by layer boundaries (not a fixed file count)
 
-Keep [`app/layout.tsx`](../../app/layout.tsx) importing `./globals.css` as the single entry. Turn `globals.css` into a thin barrel that imports layered styles under [`app/styles/`](../../app/styles/) (colocated with the Next entry).
+Keep [`app/layout.tsx`](../../../app/layout.tsx) importing `./globals.css` as the single entry. Turn `globals.css` into a thin barrel that imports layered styles under [`app/styles/`](../../../app/styles/) (colocated with the Next entry).
 
 **Required layer boundaries** (acceptance is about these roles, not exactly three filenames):
 
@@ -155,13 +169,13 @@ Candidates (illustrative — only introduce a class when reuse and shared role h
 
 Surfaces that may be touched when patterns match:
 
-- [`app/page.tsx`](../../app/page.tsx)
-- [`app/about/page.tsx`](../../app/about/page.tsx)
-- [`app/articles/page.tsx`](../../app/articles/page.tsx)
-- [`app/projects/page.tsx`](../../app/projects/page.tsx)
-- [`app/projects/[slug]/page.tsx`](../../app/projects/[slug]/page.tsx)
-- [`app/ecosystem/page.tsx`](../../app/ecosystem/page.tsx)
-- light touch on [`components/SiteFooter.tsx`](../../components/SiteFooter.tsx) / [`components/CaseStudyToc.tsx`](../../components/CaseStudyToc.tsx) if the same patterns apply
+- [`app/page.tsx`](../../../app/page.tsx)
+- [`app/about/page.tsx`](../../../app/about/page.tsx)
+- [`app/articles/page.tsx`](../../../app/articles/page.tsx)
+- [`app/projects/page.tsx`](../../../app/projects/page.tsx)
+- [`app/projects/[slug]/page.tsx`](../../../app/projects/[slug]/page.tsx)
+- [`app/ecosystem/page.tsx`](../../../app/ecosystem/page.tsx)
+- light touch on [`components/SiteFooter.tsx`](../../../components/SiteFooter.tsx) / [`components/CaseStudyToc.tsx`](../../../components/CaseStudyToc.tsx) if the same patterns apply
 
 Leave non-spacing layout hints that have no token (e.g. `alignItems: "end"`, `flexWrap`) either as small utility classes when reused ≥2 times, or inline when one-off.
 
@@ -187,7 +201,7 @@ Leave non-spacing layout hints that have no token (e.g. `alignItems: "end"`, `fl
   - one long project detail (e.g. codenames-ai)
   - About
   - mobile menu open state
-- Store artifacts under gitignored `.agent-runs/design-system-hardening/` (add `.agent-runs/` to [`.gitignore`](../../.gitignore) in this PR if missing). Do **not** commit permanent visual baselines unless a later plan justifies it.
+- Store artifacts under gitignored `.agent-runs/design-system-hardening/` (add `.agent-runs/` to [`.gitignore`](../../../.gitignore) in this PR if missing). Do **not** commit permanent visual baselines unless a later plan justifies it.
 - Human-review the before/after set (or attach to the PR / summarize deltas in the PR body) to substantiate “no visual changes”
 - No remaining references to `prototypes/ai-engineering-portfolio/brand-spec.md` in production code/docs (archived plan history may still mention it; leave archive alone)
 
@@ -214,7 +228,7 @@ After the last implementation slice merges, open a final docs-only closure PR:
 
 1. Verify all implementation todos are already `completed` (or `cancelled` if deferred); fix stragglers only
 2. Add a `# Shipped` closure note at the top of the plan body
-3. Move this file to `.cursor/plans/archive/YYYY-MM-DD-design-system-hardening.plan.md`
+3. Move this file to `.cursor/plans/archive/2026-08-05-design-system-hardening.plan.md`
 4. Mark `plan-closure` `completed` and update agent prompt references to the archived path
 
 Do not archive inside implementation PRs. Implementation PRs mark their own slice `completed` in frontmatter in the same PR as the code.
@@ -226,8 +240,8 @@ Do not archive inside implementation PRs. Implementation PRs mark their own slic
 Use a **fresh Agent-mode chat** per slice.
 
 - **Plan review — plan-review**
-  - "Execute plan-review from `@.cursor/plans/2026-08-04-design-system-hardening.plan.md` only. Redraft or commit the plan artifact per repo planning standards. **Agent instruction:** Do not implement. Stop after opening the plan-only PR. Mark `plan-review` completed in plan frontmatter. Do not start implementation slices."
+  - "Execute plan-review from `@.cursor/plans/archive/2026-08-05-design-system-hardening.plan.md` only. Redraft or commit the plan artifact per repo planning standards. **Agent instruction:** Do not implement. Stop after opening the plan-only PR. Mark `plan-review` completed in plan frontmatter. Do not start implementation slices."
 - **Slice — design-system-hardening**
-  - "Implement design-system-hardening from `@.cursor/plans/2026-08-04-design-system-hardening.plan.md` only. Prerequisite: plan-review merged (or plan accepted on `main`). Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Add `docs/design-system.md` with sharp source-of-truth layers; split `app/globals.css` by layer boundaries (file count flexible); reduce repeated shared-role inline spacing without inventing misleading utilities; capture Playwright before/after screenshots under gitignored `.agent-runs/design-system-hardening/` and note visual review in the PR. Do not expand Tailwind `@theme`, add Storybook, Stylelint, or permanent visual baselines. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `design-system-hardening` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
+  - "Implement design-system-hardening from `@.cursor/plans/archive/2026-08-05-design-system-hardening.plan.md` only. Prerequisite: plan-review merged (or plan accepted on `main`). Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Add `docs/design-system.md` with sharp source-of-truth layers; split `app/globals.css` by layer boundaries (file count flexible); reduce repeated shared-role inline spacing without inventing misleading utilities; capture Playwright before/after screenshots under gitignored `.agent-runs/design-system-hardening/` and note visual review in the PR. Do not expand Tailwind `@theme`, add Storybook, Stylelint, or permanent visual baselines. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `design-system-hardening` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
 - **Plan closure — plan-closure**
-  - "Execute plan-closure from `@.cursor/plans/2026-08-04-design-system-hardening.plan.md` only. Prerequisites: all implementation slices merged and already marked completed in frontmatter. Start this slice from the latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/YYYY-MM-DD-design-system-hardening.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
+  - "Execute plan-closure from `@.cursor/plans/archive/2026-08-05-design-system-hardening.plan.md` only. Prerequisites: all implementation slices merged and already marked completed in frontmatter. Start this slice from the latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/2026-08-05-design-system-hardening.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
