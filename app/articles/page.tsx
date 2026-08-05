@@ -26,7 +26,10 @@ export default async function ArticlesPage() {
           <p className="lead lead-follow">
             Full published field-report archive on DEV.to — linked from real
             projects where they fit. Recognized as a{" "}
-            <ExternalLink href="https://dev.to/trusted-member#what-is-a-trusted-member">
+            <ExternalLink
+              className="text-link"
+              href="https://dev.to/trusted-member#what-is-a-trusted-member"
+            >
               Trusted Member
             </ExternalLink>{" "}
             of the DEV Community, contributing to community moderation and
