@@ -25,7 +25,8 @@ export default async function ArticlesPage() {
           <h1>Writing that makes the system legible.</h1>
           <p className="lead lead-follow">
             Full published field-report archive on DEV.to — linked from real
-            projects where they fit.
+            projects where they fit. Recognized as a Trusted Member of the DEV
+            Community, contributing to community moderation and content quality.
           </p>
         </div>
       </section>
