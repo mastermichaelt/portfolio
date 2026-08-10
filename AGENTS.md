@@ -68,7 +68,7 @@ Pre-commit (Husky): `lint-staged` (Prettier on staged files), then full `lint`, 
 
 - **Node**: `.nvmrc` and `package.json` `engines` pin Node **24.x**. Use Node 24 for install, hooks, and CI scripts.
 - **No env vars** are required for the static MVP. Optional PostHog: `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` + `NEXT_PUBLIC_POSTHOG_HOST` (see `.env.example`). Unset token = no tracking in local/CI; set the same vars on Vercel for preview/production.
-- Analytics is **client-only** (`instrumentation-client.ts` + `ExternalLink` outbound events) and orthogonal to `PortfolioRepository`.
+- Analytics is **client-only** (`instrumentation-client.ts` + `ExternalLink` outbound events) and orthogonal to `PortfolioRepository`. Product Health dashboard: [Portfolio — Product Health](https://us.posthog.com/project/423501/dashboard/1976872).
 - Pages and UI should depend on `PortfolioRepository`, not on concrete storage adapters.
 - Staged multi-PR plans live under `.cursor/plans/`. Product roadmap stubs under `docs/plans/` are not execution plans unless promoted.
 
