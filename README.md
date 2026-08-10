@@ -58,9 +58,20 @@ Primary routes:
 
 `/ecosystem` remains unlinked in primary nav (placeholder for later).
 
+## Analytics (optional)
+
+Client-side PostHog is env-gated. Copy [`.env.example`](.env.example) to `.env.local` and set:
+
+```bash
+NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+Leave the token blank (the default) for local and CI — PostHog does not initialize and no events are sent. Set the same vars on Vercel for preview and production. Events include an `analytics_environment` super property (`production`, `preview`, `local`, or `e2e`) so dashboards can filter non-production traffic. Autocapture and session recording stay off.
+
 ## Deployment
 
-Designed for Vercel. The GitHub repository is connected; the Next.js app deploys with default settings. No env vars are required for the static MVP.
+Designed for Vercel. The GitHub repository is connected; the Next.js app deploys with default settings. No env vars are required for the static MVP (PostHog is optional; see above).
 
 Stable production URLs (Multipliers Dev team):
 

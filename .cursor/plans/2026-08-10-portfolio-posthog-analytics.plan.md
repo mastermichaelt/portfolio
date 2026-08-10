@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: posthog-analytics
     content: "PR: posthog-js, instrumentation-client init, analytics_environment, ExternalLink outbound_link, env scaffolding, unit tests, README/AGENTS notes"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md"
     status: pending

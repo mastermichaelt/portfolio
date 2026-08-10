@@ -32,3 +32,7 @@ When persistence is needed (editing, auth, richer queries), add a Supabase-backe
 ## Why a repository abstraction
 
 `PortfolioRepository` decouples UI and route handlers from storage. Today that means `StaticPortfolioRepository` reading empty placeholder arrays. Tomorrow it can mean Supabase (or another store) without coupling pages to a vendor SDK. Keep domain types in `domain/`; keep concrete data in `content/` or a future data layer.
+
+## Analytics
+
+Client-side PostHog (pageviews + outbound link clicks) is initialized from `instrumentation-client.ts` when `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` is set. It does not go through `PortfolioRepository` and is not part of the content/storage abstraction.
