@@ -13,9 +13,24 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md"
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-08-10.**
+
+| Slice             | Delivered                                                                                                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| plan-review       | [#18](https://github.com/mastermichaelt/portfolio/pull/18) — plan artifact only (Plan-only PR); [#20](https://github.com/mastermichaelt/portfolio/pull/20) added dashboard slice |
+| posthog-analytics | [#19](https://github.com/mastermichaelt/portfolio/pull/19) — env-gated pageviews + `outbound_link`, `analytics_environment`, tests/docs                                          |
+| posthog-dashboard | [#21](https://github.com/mastermichaelt/portfolio/pull/21) — pinned Portfolio — Product Health dashboard + README/AGENTS URL                                                     |
+| plan-closure      | This PR — archive to `.cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md`                                                                                      |
+
+**Deferred (out of scope):** cookie consent / privacy route; reverse proxy / ad-block hardening; session replay, heatmaps, feature flags; `@posthog/next`; server-side `posthog-node`; weekly analytics review skill wiring.
+
+This plan is archived. The work described here has shipped; the remaining content is preserved for historical context.
 
 # Portfolio PostHog analytics
 
@@ -28,7 +43,7 @@ isProject: false
 | posthog-dashboard | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure      | Open PR only          | Do not merge. Stop after opening the PR.               |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ## Repository topology (default)
 
@@ -97,19 +112,19 @@ Mirror the Codenames pattern of **env-gated init** and an `analytics_environment
 ### 1. Dependencies and env scaffolding
 
 - Add `posthog-js` dependency.
-- Add [`.env.example`](../../.env.example):
+- Add [`.env.example`](../../../.env.example):
 
 ```bash
 NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
-- Document in [`README.md`](../../README.md) / [`AGENTS.md`](../../AGENTS.md): optional PostHog env; unset = no tracking; set the same vars on Vercel for preview/production.
-- Wire `VERCEL_ENV` into the client bundle via [`next.config.ts`](../../next.config.ts) `env` (same idea as Codenames’ `VITE_VERCEL_ENV`) so preview vs production can be filtered in PostHog.
+- Document in [`README.md`](../../../README.md) / [`AGENTS.md`](../../../AGENTS.md): optional PostHog env; unset = no tracking; set the same vars on Vercel for preview/production.
+- Wire `VERCEL_ENV` into the client bundle via [`next.config.ts`](../../../next.config.ts) `env` (same idea as Codenames’ `VITE_VERCEL_ENV`) so preview vs production can be filtered in PostHog.
 
 ### 2. Client init
 
-Add root [`instrumentation-client.ts`](../../instrumentation-client.ts):
+Add root [`instrumentation-client.ts`](../../../instrumentation-client.ts):
 
 - Read `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`; **return early** if missing/blank.
 - `posthog.init(token, { api_host, defaults: '2026-05-30', autocapture: false, disable_session_recording: true })`.
@@ -119,7 +134,7 @@ No layout changes required for pageviews when using `instrumentation-client` + r
 
 ### 3. Outbound link events
 
-Convert [`components/ExternalLink.tsx`](../../components/ExternalLink.tsx) to a client component and on click capture:
+Convert [`components/ExternalLink.tsx`](../../../components/ExternalLink.tsx) to a client component and on click capture:
 
 - event: `outbound_link`
 - properties: `href`, optional `link_label` (from `aria-label` or text when cheap)
@@ -205,7 +220,7 @@ Keep `target="_blank"` / `rel="noopener noreferrer"`. Missing PostHog init remai
 1. Confirm events/properties with `read-data-schema` (and property values as needed).
 2. Prototype tiles with `query-trends` (and breakdowns).
 3. `dashboard-create` → `insight-create` (attach to dashboard) → pin / reorder tiles.
-4. Document the dashboard URL in [`README.md`](../../README.md) Analytics section and a one-line pointer in [`AGENTS.md`](../../AGENTS.md).
+4. Document the dashboard URL in [`README.md`](../../../README.md) Analytics section and a one-line pointer in [`AGENTS.md`](../../../AGENTS.md).
 5. Mark `posthog-dashboard` `completed` in plan frontmatter in the same PR as the docs.
 
 **Acceptance:**
@@ -261,13 +276,13 @@ Do not archive inside implementation PRs. Implementation PRs mark their own slic
 Use a **fresh Agent-mode chat** per slice.
 
 - **Plan review — plan-review**
-  - "Execute plan-review from `@.cursor/plans/2026-08-10-portfolio-posthog-analytics.plan.md` only. Redraft or commit the plan artifact per repo planning standards. Start from the latest `origin/main`, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not implement. Stop after opening the plan-only PR. Mark `plan-review` completed in plan frontmatter. Do not start implementation slices."
+  - "Execute plan-review from `@.cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md` only. Redraft or commit the plan artifact per repo planning standards. Start from the latest `origin/main`, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not implement. Stop after opening the plan-only PR. Mark `plan-review` completed in plan frontmatter. Do not start implementation slices."
 
 - **Slice — posthog-analytics**
-  - "Implement slice posthog-analytics from `@.cursor/plans/2026-08-10-portfolio-posthog-analytics.plan.md` only. Prerequisite: plan-review merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `posthog-analytics` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
+  - "Implement slice posthog-analytics from `@.cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md` only. Prerequisite: plan-review merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `posthog-analytics` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
 
 - **Slice — posthog-dashboard**
-  - "Implement slice posthog-dashboard from `@.cursor/plans/2026-08-10-portfolio-posthog-analytics.plan.md` only. Prerequisite: posthog-analytics merged. Start this slice from the latest `origin/main`, implement only this slice (create the pinned Portfolio — Product Health dashboard via PostHog MCP per locked design; document URL in README/AGENTS), verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `posthog-dashboard` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
+  - "Implement slice posthog-dashboard from `@.cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md` only. Prerequisite: posthog-analytics merged. Start this slice from the latest `origin/main`, implement only this slice (create the pinned Portfolio — Product Health dashboard via PostHog MCP per locked design; document URL in README/AGENTS), verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `posthog-dashboard` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
 
 - **Plan closure — plan-closure**
-  - "Execute plan-closure from `@.cursor/plans/2026-08-10-portfolio-posthog-analytics.plan.md` only. Prerequisites: all implementation slices merged and already marked completed in frontmatter. Start this slice from the latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
+  - "Execute plan-closure from `@.cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md` only. Prerequisites: all implementation slices merged and already marked completed in frontmatter. Start this slice from the latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
