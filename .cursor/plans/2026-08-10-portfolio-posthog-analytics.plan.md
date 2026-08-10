@@ -1,6 +1,6 @@
 ---
 name: Portfolio PostHog analytics
-overview: Add client-side PostHog to the Next.js 16 portfolio using instrumentation-client.ts, env-gated so local/CI stay no-op, with pageviews and outbound-link events into the existing Portfolio Projects PostHog project.
+overview: Add client-side PostHog to the Next.js 16 portfolio (env-gated pageviews + outbound_link), then create a pinned Portfolio Product Health dashboard in the Portfolio Projects PostHog project.
 todos:
   - id: plan-review
     content: "Plan-only PR — commit plan artifact and open PR for review; do not implement"
@@ -8,6 +8,9 @@ todos:
   - id: posthog-analytics
     content: "PR: posthog-js, instrumentation-client init, analytics_environment, ExternalLink outbound_link, env scaffolding, unit tests, README/AGENTS notes"
     status: completed
+  - id: posthog-dashboard
+    content: "Create pinned Portfolio — Product Health dashboard via PostHog MCP (5 tiles); document URL in README/AGENTS; mark slice completed"
+    status: pending
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md"
     status: pending
@@ -22,6 +25,7 @@ isProject: false
 | ----------------- | --------------------- | ------------------------------------------------------ |
 | plan-review       | Plan-only PR          | Do not implement. Stop after opening the plan-only PR. |
 | posthog-analytics | Open PR only          | Do not merge. Stop after opening the PR.               |
+| posthog-dashboard | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure      | Open PR only          | Do not merge. Stop after opening the PR.               |
 
 Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
@@ -42,11 +46,11 @@ The repository integration branch is `main`. Implementation slices start from an
 
 ## Context
 
-The portfolio is Next.js **16.3** App Router, RSC-first, with **no analytics today** and no `.env.example`. PostHog already has a **Portfolio Projects** project (`423501`, US cloud).
+The portfolio is Next.js **16.3** App Router, RSC-first. Client-side PostHog instrumentation has shipped (`instrumentation-client.ts`, env-gated pageviews + `outbound_link`) into the existing **Portfolio Projects** PostHog project (`423501`, US cloud). Remaining work: create a Product Health dashboard, then plan closure.
 
-Per [PostHog Next.js docs](https://posthog.com/docs/libraries/next-js), Next 15.3+ should init via root `instrumentation-client.ts` (not a layout provider). SPA navigations are covered by `defaults: '2026-05-30'` (`capture_pageview: 'history_change'`).
+Per [PostHog Next.js docs](https://posthog.com/docs/libraries/next-js), Next 15.3+ inits via root `instrumentation-client.ts` (not a layout provider). SPA navigations are covered by `defaults: '2026-05-30'` (`capture_pageview: 'history_change'`).
 
-**Chosen scope (implementation PR):** pageviews + outbound link clicks. No cookie banner, privacy page, reverse proxy, session replay, or server-side `posthog-node`.
+**Chosen instrumentation scope (shipped):** pageviews + outbound link clicks. No cookie banner, privacy page, reverse proxy, session replay, or server-side `posthog-node`.
 
 ```mermaid
 flowchart LR
@@ -56,6 +60,7 @@ flowchart LR
   nav[ExternalLink click] --> outbound[outbound_link event]
   outbound --> phInit
   instr -->|token missing| noop[No-op for local/CI]
+  phInit --> dashboard[Portfolio Product Health dashboard]
 ```
 
 Mirror the Codenames pattern of **env-gated init** and an `analytics_environment` super-property, but keep portfolio instrumentation lighter (no game-session plumbing).
@@ -159,6 +164,77 @@ Keep `target="_blank"` / `rel="noopener noreferrer"`. Missing PostHog init remai
 
 ---
 
+## Slice — posthog-dashboard
+
+**Recommended authority:** Open PR only
+
+**Rationale:**
+
+- One merge-safe concern: PostHog Product Health dashboard for already-shipped events + docs link
+- Human review of tile definitions and production filter before treating the board as canonical
+- Tracked diff is docs + plan todo; dashboard entities live in PostHog via MCP
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Goal:** Create a pinned **Portfolio — Product Health** dashboard in Portfolio Projects and document its URL in the repo.
+
+**Prerequisite:** `posthog-analytics` merged (done). Empty tiles are acceptable if Vercel env/token is not set yet; verify Live events separately when env is configured.
+
+### Locked design
+
+| Decision      | Locked value                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| Project       | Portfolio Projects (`423501`)                                                                           |
+| Name          | `Portfolio — Product Health`                                                                            |
+| Strategy      | Create **new** via `dashboard-create`; pin (`pinned: true`)                                             |
+| Window        | Last 30 days                                                                                            |
+| Global filter | `analytics_environment = production` (exact; portfolio has no legacy unset traffic)                     |
+| Events used   | `$pageview`, `outbound_link` (already shipped)                                                          |
+| Do not modify | [Codenames AI — Product Health](https://us.posthog.com/project/423501/dashboard/1601255) or Diagnostics |
+
+**Tiles (5):**
+
+1. Unique visitors — `query-trends` on `$pageview`, unique users
+2. Pageviews over time — `query-trends` on `$pageview`, total count
+3. Top pages — `$pageview` breakdown by pathname / current URL property confirmed via `read-data-schema`
+4. Outbound clicks over time — `query-trends` on `outbound_link`
+5. Top outbound destinations — `outbound_link` breakdown by `href`
+
+### Workflow
+
+1. Confirm events/properties with `read-data-schema` (and property values as needed).
+2. Prototype tiles with `query-trends` (and breakdowns).
+3. `dashboard-create` → `insight-create` (attach to dashboard) → pin / reorder tiles.
+4. Document the dashboard URL in [`README.md`](../../README.md) Analytics section and a one-line pointer in [`AGENTS.md`](../../AGENTS.md).
+5. Mark `posthog-dashboard` `completed` in plan frontmatter in the same PR as the docs.
+
+**Acceptance:**
+
+- New pinned dashboard named `Portfolio — Product Health` exists in project `423501`
+- Five tiles present with production `analytics_environment` filter and last-30-days window
+- Codenames dashboards untouched
+- README + AGENTS link the dashboard URL
+- Plan todo `posthog-dashboard` marked `completed`
+
+**Out of scope for this slice:**
+
+- New instrumentation / additional events
+- Cookie consent / privacy route
+- Reverse proxy / ad-block hardening
+- Session replay, heatmaps, feature flags
+- Codenames dashboard changes
+- Weekly analytics review skill wiring
+- Plan closure / archive
+
+**Verify:**
+
+- PostHog MCP: dashboard exists, pinned, five tiles attached
+- Spot-check 1–2 insights (empty OK if no production traffic yet)
+- Docs link opens the correct dashboard
+- PR base is `main`; branch contains only this slice
+
+---
+
 ## Plan closure (docs-only PR)
 
 **Recommended authority:** Open PR only
@@ -169,7 +245,7 @@ Keep `target="_blank"` / `rel="noopener noreferrer"`. Missing PostHog init remai
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-After the last implementation slice merges, open a final docs-only closure PR:
+After the last implementation slice (`posthog-dashboard`) merges, open a final docs-only closure PR:
 
 1. Verify all implementation todos are already `completed` (or `cancelled` if deferred); fix stragglers only
 2. Add a `# Shipped` closure note at the top of the plan body
@@ -189,6 +265,9 @@ Use a **fresh Agent-mode chat** per slice.
 
 - **Slice — posthog-analytics**
   - "Implement slice posthog-analytics from `@.cursor/plans/2026-08-10-portfolio-posthog-analytics.plan.md` only. Prerequisite: plan-review merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `posthog-analytics` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
+
+- **Slice — posthog-dashboard**
+  - "Implement slice posthog-dashboard from `@.cursor/plans/2026-08-10-portfolio-posthog-analytics.plan.md` only. Prerequisite: posthog-analytics merged. Start this slice from the latest `origin/main`, implement only this slice (create the pinned Portfolio — Product Health dashboard via PostHog MCP per locked design; document URL in README/AGENTS), verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `posthog-dashboard` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
 
 - **Plan closure — plan-closure**
   - "Execute plan-closure from `@.cursor/plans/2026-08-10-portfolio-posthog-analytics.plan.md` only. Prerequisites: all implementation slices merged and already marked completed in frontmatter. Start this slice from the latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
