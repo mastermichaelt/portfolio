@@ -135,6 +135,11 @@ test.describe("portfolio happy path", () => {
   test("ecosystem canvases open detail panel on node select", async ({
     page,
   }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => {
+      pageErrors.push(String(error));
+    });
+
     await page.goto("/ecosystem");
 
     await expect(
@@ -179,6 +184,7 @@ test.describe("portfolio happy path", () => {
     await expect(
       panel.getByRole("link", { name: "Open project case study" }),
     ).toHaveAttribute("href", "/projects/renovate-governance");
+    expect(pageErrors, pageErrors.join("\n")).toEqual([]);
   });
 
   test("ecosystem entity inventory filters by kind", async ({ page }) => {

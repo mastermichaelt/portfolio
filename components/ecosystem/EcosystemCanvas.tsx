@@ -5,13 +5,11 @@ import {
   Controls,
   ReactFlow,
   ReactFlowProvider,
-  useEdgesState,
-  useNodesState,
   type Edge,
   type Node,
   type NodeTypes,
 } from "@xyflow/react";
-import { useEffect } from "react";
+import { useMemo } from "react";
 
 import { EcosystemNode } from "@/components/ecosystem/EcosystemNode";
 import {
@@ -40,35 +38,17 @@ function EcosystemCanvasInner({
   onSelectNode,
   compact = false,
 }: EcosystemCanvasProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState<
-    Node<EcosystemNodeData>
-  >(toEcosystemFlowNodes(view));
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(
-    toEcosystemFlowEdges(view),
+  // Fully parent-controlled graph: no useNodesState/setNodes effects.
+  // Those sync loops were the React #185 source when multiple canvases updated.
+  const nodes: Node<EcosystemNodeData>[] = useMemo(
+    () =>
+      toEcosystemFlowNodes(view).map((node) => ({
+        ...node,
+        selected: node.id === selectedNodeId,
+      })),
+    [view, selectedNodeId],
   );
-
-  // Keep node/edge structure in sync with the view, without rewriting selection
-  // every time (selection is applied in a separate, change-gated effect).
-  useEffect(() => {
-    setNodes(toEcosystemFlowNodes(view));
-    setEdges(toEcosystemFlowEdges(view));
-  }, [view, setNodes, setEdges]);
-
-  // Apply external selection without recreating nodes when flags already match.
-  // Recreating selected nodes from onSelectionChange caused React #185 when
-  // switching between multiple canvases (programmatic deselect ↔ parent state).
-  useEffect(() => {
-    setNodes((current) => {
-      let changed = false;
-      const next = current.map((node) => {
-        const selected = node.id === selectedNodeId;
-        if ((node.selected ?? false) === selected) return node;
-        changed = true;
-        return { ...node, selected };
-      });
-      return changed ? next : current;
-    });
-  }, [selectedNodeId, setNodes]);
+  const edges: Edge[] = useMemo(() => toEcosystemFlowEdges(view), [view]);
 
   return (
     <div
@@ -80,8 +60,6 @@ function EcosystemCanvasInner({
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
         onNodeClick={(_event, node) => {
           if (node.id === selectedNodeId) return;
           onSelectNode(view.id, node.id);
@@ -91,6 +69,7 @@ function EcosystemCanvasInner({
         }}
         nodesDraggable={false}
         nodesConnectable={false}
+        nodesFocusable={false}
         elementsSelectable
         edgesFocusable={false}
         edgesReconnectable={false}
