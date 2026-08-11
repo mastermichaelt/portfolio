@@ -181,6 +181,29 @@ test.describe("portfolio happy path", () => {
     ).toHaveAttribute("href", "/projects/renovate-governance");
   });
 
+  test("ecosystem entity inventory filters by kind", async ({ page }) => {
+    await page.goto("/ecosystem");
+
+    const inventory = page.getByTestId("ecosystem-inventory-panel");
+    await inventory.scrollIntoViewIfNeeded();
+
+    const tabs = page.getByRole("tablist", { name: "Entity kinds" });
+    await expect(tabs.getByRole("tab", { name: /Projects/i })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(inventory.getByText("Codenames AI")).toBeVisible();
+    await expect(inventory.getByText("Renovate classifier")).toHaveCount(0);
+
+    await tabs.getByRole("tab", { name: /Agents/i }).click();
+    await expect(tabs.getByRole("tab", { name: /Agents/i })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(inventory.getByText("Renovate classifier")).toBeVisible();
+    await expect(inventory.getByText("Codenames AI")).toHaveCount(0);
+  });
+
   test("ecosystem selection survives switching between canvases", async ({
     page,
   }) => {

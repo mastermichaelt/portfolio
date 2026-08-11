@@ -1,8 +1,56 @@
 import { MarkerType, type Edge, type Node } from "@xyflow/react";
 
-import type { Entity } from "@/domain/entities";
+import type { Entity, EntityKind } from "@/domain/entities";
 import type { Evidence } from "@/domain/evidence";
 import type { WorkflowNode, WorkflowView } from "@/domain/workflow-view";
+
+export const ECOSYSTEM_ENTITY_KIND_ORDER: EntityKind[] = [
+  "project",
+  "workflow",
+  "agent",
+  "skill",
+  "governance",
+  "knowledge",
+  "output",
+  "integration",
+];
+
+export function ecosystemEntityKindLabel(kind: EntityKind): string {
+  switch (kind) {
+    case "project":
+      return "Projects";
+    case "workflow":
+      return "Workflows";
+    case "agent":
+      return "Agents";
+    case "skill":
+      return "Skills";
+    case "governance":
+      return "Governance";
+    case "knowledge":
+      return "Knowledge";
+    case "output":
+      return "Outputs";
+    case "integration":
+      return "Integrations";
+  }
+}
+
+/** Kind filters that have at least one entity, in display order. */
+export function availableEcosystemEntityKinds(
+  entities: Entity[],
+): EntityKind[] {
+  return ECOSYSTEM_ENTITY_KIND_ORDER.filter((kind) =>
+    entities.some((entity) => entity.kind === kind),
+  );
+}
+
+export function filterEntitiesByKind(
+  entities: Entity[],
+  kind: EntityKind,
+): Entity[] {
+  return entities.filter((entity) => entity.kind === kind);
+}
 
 export type EcosystemNodeData = {
   label: string;

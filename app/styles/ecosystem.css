@@ -179,6 +179,47 @@
   gap: 8px;
 }
 
+.ecosystem-inventory-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ecosystem-inventory-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font-mono-stack);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.ecosystem-inventory-filter:hover {
+  border-color: color-mix(in oklch, var(--accent) 35%, var(--border));
+  color: var(--fg);
+}
+
+.ecosystem-inventory-filter.is-active {
+  border-color: color-mix(in oklch, var(--accent) 45%, var(--border));
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ecosystem-inventory-filter .meta {
+  color: inherit;
+  opacity: 0.75;
+}
+
 @media (max-width: 920px) {
   .ecosystem-shell {
     grid-template-columns: 1fr;

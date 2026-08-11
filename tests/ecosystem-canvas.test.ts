@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { entities, workflowViews } from "@/content/ecosystem";
 import {
+  availableEcosystemEntityKinds,
+  filterEntitiesByKind,
   findWorkflowNode,
   nextEcosystemSelection,
   partitionWorkflowViews,
@@ -97,6 +99,27 @@ describe("ecosystem canvas helpers", () => {
       view: { id: "workflow-editorial" },
       node: { id: "node-publish", label: "Publish" },
     });
+  });
+
+  it("filters entity inventory kinds for the kind tab UI", () => {
+    expect(availableEcosystemEntityKinds(entities)).toEqual([
+      "project",
+      "workflow",
+      "agent",
+      "skill",
+      "governance",
+      "knowledge",
+      "output",
+      "integration",
+    ]);
+    const projects = filterEntitiesByKind(entities, "project");
+    expect(projects.length).toBeGreaterThan(0);
+    expect(projects.every((entity) => entity.kind === "project")).toBe(true);
+    expect(
+      filterEntitiesByKind(entities, "skill").every(
+        (entity) => entity.kind === "skill",
+      ),
+    ).toBe(true);
   });
 
   it("keeps active selection when another canvas emits a clear", () => {
