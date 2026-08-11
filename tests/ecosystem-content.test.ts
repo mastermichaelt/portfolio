@@ -51,6 +51,24 @@ describe("ecosystem content inventory", () => {
       expect(entityIds.has(relationship.toId)).toBe(true);
       expect(relationship.type).toBeTruthy();
     }
+
+    // Editorial publishes field reports; analytics/product loops only feed them.
+    const toFieldReports = listed.filter(
+      (relationship) => relationship.toId === "output-dev-field-reports",
+    );
+    expect(
+      toFieldReports
+        .filter((relationship) => relationship.type === "produces")
+        .map((relationship) => relationship.fromId),
+    ).toEqual(["workflow-editorial-pipeline"]);
+    expect(
+      toFieldReports
+        .filter(
+          (relationship) =>
+            relationship.fromId !== "workflow-editorial-pipeline",
+        )
+        .every((relationship) => relationship.type === "feeds"),
+    ).toBe(true);
   });
 
   it("seeds four workflow views including a light system-overview spine", async () => {

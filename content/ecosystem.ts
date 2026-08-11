@@ -211,7 +211,7 @@ export const relationships: Relationship[] = [
     id: "rel-analytics-feeds-field-reports",
     fromId: "workflow-analytics-review",
     toId: "output-dev-field-reports",
-    type: "produces",
+    type: "feeds",
   },
   {
     id: "rel-editorial-uses-notion",
@@ -260,7 +260,7 @@ export const relationships: Relationship[] = [
     id: "rel-product-loop-feeds-reports",
     fromId: "workflow-product-loop",
     toId: "output-dev-field-reports",
-    type: "produces",
+    type: "feeds",
   },
 ];
 
