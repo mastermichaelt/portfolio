@@ -1,5 +1,5 @@
 import { articles } from "@/content/articles";
-import { entities, relationships } from "@/content/ecosystem";
+import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { profile } from "@/content/profile";
 import { projects } from "@/content/projects";
 import { timelineEvents } from "@/content/timeline";
@@ -29,6 +29,14 @@ export class StaticPortfolioRepository implements PortfolioRepository {
 
   async listRelationships() {
     return relationships;
+  }
+
+  async listWorkflowViews() {
+    return workflowViews;
+  }
+
+  async getWorkflowView(id: string) {
+    return workflowViews.find((view) => view.id === id) ?? null;
   }
 
   async listTimelineEvents() {

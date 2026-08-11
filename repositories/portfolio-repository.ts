@@ -4,6 +4,7 @@ import type { Profile } from "@/domain/profile";
 import type { Project } from "@/domain/project";
 import type { Relationship } from "@/domain/relationships";
 import type { TimelineEvent } from "@/domain/timeline";
+import type { WorkflowView } from "@/domain/workflow-view";
 
 /**
  * Storage-agnostic portfolio data access.
@@ -16,5 +17,7 @@ export interface PortfolioRepository {
   listArticles(): Promise<Article[]>;
   listEntities(): Promise<Entity[]>;
   listRelationships(): Promise<Relationship[]>;
+  listWorkflowViews(): Promise<WorkflowView[]>;
+  getWorkflowView(id: string): Promise<WorkflowView | null>;
   listTimelineEvents(): Promise<TimelineEvent[]>;
 }
