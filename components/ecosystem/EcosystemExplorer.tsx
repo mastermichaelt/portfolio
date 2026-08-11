@@ -14,7 +14,6 @@ import type { Entity } from "@/domain/entities";
 import type { WorkflowView } from "@/domain/workflow-view";
 import {
   ecosystemViewIdFromHash,
-  focusEcosystemViewSection,
   nextEcosystemSelection,
   partitionWorkflowViews,
   resolveEcosystemDetail,
@@ -23,6 +22,15 @@ import {
 } from "@/lib/ecosystem-canvas";
 
 const NARROW_MAX = "(max-width: 920px)";
+
+/** Scroll and focus a workflow section by id (client-only). */
+function focusEcosystemViewSection(viewId: string): boolean {
+  const el = document.getElementById(viewId);
+  if (!(el instanceof HTMLElement)) return false;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  el.focus({ preventScroll: true });
+  return true;
+}
 
 type EcosystemExplorerProps = {
   workflowViews: WorkflowView[];

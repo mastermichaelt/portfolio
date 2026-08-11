@@ -174,16 +174,6 @@ export function ecosystemViewIdFromHash(
   return null;
 }
 
-/** Scroll and focus a workflow section by id (client-only). */
-export function focusEcosystemViewSection(viewId: string): boolean {
-  if (typeof document === "undefined") return false;
-  const el = document.getElementById(viewId);
-  if (!(el instanceof HTMLElement)) return false;
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
-  el.focus({ preventScroll: true });
-  return true;
-}
-
 export type EcosystemSelection = {
   viewId: string;
   nodeId: string;
