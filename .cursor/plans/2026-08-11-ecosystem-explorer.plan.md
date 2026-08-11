@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: ecosystem-domain-content
     content: "PR 1: Domain (Entity without talk tracks) + seed entities/relationships + light overview spine + 3 workflows; non-canvas index; repo tests"
-    status: pending
+    status: completed
   - id: ecosystem-canvas-page
     content: "PR 2: @xyflow/react read-only canvases (light overview + 3 workflows, no mega-graph), detail panel, nav, e2e"
     status: pending

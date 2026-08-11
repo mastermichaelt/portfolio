@@ -41,12 +41,43 @@ vi.mock("@/content/articles", () => ({
 }));
 
 vi.mock("@/content/ecosystem", () => ({
-  entities: [{ id: "entity-1", name: "Entity" }],
+  entities: [
+    {
+      id: "entity-1",
+      name: "Entity",
+      kind: "project",
+      summary: "Entity summary",
+    },
+  ],
   relationships: [
     {
       id: "relationship-1",
       fromId: "entity-1",
       toId: "entity-1",
+      type: "uses",
+    },
+  ],
+  workflowViews: [
+    {
+      id: "system-overview",
+      title: "System overview",
+      summary: "Light spine",
+      nodes: [
+        {
+          id: "layer-projects",
+          label: "Projects",
+          kind: "project",
+          position: { x: 0, y: 0 },
+        },
+      ],
+      edges: [],
+    },
+    {
+      id: "workflow-renovate",
+      title: "Renovate governance ladder",
+      summary: "Classify and merge",
+      nodes: [],
+      edges: [],
     },
   ],
 }));
@@ -56,7 +87,7 @@ vi.mock("@/content/timeline", () => ({
 }));
 
 import { articles } from "@/content/articles";
-import { entities, relationships } from "@/content/ecosystem";
+import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { profile } from "@/content/profile";
 import { projects } from "@/content/projects";
 import { timelineEvents } from "@/content/timeline";
@@ -96,6 +127,22 @@ describe("StaticPortfolioRepository", () => {
     await expect(repository.listRelationships()).resolves.toEqual(
       relationships,
     );
+  });
+
+  it("lists workflow views from the static content module", async () => {
+    await expect(repository.listWorkflowViews()).resolves.toEqual(
+      workflowViews,
+    );
+  });
+
+  it("returns a workflow view when the id matches", async () => {
+    await expect(
+      repository.getWorkflowView("system-overview"),
+    ).resolves.toEqual(workflowViews[0]);
+  });
+
+  it("returns null for an unknown workflow view id", async () => {
+    await expect(repository.getWorkflowView("missing")).resolves.toBeNull();
   });
 
   it("lists timeline events from the static content module", async () => {
