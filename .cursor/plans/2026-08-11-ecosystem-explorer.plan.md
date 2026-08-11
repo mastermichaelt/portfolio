@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: ecosystem-interview-polish
     content: "PR 3: Hash deep links, WorkflowView.talkTrack, keyboard/selection polish, ExternalLink consistency"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/2026-08-11-ecosystem-explorer.plan.md"
     status: pending

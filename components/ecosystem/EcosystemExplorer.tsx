@@ -13,6 +13,7 @@ import { EcosystemDetailPanel } from "@/components/ecosystem/EcosystemDetailPane
 import type { Entity } from "@/domain/entities";
 import type { WorkflowView } from "@/domain/workflow-view";
 import {
+  ecosystemViewIdFromHash,
   nextEcosystemSelection,
   partitionWorkflowViews,
   resolveEcosystemDetail,
@@ -21,6 +22,15 @@ import {
 } from "@/lib/ecosystem-canvas";
 
 const NARROW_MAX = "(max-width: 920px)";
+
+/** Scroll and focus a workflow section by id (client-only). */
+function focusEcosystemViewSection(viewId: string): boolean {
+  const el = document.getElementById(viewId);
+  if (!(el instanceof HTMLElement)) return false;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  el.focus({ preventScroll: true });
+  return true;
+}
 
 type EcosystemExplorerProps = {
   workflowViews: WorkflowView[];
@@ -48,6 +58,7 @@ function EcosystemViewSection({
     <section
       className="ecosystem-view"
       id={view.id}
+      tabIndex={-1}
       aria-labelledby={`${view.id}-title`}
     >
       <div className="section-heading section-heading-spaced">
@@ -55,6 +66,15 @@ function EcosystemViewSection({
           <p className="eyebrow">{eyebrow}</p>
           <h2 id={`${view.id}-title`}>{view.title}</h2>
           <p className="lead lead-follow">{view.summary}</p>
+          {view.talkTrack ? (
+            <p
+              className="ecosystem-talk-track"
+              data-testid={`ecosystem-talk-track-${view.id}`}
+            >
+              <span className="eyebrow">Talk track</span>
+              {view.talkTrack}
+            </p>
+          ) : null}
         </div>
       </div>
       <EcosystemCanvas
@@ -100,13 +120,50 @@ export function EcosystemExplorer({
   const entitiesById = new Map(
     entities.map((entity) => [entity.id, entity] as const),
   );
-
   useEffect(() => {
     const media = window.matchMedia(NARROW_MAX);
     const sync = () => setNarrow(media.matches);
     sync();
     media.addEventListener("change", sync);
     return () => media.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    const ids = workflowViews.map((view) => view.id);
+    const applyHash = () => {
+      const viewId = ecosystemViewIdFromHash(window.location.hash, ids);
+      if (!viewId) return;
+      // Wait a frame so layout/fitView settle before scrolling.
+      window.requestAnimationFrame(() => {
+        focusEcosystemViewSection(viewId);
+      });
+    };
+
+    applyHash();
+    window.addEventListener("hashchange", applyHash);
+    return () => window.removeEventListener("hashchange", applyHash);
+  }, [workflowViews]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (event.defaultPrevented) return;
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT")
+      ) {
+        return;
+      }
+      setSelection((current) => (current ? null : current));
+    };
+
+    // Capture so Escape clears even when a focused React Flow node handles it.
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
   }, []);
 
   const detail = selection

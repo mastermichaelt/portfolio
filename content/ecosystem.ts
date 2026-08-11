@@ -6,7 +6,7 @@ import type { WorkflowView } from "@/domain/workflow-view";
  * Ecosystem inventory and curated workflow views.
  * Claims stay evidence-backed (portfolio projects + public DEV field reports).
  * Do not link private sibling-repo docs; readers cannot open them.
- * Talk tracks intentionally omitted until the interview-polish slice.
+ * talkTrack is view-level presentation only — keep off Entity.
  */
 
 export const entities: Entity[] = [
@@ -271,6 +271,8 @@ export const workflowViews: WorkflowView[] = [
     title: "System overview",
     summary:
       "Light orientation spine — how projects, AI workflows, governance/feedback, and evidence hang together. Not the full entity inventory.",
+    talkTrack:
+      "Orient here first: projects feed AI workflows, governance and feedback sit in the middle, and public evidence closes the loop. Then pick one operational canvas to walk through.",
     nodes: [
       {
         id: "layer-projects",
@@ -325,6 +327,8 @@ export const workflowViews: WorkflowView[] = [
     title: "Renovate governance ladder",
     summary:
       "Classify → investigate or maintainer path → merge gates. Walkthrough of the Codenames Renovate governance ladder.",
+    talkTrack:
+      "Walk Classify → Route → Investigate or Maintainer → Merge gates. The classifier emits a packet and never merges; the maintainer may merge only when policy and checks allow.",
     nodes: [
       {
         id: "node-classify",
@@ -404,6 +408,8 @@ export const workflowViews: WorkflowView[] = [
     title: "Editorial field-report pipeline",
     summary:
       "Inbox → draft → critique → publish. Walkthrough of the editorial field-report pipeline.",
+    talkTrack:
+      "Walk Inbox → Draft → Critique → Publish. Critique analyzes before it scores; humans own the irreversible publish step to DEV.",
     nodes: [
       {
         id: "node-inbox",
@@ -464,6 +470,8 @@ export const workflowViews: WorkflowView[] = [
     title: "Product improvement loop",
     summary:
       "Codenames → PostHog → analytics review → DEV field reports → product decisions.",
+    talkTrack:
+      "Walk Codenames → PostHog → analytics review, then into DEV field reports and product decisions that feed back into the product.",
     nodes: [
       {
         id: "node-product",

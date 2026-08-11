@@ -40,11 +40,15 @@ function EcosystemCanvasInner({
 }: EcosystemCanvasProps) {
   // Fully parent-controlled graph: no useNodesState/setNodes effects.
   // Those sync loops were the React #185 source when multiple canvases updated.
+  // Avoid onSelectionChange: each canvas keeps a stale RF selection store, and
+  // syncing it fights parent-owned selection across multiple canvases.
+  // ariaRole:button lets Enter/Space synthesize click → onNodeClick.
   const nodes: Node<EcosystemNodeData>[] = useMemo(
     () =>
       toEcosystemFlowNodes(view).map((node) => ({
         ...node,
         selected: node.id === selectedNodeId,
+        ariaRole: "button",
       })),
     [view, selectedNodeId],
   );
@@ -69,7 +73,7 @@ function EcosystemCanvasInner({
         }}
         nodesDraggable={false}
         nodesConnectable={false}
-        nodesFocusable={false}
+        nodesFocusable
         elementsSelectable
         edgesFocusable={false}
         edgesReconnectable={false}

@@ -100,10 +100,10 @@ describe("ecosystem content inventory", () => {
         expect(nodeIds.has(edge.source)).toBe(true);
         expect(nodeIds.has(edge.target)).toBe(true);
       }
-      // talkTrack may be absent until the interview-polish slice
-      if (view.talkTrack !== undefined) {
-        expect(view.talkTrack.trim().length).toBeGreaterThan(0);
-      }
+      expect(view.talkTrack?.trim().length).toBeGreaterThan(0);
+      expect(Object.prototype.hasOwnProperty.call(view, "talkTrack")).toBe(
+        true,
+      );
     }
 
     await expect(repository.getWorkflowView("missing")).resolves.toBeNull();

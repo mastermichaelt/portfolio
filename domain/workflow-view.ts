@@ -25,7 +25,7 @@ export interface WorkflowEdge {
 
 /**
  * Composition/layout view for `/ecosystem` canvases.
- * Optional talkTrack is view-level presentation (filled in a later slice) — not Entity fields.
+ * Optional talkTrack is view-level interview presentation — not Entity fields.
  */
 export interface WorkflowView {
   id: string;

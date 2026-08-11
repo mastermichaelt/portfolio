@@ -11,9 +11,32 @@
   min-width: 0;
 }
 
+.ecosystem-view {
+  scroll-margin-top: 96px;
+  outline: none;
+}
+
+.ecosystem-view:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--accent) 45%, transparent);
+  border-radius: var(--radius);
+}
+
 .ecosystem-view + .ecosystem-view {
   padding-top: var(--gap-xl);
   border-top: 1px solid var(--border);
+}
+
+.ecosystem-talk-track {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid color-mix(in oklch, var(--accent) 45%, var(--border));
+  color: var(--muted);
+  max-width: 62ch;
+}
+
+.ecosystem-talk-track .eyebrow {
+  display: block;
+  margin-bottom: 6px;
 }
 
 .ecosystem-canvas {
@@ -106,6 +129,11 @@
 }
 
 .ecosystem-node.is-selected {
+  border-color: color-mix(in oklch, var(--accent) 55%, var(--border));
+  box-shadow: var(--shadow);
+}
+
+.ecosystem-canvas .react-flow__node:focus-visible .ecosystem-node {
   border-color: color-mix(in oklch, var(--accent) 55%, var(--border));
   box-shadow: var(--shadow);
 }
