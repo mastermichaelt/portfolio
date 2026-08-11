@@ -143,17 +143,31 @@ test.describe("portfolio happy path", () => {
     await expect(
       page.getByTestId("ecosystem-canvas-system-overview"),
     ).toBeVisible();
-    await expect(
-      page.getByTestId("ecosystem-canvas-workflow-renovate"),
-    ).toBeVisible();
+    const renovateCanvas = page.getByTestId(
+      "ecosystem-canvas-workflow-renovate",
+    );
+    await expect(renovateCanvas).toBeVisible();
+    // SVG <g> edges are often "hidden" to Playwright; assert rendered paths instead.
+    const edgePaths = renovateCanvas.locator(".react-flow__edge-path");
+    await expect(edgePaths).toHaveCount(5);
+    await expect
+      .poll(async () => {
+        const boxes = await edgePaths.evaluateAll((paths) =>
+          paths.map((path) => {
+            const box = path.getBoundingClientRect();
+            return box.width + box.height;
+          }),
+        );
+        return boxes.filter((size) => size > 0).length;
+      })
+      .toBeGreaterThan(0);
 
     const panel = page.getByTestId("ecosystem-detail-panel");
     await expect(
       panel.getByRole("heading", { name: "Select a node" }),
     ).toBeVisible();
 
-    const classifyNode = page
-      .getByTestId("ecosystem-canvas-workflow-renovate")
+    const classifyNode = renovateCanvas
       .locator(".react-flow__node")
       .filter({ hasText: "Classify" });
     await classifyNode.click();

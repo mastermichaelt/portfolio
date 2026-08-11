@@ -1,4 +1,4 @@
-import type { Edge, Node } from "@xyflow/react";
+import { MarkerType, type Edge, type Node } from "@xyflow/react";
 
 import type { Entity } from "@/domain/entities";
 import type { Evidence } from "@/domain/evidence";
@@ -40,6 +40,7 @@ export function toEcosystemFlowNodes(
     },
     draggable: false,
     connectable: false,
+    deletable: false,
   }));
 }
 
@@ -50,6 +51,13 @@ export function toEcosystemFlowEdges(view: WorkflowView): Edge[] {
     target: edge.target,
     label: edge.label,
     type: "smoothstep",
+    deletable: false,
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 16,
+      height: 16,
+      color: "var(--ecosystem-edge-stroke, #8a847c)",
+    },
   }));
 }
 

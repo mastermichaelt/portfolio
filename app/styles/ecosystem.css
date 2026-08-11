@@ -17,6 +17,7 @@
 }
 
 .ecosystem-canvas {
+  --ecosystem-edge-stroke: color-mix(in oklch, var(--fg) 42%, var(--border));
   height: min(420px, 62vh);
   min-height: 280px;
   border: 1px solid var(--border);
@@ -35,6 +36,11 @@
 
 .ecosystem-canvas .react-flow {
   background: transparent;
+}
+
+/* Global `svg { max-width: 100% }` collapses React Flow edge viewBoxes. */
+.ecosystem-canvas .react-flow svg {
+  max-width: none;
 }
 
 .ecosystem-canvas .react-flow__renderer,
@@ -66,8 +72,13 @@
 }
 
 .ecosystem-canvas .react-flow__edge-path {
-  stroke: color-mix(in oklch, var(--fg) 28%, var(--border));
-  stroke-width: 1.5;
+  stroke: color-mix(in oklch, var(--fg) 42%, var(--border));
+  stroke-width: 1.75;
+}
+
+.ecosystem-canvas .react-flow__arrowhead polyline {
+  stroke: color-mix(in oklch, var(--fg) 42%, var(--border));
+  fill: color-mix(in oklch, var(--fg) 42%, var(--border));
 }
 
 .ecosystem-canvas .react-flow__edge-text {

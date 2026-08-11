@@ -83,12 +83,15 @@ function EcosystemCanvasInner({
         nodesConnectable={false}
         elementsSelectable
         edgesFocusable={false}
+        edgesReconnectable={false}
+        deleteKeyCode={null}
         panOnScroll
         zoomOnPinch
         fitView
         fitViewOptions={{ padding: 0.2 }}
         minZoom={0.4}
         maxZoom={1.5}
+        defaultMarkerColor="var(--ecosystem-edge-stroke, #8a847c)"
         proOptions={{ hideAttribution: true }}
         aria-label={`${view.title} canvas`}
       >

@@ -28,6 +28,7 @@ describe("ecosystem canvas helpers", () => {
     expect(nodes.every((node) => node.type === "ecosystem")).toBe(true);
     expect(nodes.every((node) => node.draggable === false)).toBe(true);
     expect(nodes.every((node) => node.connectable === false)).toBe(true);
+    expect(nodes.every((node) => node.deletable === false)).toBe(true);
     expect(nodes[0]).toMatchObject({
       id: "node-classify",
       position: { x: 0, y: 120 },
@@ -42,7 +43,9 @@ describe("ecosystem canvas helpers", () => {
       target: "node-investigate",
       label: "Investigate",
       type: "smoothstep",
+      deletable: false,
     });
+    expect(edges.every((edge) => edge.markerEnd)).toBeTruthy();
   });
 
   it("partitions overview spine from operational workflows", () => {
