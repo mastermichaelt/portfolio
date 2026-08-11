@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { entities, workflowViews } from "@/content/ecosystem";
 import {
   findWorkflowNode,
+  nextEcosystemSelection,
   partitionWorkflowViews,
   resolveEcosystemDetail,
   toEcosystemFlowEdges,
@@ -95,6 +96,25 @@ describe("ecosystem canvas helpers", () => {
     ).toMatchObject({
       view: { id: "workflow-editorial" },
       node: { id: "node-publish", label: "Publish" },
+    });
+  });
+
+  it("keeps active selection when another canvas emits a clear", () => {
+    const current = {
+      viewId: "workflow-editorial",
+      nodeId: "node-inbox",
+    };
+    expect(nextEcosystemSelection(current, "workflow-renovate", null)).toEqual(
+      current,
+    );
+    expect(
+      nextEcosystemSelection(current, "workflow-editorial", null),
+    ).toBeNull();
+    expect(
+      nextEcosystemSelection(current, "workflow-product-loop", "node-product"),
+    ).toEqual({
+      viewId: "workflow-product-loop",
+      nodeId: "node-product",
     });
   });
 });

@@ -181,6 +181,58 @@ test.describe("portfolio happy path", () => {
     ).toHaveAttribute("href", "/projects/renovate-governance");
   });
 
+  test("ecosystem selection survives switching between canvases", async ({
+    page,
+  }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => {
+      pageErrors.push(String(error));
+    });
+
+    await page.goto("/ecosystem");
+
+    async function selectNode(canvasTestId: string, label: string) {
+      const canvas = page.getByTestId(canvasTestId);
+      await canvas.scrollIntoViewIfNeeded();
+      await canvas
+        .locator(".react-flow__node")
+        .filter({ hasText: label })
+        .first()
+        .click();
+    }
+
+    await selectNode("ecosystem-canvas-workflow-renovate", "Classify");
+    await expect(
+      page.getByTestId("ecosystem-detail-panel").getByRole("heading", {
+        name: "Classify",
+      }),
+    ).toBeVisible();
+
+    await selectNode("ecosystem-canvas-workflow-editorial", "Inbox");
+    await expect(
+      page.getByTestId("ecosystem-detail-panel").getByRole("heading", {
+        name: "Inbox",
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("ecosystem-canvas-workflow-product-loop"),
+    ).toBeVisible();
+
+    await selectNode("ecosystem-canvas-workflow-product-loop", "Codenames AI");
+    await expect(
+      page.getByTestId("ecosystem-detail-panel").getByRole("heading", {
+        name: "Codenames AI",
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("ecosystem-detail-panel").getByRole("link", {
+        name: "Open project case study",
+      }),
+    ).toHaveAttribute("href", "/projects/codenames-ai");
+
+    expect(pageErrors).toEqual([]);
+  });
+
   test("mobile ecosystem detail appears beside the selected canvas", async ({
     page,
   }) => {

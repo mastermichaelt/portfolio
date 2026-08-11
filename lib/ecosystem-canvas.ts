@@ -109,3 +109,20 @@ export function partitionWorkflowViews(views: WorkflowView[]): {
   const operational = views.filter((view) => view.id !== "system-overview");
   return { overview, operational };
 }
+
+export type EcosystemSelection = {
+  viewId: string;
+  nodeId: string;
+} | null;
+
+/** Apply a canvas selection/clear without letting other canvases wipe active detail. */
+export function nextEcosystemSelection(
+  current: EcosystemSelection,
+  viewId: string,
+  nodeId: string | null,
+): EcosystemSelection {
+  if (!nodeId) {
+    return current?.viewId === viewId ? null : current;
+  }
+  return { viewId, nodeId };
+}

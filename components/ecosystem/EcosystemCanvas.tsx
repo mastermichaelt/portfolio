@@ -10,7 +10,6 @@ import {
   type Edge,
   type Node,
   type NodeTypes,
-  type OnSelectionChangeParams,
 } from "@xyflow/react";
 import { useEffect } from "react";
 
@@ -48,23 +47,28 @@ function EcosystemCanvasInner({
     toEcosystemFlowEdges(view),
   );
 
+  // Keep node/edge structure in sync with the view, without rewriting selection
+  // every time (selection is applied in a separate, change-gated effect).
   useEffect(() => {
-    setNodes(
-      toEcosystemFlowNodes(view).map((node) => ({
-        ...node,
-        selected: node.id === selectedNodeId,
-      })),
-    );
+    setNodes(toEcosystemFlowNodes(view));
     setEdges(toEcosystemFlowEdges(view));
-  }, [view, selectedNodeId, setNodes, setEdges]);
+  }, [view, setNodes, setEdges]);
 
-  const handleSelectionChange = ({
-    nodes: selectedNodes,
-  }: OnSelectionChangeParams) => {
-    const nextId = selectedNodes[0]?.id ?? null;
-    if (nextId === selectedNodeId) return;
-    onSelectNode(view.id, nextId);
-  };
+  // Apply external selection without recreating nodes when flags already match.
+  // Recreating selected nodes from onSelectionChange caused React #185 when
+  // switching between multiple canvases (programmatic deselect ↔ parent state).
+  useEffect(() => {
+    setNodes((current) => {
+      let changed = false;
+      const next = current.map((node) => {
+        const selected = node.id === selectedNodeId;
+        if ((node.selected ?? false) === selected) return node;
+        changed = true;
+        return { ...node, selected };
+      });
+      return changed ? next : current;
+    });
+  }, [selectedNodeId, setNodes]);
 
   return (
     <div
@@ -78,7 +82,13 @@ function EcosystemCanvasInner({
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onSelectionChange={handleSelectionChange}
+        onNodeClick={(_event, node) => {
+          if (node.id === selectedNodeId) return;
+          onSelectNode(view.id, node.id);
+        }}
+        onPaneClick={() => {
+          if (selectedNodeId) onSelectNode(view.id, null);
+        }}
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable

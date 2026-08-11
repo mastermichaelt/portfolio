@@ -13,9 +13,11 @@ import { EcosystemDetailPanel } from "@/components/ecosystem/EcosystemDetailPane
 import type { Entity } from "@/domain/entities";
 import type { WorkflowView } from "@/domain/workflow-view";
 import {
+  nextEcosystemSelection,
   partitionWorkflowViews,
   resolveEcosystemDetail,
   type EcosystemDetailModel,
+  type EcosystemSelection,
 } from "@/lib/ecosystem-canvas";
 
 const NARROW_MAX = "(max-width: 920px)";
@@ -24,11 +26,6 @@ type EcosystemExplorerProps = {
   workflowViews: WorkflowView[];
   entities: Entity[];
 };
-
-type Selection = {
-  viewId: string;
-  nodeId: string;
-} | null;
 
 type ViewSectionProps = {
   view: WorkflowView;
@@ -96,7 +93,7 @@ export function EcosystemExplorer({
   workflowViews,
   entities,
 }: EcosystemExplorerProps) {
-  const [selection, setSelection] = useState<Selection>(null);
+  const [selection, setSelection] = useState<EcosystemSelection>(null);
   const [narrow, setNarrow] = useState(false);
   const inlinePanelRef = useRef<HTMLDivElement | null>(null);
   const { overview, operational } = partitionWorkflowViews(workflowViews);
@@ -130,11 +127,7 @@ export function EcosystemExplorer({
   }, [narrow, selection]);
 
   const handleSelectNode = (viewId: string, nodeId: string | null) => {
-    if (!nodeId) {
-      setSelection(null);
-      return;
-    }
-    setSelection({ viewId, nodeId });
+    setSelection((current) => nextEcosystemSelection(current, viewId, nodeId));
   };
 
   const selectedFor = (viewId: string) =>
