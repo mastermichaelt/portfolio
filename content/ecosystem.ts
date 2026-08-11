@@ -4,7 +4,8 @@ import type { WorkflowView } from "@/domain/workflow-view";
 
 /**
  * Ecosystem inventory and curated workflow views.
- * Claims stay evidence-backed (portfolio projects + public runbooks / DEV reports).
+ * Claims stay evidence-backed (portfolio projects + public DEV field reports).
+ * Do not link private sibling-repo docs; readers cannot open them.
  * Talk tracks intentionally omitted until the interview-polish slice.
  */
 
@@ -33,9 +34,9 @@ export const entities: Entity[] = [
     relatedProjectSlug: "editorial-workflow",
     evidence: [
       {
-        id: "ev-editorial-runbook",
-        label: "Editorial workflow runbook",
-        url: "https://github.com/mastermichaelt/codenames-ai-guesser/blob/main/docs/editorial-workflow.md",
+        id: "ev-editorial-field-report",
+        label: "DEV — The AI reviewer scored 23/25 and missed the point",
+        url: "https://dev.to/michaeltruong/the-ai-reviewer-scored-2325-and-missed-the-point-51mh",
       },
     ],
   },
@@ -56,9 +57,9 @@ export const entities: Entity[] = [
     relatedProjectSlug: "renovate-governance",
     evidence: [
       {
-        id: "ev-renovate-runbook",
-        label: "Renovate PR workflow runbook",
-        url: "https://github.com/mastermichaelt/codenames-ai-guesser/blob/main/docs/renovate-workflow.md",
+        id: "ev-renovate-field-report",
+        label: "DEV — Upgrades don't have to be a blind trust exercise",
+        url: "https://dev.to/michaeltruong/upgrades-dont-have-to-be-a-blind-trust-exercise-13mj",
       },
     ],
   },
@@ -323,7 +324,7 @@ export const workflowViews: WorkflowView[] = [
     id: "workflow-renovate",
     title: "Renovate governance ladder",
     summary:
-      "Classify → investigate or maintainer path → merge gates. From the Codenames Renovate runbook.",
+      "Classify → investigate or maintainer path → merge gates. Walkthrough of the Codenames Renovate governance ladder.",
     nodes: [
       {
         id: "node-classify",
@@ -402,7 +403,7 @@ export const workflowViews: WorkflowView[] = [
     id: "workflow-editorial",
     title: "Editorial field-report pipeline",
     summary:
-      "Inbox → draft → critique → publish. From the editorial workflow runbook.",
+      "Inbox → draft → critique → publish. Walkthrough of the editorial field-report pipeline.",
     nodes: [
       {
         id: "node-inbox",

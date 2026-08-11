@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: ecosystem-canvas-page
     content: "PR 2: @xyflow/react read-only canvases (light overview + 3 workflows, no mega-graph), detail panel, nav, e2e"
-    status: pending
+    status: completed
   - id: ecosystem-interview-polish
     content: "PR 3: Hash deep links, WorkflowView.talkTrack, keyboard/selection polish, ExternalLink consistency"
     status: pending
