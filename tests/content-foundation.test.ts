@@ -56,7 +56,17 @@ describe("content-foundation inventory", () => {
         expect(item.label.trim().length).toBeGreaterThan(0);
         if (item.url !== undefined) {
           expect(item.url).toMatch(/^https:\/\//);
+          // Private sibling repo — readers cannot open source/docs links.
+          expect(item.url).not.toMatch(
+            /github\.com\/mastermichaelt\/codenames-ai-guesser/i,
+          );
         }
+      }
+      for (const link of project.relatedLinks ?? []) {
+        expect(link.url).toMatch(/^https:\/\//);
+        expect(link.url).not.toMatch(
+          /github\.com\/mastermichaelt\/codenames-ai-guesser/i,
+        );
       }
     }
 

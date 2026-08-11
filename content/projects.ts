@@ -61,9 +61,9 @@ export const projects: Project[] = [
         url: "https://codenames-ai.com/",
       },
       {
-        id: "codenames-github",
-        label: "Source repository",
-        url: "https://github.com/mastermichaelt/codenames-ai-guesser",
+        id: "codenames-devto",
+        label: "DEV.to field reports",
+        url: "https://dev.to/michaeltruong",
       },
     ],
     evidence: [
@@ -135,19 +135,19 @@ export const projects: Project[] = [
         id: "evidence",
         kind: "evidence",
         title: "Evidence",
-        body: "Public runbook and field reports linked below. Prefer those artifacts over invented editorial KPIs.",
+        body: "Public field reports linked below. Prefer those artifacts over invented editorial KPIs.",
       },
     ],
     relatedLinks: [
       {
-        id: "editorial-workflow-doc",
-        label: "Editorial workflow (runbook)",
-        url: "https://github.com/mastermichaelt/codenames-ai-guesser/blob/main/docs/editorial-workflow.md",
-      },
-      {
         id: "devto-blog",
         label: "DEV.to field reports",
         url: "https://dev.to/michaeltruong",
+      },
+      {
+        id: "editorial-reviewer-article",
+        label: "The AI reviewer scored 23/25 and missed the point",
+        url: "https://dev.to/michaeltruong/the-ai-reviewer-scored-2325-and-missed-the-point-51mh",
       },
     ],
     evidence: [
@@ -286,14 +286,19 @@ export const projects: Project[] = [
         id: "evidence",
         kind: "evidence",
         title: "Evidence",
-        body: "Public runbook and field reports below. No invented maintenance KPIs — the system’s value is explicit stop conditions and auditability.",
+        body: "Public field reports below. No invented maintenance KPIs — the system’s value is explicit stop conditions and auditability.",
       },
     ],
     relatedLinks: [
       {
-        id: "renovate-workflow-doc",
-        label: "Renovate PR workflow (runbook)",
-        url: "https://github.com/mastermichaelt/codenames-ai-guesser/blob/main/docs/renovate-workflow.md",
+        id: "renovate-upgrades-article",
+        label: "Upgrades don't have to be a blind trust exercise",
+        url: "https://dev.to/michaeltruong/upgrades-dont-have-to-be-a-blind-trust-exercise-13mj",
+      },
+      {
+        id: "renovate-authority-article",
+        label: "The agent plan had every step except where to stop",
+        url: "https://dev.to/michaeltruong/the-agent-plan-had-every-step-except-where-to-stop-357h",
       },
     ],
     evidence: [
