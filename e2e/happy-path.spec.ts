@@ -184,6 +184,22 @@ test.describe("portfolio happy path", () => {
     await expect(
       panel.getByRole("link", { name: "Open project case study" }),
     ).toHaveAttribute("href", "/projects/renovate-governance");
+
+    // Evidence outbound links use ExternalLink (new tab + analytics hookup).
+    const overviewCanvas = page.getByTestId("ecosystem-canvas-system-overview");
+    await overviewCanvas.scrollIntoViewIfNeeded();
+    await overviewCanvas
+      .locator(".react-flow__node")
+      .filter({ hasText: "Evidence & outputs" })
+      .first()
+      .click();
+    const evidenceLink = panel.getByRole("link", {
+      name: /DEV\.to/i,
+    });
+    await expect(evidenceLink).toBeVisible();
+    await expect(evidenceLink).toHaveAttribute("target", "_blank");
+    await expect(evidenceLink).toHaveAttribute("rel", /noopener/);
+
     expect(pageErrors, pageErrors.join("\n")).toEqual([]);
   });
 
@@ -260,6 +276,54 @@ test.describe("portfolio happy path", () => {
     ).toHaveAttribute("href", "/projects/codenames-ai");
 
     expect(pageErrors).toEqual([]);
+  });
+
+  test("ecosystem hash deep link scrolls to a workflow section", async ({
+    page,
+  }) => {
+    await page.goto("/ecosystem#workflow-renovate");
+
+    const section = page.locator("#workflow-renovate");
+    await expect(
+      section.getByRole("heading", { name: "Renovate governance ladder" }),
+    ).toBeVisible();
+    await expect(section).toBeInViewport();
+    await expect(
+      page.getByTestId("ecosystem-talk-track-workflow-renovate"),
+    ).toBeVisible();
+    await expect(section).toBeFocused();
+
+    await page.evaluate(() => {
+      window.location.hash = "system-overview";
+    });
+    const overview = page.locator("#system-overview");
+    await expect(
+      overview.getByRole("heading", { name: "System overview" }),
+    ).toBeVisible();
+    await expect(overview).toBeInViewport();
+    await expect(overview).toBeFocused();
+  });
+
+  test("ecosystem Escape clears the detail selection", async ({ page }) => {
+    await page.goto("/ecosystem");
+
+    const canvas = page.getByTestId("ecosystem-canvas-workflow-renovate");
+    await canvas.scrollIntoViewIfNeeded();
+    await canvas
+      .locator(".react-flow__node")
+      .filter({ hasText: "Classify" })
+      .first()
+      .click();
+
+    const panel = page.getByTestId("ecosystem-detail-panel");
+    await expect(
+      panel.getByRole("heading", { name: "Classify" }),
+    ).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(
+      panel.getByRole("heading", { name: "Select a node" }),
+    ).toBeVisible();
   });
 
   test("mobile ecosystem detail appears beside the selected canvas", async ({

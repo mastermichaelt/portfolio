@@ -89,6 +89,8 @@ export function toEcosystemFlowNodes(
     draggable: false,
     connectable: false,
     deletable: false,
+    focusable: true,
+    ariaLabel: node.subtitle ? `${node.label}, ${node.subtitle}` : node.label,
   }));
 }
 
@@ -156,6 +158,30 @@ export function partitionWorkflowViews(views: WorkflowView[]): {
   const overview = views.find((view) => view.id === "system-overview") ?? null;
   const operational = views.filter((view) => view.id !== "system-overview");
   return { overview, operational };
+}
+
+/** Resolve a location hash to a known workflow view id, or null. */
+export function ecosystemViewIdFromHash(
+  hash: string,
+  viewIds: Iterable<string>,
+): string | null {
+  const raw = hash.startsWith("#") ? hash.slice(1) : hash;
+  const id = decodeURIComponent(raw).trim();
+  if (!id) return null;
+  for (const viewId of viewIds) {
+    if (viewId === id) return id;
+  }
+  return null;
+}
+
+/** Scroll and focus a workflow section by id (client-only). */
+export function focusEcosystemViewSection(viewId: string): boolean {
+  if (typeof document === "undefined") return false;
+  const el = document.getElementById(viewId);
+  if (!(el instanceof HTMLElement)) return false;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  el.focus({ preventScroll: true });
+  return true;
 }
 
 export type EcosystemSelection = {

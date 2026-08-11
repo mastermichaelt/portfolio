@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { entities, workflowViews } from "@/content/ecosystem";
 import {
   availableEcosystemEntityKinds,
+  ecosystemViewIdFromHash,
   filterEntitiesByKind,
   findWorkflowNode,
   nextEcosystemSelection,
@@ -32,9 +33,11 @@ describe("ecosystem canvas helpers", () => {
     expect(nodes.every((node) => node.draggable === false)).toBe(true);
     expect(nodes.every((node) => node.connectable === false)).toBe(true);
     expect(nodes.every((node) => node.deletable === false)).toBe(true);
+    expect(nodes.every((node) => node.focusable === true)).toBe(true);
     expect(nodes[0]).toMatchObject({
       id: "node-classify",
       position: { x: 0, y: 120 },
+      ariaLabel: "Classify, One active PR → packet",
       data: {
         label: "Classify",
         kind: "agent",
@@ -139,5 +142,18 @@ describe("ecosystem canvas helpers", () => {
       viewId: "workflow-product-loop",
       nodeId: "node-product",
     });
+  });
+
+  it("resolves deep-link hashes to known workflow view ids", () => {
+    const ids = workflowViews.map((view) => view.id);
+    expect(ecosystemViewIdFromHash("#workflow-renovate", ids)).toBe(
+      "workflow-renovate",
+    );
+    expect(ecosystemViewIdFromHash("system-overview", ids)).toBe(
+      "system-overview",
+    );
+    expect(ecosystemViewIdFromHash("#missing", ids)).toBeNull();
+    expect(ecosystemViewIdFromHash("#", ids)).toBeNull();
+    expect(ecosystemViewIdFromHash("", ids)).toBeNull();
   });
 });
