@@ -12,8 +12,13 @@ async function expectPrimaryNav(page: Page) {
   await expect(nav.getByRole("link", { name: "Home" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Projects" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Articles" })).toBeVisible();
+  await expect(
+    nav.getByRole("link", { name: "Ecosystem", exact: true }),
+  ).toBeVisible();
   await expect(nav.getByRole("link", { name: "About" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "System" })).toHaveCount(0);
+  await expect(
+    nav.getByRole("link", { name: "System", exact: true }),
+  ).toHaveCount(0);
 }
 
 test.describe("portfolio happy path", () => {
@@ -127,6 +132,41 @@ test.describe("portfolio happy path", () => {
     ).toHaveAttribute("href", /dev\.to\/michaeltruong/);
   });
 
+  test("ecosystem canvases open detail panel on node select", async ({
+    page,
+  }) => {
+    await page.goto("/ecosystem");
+
+    await expect(
+      page.getByRole("heading", { name: "How the systems connect." }),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("ecosystem-canvas-system-overview"),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("ecosystem-canvas-workflow-renovate"),
+    ).toBeVisible();
+
+    const panel = page.getByTestId("ecosystem-detail-panel");
+    await expect(
+      panel.getByRole("heading", { name: "Select a node" }),
+    ).toBeVisible();
+
+    const classifyNode = page
+      .getByTestId("ecosystem-canvas-workflow-renovate")
+      .locator(".react-flow__node")
+      .filter({ hasText: "Classify" });
+    await classifyNode.click();
+
+    await expect(
+      panel.getByRole("heading", { name: "Classify" }),
+    ).toBeVisible();
+    await expect(panel.getByText(/Renovate governance ladder/i)).toBeVisible();
+    await expect(
+      panel.getByRole("link", { name: "Open project case study" }),
+    ).toHaveAttribute("href", "/projects/renovate-governance");
+  });
+
   test("mobile nav opens Contact and navigates", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/");
@@ -143,6 +183,7 @@ test.describe("portfolio happy path", () => {
     await expect(mobile.getByRole("link", { name: "Home" })).toBeVisible();
     await expect(mobile.getByRole("link", { name: "Projects" })).toBeVisible();
     await expect(mobile.getByRole("link", { name: "Articles" })).toBeVisible();
+    await expect(mobile.getByRole("link", { name: "Ecosystem" })).toBeVisible();
     await expect(mobile.getByRole("link", { name: "About" })).toHaveCount(0);
 
     await mobile.getByRole("link", { name: "Contact" }).click();

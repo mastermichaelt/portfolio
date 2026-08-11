@@ -11,13 +11,13 @@ This repository will eventually serve four purposes:
 3. A Next.js + Supabase learning project
 4. A foundation for a future grounded portfolio chatbot
 
-The current milestone is a **repository skeleton** only: routes, lightweight domain types, static content placeholders, and a storage abstraction. No product features yet.
+The current milestone includes a live **ecosystem map** on `/ecosystem`: curated workflow views over static repository data (light orientation spine + three operational canvases). Full entity/relationship mega-graph, Supabase, and chatbot work stay later.
 
 ## Milestone progression
 
-1. **Skeleton** (this PR) — App Router, tooling, empty routes, domain/content/repository stubs, docs
+1. **Skeleton** — App Router, tooling, empty routes, domain/content/repository stubs, docs
 2. **Static content** — real project/article copy served from typed static modules
-3. **Ecosystem map** — entities, relationships, and a first visualization over static data
+3. **Ecosystem map** (live) — entities, relationships, and read-only React Flow canvases over static data
 4. **Supabase** — migrate storage behind the existing repository interface
 5. **Chatbot foundation** — grounded Q&A over portfolio knowledge (later)
 

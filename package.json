@@ -21,6 +21,7 @@
     "prepare": "if [ -n \"$CI\" ]; then echo 'Skipping husky install in CI'; else husky; fi"
   },
   "dependencies": {
+    "@xyflow/react": "^12.11.2",
     "next": "16.3.0",
     "posthog-js": "^1.414.0",
     "react": "19.2.8",

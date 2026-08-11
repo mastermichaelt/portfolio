@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { Entity, EntityKind } from "@/domain/entities";
+import { EcosystemExplorer } from "@/components/ecosystem/EcosystemExplorer";
 import { ExternalLink } from "@/components/ExternalLink";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
 export const metadata: Metadata = {
   title: "Ecosystem",
   description:
-    "Text index of AI engineering systems — curated workflow views and an entity inventory for interview walkthroughs.",
+    "Read-only canvases for AI engineering systems — light layer-spine overview plus operational workflow walkthroughs.",
   alternates: {
     canonical: "/ecosystem",
   },
@@ -77,41 +78,19 @@ export default async function EcosystemPage() {
           <p className="eyebrow">Ecosystem</p>
           <h1>How the systems connect.</h1>
           <p className="lead lead-follow">
-            A readable index of curated workflow views and the underlying entity
-            inventory. Interactive canvases ship in a later slice — this route
-            stays unlinked from primary nav until then.
+            A light orientation spine plus three operational workflow canvases
+            for interview walkthroughs. Pan, zoom, and select a node to open the
+            detail panel — read-only, no mega-graph of every entity.
           </p>
         </div>
       </section>
 
       <section className="section section-flush">
         <div className="container fade-in delay-1">
-          <div className="row-between section-heading">
-            <div>
-              <p className="eyebrow">Workflow views</p>
-              <h2>Stories to walk through</h2>
-            </div>
-          </div>
-          <div className="grid-2">
-            {workflowViews.map((view) => (
-              <article key={view.id} className="card work-card" id={view.id}>
-                <div className="kicker">
-                  <span className="pill">{view.id}</span>
-                  <span className="meta">{view.nodes.length} nodes</span>
-                </div>
-                <h3>{view.title}</h3>
-                <p>{view.summary}</p>
-                <div className="tag-row">
-                  {view.nodes.map((node) => (
-                    <span key={node.id} className="tag">
-                      {node.label}
-                      {node.subtitle ? ` — ${node.subtitle}` : ""}
-                    </span>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
+          <EcosystemExplorer
+            workflowViews={workflowViews}
+            entities={entities}
+          />
         </div>
       </section>
 
@@ -121,6 +100,10 @@ export default async function EcosystemPage() {
             <div>
               <p className="eyebrow">Entity inventory</p>
               <h2>Knowledge model by kind</h2>
+              <p className="lead lead-follow">
+                Text index of the same entities for scanning — not rendered as a
+                full relationship graph.
+              </p>
             </div>
           </div>
           {KIND_ORDER.map((kind) => {

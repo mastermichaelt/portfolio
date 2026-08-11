@@ -1,0 +1,185 @@
+/* Ecosystem canvases — portfolio tokens only; no Relevance purple theme. */
+
+.ecosystem-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: var(--gap-lg);
+  align-items: start;
+}
+
+.ecosystem-main {
+  min-width: 0;
+}
+
+.ecosystem-view + .ecosystem-view {
+  padding-top: var(--gap-xl);
+  border-top: 1px solid var(--border);
+}
+
+.ecosystem-canvas {
+  height: min(420px, 62vh);
+  min-height: 280px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(160deg, var(--fg-soft), transparent 42%), var(--surface);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  touch-action: none;
+}
+
+.ecosystem-canvas-compact {
+  height: min(280px, 48vh);
+  min-height: 220px;
+}
+
+.ecosystem-canvas .react-flow {
+  background: transparent;
+}
+
+.ecosystem-canvas .react-flow__renderer,
+.ecosystem-canvas .react-flow__pane {
+  cursor: grab;
+}
+
+.ecosystem-canvas .react-flow__pane.dragging {
+  cursor: grabbing;
+}
+
+.ecosystem-canvas .react-flow__controls {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.ecosystem-canvas .react-flow__controls-button {
+  background: var(--surface);
+  border-bottom-color: var(--border);
+  fill: var(--fg);
+  width: 28px;
+  height: 28px;
+}
+
+.ecosystem-canvas .react-flow__controls-button:hover {
+  background: color-mix(in oklch, var(--accent) 10%, var(--surface));
+}
+
+.ecosystem-canvas .react-flow__edge-path {
+  stroke: color-mix(in oklch, var(--fg) 28%, var(--border));
+  stroke-width: 1.5;
+}
+
+.ecosystem-canvas .react-flow__edge-text {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  fill: var(--muted);
+}
+
+.ecosystem-canvas .react-flow__edge-textbg {
+  fill: var(--surface);
+}
+
+.ecosystem-node {
+  min-width: 148px;
+  max-width: 196px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.ecosystem-node.is-selected {
+  border-color: color-mix(in oklch, var(--accent) 55%, var(--border));
+  box-shadow: var(--shadow);
+}
+
+.ecosystem-node-kind {
+  align-self: flex-start;
+  font-size: 10px;
+  padding: 2px 8px;
+}
+
+.ecosystem-node-label {
+  font-family: var(--font-display-stack);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--fg);
+}
+
+.ecosystem-node-subtitle {
+  line-height: 1.35;
+}
+
+.ecosystem-handle {
+  width: 6px;
+  height: 6px;
+  background: color-mix(in oklch, var(--accent) 45%, var(--border));
+  border: 1px solid var(--surface);
+  opacity: 0.85;
+}
+
+.ecosystem-panel {
+  position: sticky;
+  top: 88px;
+  padding: 24px;
+  min-height: 220px;
+}
+
+.ecosystem-panel .kicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--gap-sm);
+}
+
+.ecosystem-panel h3 {
+  margin-bottom: 8px;
+}
+
+.ecosystem-panel p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.ecosystem-panel p + p,
+.ecosystem-panel p + .links {
+  margin-top: 12px;
+}
+
+.ecosystem-panel .links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+@media (max-width: 920px) {
+  .ecosystem-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .ecosystem-panel {
+    position: static;
+    order: 2;
+  }
+
+  .ecosystem-main {
+    order: 1;
+  }
+
+  .ecosystem-canvas {
+    height: min(360px, 58vh);
+  }
+
+  .ecosystem-canvas-compact {
+    height: min(240px, 42vh);
+  }
+}
