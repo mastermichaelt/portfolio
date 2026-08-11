@@ -125,9 +125,16 @@
   opacity: 0.85;
 }
 
-.ecosystem-panel {
+.ecosystem-panel-side {
   position: sticky;
   top: 88px;
+}
+
+.ecosystem-panel-inline {
+  margin-top: var(--gap-md);
+}
+
+.ecosystem-panel {
   padding: 24px;
   min-height: 220px;
 }
@@ -166,13 +173,8 @@
     grid-template-columns: 1fr;
   }
 
-  .ecosystem-panel {
-    position: static;
-    order: 2;
-  }
-
-  .ecosystem-main {
-    order: 1;
+  .ecosystem-panel-side {
+    display: none;
   }
 
   .ecosystem-canvas {

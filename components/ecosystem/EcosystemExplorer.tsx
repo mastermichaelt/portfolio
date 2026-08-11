@@ -1,6 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
 
 import { EcosystemCanvas } from "@/components/ecosystem/EcosystemCanvas";
 import { EcosystemDetailPanel } from "@/components/ecosystem/EcosystemDetailPanel";
@@ -9,7 +15,10 @@ import type { WorkflowView } from "@/domain/workflow-view";
 import {
   partitionWorkflowViews,
   resolveEcosystemDetail,
+  type EcosystemDetailModel,
 } from "@/lib/ecosystem-canvas";
+
+const NARROW_MAX = "(max-width: 920px)";
 
 type EcosystemExplorerProps = {
   workflowViews: WorkflowView[];
@@ -21,15 +30,87 @@ type Selection = {
   nodeId: string;
 } | null;
 
+type ViewSectionProps = {
+  view: WorkflowView;
+  eyebrow: string;
+  compact?: boolean;
+  selectedNodeId: string | null;
+  onSelectNode: (viewId: string, nodeId: string | null) => void;
+  inlinePanel: ReactNode;
+};
+
+function EcosystemViewSection({
+  view,
+  eyebrow,
+  compact = false,
+  selectedNodeId,
+  onSelectNode,
+  inlinePanel,
+}: ViewSectionProps) {
+  return (
+    <section
+      className="ecosystem-view"
+      id={view.id}
+      aria-labelledby={`${view.id}-title`}
+    >
+      <div className="section-heading section-heading-spaced">
+        <div>
+          <p className="eyebrow">{eyebrow}</p>
+          <h2 id={`${view.id}-title`}>{view.title}</h2>
+          <p className="lead lead-follow">{view.summary}</p>
+        </div>
+      </div>
+      <EcosystemCanvas
+        view={view}
+        selectedNodeId={selectedNodeId}
+        onSelectNode={onSelectNode}
+        compact={compact}
+      />
+      {inlinePanel}
+    </section>
+  );
+}
+
+function InlineDetailSlot({
+  active,
+  detail,
+  panelRef,
+}: {
+  active: boolean;
+  detail: EcosystemDetailModel | null;
+  panelRef: RefObject<HTMLDivElement | null>;
+}) {
+  if (!active) return null;
+  return (
+    <div
+      ref={panelRef}
+      className="ecosystem-panel-inline"
+      data-testid="ecosystem-detail-inline"
+    >
+      <EcosystemDetailPanel detail={detail} />
+    </div>
+  );
+}
+
 export function EcosystemExplorer({
   workflowViews,
   entities,
 }: EcosystemExplorerProps) {
   const [selection, setSelection] = useState<Selection>(null);
+  const [narrow, setNarrow] = useState(false);
+  const inlinePanelRef = useRef<HTMLDivElement | null>(null);
   const { overview, operational } = partitionWorkflowViews(workflowViews);
   const entitiesById = new Map(
     entities.map((entity) => [entity.id, entity] as const),
   );
+
+  useEffect(() => {
+    const media = window.matchMedia(NARROW_MAX);
+    const sync = () => setNarrow(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   const detail = selection
     ? resolveEcosystemDetail({
@@ -40,6 +121,14 @@ export function EcosystemExplorer({
       })
     : null;
 
+  useEffect(() => {
+    if (!narrow || !selection) return;
+    inlinePanelRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [narrow, selection]);
+
   const handleSelectNode = (viewId: string, nodeId: string | null) => {
     if (!nodeId) {
       setSelection(null);
@@ -48,58 +137,52 @@ export function EcosystemExplorer({
     setSelection({ viewId, nodeId });
   };
 
+  const selectedFor = (viewId: string) =>
+    selection?.viewId === viewId ? selection.nodeId : null;
+
+  const inlineFor = (viewId: string, fallbackWhenEmpty = false) => {
+    if (!narrow) return null;
+    const active =
+      selection?.viewId === viewId || (!selection && fallbackWhenEmpty);
+    return (
+      <InlineDetailSlot
+        active={active}
+        detail={detail}
+        panelRef={inlinePanelRef}
+      />
+    );
+  };
+
   return (
-    <div className="ecosystem-shell">
+    <div className={`ecosystem-shell${narrow ? " is-narrow" : ""}`}>
       <div className="ecosystem-main stack stack-feature">
         {overview ? (
-          <section
-            className="ecosystem-view"
-            id={overview.id}
-            aria-labelledby={`${overview.id}-title`}
-          >
-            <div className="section-heading section-heading-spaced">
-              <div>
-                <p className="eyebrow">Orientation</p>
-                <h2 id={`${overview.id}-title`}>{overview.title}</h2>
-                <p className="lead lead-follow">{overview.summary}</p>
-              </div>
-            </div>
-            <EcosystemCanvas
-              view={overview}
-              selectedNodeId={
-                selection?.viewId === overview.id ? selection.nodeId : null
-              }
-              onSelectNode={handleSelectNode}
-              compact
-            />
-          </section>
+          <EcosystemViewSection
+            view={overview}
+            eyebrow="Orientation"
+            compact
+            selectedNodeId={selectedFor(overview.id)}
+            onSelectNode={handleSelectNode}
+            inlinePanel={inlineFor(overview.id, true)}
+          />
         ) : null}
 
         {operational.map((view) => (
-          <section
+          <EcosystemViewSection
             key={view.id}
-            className="ecosystem-view"
-            id={view.id}
-            aria-labelledby={`${view.id}-title`}
-          >
-            <div className="section-heading section-heading-spaced">
-              <div>
-                <p className="eyebrow">Operational workflow</p>
-                <h2 id={`${view.id}-title`}>{view.title}</h2>
-                <p className="lead lead-follow">{view.summary}</p>
-              </div>
-            </div>
-            <EcosystemCanvas
-              view={view}
-              selectedNodeId={
-                selection?.viewId === view.id ? selection.nodeId : null
-              }
-              onSelectNode={handleSelectNode}
-            />
-          </section>
+            view={view}
+            eyebrow="Operational workflow"
+            selectedNodeId={selectedFor(view.id)}
+            onSelectNode={handleSelectNode}
+            inlinePanel={inlineFor(view.id)}
+          />
         ))}
       </div>
-      <EcosystemDetailPanel detail={detail} />
+      {!narrow ? (
+        <div className="ecosystem-panel-side">
+          <EcosystemDetailPanel detail={detail} />
+        </div>
+      ) : null}
     </div>
   );
 }

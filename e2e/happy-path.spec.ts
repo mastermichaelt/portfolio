@@ -167,6 +167,39 @@ test.describe("portfolio happy path", () => {
     ).toHaveAttribute("href", "/projects/renovate-governance");
   });
 
+  test("mobile ecosystem detail appears beside the selected canvas", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/ecosystem");
+
+    const renovateCanvas = page.getByTestId(
+      "ecosystem-canvas-workflow-renovate",
+    );
+    await renovateCanvas.scrollIntoViewIfNeeded();
+
+    const classifyNode = renovateCanvas
+      .locator(".react-flow__node")
+      .filter({ hasText: "Classify" });
+    await classifyNode.click();
+
+    const inlinePanel = page.getByTestId("ecosystem-detail-inline");
+    const heading = inlinePanel.getByRole("heading", { name: "Classify" });
+    await expect(heading).toBeVisible();
+    await expect(heading).toBeInViewport();
+
+    // Panel must sit under the interacted canvas, not after every workflow.
+    const renovateSection = page.locator("#workflow-renovate");
+    await expect(
+      renovateSection.getByTestId("ecosystem-detail-inline"),
+    ).toBeVisible();
+    await expect(
+      page
+        .locator("#workflow-editorial")
+        .getByTestId("ecosystem-detail-inline"),
+    ).toHaveCount(0);
+  });
+
   test("mobile nav opens Contact and navigates", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/");
