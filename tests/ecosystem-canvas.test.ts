@@ -102,6 +102,27 @@ describe("ecosystem canvas helpers", () => {
       view: { id: "workflow-editorial" },
       node: { id: "node-publish", label: "Publish" },
     });
+
+    const editorial = workflowViews.find(
+      (view) => view.id === "workflow-editorial",
+    );
+    expect(editorial?.nodes.map((node) => node.id)).toEqual([
+      "node-inbox",
+      "node-triage",
+      "node-schedule",
+      "node-context",
+      "node-draft",
+      "node-critique",
+      "node-sync",
+      "node-publish",
+    ]);
+    expect(
+      editorial?.edges.find((edge) => edge.id === "e-edit-8"),
+    ).toMatchObject({
+      source: "node-sync",
+      target: "node-publish",
+      label: "Human",
+    });
   });
 
   it("filters entity inventory kinds for the kind tab UI", () => {
