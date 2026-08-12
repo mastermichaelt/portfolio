@@ -36,7 +36,7 @@ describe("ecosystem canvas helpers", () => {
     expect(nodes.every((node) => node.focusable === true)).toBe(true);
     expect(nodes[0]).toMatchObject({
       id: "node-classify",
-      position: { x: 0, y: 120 },
+      position: { x: 0, y: 160 },
       ariaLabel: "Classify, One active PR → packet",
       data: {
         label: "Classify",
@@ -48,10 +48,32 @@ describe("ecosystem canvas helpers", () => {
       source: "node-route",
       target: "node-investigate",
       label: "Investigate",
+      sourceHandle: "out-top",
+      targetHandle: "in",
       type: "smoothstep",
       deletable: false,
     });
+    expect(edges.find((edge) => edge.id === "e-reno-4")).toMatchObject({
+      source: "node-investigate",
+      target: "node-maintainer",
+      label: "After audit",
+      sourceHandle: "out-bottom",
+      targetHandle: "in-top",
+    });
     expect(edges.every((edge) => edge.markerEnd)).toBeTruthy();
+
+    const product = workflowViews.find(
+      (view) => view.id === "workflow-product-loop",
+    );
+    expect(
+      toEcosystemFlowEdges(product!).find((edge) => edge.id === "e-prod-5"),
+    ).toMatchObject({
+      source: "node-decisions",
+      target: "node-product",
+      label: "Ship",
+      sourceHandle: "out-bottom",
+      targetHandle: "in-bottom",
+    });
   });
 
   it("partitions overview spine from operational workflows", () => {
