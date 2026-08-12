@@ -21,6 +21,9 @@ export interface WorkflowEdge {
   source: string;
   target: string;
   label?: string;
+  /** Optional React Flow handle ids when edges must leave/enter non-default sides. */
+  sourceHandle?: string;
+  targetHandle?: string;
 }
 
 /**

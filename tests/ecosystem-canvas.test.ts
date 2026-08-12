@@ -36,7 +36,7 @@ describe("ecosystem canvas helpers", () => {
     expect(nodes.every((node) => node.focusable === true)).toBe(true);
     expect(nodes[0]).toMatchObject({
       id: "node-classify",
-      position: { x: 0, y: 120 },
+      position: { x: 0, y: 160 },
       ariaLabel: "Classify, One active PR → packet",
       data: {
         label: "Classify",
@@ -48,10 +48,32 @@ describe("ecosystem canvas helpers", () => {
       source: "node-route",
       target: "node-investigate",
       label: "Investigate",
+      sourceHandle: "out-top",
+      targetHandle: "in",
       type: "smoothstep",
       deletable: false,
     });
+    expect(edges.find((edge) => edge.id === "e-reno-4")).toMatchObject({
+      source: "node-investigate",
+      target: "node-maintainer",
+      label: "After audit",
+      sourceHandle: "out-bottom",
+      targetHandle: "in-top",
+    });
     expect(edges.every((edge) => edge.markerEnd)).toBeTruthy();
+
+    const product = workflowViews.find(
+      (view) => view.id === "workflow-product-loop",
+    );
+    expect(
+      toEcosystemFlowEdges(product!).find((edge) => edge.id === "e-prod-5"),
+    ).toMatchObject({
+      source: "node-decisions",
+      target: "node-product",
+      label: "Ship",
+      sourceHandle: "out-bottom",
+      targetHandle: "in-bottom",
+    });
   });
 
   it("partitions overview spine from operational workflows", () => {
@@ -102,6 +124,52 @@ describe("ecosystem canvas helpers", () => {
       view: { id: "workflow-editorial" },
       node: { id: "node-publish", label: "Publish" },
     });
+
+    const editorial = workflowViews.find(
+      (view) => view.id === "workflow-editorial",
+    );
+    expect(editorial?.nodes.map((node) => node.id)).toEqual([
+      "node-refresh",
+      "node-capture",
+      "node-triage",
+      "node-schedule",
+      "node-context",
+      "node-draft",
+      "node-critique",
+      "node-sync",
+      "node-publish",
+    ]);
+    expect(
+      editorial?.edges.find((edge) => edge.id === "e-edit-10"),
+    ).toMatchObject({
+      source: "node-sync",
+      target: "node-publish",
+      label: "Human",
+    });
+    expect(
+      editorial?.edges.find((edge) => edge.id === "e-edit-5"),
+    ).toMatchObject({
+      source: "node-schedule",
+      target: "node-context",
+      label: "Skip",
+      sourceHandle: "out",
+      targetHandle: "in",
+    });
+    expect(
+      editorial?.edges.find((edge) => edge.id === "e-edit-8"),
+    ).toMatchObject({
+      source: "node-critique",
+      target: "node-draft",
+      label: "Revise",
+      sourceHandle: "out-bottom",
+      targetHandle: "in-bottom",
+    });
+
+    const edges = toEcosystemFlowEdges(editorial!);
+    expect(edges.find((edge) => edge.id === "e-edit-3")).toMatchObject({
+      sourceHandle: "out-top",
+      targetHandle: "in-bottom",
+    });
   });
 
   it("filters entity inventory kinds for the kind tab UI", () => {
@@ -128,7 +196,7 @@ describe("ecosystem canvas helpers", () => {
   it("keeps active selection when another canvas emits a clear", () => {
     const current = {
       viewId: "workflow-editorial",
-      nodeId: "node-inbox",
+      nodeId: "node-capture",
     };
     expect(nextEcosystemSelection(current, "workflow-renovate", null)).toEqual(
       current,
