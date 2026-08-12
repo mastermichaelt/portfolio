@@ -253,10 +253,10 @@ test.describe("portfolio happy path", () => {
       }),
     ).toBeVisible();
 
-    await selectNode("ecosystem-canvas-workflow-editorial", "Inbox");
+    await selectNode("ecosystem-canvas-workflow-editorial", "Capture");
     await expect(
       page.getByTestId("ecosystem-detail-panel").getByRole("heading", {
-        name: "Inbox",
+        name: "Capture",
       }),
     ).toBeVisible();
     await expect(

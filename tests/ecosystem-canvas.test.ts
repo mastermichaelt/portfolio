@@ -107,9 +107,10 @@ describe("ecosystem canvas helpers", () => {
       (view) => view.id === "workflow-editorial",
     );
     expect(editorial?.nodes.map((node) => node.id)).toEqual([
-      "node-inbox",
+      "node-capture",
       "node-triage",
       "node-schedule",
+      "node-refresh",
       "node-context",
       "node-draft",
       "node-critique",
@@ -117,11 +118,18 @@ describe("ecosystem canvas helpers", () => {
       "node-publish",
     ]);
     expect(
-      editorial?.edges.find((edge) => edge.id === "e-edit-8"),
+      editorial?.edges.find((edge) => edge.id === "e-edit-10"),
     ).toMatchObject({
       source: "node-sync",
       target: "node-publish",
       label: "Human",
+    });
+    expect(
+      editorial?.edges.find((edge) => edge.id === "e-edit-5"),
+    ).toMatchObject({
+      source: "node-schedule",
+      target: "node-context",
+      label: "Skip",
     });
   });
 
@@ -149,7 +157,7 @@ describe("ecosystem canvas helpers", () => {
   it("keeps active selection when another canvas emits a clear", () => {
     const current = {
       viewId: "workflow-editorial",
-      nodeId: "node-inbox",
+      nodeId: "node-capture",
     };
     expect(nextEcosystemSelection(current, "workflow-renovate", null)).toEqual(
       current,
