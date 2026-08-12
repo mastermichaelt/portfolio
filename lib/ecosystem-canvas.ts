@@ -100,6 +100,8 @@ export function toEcosystemFlowEdges(view: WorkflowView): Edge[] {
     source: edge.source,
     target: edge.target,
     label: edge.label,
+    sourceHandle: edge.sourceHandle,
+    targetHandle: edge.targetHandle,
     type: "smoothstep",
     deletable: false,
     markerEnd: {

@@ -107,10 +107,10 @@ describe("ecosystem canvas helpers", () => {
       (view) => view.id === "workflow-editorial",
     );
     expect(editorial?.nodes.map((node) => node.id)).toEqual([
+      "node-refresh",
       "node-capture",
       "node-triage",
       "node-schedule",
-      "node-refresh",
       "node-context",
       "node-draft",
       "node-critique",
@@ -130,6 +130,23 @@ describe("ecosystem canvas helpers", () => {
       source: "node-schedule",
       target: "node-context",
       label: "Skip",
+      sourceHandle: "out",
+      targetHandle: "in",
+    });
+    expect(
+      editorial?.edges.find((edge) => edge.id === "e-edit-8"),
+    ).toMatchObject({
+      source: "node-critique",
+      target: "node-draft",
+      label: "Revise",
+      sourceHandle: "out-bottom",
+      targetHandle: "in-bottom",
+    });
+
+    const edges = toEcosystemFlowEdges(editorial!);
+    expect(edges.find((edge) => edge.id === "e-edit-3")).toMatchObject({
+      sourceHandle: "out-top",
+      targetHandle: "in-bottom",
     });
   });
 
