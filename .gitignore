@@ -30,6 +30,7 @@
 
 # local agent run artifacts (screenshots, reports)
 .agent-runs/
+.tmp-hook-tests/
 
 # debug
 npm-debug.log*

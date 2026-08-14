@@ -18,7 +18,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "playwright:install": "playwright install chromium",
-    "prepare": "if [ -n \"$CI\" ]; then echo 'Skipping husky install in CI'; else husky; fi"
+    "prepare": "sh scripts/prepare-git-hooks.sh"
   },
   "dependencies": {
     "@xyflow/react": "^12.11.2",
