@@ -62,11 +62,12 @@ npm run playwright:install   # once: Chromium for e2e
 npm run test:e2e             # happy-path Playwright (build first)
 ```
 
-Pre-commit (Husky): `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Coverage is a CI gate, not a pre-commit step. Playwright e2e runs in CI after `verify`. The `e2e` job always reports a status (required-check safe) but **skips Playwright only when every changed path is on an explicit docs-only allowlist** (`docs/**`, `.cursor/**`, `README.md`, `AGENTS.md`, `CLAUDE.md`, and a few non-workflow `.github` metadata files); any other path (including unknown/future paths) runs e2e. `main` pushes always run e2e. Husky install is skipped when `CI` is set.
+Pre-commit (Husky): `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Coverage is a CI gate, not a pre-commit step. Playwright e2e runs in CI after `verify`. The `e2e` job always reports a status (required-check safe) but **skips Playwright only when every changed path is on an explicit docs-only allowlist** (`docs/**`, `.cursor/**`, `README.md`, `AGENTS.md`, `CLAUDE.md`, and a few non-workflow `.github` metadata files); any other path (including unknown/future paths) runs e2e. `main` pushes always run e2e.
 
 ### Non-obvious notes
 
 - **Node**: `.nvmrc` and `package.json` `engines` pin Node **24.x**. Use Node 24 for install, hooks, and CI scripts.
+- **Git hooks:** `scripts/prepare-git-hooks.sh` installs Husky locally and on Cursor Cloud; it skips Husky on Vercel, GitHub Actions, and other `$CI` environments (Cloud VMs may still set `CI=true`). `scripts/ensure-hooks.sh` chains Cloud's dispatcher to a per-user Husky bridge that resolves the current repo at hook time — also re-run from `.cursor/hooks/ensure-git-hooks.sh` (`sessionStart`), because `prepare` can finish before `~/.cursor/agent-hooks` exists. Marketplace Cloud-hooks Default On does not wire this repo by itself.
 - **No env vars** are required for the static MVP. Optional PostHog: `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` + `NEXT_PUBLIC_POSTHOG_HOST` (see `.env.example`). Unset token = no tracking in local/CI; set the same vars on Vercel for preview/production.
 - Analytics is **client-only** (`instrumentation-client.ts` + `ExternalLink` outbound events) and orthogonal to `PortfolioRepository`. Product Health dashboard: [Portfolio — Product Health](https://us.posthog.com/project/423501/dashboard/1976872).
 - Pages and UI should depend on `PortfolioRepository`, not on concrete storage adapters.
