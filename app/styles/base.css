@@ -13,10 +13,11 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* Systems-map signature: faint graph-paper grid under warm brand light. */
   background:
     radial-gradient(
       1200px 480px at 12% -10%,
-      color-mix(in oklch, var(--accent) 8%, transparent),
+      color-mix(in oklch, var(--accent) 9%, transparent),
       transparent 60%
     ),
     radial-gradient(
@@ -24,6 +25,9 @@ body {
       color-mix(in oklch, var(--fg) 4%, transparent),
       transparent 55%
     ),
+    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 100% 32px,
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 32px
+      100%,
     var(--bg);
   color: var(--fg);
   font-family: var(--font-body-stack);
