@@ -1,6 +1,6 @@
 /*
  * Signature layer — the "systems map" identity.
- * Values live in tokens.css (--grid-line, --edge, --edge-live, --signal).
+ * Values live in tokens.css (--edge-live, --signal).
  * Guidance and rationale in docs/design-system.md § Signature.
  */
 
@@ -18,8 +18,7 @@
 
 .sys-map {
   /* Override .ph-img grid centering: canvas fills, caption sits at the base.
-     No inner grid here — the page already carries the graph-paper texture, and
-     grid-on-grid at two scales reads as noise. */
+     The card stays a clean surface with a soft accent glow — no inner texture. */
   display: flex;
   flex-direction: column;
   place-items: initial;
