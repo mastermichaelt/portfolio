@@ -13,22 +13,21 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  /* Systems-map signature: faint graph-paper grid under warm brand light. */
+  /* Ambient brand light: soft sage glow falling across the top of the page,
+     dissolving into warm paper well above the content — no texture behind text. */
   background:
     radial-gradient(
-      1200px 480px at 12% -10%,
-      color-mix(in oklch, var(--accent) 9%, transparent),
-      transparent 60%
+      1200px 700px at 6% -18%,
+      color-mix(in oklch, var(--accent) 13%, transparent),
+      transparent 56%
     ),
     radial-gradient(
-      900px 420px at 92% 0%,
-      color-mix(in oklch, var(--fg) 4%, transparent),
-      transparent 55%
+      900px 560px at 100% -12%,
+      color-mix(in oklch, var(--accent) 6%, transparent),
+      transparent 52%
     ),
-    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 100% 32px,
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 32px
-      100%,
     var(--bg);
+  background-repeat: no-repeat;
   color: var(--fg);
   font-family: var(--font-body-stack);
   font-size: var(--fs-body);
