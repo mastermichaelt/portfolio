@@ -23,6 +23,7 @@ Seeded from the pre-production brand posture that landed in production tokens:
 3. **Soft depth** — hairline `--border`; `--shadow` / `--shadow-sm` only on interactive surfaces (cards, secondary buttons). Avoid stacked decorative shadows.
 4. **Progressive disclosure** — case studies and evidence packs favor scannable sections over dense dumps.
 5. **Predominantly 4px/8px rhythm** — spacing tokens are 4px/8px-derived (`--gap-xs` … `--gap-2xl`), not a strict multiples-of-8 scale (`--gap-sm` is 12px, `--gap-md` is 20px); radii stay modest (`--radius`, `--radius-lg`).
+6. **Systems-map identity** — the brand mark reads "· systems," so the site carries a light graph motif: a faint graph-paper page texture, the hero as a live rendering of the ecosystem's System overview spine, and small nodes where sections meet. Keep it a whisper behind content, never a foreground pattern. See [Signature — systems map](#signature--systems-map).
 
 ## Color token roles
 
@@ -37,6 +38,9 @@ Seeded from the pre-production brand posture that landed in production tokens:
 | `--accent-soft` | Soft accent wash (pills, diagram fills)                        |
 | `--fg-soft`     | Soft ink wash (hover washes, diagram fills)                    |
 | `--shadow*`     | Elevation on interactive surfaces only                         |
+| `--grid-line`   | Graph-paper page texture (signature layer only)                |
+| `--edge-live`   | The live spine edge the signal travels                         |
+| `--signal`      | The moving signal along the spine (aliases `--accent`)         |
 
 Derived hover sage uses `color-mix` with `--accent` in component CSS — keep that pattern rather than inventing a second accent token unless contrast needs force it.
 
@@ -100,6 +104,25 @@ Honest one-off spacing (distinct roles, single use) may stay as `style={{}}` or 
 
 Default: **no cards in the hero**. Cards exist for interaction or dense grouped content (contact, TOC), not for decorative boxing.
 
+## Signature — systems map
+
+The site's distinctive treatment lives in one layer, [`app/styles/signature.css`](../app/styles/signature.css), driven by the `--grid-line` / `--edge-live` / `--signal` tokens. It is deliberately quiet: the character comes from a coherent motif, not from turning up any single effect.
+
+| Element                 | Home / behavior                                                                                                           |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Graph-paper texture     | `base.css` `body` background — a 32px grid at `--grid-line` under the warm brand radials                                  |
+| Hero systems map        | `.sys-map` on `SystemsDiagram` — the ecosystem's System overview spine as node cards; the whole map links to `/ecosystem` |
+| Live spine + signal     | `.sys-edge-live` / `.sys-edge-flow` / `.sys-signal` — a signal flows projects → workflows → governance → evidence         |
+| Section connector nodes | `.section + .section::before` — a small node straddles the seam so the page reads as one graph                            |
+
+Guidelines:
+
+- **Mirror the ecosystem, don't invent.** The hero map's nodes and order are the `system-overview` view in [`content/ecosystem.ts`](../content/ecosystem.ts). If that spine changes, update `SystemsDiagram`'s `NODES` / `SPINE` and the signal `offset-path` together — the hero must not drift from the page it teases.
+- **Whisper, not wallpaper.** Grid and edges stay near their token alpha; they should read as texture, never as lines competing with text. Retune the token, not per-use overrides. The hero map carries no inner grid — grid-on-grid at two scales reads as noise.
+- **One live spine only.** A single path carries the moving signal, and that signal is the map's only accent — the nodes stay uniform (`--surface` + `--border`), matching the ecosystem's un-accented overview. Node centers step evenly so the spine reads as one straight diagonal.
+- **Opaque surfaces win.** Cards and the ecosystem canvas sit on `--surface`, which correctly hides the page grid behind them — do not re-paint the grid inside a surface.
+- **Motion is optional.** Every animation here (and the shared `.fade-in`) is disabled under `prefers-reduced-motion: reduce`, including hover/focus transforms on the hero map; the signal parks mid-spine so the static map still reads as intentional. Keep that guard when adding motion.
+
 ## Accessibility expectations
 
 - Preserve contrast between `--fg` / `--muted` and `--bg` / `--surface`; recheck after any token edit.
@@ -120,4 +143,5 @@ Semantic CSS classes under `app/styles/` are the primary styling API.
 - Base / reset: [`app/styles/base.css`](../app/styles/base.css)
 - Layout + type roles: [`app/styles/layout.css`](../app/styles/layout.css)
 - Chrome, surfaces, page patterns: [`app/styles/components.css`](../app/styles/components.css)
+- Signature — systems map: [`app/styles/signature.css`](../app/styles/signature.css)
 - Architecture context: [`docs/architecture/overview.md`](architecture/overview.md)

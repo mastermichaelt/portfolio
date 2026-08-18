@@ -523,6 +523,12 @@
   animation-delay: 0.16s;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    animation: none;
+  }
+}
+
 @media (max-width: 920px) {
   :root {
     --gutter: 20px;

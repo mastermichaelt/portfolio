@@ -9,6 +9,11 @@
 
   --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
   --fg-soft: color-mix(in oklch, var(--fg) 5%, transparent);
+
+  /* Signature layer — systems-map identity (see docs/design-system.md). */
+  --grid-line: color-mix(in oklch, var(--fg) 4%, transparent);
+  --edge-live: color-mix(in oklch, var(--accent) 65%, transparent);
+  --signal: var(--accent);
   --shadow:
     0 1px 0 color-mix(in oklch, var(--fg) 4%, transparent),
     0 12px 32px color-mix(in oklch, var(--fg) 6%, transparent);
