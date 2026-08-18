@@ -204,4 +204,17 @@
   .sys-map-dot {
     opacity: 0.85;
   }
+
+  /* Hover/focus affordances stay; the lift and slide do not. */
+  .sys-map,
+  .sys-map-explore {
+    transition: none;
+    transform: none;
+  }
+
+  .sys-map-link:hover .sys-map,
+  .sys-map-link:hover .sys-map-explore,
+  .sys-map-link:focus-visible .sys-map-explore {
+    transform: none;
+  }
 }

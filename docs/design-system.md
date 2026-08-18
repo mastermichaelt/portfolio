@@ -121,7 +121,7 @@ Guidelines:
 - **Whisper, not wallpaper.** Grid and edges stay near their token alpha; they should read as texture, never as lines competing with text. Retune the token, not per-use overrides. The hero map carries no inner grid — grid-on-grid at two scales reads as noise.
 - **One live spine only.** A single path carries the moving signal, and that signal is the map's only accent — the nodes stay uniform (`--surface` + `--border`), matching the ecosystem's un-accented overview. Node centers step evenly so the spine reads as one straight diagonal.
 - **Opaque surfaces win.** Cards and the ecosystem canvas sit on `--surface`, which correctly hides the page grid behind them — do not re-paint the grid inside a surface.
-- **Motion is optional.** Every animation here (and the shared `.fade-in`) is disabled under `prefers-reduced-motion: reduce`; the signal parks mid-spine so the static map still reads as intentional. Keep that guard when adding motion.
+- **Motion is optional.** Every animation here (and the shared `.fade-in`) is disabled under `prefers-reduced-motion: reduce`, including hover/focus transforms on the hero map; the signal parks mid-spine so the static map still reads as intentional. Keep that guard when adding motion.
 
 ## Accessibility expectations
 
