@@ -385,6 +385,8 @@ Authority: Open PR only — docs-only archive PR; do not merge.
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
 Deliverables: verify slice todos, add # Shipped note, archive the plan, mark plan-closure completed.
+
+Verification: confirm all prerequisite implementation PRs are merged and slice todos are completed before archiving.
 ```
 ````
 

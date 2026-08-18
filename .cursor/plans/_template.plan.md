@@ -149,6 +149,8 @@ Prerequisites: all implementation slices merged and already marked completed in 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
 Deliverables: verify slice todos, add # Shipped note, move plan to .cursor/plans/archive/YYYY-MM-DD-slug.plan.md, mark plan-closure completed, update agent prompt references to the archived path.
+
+Verification: confirm all prerequisite implementation PRs are merged and slice todos are completed before archiving.
 ```
 
 <!-- Merge-granted slice example (replace Open PR only blocks above when appropriate):
@@ -215,6 +217,8 @@ Authority: Plan-only PR — commit the plan artifact only; do not implement. Sto
 Topology: start from latest origin/main; branch represents only the plan artifact; PR base must be main.
 
 Deliverables: plan file under .cursor/plans/; mark plan-review completed in frontmatter in the same PR.
+
+Verification: plan satisfies repo planning standards; no implementation changes included.
 ```
 
 -->
@@ -250,11 +254,11 @@ Run the manual verification gate (manual-verification) only. Prerequisites: <pri
 
 Authority: Manual verification gate.
 
-Specified verification: run only <verification-name>.
+Topology: no tracked-file changes; no commit or PR.
 
-Allowed gitignored outputs: .agent-runs/<path-named-in-slice>/**
+Deliverables: run only <verification-name>; write only allowed gitignored outputs (.agent-runs/<path-named-in-slice>/**); report artifacts and verdict.
 
-Agent instruction: Do not commit or open a PR. Run only the specified manual verification, do not perform implementation work, write only allowed gitignored outputs if needed, report the verdict, and stop.
+Verification: named scenarios pass; required gitignored artifacts present if written; verdict reported.
 ```
 
 
