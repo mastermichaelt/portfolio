@@ -341,7 +341,7 @@ For multi-PR plans under `.cursor/plans/` (skip this section for lightweight dir
 4. Multi-PR `.plan.md` files should include a final closure todo, e.g. `plan-closure`: archive plan in a docs-only PR after the last implementation PR merges with date-prefixed archive naming.
 5. **Per-slice progress in frontmatter:** Each implementation PR must set **its** todo `status: completed` in the plan frontmatter in the **same PR** as the production code. Optionally append the merged PR number to `content`. Do not change other slices’ statuses, add `# Shipped`, or move/archive the plan.
 6. Implementation PR prompts should not include archival steps unless the PR is explicitly the closure PR.
-7. **Agent prompts (copy/paste):** Multi-PR `.plan.md` files should include an **Agent prompts (copy/paste for Cursor)** section with one ready-to-paste prompt per agent-executable frontmatter todo — including implementation slices, `plan-closure`, and any optional plan-review or Manual verification gate todos. Each prompt should:
+7. **Agent prompts (copy/paste):** Multi-PR `.plan.md` files should include an **Agent prompts (copy/paste for Cursor)** section with one ready-to-paste prompt per agent-executable frontmatter todo — including implementation slices, `plan-closure`, and any optional plan-review or Manual verification gate todos. Present each prompt as `### <todo-id>` (heading copied from the existing frontmatter `id`; do not rename ids to match prose) plus a fenced `text` block with labeled Authority / Topology / Deliverables / Verification lines. Do not use quoted one-line bullets. Every default frontmatter todo has exactly one corresponding `### <todo-id>` heading. The marketplace planning-methodology skill defines those structural prompt-layout invariants; this repo’s [`_template.plan.md`](../plans/_template.plan.md) may specialize wording but must not change the layout structure. Each prompt should:
 
 - Reference the plan file path (e.g. `@.cursor/plans/<slug>.plan.md`)
 - Name the slice (`Phase 2`, `PR3`, todo id, `plan-closure`, etc.)
@@ -354,16 +354,41 @@ For multi-PR plans under `.cursor/plans/` (skip this section for lightweight dir
 - For implementation slices: omit archival steps (see item 6). For `plan-closure`: include archival steps only
 - Prefer **fresh Agent-mode chats** per slice
 
-Example shape:
+Example shape (full skeleton: [`_template.plan.md`](../plans/_template.plan.md)):
 
-```markdown
-## Agent prompts (copy/paste for Cursor)
+````markdown
+### content-hardening
 
-- **Next step: Phase 2 — content-hardening**
-  - "Implement Phase 2 (content-hardening) from `@.cursor/plans/<slug>.plan.md` only. … **Agent instruction:** Do not merge. Stop after opening the PR. Mark `content-hardening` completed in plan frontmatter. Do not start Phase 3. Do not archive the plan."
-- **Plan closure — plan-closure**
-  - "Execute plan-closure from `@.cursor/plans/<slug>.plan.md` only. … **Agent instruction:** Do not merge. Stop after opening the PR."
+```text
+@.cursor/plans/<slug>.plan.md
+
+Implement slice content-hardening only. Do not start later slices. Do not archive the plan.
+
+Authority: Open PR only — implement and open the PR; do not merge.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: …. Mark content-hardening completed in plan frontmatter in this PR.
+
+Verification: ….
 ```
+
+### plan-closure
+
+```text
+@.cursor/plans/<slug>.plan.md
+
+Execute only plan-closure.
+
+Authority: Open PR only — docs-only archive PR; do not merge.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: verify slice todos, add # Shipped note, archive the plan, mark plan-closure completed.
+
+Verification: confirm all prerequisite implementation PRs are merged and slice todos are completed before archiving.
+```
+````
 
 8. **Recommended execution authority:** Every executable `.plan.md` should include authority recommendations per [Recommended execution authority](#recommended-execution-authority):
 

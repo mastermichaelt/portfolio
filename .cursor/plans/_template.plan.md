@@ -101,14 +101,57 @@ Do not archive inside implementation PRs. Implementation PRs mark their own slic
 
 ## Agent prompts (copy/paste for Cursor)
 
-Use a **fresh Agent-mode chat** per slice.
+Use a **fresh Agent-mode chat** per slice. Each default frontmatter todo has exactly one `### <todo-id>` heading copied from that todo’s `id` — do not rename ids to match prose.
 
-- **Slice 1 — slice-1**
-  - "Implement slice 1 (slice-1) from `@.cursor/plans/<slug>.plan.md` only. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. … **Agent instruction:** Do not merge. Stop after opening the PR. Mark `slice-1` completed in plan frontmatter. Do not start slice 2 or later slices. Do not archive the plan."
-- **Slice 2 — slice-2**
-  - "Implement slice 2 (slice-2) from `@.cursor/plans/<slug>.plan.md` only. Prerequisite: slice 1 merged. Start this slice from the latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. … **Agent instruction:** Do not merge. Stop after opening the PR. Mark `slice-2` completed in plan frontmatter. Do not start plan closure. Do not archive the plan."
-- **Plan closure — plan-closure**
-  - "Execute plan-closure from `@.cursor/plans/<slug>.plan.md` only. Prerequisites: all implementation slices merged and already marked completed in frontmatter. Start this slice from the latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/YYYY-MM-DD-slug.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
+### slice-1
+
+```text
+@.cursor/plans/<slug>.plan.md
+
+Implement slice slice-1 only. Do not start slice-2 or later slices. Do not archive the plan.
+
+Authority: Open PR only — implement and open the PR; do not merge.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: …. Mark slice-1 completed in plan frontmatter in this PR.
+
+Verification: ….
+```
+
+### slice-2
+
+```text
+@.cursor/plans/<slug>.plan.md
+
+Implement slice slice-2 only. Prerequisite: slice-1 merged. Do not start plan-closure. Do not archive the plan.
+
+Authority: Open PR only — implement and open the PR; do not merge.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: …. Mark slice-2 completed in plan frontmatter in this PR.
+
+Verification: ….
+```
+
+### plan-closure
+
+```text
+@.cursor/plans/<slug>.plan.md
+
+Execute only plan-closure.
+
+Authority: Open PR only — docs-only archive PR; do not merge.
+
+Prerequisites: all implementation slices merged and already marked completed in frontmatter.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: verify slice todos, add # Shipped note, move plan to .cursor/plans/archive/YYYY-MM-DD-slug.plan.md, mark plan-closure completed, update agent prompt references to the archived path.
+
+Verification: confirm all prerequisite implementation PRs are merged and slice todos are completed before archiving.
+```
 
 <!-- Merge-granted slice example (replace Open PR only blocks above when appropriate):
 
@@ -124,7 +167,22 @@ Use a **fresh Agent-mode chat** per slice.
 **Preconditions:** …
 **Verify:** …
 
-Agent prompt: "… **Agent instruction:** You may merge after documented verification passes. …"
+Agent prompt (uncomment as `### <slice-id>` — do not reuse a default todo id as a live heading):
+
+```text
+@.cursor/plans/<slug>.plan.md
+
+Implement slice <slice-id> only.
+
+Authority: Merge granted — You may merge after documented verification passes.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: …. Mark <slice-id> completed in plan frontmatter in this PR.
+
+Verification: ….
+```
+
 -->
 
 <!-- Optional plan-review pre-slice (before implementation slices):
@@ -147,7 +205,22 @@ Add to frontmatter todos, authority table, and agent prompts when the plan shoul
 
 **Agent instruction:** Do not implement. Stop after opening the plan-only PR.
 
-Agent prompt: "Execute plan-review from `@.cursor/plans/<slug>.plan.md` only. Redraft or commit the plan artifact per repo planning standards. **Agent instruction:** Do not implement. Stop after opening the plan-only PR. Mark `plan-review` completed in plan frontmatter. Do not start implementation slices."
+Agent prompt (uncomment as `### plan-review`):
+
+```text
+@.cursor/plans/<slug>.plan.md
+
+Execute only plan-review. Do not start implementation slices.
+
+Authority: Plan-only PR — commit the plan artifact only; do not implement. Stop after opening the plan-only PR.
+
+Topology: start from latest origin/main; branch represents only the plan artifact; PR base must be main.
+
+Deliverables: plan file under .cursor/plans/; mark plan-review completed in frontmatter in the same PR.
+
+Verification: plan satisfies repo planning standards; no implementation changes included.
+```
+
 -->
 
 <!-- Optional Manual verification gate slice (orthogonal non-PR mode — before plan-closure):
@@ -172,7 +245,22 @@ Add to frontmatter todos, authority table, and agent prompts when a plan require
 
 **Allowed gitignored outputs:** `.agent-runs/<path-named-in-slice>/**` (name explicit paths in the slice)
 
-Agent prompt: "Run the manual verification gate (`manual-verification`) from `@.cursor/plans/<slug>.plan.md` only. Prerequisites: <prior-slices> merged and marked completed. Run only <verification-name>. Do not edit tracked files, do not commit, do not open a PR, do not start plan-closure. **Agent instruction:** Do not commit or open a PR. Run only the specified manual verification, do not perform implementation work, write only allowed gitignored outputs if needed, report the verdict, and stop. Report artifact paths and verdict."
+Agent prompt (uncomment as `### manual-verification`):
+
+```text
+@.cursor/plans/<slug>.plan.md
+
+Run the manual verification gate (manual-verification) only. Prerequisites: <prior-slices> merged and marked completed. Do not start plan-closure.
+
+Authority: Manual verification gate.
+
+Topology: no tracked-file changes; no commit or PR.
+
+Deliverables: run only <verification-name>; write only allowed gitignored outputs (.agent-runs/<path-named-in-slice>/**); report artifacts and verdict.
+
+Verification: named scenarios pass; required gitignored artifacts present if written; verdict reported.
+```
+
 
 Plan-closure prerequisite: verify the manual verification gate completed (verification run, required gitignored artifacts present, verdict reported) before archiving.
 -->
