@@ -32,6 +32,9 @@
 .agent-runs/
 .tmp-hook-tests/
 
+# claude code: share launch.json, keep per-user settings local
+.claude/settings.local.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*
