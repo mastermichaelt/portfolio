@@ -3,8 +3,14 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": ".cursor/hooks/ensure-git-hooks.sh",
+        "command": "sh .cursor/hooks/ensure-git-hooks.sh",
         "timeout": 15
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "sh .cursor/hooks/format.sh \"$CURSOR_FILE_PATH\"",
+        "timeout": 30
       }
     ]
   }

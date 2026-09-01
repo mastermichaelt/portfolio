@@ -18,7 +18,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "playwright:install": "playwright install chromium",
-    "prepare": "sh scripts/prepare-git-hooks.sh"
+    "prepare": "sh scripts/prepare-git-hooks.sh",
+    "verify:git-hooks": "sh scripts/verify-git-hooks.sh"
   },
   "dependencies": {
     "@xyflow/react": "^12.11.2",

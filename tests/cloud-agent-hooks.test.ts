@@ -16,6 +16,8 @@ const repoRoot = resolve(process.cwd());
 const ensureGitHooksHook = join(repoRoot, ".cursor/hooks/ensure-git-hooks.sh");
 const ensureHooks = join(repoRoot, "scripts/ensure-hooks.sh");
 const prepareGitHooks = join(repoRoot, "scripts/prepare-git-hooks.sh");
+const verifyGitHooks = join(repoRoot, "scripts/verify-git-hooks.sh");
+const huskyShimRepair = join(repoRoot, "scripts/husky-shim-repair.sh");
 
 function expectExecutable(path: string): void {
   const mode = statSync(path).mode;
@@ -44,11 +46,14 @@ afterEach(() => {
 function envWithoutGit(
   overrides: Record<string, string | undefined>,
 ): NodeJS.ProcessEnv {
-  const env: NodeJS.ProcessEnv = { ...process.env, ...overrides };
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    CURSOR_AGENT_SOCKET: "/nonexistent/cursor-agent.sock",
+    ...overrides,
+  };
   delete env.GIT_DIR;
   delete env.GIT_WORK_TREE;
   delete env.GIT_COMMON_DIR;
-  delete env.CURSOR_AGENT_SOCKET;
   return env;
 }
 
@@ -57,6 +62,8 @@ describe("Cursor command hooks", () => {
     expectExecutable(ensureGitHooksHook);
     expectExecutable(ensureHooks);
     expectExecutable(prepareGitHooks);
+    expectExecutable(verifyGitHooks);
+    expectExecutable(huskyShimRepair);
   });
 });
 
@@ -86,7 +93,7 @@ describe("sessionStart ensure-git-hooks hook", () => {
     const result = spawnSync("sh", [ensureGitHooksHook], {
       cwd: work,
       encoding: "utf8",
-      env: { ...process.env, HOME: home },
+      env: envWithoutGit({ HOME: home }),
     });
     expect(result.status).toBe(0);
 
@@ -110,10 +117,20 @@ describe("sessionStart ensure-git-hooks hook", () => {
 describe("ensure-hooks.sh", () => {
   it("no-ops when Cursor agent-hooks are absent", () => {
     const home = makeTempDir("home-");
-    const result = spawnSync("sh", [ensureHooks], {
-      cwd: repoRoot,
+    const work = makeTempDir("repo-");
+    mkdirSync(join(work, ".husky"), { recursive: true });
+    writeFileSync(join(work, ".husky", "pre-commit"), "#!/bin/sh\n");
+
+    const gitInit = spawnSync("git", ["init"], { cwd: work, encoding: "utf8" });
+    expect(gitInit.status).toBe(0);
+    spawnSync("git", ["-C", work, "config", "core.hooksPath", ".husky/_"], {
       encoding: "utf8",
-      env: { ...process.env, HOME: home },
+    });
+
+    const result = spawnSync("sh", [ensureHooks], {
+      cwd: work,
+      encoding: "utf8",
+      env: envWithoutGit({ HOME: home }),
     });
     expect(result.status).toBe(0);
     expect(result.stdout).toBe("");
@@ -140,7 +157,7 @@ describe("ensure-hooks.sh", () => {
     const result = spawnSync("sh", [ensureHooks], {
       cwd: work,
       encoding: "utf8",
-      env: { ...process.env, HOME: home },
+      env: envWithoutGit({ HOME: home }),
     });
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("Restored core.hooksPath");
