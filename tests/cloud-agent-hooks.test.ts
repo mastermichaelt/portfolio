@@ -18,6 +18,16 @@ const ensureHooks = join(repoRoot, "scripts/ensure-hooks.sh");
 const prepareGitHooks = join(repoRoot, "scripts/prepare-git-hooks.sh");
 const verifyGitHooks = join(repoRoot, "scripts/verify-git-hooks.sh");
 const huskyShimRepair = join(repoRoot, "scripts/husky-shim-repair.sh");
+const cloudAgentInstall = join(repoRoot, "scripts/cloud-agent-install.sh");
+const cloudAgentStart = join(repoRoot, "scripts/cloud-agent-start.sh");
+const cloudAgentSessionPath = join(
+  repoRoot,
+  "scripts/cloud-agent-session-path.sh",
+);
+const cloudAgentBootstrapInstall = join(
+  repoRoot,
+  "scripts/cloud-agent-bootstrap-install.sh",
+);
 
 function expectExecutable(path: string): void {
   const mode = statSync(path).mode;
@@ -64,6 +74,53 @@ describe("Cursor command hooks", () => {
     expectExecutable(prepareGitHooks);
     expectExecutable(verifyGitHooks);
     expectExecutable(huskyShimRepair);
+    expectExecutable(cloudAgentInstall);
+    expectExecutable(cloudAgentStart);
+    expectExecutable(cloudAgentSessionPath);
+    expectExecutable(cloudAgentBootstrapInstall);
+  });
+});
+
+describe("Cloud Agent environment lifecycle", () => {
+  it("commits install/start that pin Node then npm ci", () => {
+    const env = JSON.parse(
+      readFileSync(join(repoRoot, ".cursor/environment.json"), "utf8"),
+    ) as { install?: string; start?: string };
+    expect(env.install).toBe("sh scripts/cloud-agent-bootstrap-install.sh");
+    expect(env.start).toBe("sh scripts/cloud-agent-start.sh");
+    expect(readFileSync(cloudAgentBootstrapInstall, "utf8")).toContain(
+      'CLOUD_AGENT_INSTALL_CMD="npm ci"',
+    );
+  });
+
+  it("fails clearly when the portable install has no dependency command", () => {
+    const work = makeTempDir("cloud-install-");
+    mkdirSync(join(work, "scripts"), { recursive: true });
+    writeFileSync(
+      join(work, "scripts", "cloud-agent-install.sh"),
+      readFileSync(cloudAgentInstall),
+    );
+    writeFileSync(
+      join(work, "scripts", "cloud-agent-session-path.sh"),
+      readFileSync(cloudAgentSessionPath),
+    );
+    chmodSync(join(work, "scripts", "cloud-agent-install.sh"), 0o755);
+    chmodSync(join(work, "scripts", "cloud-agent-session-path.sh"), 0o755);
+
+    const result = spawnSync(
+      "sh",
+      [join(work, "scripts", "cloud-agent-install.sh")],
+      {
+        cwd: work,
+        encoding: "utf8",
+        env: envWithoutGit({
+          HOME: work,
+          CLOUD_AGENT_INSTALL_CMD: "",
+        }),
+      },
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("CLOUD_AGENT_INSTALL_CMD");
   });
 });
 

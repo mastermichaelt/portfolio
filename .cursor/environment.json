@@ -1,0 +1,5 @@
+{
+  "name": "portfolio",
+  "install": "sh scripts/cloud-agent-bootstrap-install.sh",
+  "start": "sh scripts/cloud-agent-start.sh"
+}
