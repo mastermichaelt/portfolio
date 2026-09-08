@@ -93,6 +93,12 @@ describe("Cloud Agent environment lifecycle", () => {
     );
   });
 
+  it("blocks Cloud start until agent-hooks bridge is live (marketplace 1.10.2)", () => {
+    const startScript = readFileSync(cloudAgentStart, "utf8");
+    expect(startScript).toContain("ENSURE_HOOKS_MODE=wait");
+    expect(startScript).toContain("ENSURE_HOOKS_START_WAIT_SECS:-120");
+  });
+
   it("fails clearly when the portable install has no dependency command", () => {
     const work = makeTempDir("cloud-install-");
     mkdirSync(join(work, "scripts"), { recursive: true });
@@ -125,6 +131,12 @@ describe("Cloud Agent environment lifecycle", () => {
 });
 
 describe("sessionStart ensure-git-hooks hook", () => {
+  it("uses wait mode on Cloud when rechaining agent-hooks", () => {
+    const hookScript = readFileSync(ensureGitHooksHook, "utf8");
+    expect(hookScript).toContain("ENSURE_HOOKS_MODE=wait");
+    expect(hookScript).toContain("ENSURE_HOOKS_SESSION_WAIT_SECS:-30");
+  });
+
   it("exits 0 and chains when agent-hooks appear after prepare", () => {
     const home = makeTempDir("home-");
     const work = makeTempDir("repo-");
@@ -172,6 +184,40 @@ describe("sessionStart ensure-git-hooks hook", () => {
 });
 
 describe("ensure-hooks.sh", () => {
+  it("supports ENSURE_HOOKS_MODE (best-effort, wait, require)", () => {
+    const script = readFileSync(ensureHooks, "utf8");
+    expect(script).toContain("ENSURE_HOOKS_MODE");
+    expect(script).toContain("best-effort");
+    expect(script).toContain("wait");
+    expect(script).toContain("require");
+  });
+
+  it("require mode fails closed on Cloud when agent-hooks is absent", () => {
+    const home = makeTempDir("home-");
+    const work = makeTempDir("repo-");
+    // Cloud VM: socket or agent-hooks dir present, but no dispatcher yet.
+    mkdirSync(join(home, ".cursor", "agent-hooks"), { recursive: true });
+    mkdirSync(join(work, ".husky"), { recursive: true });
+    writeFileSync(join(work, ".husky", "pre-commit"), "#!/bin/sh\n");
+
+    const gitInit = spawnSync("git", ["init"], { cwd: work, encoding: "utf8" });
+    expect(gitInit.status).toBe(0);
+    spawnSync("git", ["-C", work, "config", "core.hooksPath", ".husky/_"], {
+      encoding: "utf8",
+    });
+
+    const result = spawnSync("sh", [ensureHooks], {
+      cwd: work,
+      encoding: "utf8",
+      env: envWithoutGit({
+        HOME: home,
+        ENSURE_HOOKS_MODE: "require",
+      }),
+    });
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("agent-hooks");
+  });
+
   it("no-ops when Cursor agent-hooks are absent", () => {
     const home = makeTempDir("home-");
     const work = makeTempDir("repo-");
