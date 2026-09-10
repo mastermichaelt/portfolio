@@ -52,14 +52,7 @@ Running `npx impeccable@4.1.0 install --providers=cursor --scope=project -y` fro
 
 **Engine binary model (do not commit):** The launcher lives at `scripts/impeccable`. Without a sibling binary it downloads the pinned engine into `~/.impeccable/bin/...` on first run. Upstream Impeccable gitignores `**/skills/impeccable/scripts/bin/`.
 
-Expected hook merge:
-
-```json
-"preToolUse": [{
-  "command": "[ ! -f \".cursor/skills/impeccable/scripts/impeccable\" ] || \".cursor/skills/impeccable/scripts/impeccable\" hook-before-edit",
-  "timeout": 5
-}]
-```
+**Hook verification (installer is source of truth):** After install, verify `.cursor/hooks.json` still has `sessionStart` and `afterFileEdit` unchanged and adds a `preToolUse` entry **written by the installer**. Do **not** rewrite `preToolUse` to match documentation, an older plan snippet, or a different command shape — accept the installer's command verbatim. Command format may vary by Impeccable version (e.g. shell launcher vs `hook-before-edit.mjs`).
 
 Impeccable reads root-level `PRODUCT.md` (product truth) and `DESIGN.md` (visual/interaction contract).
 
@@ -104,7 +97,7 @@ Document both Layer 2a entries under one heading in AGENTS.md.
    - Do **not** pass `--no-hooks`.
    - Commit skill payload and `.cursor/agents/`, **excluding** `scripts/bin/**`.
    - Add `.cursor/skills/impeccable/scripts/bin/` to `.gitignore`.
-   - Verify hooks merge: `sessionStart`, `afterFileEdit`, and new `preToolUse` all present.
+   - Verify hooks merge: `sessionStart` and `afterFileEdit` preserved; installer-added `preToolUse` present unchanged.
    - Post-install smoke: verify launcher resolves/downloads pinned engine without committed `scripts/bin/`, using an officially supported non-mutating command from installed v4.1.0 CLI/help output.
 
 3. **`.gitignore`:** Add engine binary path plus Impeccable ephemeral block (`# impeccable-ignore-start` / `# impeccable-ignore-end` from upstream docs).
@@ -131,7 +124,8 @@ Document both Layer 2a entries under one heading in AGENTS.md.
 - `PRODUCT.md` and `DESIGN.md` seeded (semantic; no token-value drift)
 - AGENTS.md documents operator setup and Layer 2a hooks
 - No production route/component/CSS changes
-- CI `verify` passes; e2e skipped (`.cursor/**` + root markdown paths)
+- CI `verify` passes
+- **Implementation PR CI:** e2e **runs** — `.gitignore`, root `PRODUCT.md`, and `DESIGN.md` are not on the docs-only allowlist in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) (only `.cursor/*`, `docs/*`, `README.md`, `AGENTS.md`, etc.). Plan-only PRs that touch `.cursor/**` only may skip e2e.
 
 ## Architecture
 
@@ -180,7 +174,7 @@ flowchart LR
 | Engine binary accidentally committed  | Do not commit `scripts/bin/**`; launcher downloads to `~/.impeccable/bin/` |
 | Cursor Stable lacks Agent Skills      | Document Nightly + Agent Skills in PR + AGENTS.md                          |
 | `DESIGN.md` drifts from canonical CSS | Semantic roles; reference `tokens.css` / `docs/design-system.md`           |
-| Hook config overwritten               | Verify all three hook types remain                                         |
+| Hook config overwritten               | Verify all three hook types remain; accept installer `preToolUse` verbatim |
 | Noisy skill upgrades                  | Review diffs on `npx impeccable update`                                    |
 | Product/design overlap                | PRODUCT = audience/purpose; DESIGN = visual contract                       |
 
