@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: baseline-audit
     content: "PR: Write docs/redesign-baseline.md (7-section audit + provenance); no production content changes"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after baseline-audit merges: add # Shipped note, move plan to .cursor/plans/archive/2026-09-10-portfolio-redesign-baseline.plan.md"
     status: pending
