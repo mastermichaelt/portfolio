@@ -95,6 +95,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                       key={link.id}
                       className="evidence-item"
                       href={link.url}
+                      aria-label={link.label}
                     >
                       <div>
                         <strong>{link.label}</strong>
@@ -115,6 +116,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                       key={item.id}
                       className="evidence-item"
                       href={item.url}
+                      aria-label={item.label}
                     >
                       <div>
                         <strong>{item.label}</strong>
