@@ -69,12 +69,12 @@ Pre-commit (Husky): `lint-staged` (Prettier on staged files), then full `lint`, 
 
 Do not blur hook infrastructure with formatting ergonomics or CI. Each layer answers a different question:
 
-| Layer                             | Question                                               | Mechanism                                                                                                                                                                      |
-| --------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **1 — Hook availability**         | Are Git hooks wired and **runnable in this checkout**? | `scripts/prepare-git-hooks.sh`, `scripts/verify-git-hooks.sh`, `scripts/ensure-hooks.sh`, `scripts/husky-shim-repair.sh`, `.cursor/hooks/ensure-git-hooks.sh` (`sessionStart`) |
-| **2a — Agent feedback**           | Can agent edits stay formatted while working?          | Optional `.cursor/hooks/format.sh` + `afterFileEdit` in `.cursor/hooks.json` — **agent ergonomics only**, not Cloud Husky                                                      |
-| **2b — Commit correctness**       | What must pass before a commit lands locally?          | `.husky/pre-commit` (`lint-staged`, `lint`, `typecheck`, `format:check`)                                                                                                       |
-| **3 — Authoritative enforcement** | What is the backstop when local/agent machinery fails? | CI (`format:check`, lint, typecheck, coverage, build)                                                                                                                          |
+| Layer                             | Question                                                   | Mechanism                                                                                                                                                                        |
+| --------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1 — Hook availability**         | Are Git hooks wired and **runnable in this checkout**?     | `scripts/prepare-git-hooks.sh`, `scripts/verify-git-hooks.sh`, `scripts/ensure-hooks.sh`, `scripts/husky-shim-repair.sh`, `.cursor/hooks/ensure-git-hooks.sh` (`sessionStart`)   |
+| **2a — Agent feedback**           | Can agent edits stay formatted and on-brand while working? | Optional `.cursor/hooks/format.sh` + `afterFileEdit` (Prettier) and Impeccable `preToolUse` design detector in `.cursor/hooks.json` — **agent ergonomics only**, not Cloud Husky |
+| **2b — Commit correctness**       | What must pass before a commit lands locally?              | `.husky/pre-commit` (`lint-staged`, `lint`, `typecheck`, `format:check`)                                                                                                         |
+| **3 — Authoritative enforcement** | What is the backstop when local/agent machinery fails?     | CI (`format:check`, lint, typecheck, coverage, build)                                                                                                                            |
 
 **Core invariant (Layer 1):** An agent must not assume Git hooks are active merely because `core.hooksPath` is configured. Configured path ≠ runnable shims — verification must check **actual executable hook state** in the current checkout/worktree.
 
@@ -83,11 +83,32 @@ Do not blur hook infrastructure with formatting ergonomics or CI. Each layer ans
 - **Worktrees:** After `git worktree add`, run `npm run prepare` (or `npm run verify:git-hooks` after prepare) in the new worktree before committing — worktrees inherit `core.hooksPath=.husky/_` but not executable `.husky/_` shims until prepare runs there.
 - **Cloud lifecycle:** `.cursor/environment.json` `install` is `sh scripts/cloud-agent-bootstrap-install.sh` (Node pin + `npm ci`, which runs `prepare`); `start` is `sh scripts/cloud-agent-start.sh` (session PATH + `ensure-hooks`). Marketplace / plugin install does not wire this by itself. After merging lifecycle changes, trigger and promote a **new environment Build** so Cloud does not reuse the old snapshot.
 - **Cloud bridge:** `scripts/ensure-hooks.sh` chains Cursor Cloud's dispatcher to a per-user Husky bridge that resolves the current repo at hook time — also re-run from `.cursor/hooks/ensure-git-hooks.sh` (`sessionStart`), because `prepare` can finish before `~/.cursor/agent-hooks` exists.
-- **Layer 2a is not Cloud Husky:** `afterFileEdit` formatting is a redundant ergonomics path for agent sessions; it does **not** replace Husky, pre-commit lint/typecheck/format:check, or CI.
+- **Layer 2a is not Cloud Husky:** `afterFileEdit` formatting and Impeccable `preToolUse` design feedback are redundant ergonomics paths for agent sessions; they do **not** replace Husky, pre-commit lint/typecheck/format:check, or CI.
 - **No env vars** are required for the static MVP. Optional PostHog: `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` + `NEXT_PUBLIC_POSTHOG_HOST` (see `.env.example`). Unset token = no tracking in local/CI; set the same vars on Vercel for preview/production.
 - Analytics is **client-only** (`instrumentation-client.ts` + `ExternalLink` outbound events) and orthogonal to `PortfolioRepository`. Product Health dashboard: [Portfolio — Product Health](https://us.posthog.com/project/423501/dashboard/1976872).
 - Pages and UI should depend on `PortfolioRepository`, not on concrete storage adapters.
 - Staged multi-PR plans live under `.cursor/plans/`. Product roadmap stubs under `docs/plans/` are not execution plans unless promoted.
+
+### Impeccable (design review)
+
+Impeccable adds `/impeccable` for design audit, critique, polish, and related UI refinement. Context files: root [`PRODUCT.md`](PRODUCT.md) (product truth) and [`DESIGN.md`](DESIGN.md) (visual contract referencing [`docs/design-system.md`](docs/design-system.md) and [`app/styles/tokens.css`](app/styles/tokens.css)).
+
+**Prerequisites (Cursor):**
+
+- **Cursor Nightly** (or a build with Agent Skills enabled) — `/impeccable` is a project skill under `.cursor/skills/impeccable/`
+- Enable **Agent Skills** in Cursor settings
+
+**Commands (no `package.json` dependency):**
+
+```bash
+.cursor/skills/impeccable/scripts/impeccable --help    # launcher + engine
+.cursor/skills/impeccable/scripts/impeccable hooks status
+npx impeccable@4.1.0 update                              # refresh skill payload (review diff)
+```
+
+**Update path:** Run `npx impeccable@4.1.0 update` from repo root after reviewing upstream release notes; re-verify `.cursor/hooks.json` merge (preserve `sessionStart`, `afterFileEdit`, and installer `preToolUse` verbatim).
+
+**Engine binary:** `.cursor/skills/impeccable/scripts/bin/` is gitignored. The launcher at `.cursor/skills/impeccable/scripts/impeccable` uses a sibling binary when present or downloads the pinned engine to `~/.impeccable/bin/` on first run.
 
 ## Pull request workflow
 

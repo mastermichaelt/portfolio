@@ -12,6 +12,12 @@
         "command": "sh .cursor/hooks/format.sh \"$CURSOR_FILE_PATH\"",
         "timeout": 30
       }
+    ],
+    "preToolUse": [
+      {
+        "command": "[ ! -f \".cursor/skills/impeccable/scripts/impeccable\" ] || \".cursor/skills/impeccable/scripts/impeccable\" hook-before-edit",
+        "timeout": 5
+      }
     ]
   }
 }

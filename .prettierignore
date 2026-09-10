@@ -4,3 +4,4 @@ out
 build
 package-lock.json
 .tmp-hook-tests/
+.cursor/skills/impeccable/

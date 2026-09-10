@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "coverage/**",
+    // Upstream Impeccable skill payload (vendor; not project source)
+    ".cursor/skills/impeccable/**",
   ]),
 ]);
 
