@@ -7,9 +7,24 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after impeccable-setup merges: add # Shipped note, move plan to .cursor/plans/archive/2026-09-10-impeccable-setup.plan.md"
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-09-10.**
+
+| Slice            | Delivered                                                                                                                                |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| impeccable-setup | [#38](https://github.com/mastermichaelt/portfolio/pull/38) — Impeccable skill, hooks merge, `PRODUCT.md` / `DESIGN.md`, `AGENTS.md` docs |
+| plan-closure     | This PR — archive to `.cursor/plans/archive/2026-09-10-impeccable-setup.plan.md`                                                         |
+
+Plan artifact (Plan-only PR): [#37](https://github.com/mastermichaelt/portfolio/pull/37).
+
+**Deferred (out of scope):** First design exercise (`/impeccable audit home`, polish, etc.); `npx impeccable detect` CI gate; interactive `/impeccable init`; `package.json` dependency on `impeccable`; production UI changes from Impeccable workflows.
+
+This plan is archived. The work described here has shipped; the remaining content is preserved for historical context.
 
 # Impeccable setup
 
@@ -20,7 +35,7 @@ isProject: false
 | impeccable-setup | Open PR only          | Do not merge. Stop after opening the PR. |
 | plan-closure     | Open PR only          | Do not merge. Stop after opening the PR. |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ## Repository topology (default)
 
@@ -36,8 +51,8 @@ Give Cursor agents a first-class design review/refinement path via `/impeccable`
 
 ## Current state
 
-- Portfolio styling is documented in [docs/design-system.md](../../docs/design-system.md) with normative token **values** in [app/styles/tokens.css](../../app/styles/tokens.css).
-- Cursor hooks today are Layer 1 + Layer 2a in [.cursor/hooks.json](../hooks.json) (`sessionStart` → git-hooks, `afterFileEdit` → Prettier).
+- Portfolio styling is documented in [docs/design-system.md](../../../docs/design-system.md) with normative token **values** in [app/styles/tokens.css](../../../app/styles/tokens.css).
+- Cursor hooks today are Layer 1 + Layer 2a in [.cursor/hooks.json](../../hooks.json) (`sessionStart` → git-hooks, `afterFileEdit` → Prettier).
 - No Impeccable files are present yet.
 
 ## What Impeccable adds
@@ -125,7 +140,7 @@ Document both Layer 2a entries under one heading in AGENTS.md.
 - AGENTS.md documents operator setup and Layer 2a hooks
 - No production route/component/CSS changes
 - CI `verify` passes
-- **Implementation PR CI:** e2e **runs** — `.gitignore`, root `PRODUCT.md`, and `DESIGN.md` are not on the docs-only allowlist in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) (only `.cursor/*`, `docs/*`, `README.md`, `AGENTS.md`, etc.). Plan-only PRs that touch `.cursor/**` only may skip e2e.
+- **Implementation PR CI:** e2e **runs** — `.gitignore`, root `PRODUCT.md`, and `DESIGN.md` are not on the docs-only allowlist in [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml) (only `.cursor/*`, `docs/*`, `README.md`, `AGENTS.md`, etc.). Plan-only PRs that touch `.cursor/**` only may skip e2e.
 
 ## Architecture
 
@@ -193,40 +208,17 @@ After `impeccable-setup` merges:
 3. Move to `.cursor/plans/archive/2026-09-10-impeccable-setup.plan.md`
 4. Mark `plan-closure` `completed`; update agent prompt paths
 
+Do not archive inside implementation PRs. Implementation PRs mark their own slice `completed` in frontmatter in the same PR as the code.
+
 ---
 
 ## Agent prompts (copy/paste for Cursor)
 
-### impeccable-setup
+Use a **fresh Agent-mode chat** per slice. This plan is archived — prompts are preserved for historical context only.
 
-```text
-@.cursor/plans/2026-09-10-impeccable-setup.plan.md
-
-Implement slice impeccable-setup only. Do not start plan-closure. Do not archive the plan.
-
-Authority: Open PR only — implement and open the PR; do not merge.
-
-Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
-
-Deliverables: Impeccable Cursor install (exclude scripts/bin/**), .gitignore updates, PRODUCT.md, DESIGN.md, AGENTS.md subsection. Mark impeccable-setup completed in plan frontmatter in this PR.
-
-Verification: npm run lint, typecheck, format:check; hooks merge verified; no scripts/bin/** committed; no production UI changes; no /impeccable design exercise in this PR.
-```
-
-### plan-closure
-
-```text
-@.cursor/plans/2026-09-10-impeccable-setup.plan.md
-
-Execute only plan-closure.
-
-Authority: Open PR only — docs-only archive PR; do not merge.
-
-Prerequisites: impeccable-setup merged and marked completed in frontmatter.
-
-Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
-
-Deliverables: verify slice todo, add # Shipped note, move plan to .cursor/plans/archive/2026-09-10-impeccable-setup.plan.md, mark plan-closure completed, update agent prompt references.
-
-Verification: impeccable-setup PR merged; slice todo completed before archiving.
-```
+- **Plan review — plan-only PR**
+  - "Execute plan review from `@.cursor/plans/archive/2026-09-10-impeccable-setup.plan.md` only. Redraft or commit the plan artifact per repo planning standards. **Agent instruction:** Do not implement. Stop after opening the plan-only PR. Do not start implementation slices."
+- **Slice — impeccable-setup**
+  - "Implement impeccable-setup from `@.cursor/plans/archive/2026-09-10-impeccable-setup.plan.md` only. Start from latest `origin/main`, implement only this slice, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Install Impeccable (exclude `scripts/bin/**`), seed `PRODUCT.md` and `DESIGN.md`, update `AGENTS.md` and `.gitignore`. **Agent instruction:** Do not merge. Stop after opening the PR. Mark `impeccable-setup` completed in plan frontmatter. Do not start plan-closure. Do not archive the plan."
+- **Plan closure — plan-closure**
+  - "Execute plan-closure from `@.cursor/plans/archive/2026-09-10-impeccable-setup.plan.md` only. Prerequisites: all implementation slices merged and already marked completed in frontmatter. Start from latest `origin/main`, verify the branch represents only this slice before opening the PR, open the PR targeting `main`, and verify the GitHub PR base branch is `main` after creation. Docs-only PR: verify slice todos, add `# Shipped` note, move plan to `.cursor/plans/archive/2026-09-10-impeccable-setup.plan.md`, mark `plan-closure` completed, update references. **Agent instruction:** Do not merge. Stop after opening the PR."
