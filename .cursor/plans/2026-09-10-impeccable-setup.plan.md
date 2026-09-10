@@ -4,7 +4,7 @@ overview: Add Impeccable as a Cursor agent design review/refinement capability â
 todos:
   - id: impeccable-setup
     content: "PR: Install Impeccable (Cursor), seed PRODUCT/DESIGN context, update AGENTS.md and .gitignore"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after impeccable-setup merges: add # Shipped note, move plan to .cursor/plans/archive/2026-09-10-impeccable-setup.plan.md"
     status: pending
