@@ -10,9 +10,23 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after baseline-audit merges: add # Shipped note, move plan to .cursor/plans/archive/2026-09-10-portfolio-redesign-baseline.plan.md"
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-09-11.**
+
+| Slice          | Delivered                                                                                                                                                              |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| plan-review    | [#41](https://github.com/mastermichaelt/portfolio/pull/41) — plan artifact only (Plan-only PR)                                                                         |
+| baseline-audit | [#42](https://github.com/mastermichaelt/portfolio/pull/42) — `docs/redesign-baseline.md` (7-section audit + provenance; no PRODUCT.md / DESIGN.md / `content/*` edits) |
+| plan-closure   | This PR — archive to `.cursor/plans/archive/2026-09-10-portfolio-redesign-baseline.plan.md`                                                                            |
+
+**Deferred (out of scope):** Claude Design exploration; `PRODUCT.md` / `DESIGN.md` / `content/*` changes; answering §7 redesign questions; visual direction.
+
+This plan is archived. The work described here has shipped; the remaining content is preserved for historical context.
 
 # Portfolio pre-redesign baseline audit
 
@@ -24,7 +38,7 @@ isProject: false
 | baseline-audit | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure   | Open PR only          | Do not merge. Stop after opening the PR.               |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ## Repository topology (default)
 
@@ -34,7 +48,7 @@ The integration branch is `main`. Each slice starts from latest `origin/main`. T
 
 ## Goal
 
-Produce a durable [`docs/redesign-baseline.md`](../../docs/redesign-baseline.md) that captures:
+Produce a durable [`docs/redesign-baseline.md`](../../../docs/redesign-baseline.md) that captures:
 
 1. What the portfolio communicates today
 2. Credible evidence in sibling workspace repos that is absent, compressed, or underrepresented
@@ -170,7 +184,7 @@ After `baseline-audit` merges:
 ### plan-review
 
 ```text
-@.cursor/plans/2026-09-10-portfolio-redesign-baseline.plan.md
+@.cursor/plans/archive/2026-09-10-portfolio-redesign-baseline.plan.md
 
 Execute only plan-review. Do not start baseline-audit or later slices.
 
@@ -186,7 +200,7 @@ Verification: plan satisfies repo planning standards; no implementation changes 
 ### baseline-audit
 
 ```text
-@.cursor/plans/2026-09-10-portfolio-redesign-baseline.plan.md
+@.cursor/plans/archive/2026-09-10-portfolio-redesign-baseline.plan.md
 
 Implement slice baseline-audit only. Do not start plan-closure. Do not archive the plan.
 
@@ -204,7 +218,7 @@ Verification: docs-only diff; quantitative claims cite fact module + fact ID + s
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-09-10-portfolio-redesign-baseline.plan.md
+@.cursor/plans/archive/2026-09-10-portfolio-redesign-baseline.plan.md
 
 Execute only plan-closure.
 
