@@ -59,8 +59,8 @@
 
 .nav-toggle {
   display: none;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -110,6 +110,9 @@
 }
 
 .mobile-nav a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   padding: 12px 10px;
   border-radius: var(--radius);
   color: var(--muted);
@@ -161,11 +164,30 @@
   color: var(--fg);
 }
 
+/* Shared keyboard focus ring — docs/design-system.md § Accessibility */
+:is(
+  .btn,
+  .card-interactive,
+  .log-row,
+  .evidence-item,
+  .topnav .logo,
+  .topnav nav a,
+  .mobile-nav a,
+  .pagefoot a,
+  .nav-toggle,
+  .skip-link
+):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  min-height: 44px;
   padding: 11px 20px;
   border-radius: var(--radius);
   border: 1px solid transparent;
@@ -208,7 +230,7 @@
   background: transparent;
   color: var(--fg);
   border-color: transparent;
-  padding-inline: 8px;
+  padding-inline: 12px;
 }
 
 .btn-ghost:hover {
@@ -526,6 +548,35 @@
 @media (prefers-reduced-motion: reduce) {
   .fade-in {
     animation: none;
+  }
+
+  .btn {
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .btn:active {
+    transform: none;
+  }
+
+  .btn-arrow::after {
+    transition: none;
+  }
+
+  .btn-arrow:hover::after {
+    transform: none;
+  }
+
+  .card-interactive {
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .card-interactive:hover {
+    transform: none;
   }
 }
 

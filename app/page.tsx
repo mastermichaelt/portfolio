@@ -108,6 +108,7 @@ export default async function HomePage() {
                   key={article.slug}
                   className="log-row"
                   href={article.url}
+                  aria-label={article.title}
                 >
                   <span className="meta">{article.year}</span>
                   <div>

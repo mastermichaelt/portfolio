@@ -59,6 +59,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${newsreader.variable} ${sourceSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <a className="skip-link" href="#content">
+          Skip to content
+        </a>
         <SiteHeader />
         {children}
         <SiteFooter profile={profile} />
