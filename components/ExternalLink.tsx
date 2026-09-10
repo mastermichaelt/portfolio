@@ -12,7 +12,7 @@ type ExternalLinkProps = Omit<
   children: ReactNode;
 };
 
-const NEW_TAB_HINT = "(opens in new tab)";
+const NEW_TAB_HINT = "opens in new tab";
 
 function hasNewTabHint(label: string): boolean {
   return /opens in new (tab|window)/i.test(label);
@@ -75,7 +75,9 @@ export function ExternalLink({
       onClick={handleClick}
     >
       {children}
-      {accessibleName ? null : <span className="sr-only">{NEW_TAB_HINT}</span>}
+      {accessibleName ? null : (
+        <span className="sr-only">({NEW_TAB_HINT})</span>
+      )}
     </a>
   );
 }
