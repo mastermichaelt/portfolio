@@ -69,7 +69,7 @@ Impeccable reads root-level `PRODUCT.md` (product truth) and `DESIGN.md` (visual
 Layer 1     — Hook availability (sessionStart → git-hooks)
 Layer 2a    — Agent feedback
               • afterFileEdit → formatting (Prettier)
-              • preToolUse    → Impeccable design detector (blocks bad proposed UI writes)
+              • preToolUse    → Impeccable design detector (can block flagged proposed UI writes)
 Layer 2b    — Commit correctness (Husky pre-commit)
 Layer 3     — Authoritative enforcement (CI)
 ```
