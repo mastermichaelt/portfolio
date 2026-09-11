@@ -79,14 +79,14 @@ Comparison of **current on-site content** against baseline evidence and position
 
 ### 5. Duplicated or inconsistent claims
 
-| A                                                | B                                                                     | Conflict                                                  |
-| ------------------------------------------------ | --------------------------------------------------------------------- | --------------------------------------------------------- |
-| `content/homepage.ts` `hero.lead`                | `content/profile.ts` `bio`                                            | Different framing, emphasis, and length                   |
-| `content/homepage.ts` `writing[]` (3 slugs)      | `content/articles.ts` `featured: true` (3 **different** slugs)        | Two curation layers diverge                               |
-| Homepage supporting                              | `projects.featured`                                                   | Editorial demoted vs still flagship on `/projects`        |
-| Homepage CH 02 `dateRange` `2020 – 2025`         | Role files: SSE 2024–2025, EM 2020–2024, cross-flow facts span SWE+EM | Acceptable compression — document in human review         |
-| Ledger SSE 2019 detail “Informed Pull Requests…” | Not listed in baseline fact table                                     | **Verify** against `resumes/facts/` before reuse off-home |
-| `articles.ts` count **9**                        | Hub + DEV API **15**; inventory metrics **14**                        | Three-way canonical tension — do not collapse             |
+| A                                                | B                                                                        | Conflict                                                |
+| ------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------- |
+| `content/homepage.ts` `hero.lead`                | `content/profile.ts` `bio`                                               | Different framing, emphasis, and length                 |
+| `content/homepage.ts` `writing[]` (3 slugs)      | `content/articles.ts` `featured: true` (3 **different** slugs)           | Two curation layers diverge                             |
+| Homepage supporting                              | `projects.featured`                                                      | Editorial demoted vs still flagship on `/projects`      |
+| Homepage CH 02 `dateRange` `2020 – 2025`         | Role files: SSE 2024–2025, EM 2020–2024, cross-flow facts span SWE+EM    | Acceptable compression — document in human review       |
+| Ledger SSE 2019 detail “Informed Pull Requests…” | **Verified** — `growth-engineering-craft.yml` · `informed-pull-requests` | Safe for About optional Growth-craft beat (H6 resolved) |
+| `articles.ts` count **9**                        | Hub + DEV API **15**; inventory metrics **14**                           | Three-way canonical tension — do not collapse           |
 
 ### 6. Stale project / article selections or prominence
 
@@ -99,13 +99,13 @@ Comparison of **current on-site content** against baseline evidence and position
 
 ### 7. Claims with insufficient provenance for publication
 
-| Claim                                                     | Location                           | Issue                                                                                                                                                                                                               | Action                                                                                 |
-| --------------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| **`175+` monthly active players**                         | `content/homepage.ts` CH 01 figure | **Resolved #50:** site publishes **`150+`** durable floor. Live inventory (2026-09-11 re-read): `telemetry-model-experiments` action uses **175+**; `monthly-active-players` = **175** — never paste exact snapshot | **Shipped** — homepage `150+`; Projects redesign aligns with on-site copy at ship time |
-| **`#1` branded search**                                   | Homepage figure                    | Sourced to `branded-search-position` `~1` — OK if scope line kept                                                                                                                                                   | Safe with qualifier                                                                    |
-| **`>10%`, `9%–41%`**                                      | Homepage CH 02                     | Match baseline fact IDs                                                                                                                                                                                             | Safe with scope lines                                                                  |
-| **Ledger “Informed Pull Requests”**                       | `homepage.ledger` SSE 2019 row     | Not in baseline quantitative table                                                                                                                                                                                  | Verify fact module before About/Projects reuse                                         |
-| **“Agent-native engineering systems”** supporting summary | Homepage                           | Composite claim across team-harness + MCP integrations — no single fact ID                                                                                                                                          | Tie to `ai-engineering-workflows.yml` facts in copy edit or soften                     |
+| Claim                                                     | Location                           | Issue                                                                                                                                                                                                                                                                                          | Action                                                                                          |
+| --------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **`175+` monthly active players**                         | `content/homepage.ts` CH 01 figure | **Resolved #52:** site publishes **`175+`** durable floor per live `codenames-ai-telemetry.yml` · `telemetry-model-experiments`; rolling snapshot **`175`** (`monthly-active-players`) — never paste exact count ([#50](https://github.com/mastermichaelt/portfolio/pull/50) interim **150+**) | **Shipped** — homepage **`175+`**; Projects/About redesign align with on-site copy at ship time |
+| **`#1` branded search**                                   | Homepage figure                    | Sourced to `branded-search-position` `~1` — OK if scope line kept                                                                                                                                                                                                                              | Safe with qualifier                                                                             |
+| **`>10%`, `9%–41%`**                                      | Homepage CH 02                     | Match baseline fact IDs                                                                                                                                                                                                                                                                        | Safe with scope lines                                                                           |
+| **Ledger “Informed Pull Requests”**                       | `homepage.ledger` SSE 2019 row     | Not in baseline quantitative table                                                                                                                                                                                                                                                             | Verify fact module before About/Projects reuse                                                  |
+| **“Agent-native engineering systems”** supporting summary | Homepage                           | Composite claim across team-harness + MCP integrations — no single fact ID                                                                                                                                                                                                                     | Tie to `ai-engineering-workflows.yml` facts in copy edit or soften                              |
 
 ---
 
@@ -190,17 +190,17 @@ Small, merge-safe slices — copy/module/metadata only; existing pages consume d
 
 Preserve 1b structure (hero → two case panels → ledger → supporting + writing). No visual redesign.
 
-| Item                             | Current                                                                        | Proposed direction                                                                                                                                                                                  | Source                                       |
-| -------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Hero lead**                    | “Growth experimentation… 2014–2025. Independent AI… since 2026.”               | Keep dual-era structure; soften “since 2026” isolation — e.g. explicit “same practice” already in `leadEmphasis`; avoid “retraining”, “return to IC”, “pivot”                                       | User intent; `homepage.hero`                 |
-| **CH 01 figure MAU**             | **`150+`** (merged [#50](https://github.com/mastermichaelt/portfolio/pull/50)) | H1 resolved: reverted from unsupported `175+` to **`150+`** durable-floor scope. Live inventory action text now documents **175+** — reconcile in a future slice if inventory and site should match | Shipped                                      |
-| **CH 01 outcomes on case study** | Refuses hard KPIs                                                              | Optional **one** qualified figure on `/projects/codenames-ai` only if scope component exists in case-study template — else keep homepage-only                                                       | `DESIGN.md` figure/scope rules               |
-| **CH 02 title/date**             | “Experiment measurement” `2020 – 2025`                                         | Acceptable; optional subtitle referencing Cross Flow / Growth Experiment Impact Estimation for searchability                                                                                        | `cross-flow-experiment-measurement.yml`      |
-| **Ledger ordering**              | Independent 2026 first (`current: true`)                                       | Keep reverse-chron **but** ensure hero lead establishes continuity before ledger scan                                                                                                               | Content copy                                 |
-| **Ledger rows**                  | Missing Loom/Post Office/Admin Hub as separate rows                            | Do **not** add rows without redesign capacity — metrics belong in future Atlassian case study; ledger stays role-centric                                                                            | Baseline §2                                  |
-| **Supporting work**              | Editorial third after Renovate + agent-native                                  | Confirm order reflects demotion (editorial last among three)                                                                                                                                        | Current `homepage.supporting`                |
-| **Selected writing**             | 3 slugs (analytics, authority, reviewer)                                       | **Pick one curation rule** (see §7): homepage `writing` vs `articles.featured` vs DEV pins — recommend homepage rule: _measurement + contracts + production telemetry_                              | Baseline §2 pin table                        |
-| **Unify writing curation**       | `homepage.writing` ≠ `articles.featured`                                       | After rule agreed: set `featured: true` on the 3 homepage slugs; remove featured from others                                                                                                        | `content/articles.ts`, `content/homepage.ts` |
+| Item                             | Current                                                                        | Proposed direction                                                                                                                                                                                    | Source                                       |
+| -------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Hero lead**                    | “Growth experimentation… 2014–2025. Independent AI… since 2026.”               | Keep dual-era structure; soften “since 2026” isolation — e.g. explicit “same practice” already in `leadEmphasis`; avoid “retraining”, “return to IC”, “pivot”                                         | User intent; `homepage.hero`                 |
+| **CH 01 figure MAU**             | **`175+`** (merged [#52](https://github.com/mastermichaelt/portfolio/pull/52)) | H1 resolved: live inventory documents **175+** as durable floor (`telemetry-model-experiments`); homepage restored from interim **150+** ([#50](https://github.com/mastermichaelt/portfolio/pull/50)) | Shipped                                      |
+| **CH 01 outcomes on case study** | Refuses hard KPIs                                                              | Optional **one** qualified figure on `/projects/codenames-ai` only if scope component exists in case-study template — else keep homepage-only                                                         | `DESIGN.md` figure/scope rules               |
+| **CH 02 title/date**             | “Experiment measurement” `2020 – 2025`                                         | Acceptable; optional subtitle referencing Cross Flow / Growth Experiment Impact Estimation for searchability                                                                                          | `cross-flow-experiment-measurement.yml`      |
+| **Ledger ordering**              | Independent 2026 first (`current: true`)                                       | Keep reverse-chron **but** ensure hero lead establishes continuity before ledger scan                                                                                                                 | Content copy                                 |
+| **Ledger rows**                  | Missing Loom/Post Office/Admin Hub as separate rows                            | Do **not** add rows without redesign capacity — metrics belong in future Atlassian case study; ledger stays role-centric                                                                              | Baseline §2                                  |
+| **Supporting work**              | Editorial third after Renovate + agent-native                                  | Confirm order reflects demotion (editorial last among three)                                                                                                                                          | Current `homepage.supporting`                |
+| **Selected writing**             | 3 slugs (analytics, authority, reviewer)                                       | **Pick one curation rule** (see §7): homepage `writing` vs `articles.featured` vs DEV pins — recommend homepage rule: _measurement + contracts + production telemetry_                                | Baseline §2 pin table                        |
+| **Unify writing curation**       | `homepage.writing` ≠ `articles.featured`                                       | After rule agreed: set `featured: true` on the 3 homepage slugs; remove featured from others                                                                                                          | `content/articles.ts`, `content/homepage.ts` |
 
 ---
 
@@ -248,13 +248,13 @@ Runtime audit: [plan § Runtime audit: `projects.featured`](../.cursor/plans/202
 
 Existing `content/projects.ts` entry is strong. Redesign should add **qualified figures** as optional `ProjectFigure[]` (mirror homepage `value` + `name` + `scope` model per `DESIGN.md`).
 
-| Figure            | Fact ID                                                           | Metric / action                         | Scope / qualifier                                                                                                                                                               |
-| ----------------- | ----------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| MAU floor         | `codenames-ai-telemetry.yml` · `telemetry-model-experiments`      | Action text uses **175+** durable floor | **On-site today (post #50):** homepage publishes **`150+`** with durable-floor scope — do not re-litigate H1 in Projects prep; align case-study copy with homepage at ship time |
-| Rolling snapshot  | `monthly-active-players`                                          | `175`                                   | **Never publish** exact count — fact comment forbids pasting into prose                                                                                                         |
-| Branded search    | `branded-search-position`                                         | `~1`                                    | Branded Google Search average position · last 28 days                                                                                                                           |
-| Domain depth      | `codenames-ai-e2e.yml` · `canonical-concept-count`                | `350`                                   | Canonical English concepts · language-aware projection pipeline                                                                                                                 |
-| Validation thesis | `codenames-ai-e2e.yml` · `model-migrations`, `product-evaluation` | —                                       | Complementary jobs: migration robustness vs live telemetry (`telemetry-model-experiments`) — do not collapse                                                                    |
+| Figure            | Fact ID                                                           | Metric / action                         | Scope / qualifier                                                                                                                       |
+| ----------------- | ----------------------------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| MAU floor         | `codenames-ai-telemetry.yml` · `telemetry-model-experiments`      | Action text uses **175+** durable floor | **On-site today (post #52):** homepage publishes **`175+`** with durable-floor scope — align case-study copy with homepage at ship time |
+| Rolling snapshot  | `monthly-active-players`                                          | `175`                                   | **Never publish** exact count — fact comment forbids pasting into prose                                                                 |
+| Branded search    | `branded-search-position`                                         | `~1`                                    | Branded Google Search average position · last 28 days                                                                                   |
+| Domain depth      | `codenames-ai-e2e.yml` · `canonical-concept-count`                | `350`                                   | Canonical English concepts · language-aware projection pipeline                                                                         |
+| Validation thesis | `codenames-ai-e2e.yml` · `model-migrations`, `product-evaluation` | —                                       | Complementary jobs: migration robustness vs live telemetry (`telemetry-model-experiments`) — do not collapse                            |
 
 **One-line thesis:** Valid JSON is not a legal move.
 
@@ -273,20 +273,215 @@ Product doc citations for technical sections: `codenames-ai-guesser/docs/judge-a
 
 ### 4. Content / evidence for upcoming **About** redesign
 
-Prepare facts — do not dump full inventory.
+**Slice:** `redesign-prep-about` (docs-only). Re-verified from sibling `resumes/` checkout **2026-09-11**.
 
-| About section (future)   | Curated content                                                                                           | Sources                                                          |
-| ------------------------ | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Identity                 | Name, Sydney, `michael@multipliers.dev`, Senior SWE                                                       | `resumes/meta/profile.yml` → `profile.ts`                        |
-| Through-line             | Measurement, verification, experimentation, explicit contracts — **same** as thesis                       | `DESIGN.md`, homepage hero                                       |
-| Professional arc (short) | 2014 graduate → Growth SWE → EM → SSE → independent 2026 **continuing IC work**                           | Role YAMLs; avoid “return from management” framing               |
-| AIM (optional paragraph) | Program Lead concurrent 2022–2025; 3,552 matched; ~20% Atlassians; Atlas followership among >60k projects | `aim-participation-scale.yml`, `aim-sentiment-atlas.yml`         |
-| EM scope (optional)      | 8–10 direct reports; experiment-ops for cross-product Growth                                              | `em-growth-delivery.yml`                                         |
-| Current work             | Codenames in production; agent-native workflows; weekly field reports                                     | `independent-codenames-ai-2026.yml`; `writing-field-reports.yml` |
-| Education                | UNSW Co-op, Software Engineering 2009–2013                                                                | Ledger graduate row; DEV profile                                 |
-| Skill clusters           | Revise toward measurement/platform/AI-enabled products — align with evidence                              | `profile.skillClusters` — human edit                             |
-| Contact                  | Unchanged facts                                                                                           | `profile.links`                                                  |
-| **Omit from About**      | Savepoints prototype; private resume repo details; full metric tables                                     |
+Curate structured inventory facts for the future About Claude Design pass — **do not** paste résumé prose, full metric tables, or the DEV “AI retraining journey” tagline. About should read as **continuity of engineering practice** (Atlassian 2014–2025 + current AI work): measurement, verification, experimentation, explicit contracts. The management period is **visible** as experiment-ops and delivery leadership, **not** framed as leaving engineering or restarting a career.
+
+**Voice constraints (non-negotiable):**
+
+| Avoid                                                                | Prefer                                                                                                             |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| “AI retraining”, “career pivot”, “return to IC”, “side-project only” | Same method across eras — homepage thesis: _Making uncertain systems dependable._                                  |
+| EM as a detour from engineering                                      | EM as experiment-ops + cross-product Growth delivery (`em-growth-delivery.yml` · `experiment-ops-pioneer-concise`) |
+| Independent 2026 as isolated from prior work                         | “Continuing IC work” — current AI extends Atlassian measurement/verification practice                              |
+| Bare numbers without scope                                           | Figure + name + scope per `DESIGN.md` when any metric appears                                                      |
+
+#### A. Identity & contact (facts only)
+
+| Field    | Public value             | Inventory source                                             |
+| -------- | ------------------------ | ------------------------------------------------------------ |
+| Name     | Michael Truong           | `resumes/meta/profile.yml` · `name`                          |
+| Headline | Senior Software Engineer | `profile.yml` · `headline` → `profile.ts`                    |
+| Location | Sydney, Australia        | `profile.yml` · `location`                                   |
+| Email    | michael@multipliers.dev  | `profile.yml` · `email`                                      |
+| Links    | LinkedIn, GitHub, DEV    | `profile.yml` · `links` → `profile.links`                    |
+| Phone    | _(redacted — omit from public surfaces)_          | `profile.yml` · `phone` — **omit** unless contact IA expands |
+
+#### B. Through-line (thesis-aligned — no new claims)
+
+**Proposed lead (adapt from homepage — do not strengthen):**
+
+> Growth experimentation, attribution and platform measurement at Atlassian, 2014–2025. Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.
+
+| Beat            | Evidence anchor                                                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Thesis          | `content/homepage.ts` · `hero.title` — _Making uncertain systems dependable._                                                       |
+| Method phrase   | `hero.leadEmphasis` — same string as metadata/profile continuity slice ([#49](https://github.com/mastermichaelt/portfolio/pull/49)) |
+| Visual contract | [`DESIGN.md`](../DESIGN.md) — figure/scope pairs; no bare KPIs                                                                      |
+
+Current on-site `profile.bio` already aligns — About redesign may **reshape layout**, not reintroduce AI-first or retraining framing.
+
+#### C. Professional arc (short — role spine + fact IDs)
+
+Compress to **one scannable arc** (paragraph or timeline strip). Use role dates from `resumes/roles/*.yml`; attach **one** representative fact ID per era — depth lives on homepage ledger and future Projects case study.
+
+| Era (dates)         | Role · org                      | Role ID                         | Representative fact module · fact ID                                                                                                                     | Narrative beat (proposed)                                                                                                                           |
+| ------------------- | ------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026—               | Independent AI product engineer | `independent-codenames-ai-2026` | `codenames-ai-telemetry.yml` · `telemetry-model-experiments`                                                                                             | Production AI with live telemetry + controlled model experiments — same verification discipline as Growth experimentation                           |
+| 2024 – 2025         | Senior SWE, Growth              | `atlassian-senior-swe-2024`     | `growth-xfn-leadership-2024` · (action); `loom-acquisition.yml` · `okr-attainment` for OKR context                                                       | Cross-functional growth engineering on acquisition onboarding, analytics pipelines, ML surfaces — **do not** paste internal codenames from EM facts |
+| 2022 – 2025 (conc.) | Program Lead, AIM               | `atlassian-aim-program-lead`    | `aim-participation-scale.yml` · `participation-scale-concise`                                                                                            | Built engineering platform for mentorship program; scaled participation — **leadership parallel**, not a second career track                        |
+| 2020 – 2024         | Engineering Manager, Growth     | `atlassian-em-2020`             | `em-growth-delivery.yml` · `org-change-leadership`, `experiment-ops-pioneer-concise`                                                                     | Managed 8–10 engineers; experiment-ops and delivery through org change — **engineering leadership**, not exit from IC work                          |
+| 2019 – 2020         | Senior SWE, Growth              | `atlassian-senior-swe-2019`     | `cross-flow-experiment-measurement.yml` · `attribution-uplift` (thesis); `growth-engineering-craft.yml` · `informed-pull-requests` (optional craft beat) | Experimentation initiatives + Growth craft (Informed Pull Requests, Innovation Week) — H6 verified                                                  |
+| 2015 – 2019         | Software Developer              | `atlassian-swe-2015`            | `swe-2015-frontend-growth.yml`, `graduate-purchasing-analytics.yml` (early measurement)                                                                  | Frontend/full-stack across growth, billing, purchasing, onboarding — foundation for later experiment measurement                                    |
+| 2014 – 2015         | Graduate Developer              | `atlassian-graduate-2014`       | Ledger graduate row                                                                                                                                      | UNSW Co-op Program Scholar, Software Engineering (2009–2013)                                                                                        |
+
+**Framing note:** Homepage ledger lists independent 2026 first (`current: true`) — About hero/lead must establish **continuity before** reverse-chron scan (same rule as homepage §2).
+
+#### D. Measurement & verification spine (Atlassian — context only)
+
+About should **signal** the professional record without duplicating Projects case-study figures. One sentence + link to `/projects` (post-redesign) or homepage `#experiment-measurement`.
+
+| Thesis (reuse)                                                     | Anchor fact ID                                                                                                 |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Refuse a reported experiment number until attribution is checkable | `cross-flow-experiment-measurement.yml` · `attribution-uplift`                                                 |
+| StatSig / pipeline context (optional second sentence)              | `statsig-reliability.yml` · `attribution-window-variance`; `loom-event-pipeline.yml` · `experiments-unblocked` |
+
+Full figure table → [§3.A Atlassian experiment measurement](#a-atlassian-experiment-measurement-co-primary--future-first-class-case-study) and [Claude Design handoff — Projects](#claude-design-handoff--projects-session).
+
+#### E. EM scope (optional paragraph — not headline)
+
+Use **concise** inventory lines; avoid internal project codenames (`Silent Bundles`, `BTG`, etc.) in public About copy — prefer `named-growth-projects-concise` over `named-growth-projects`.
+
+| Qualified figure / scope                          | Fact module · fact ID                                                       |
+| ------------------------------------------------- | --------------------------------------------------------------------------- |
+| `8–10` engineers directly managed                 | `em-growth-delivery.yml` · `direct-reports`                                 |
+| FY22 `12` projects shipped / `3` complex          | `em-growth-delivery.yml` · `fy22-projects-shipped`, `fy22-complex-projects` |
+| Trust Score Card `100%` (manager review context)  | `em-growth-delivery.yml` · `trust-score-card`                               |
+| Experiment-ops practices for cross-product Growth | `em-growth-delivery.yml` · `experiment-ops-pioneer-concise`                 |
+
+#### F. AIM (optional paragraph — concurrent program)
+
+| Qualified figure / scope                                        | Fact module · fact ID                                              |
+| --------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `3,552` matched mentors and mentees; `~20%` of Atlassians       | `aim-participation-scale.yml` · `matched-count`, `workforce-share` |
+| `86%` Engineering positive sentiment                            | `aim-sentiment-atlas.yml` · `sentiment-score`                      |
+| Highest-followed Atlas project among `>60,000` company projects | `aim-sentiment-atlas.yml` · `atlas-projects`, `atlas-followership` |
+
+Use `participation-scale-concise` or `sentiment-atlas-concise` for tight layouts — **do not** imply scale caused sentiment (inventory join rule in `aim-participation-scale.yml`).
+
+#### G. Current work (2026—)
+
+| System                   | One-line                                                   | Fact module · fact ID                                                                                     |
+| ------------------------ | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Codenames AI             | Production AI product — valid JSON is not a legal move     | `codenames-ai-telemetry.yml` · `telemetry-model-experiments`; `codenames-ai-e2e.yml` · `model-migrations` |
+| Agent-native engineering | Workflows with explicit contracts, authority, verification | `ai-engineering-workflows.yml` · `workflow-contracts`, `team-harness-plugin`, `hook-stack-model`          |
+| Field reports            | Weekly DEV series — Trusted Member; editorial system       | `writing-field-reports.yml` · `series-overview`, `trusted-member`, `editorial-system`                     |
+
+**MAU on About:** only if a figure/scope component exists — use **`175+`** durable floor ([#52](https://github.com/mastermichaelt/portfolio/pull/52)), same qualifier as homepage; never **`175`** exact snapshot (`monthly-active-players`).
+
+#### H. Education
+
+| Fact                                                       | Source                                                                                        |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| UNSW Co-op Program Scholar; Software Engineering 2009–2013 | `content/homepage.ts` · ledger `atlassian-graduate-2014` row                                  |
+| Internships 2009–2012 (Macquarie, Bamboo, Interview Tools) | `intern-2009-macquarie-log-viewer.yml`, etc. — **omit** from About unless timeline IA expands |
+
+#### I. Skill clusters (revision guidance for `profile.skillClusters`)
+
+Current on-site clusters: Frontend · Experimentation and analytics · Platforms · AI-enabled products.
+
+| Proposed cluster (About / profile)    | Ground in evidence                                                                 |
+| ------------------------------------- | ---------------------------------------------------------------------------------- |
+| Experimentation & measurement         | `cross-flow-experiment-measurement.yml`, `statsig-reliability.yml`, homepage CH 02 |
+| Platforms & growth infrastructure     | `loom-event-pipeline.yml`, `growth-activation-platform.yml`, EM delivery scope     |
+| AI-enabled products & agent workflows | `codenames-ai-telemetry.yml`, `ai-engineering-workflows.yml`                       |
+| Frontend & developer experience       | `growth-engineering-craft.yml`, `swe-2015-frontend-growth.yml`                     |
+
+Human edit in a **follow-up content PR** after Claude Design — not in this prep slice.
+
+#### J. Growth craft beat (optional — SSE 2019)
+
+**H6 resolved:** ledger “Informed Pull Requests” line is inventory-backed.
+
+| Claim (compressed)                                                            | Fact module · fact ID                                                                                   |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Built Informed Pull Requests — security, a11y, performance audits on PRs/SPAs | `growth-engineering-craft.yml` · `informed-pull-requests`                                               |
+| Innovation Week prizes (FY19–FY20)                                            | `growth-engineering-craft.yml` · `innovation-week-prizes`                                               |
+| Interview contribution (`17` interviews FY20 metric available)                | `growth-engineering-craft.yml` · `interviews-fy20`; `swe-2019-hiring-mentoring.yml` · `interview-loops` |
+
+Use as **supporting color** in arc — not About headline.
+
+#### K. Omit from About
+
+| Omit                                                | Rationale                                                                                      |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Savepoints prototype                                | `savepoints-durable-capture.yml` · prototype scope — correctly invisible                       |
+| Private `resumes/` repo mechanics                   | Meta-infrastructure — mention facts-vs-prose method only if one line on `/projects` cross-link |
+| Full Atlassian metric tables                        | Belongs on Projects case study — About signals, Projects proves                                |
+| Exact MAU **`175`** snapshot                        | `monthly-active-players` — fact comment forbids prose paste                                    |
+| DEV tagline “AI retraining journey”                 | External — H4; portfolio continuity framing only                                               |
+| Post Office / Loom figure dump                      | Stretch module — Projects handoff §3.A only if design chooses                                  |
+| Follower **`2200+`**                                | H12 — staleness risk; optional promotion on About or Articles redesign                         |
+| “Agent-native engineering systems” without fact tie | Composite — cite `ai-engineering-workflows.yml` or soften                                      |
+
+---
+
+## Claude Design handoff — About session
+
+**Slice:** `redesign-prep-about` (docs-only). **Prerequisites merged:** [#49](https://github.com/mastermichaelt/portfolio/pull/49) metadata/profile continuity, [#52](https://github.com/mastermichaelt/portfolio/pull/52) H1 (`175+` on homepage), [#53](https://github.com/mastermichaelt/portfolio/pull/53) Projects prep (tier intent).
+
+Use this brief for the next **About page Claude Design** pass. Goal: an About experience that presents **identity + continuity arc + optional depth bands** — not a résumé dump, not a career-restart narrative.
+
+### Session entry checklist
+
+1. Read [`DESIGN.md`](../DESIGN.md) — figure value + name + scope; no bare numbers.
+2. Read [`PRODUCT.md`](../PRODUCT.md) — continuity framing; thesis _Making uncertain systems dependable._
+3. Read current [`content/profile.ts`](../content/profile.ts) and [`app/about/page.tsx`](../app/about/page.tsx) — **design comp only**; copy changes ship in a follow-up content PR.
+4. Do **not** edit homepage (Instrument 1b shipped [#47](https://github.com/mastermichaelt/portfolio/pull/47)).
+5. Re-read live `resumes/facts/*.yml` before any new quantitative copy ships in a follow-up content PR.
+
+### Design intent
+
+| Layer               | Content                                          | Visual weight                                      |
+| ------------------- | ------------------------------------------------ | -------------------------------------------------- |
+| **Hero / identity** | Name, headline, location, continuity lead (§4.B) | Primary — mirrors homepage thesis, not DEV tagline |
+| **Arc**             | 2014–2025 Atlassian + 2026 independent IC (§4.C) | Secondary — scannable timeline or short paragraphs |
+| **Depth bands**     | Optional AIM, EM, Growth craft (§4.E–J)          | Tertiary — collapsible or below fold               |
+| **Contact**         | Email, links, skill clusters (§4.A, §4.I)        | Persistent sidebar or card — keep current facts    |
+
+**Primary scan path:** Through-line → arc establishes **same practice** → current work (Codenames + agent workflows + writing) as extension, not reset.
+
+### Proposed section IA (non-binding)
+
+1. **Identity + continuity lead** — adapt §4.B; no “AI engineering systems” suffix (retired [#49](https://github.com/mastermichaelt/portfolio/pull/49)).
+2. **Practice arc** — role spine table §4.C; link to homepage ledger anchors and future Projects heroes.
+3. **Optional: Leadership parallel** — AIM §4.F + EM §4.E in one band (“Experiment ops & program scale”).
+4. **Current work** — Codenames + agent-native + field reports §4.G; link `/projects`, `/ecosystem`, `/articles`.
+5. **Contact + focus areas** — revise skill clusters per §4.I in follow-up content PR.
+
+### Curated evidence set (must be citable in follow-up copy PR)
+
+| About beat             | Key fact IDs (inventory path)                                                                                                       |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Through-line           | `content/homepage.ts` hero; `DESIGN.md`                                                                                             |
+| Arc — independent      | `independent-codenames-ai-2026`; `codenames-ai-telemetry.yml` · `telemetry-model-experiments`                                       |
+| Arc — SSE 2024         | `growth-xfn-leadership-2024`; `loom-acquisition.yml` · `okr-attainment`                                                             |
+| Arc — AIM              | `aim-participation-scale.yml` · `matched-count`, `workforce-share`; `aim-sentiment-atlas.yml` · `sentiment-score`, `atlas-projects` |
+| Arc — EM               | `em-growth-delivery.yml` · `direct-reports`, `experiment-ops-pioneer-concise`, `fy22-projects-shipped`                              |
+| Arc — SSE 2019         | `cross-flow-experiment-measurement.yml` · `attribution-uplift`; `growth-engineering-craft.yml` · `informed-pull-requests`           |
+| Current — agent-native | `ai-engineering-workflows.yml` · `workflow-contracts`, `team-harness-plugin`                                                        |
+| Current — writing      | `writing-field-reports.yml` · `series-overview`, `trusted-member`                                                                   |
+| Education              | `atlassian-graduate-2014`; ledger graduate row                                                                                      |
+
+### Explicit non-goals for About Design session
+
+| Non-goal                         | Rationale                                                      |
+| -------------------------------- | -------------------------------------------------------------- |
+| Merge About + Contact routes     | Deferred in content-evidence plan                              |
+| Full Atlassian figure table      | Projects redesign §3 / handoff                                 |
+| Résumé PDF download              | Out of scope                                                   |
+| Savepoints promotion             | Prototype — omit                                               |
+| Resolve H3 writing curation      | Separate slice — link `/articles` without featured-rule change |
+| Resolve H2 post count (14 vs 15) | `redesign-prep-articles` slice                                 |
+| Publish exact MAU **`175`**      | Fact comment forbids                                           |
+| “Return to IC” / retraining copy | Voice constraints §4                                           |
+
+### Cross-links
+
+- Homepage hero + ledger (`/`) — continuity already established.
+- `/projects` — depth after Projects redesign (Atlassian + Codenames co-primary).
+- `/ecosystem` — agent-native supporting evidence.
+- `/articles` — field reports; Trusted Member qualification verbatim from `trusted-member`.
 
 ---
 
@@ -330,26 +525,26 @@ Prepare facts — do not dump full inventory.
 
 ### 7. Unresolved claims / decisions requiring human review
 
-| #   | Decision                                         | Options                                                                                       | Blocking                                              |
-| --- | ------------------------------------------------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| H1  | **MAU figure on homepage**                       | `175+` vs `150+` vs omit — **resolved by `content-homepage-figures`** (early; not deferrable) | `content-homepage-figures` (2nd slice after metadata) |
-| H2  | **Public post count**                            | 14 (inventory) vs 15 (hub/API) vs “15+”                                                       | Articles copy, editorial outcomes                     |
-| H3  | **Writing curation rule**                        | Homepage vs featured vs DEV pins                                                              | S-unify writing, Articles redesign                    |
-| H4  | **DEV profile tagline**                          | Sync to portfolio continuity or keep independent                                              | External only — not in repo                           |
-| H5  | **Atlassian case study slug & title**            | `experiment-measurement` vs longer name                                                       | Projects redesign                                     |
-| H6  | **Ledger SSE 2019 “Informed Pull Requests”**     | Verify fact module or soften/remove off-home                                                  | About, future timeline                                |
-| H7  | **Promote Loom/Post Office metrics on homepage** | Extra figures vs case-study-only                                                              | Homepage density vs Projects                          |
-| H8  | **`tier` schema**                                | Add `first-class \| supporting \| infrastructure` to `Project` vs presentation-only           | Projects redesign                                     |
-| H9  | **Canonical domain**                             | `michaeltruong.dev` vs Vercel default                                                         | Metadata — out of scope                               |
-| H10 | **Agent-native row**                             | Separate project slug vs ecosystem-only                                                       | Projects inventory                                    |
-| H11 | **Populate `timeline.ts`**                       | Role-derived events vs keep ledger-only on home                                               | Timeline route decision                               |
-| H12 | **Follower count `2200+` on site**               | Promote vs omit (staleness)                                                                   | About / Articles                                      |
+| #   | Decision                                         | Options                                                                                                                                                                                                                     | Blocking                           |
+| --- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| H1  | **MAU figure on homepage**                       | **Resolved** — live inventory **`175+`** durable floor; site publishes **`175+`** ([#52](https://github.com/mastermichaelt/portfolio/pull/52); interim **150+** [#50](https://github.com/mastermichaelt/portfolio/pull/50)) | Done — `content-homepage-figures`  |
+| H2  | **Public post count**                            | 14 (inventory) vs 15 (hub/API) vs “15+”                                                                                                                                                                                     | Articles copy, editorial outcomes  |
+| H3  | **Writing curation rule**                        | Homepage vs featured vs DEV pins                                                                                                                                                                                            | S-unify writing, Articles redesign |
+| H4  | **DEV profile tagline**                          | Sync to portfolio continuity or keep independent                                                                                                                                                                            | External only — not in repo        |
+| H5  | **Atlassian case study slug & title**            | `experiment-measurement` vs longer name                                                                                                                                                                                     | Projects redesign                  |
+| H6  | **Ledger SSE 2019 “Informed Pull Requests”**     | **Resolved** — `growth-engineering-craft.yml` · `informed-pull-requests` (role `atlassian-senior-swe-2019`); optional About beat, not headline                                                                              | About prep — cite fact ID if used  |
+| H7  | **Promote Loom/Post Office metrics on homepage** | Extra figures vs case-study-only                                                                                                                                                                                            | Homepage density vs Projects       |
+| H8  | **`tier` schema**                                | Add `first-class \| supporting \| infrastructure` to `Project` vs presentation-only                                                                                                                                         | Projects redesign                  |
+| H9  | **Canonical domain**                             | `michaeltruong.dev` vs Vercel default                                                                                                                                                                                       | Metadata — out of scope            |
+| H10 | **Agent-native row**                             | Separate project slug vs ecosystem-only                                                                                                                                                                                     | Projects inventory                 |
+| H11 | **Populate `timeline.ts`**                       | Role-derived events vs keep ledger-only on home                                                                                                                                                                             | Timeline route decision            |
+| H12 | **Follower count `2200+` on site**               | Promote vs omit (staleness)                                                                                                                                                                                                 | About / Articles                   |
 
 ---
 
 ## Claude Design handoff — Projects session
 
-**Slice:** `redesign-prep-projects` (docs-only). **Prerequisites merged:** [#49](https://github.com/mastermichaelt/portfolio/pull/49) metadata, [#50](https://github.com/mastermichaelt/portfolio/pull/50) H1 homepage figures (`150+` on site), [#51](https://github.com/mastermichaelt/portfolio/pull/51) articles corpus.
+**Slice:** `redesign-prep-projects` (docs-only). **Prerequisites merged:** [#49](https://github.com/mastermichaelt/portfolio/pull/49) metadata, [#50](https://github.com/mastermichaelt/portfolio/pull/50) H1 interim, [#52](https://github.com/mastermichaelt/portfolio/pull/52) H1 restore (`175+` on site), [#51](https://github.com/mastermichaelt/portfolio/pull/51) articles corpus.
 
 Use this brief for the next **Projects page Claude Design** pass. Goal: a Projects experience that expresses **Atlassian experiment measurement + Codenames AI** as **co-primary** evidence — the same method (uncertain → checkable → contract) across eras — with **supporting** independent systems grouped below, not four equal 2026 side projects.
 
@@ -408,14 +603,14 @@ Projects should feel like **depth**; home remains **thesis + ledger**.
 
 **One-line thesis:** Valid JSON is not a legal move.
 
-| Evidence block          | Key qualified figures                                                                                                                                                                                  | Fact module · fact ID                                                           |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| Live product            | codenames-ai.com                                                                                                                                                                                       | On portfolio                                                                    |
-| Telemetry / MAU         | **`150+`** on homepage today (#50); live inventory action text uses **`175+`** floor (`telemetry-model-experiments`); snapshot **`175`** (`monthly-active-players`) — **never publish exact snapshot** | `codenames-ai-telemetry.yml`                                                    |
-| Branded search          | `~1` avg position (28d)                                                                                                                                                                                | `codenames-ai-telemetry.yml` · `branded-search-position`                        |
-| Domain depth            | `350` canonical English concepts                                                                                                                                                                       | `codenames-ai-e2e.yml` · `canonical-concept-count`                              |
-| Validation / evaluation | Schema-first (Zod) + domain validators; model migrations as controlled experiments                                                                                                                     | `codenames-ai-e2e.yml` · `model-migrations`, `product-evaluation`; product docs |
-| Writing                 | DEV field reports linked in `content/projects.ts` `evidence[]`                                                                                                                                         | `writing-field-reports.yml`; editorial corpus                                   |
+| Evidence block          | Key qualified figures                                                                                                                                                                                                                                                 | Fact module · fact ID                                                           |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Live product            | codenames-ai.com                                                                                                                                                                                                                                                      | On portfolio                                                                    |
+| Telemetry / MAU         | **`175+`** on homepage today ([#52](https://github.com/mastermichaelt/portfolio/pull/52)); live inventory action text uses **`175+`** durable floor (`telemetry-model-experiments`); snapshot **`175`** (`monthly-active-players`) — **never publish exact snapshot** | `codenames-ai-telemetry.yml`                                                    |
+| Branded search          | `~1` avg position (28d)                                                                                                                                                                                                                                               | `codenames-ai-telemetry.yml` · `branded-search-position`                        |
+| Domain depth            | `350` canonical English concepts                                                                                                                                                                                                                                      | `codenames-ai-e2e.yml` · `canonical-concept-count`                              |
+| Validation / evaluation | Schema-first (Zod) + domain validators; model migrations as controlled experiments                                                                                                                                                                                    | `codenames-ai-e2e.yml` · `model-migrations`, `product-evaluation`; product docs |
+| Writing                 | DEV field reports linked in `content/projects.ts` `evidence[]`                                                                                                                                                                                                        | `writing-field-reports.yml`; editorial corpus                                   |
 
 **Artifacts:** Live URL, DEV series, optional GitHub if public policy allows.
 
