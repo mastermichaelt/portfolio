@@ -4,8 +4,8 @@ import type { Article } from "@/domain/article";
  * Curated DEV.to inventory synced from sibling hub
  * `editorial-workflow/docs/dev.to/published/` (15 posts; portfolio lists full corpus).
  * Titles/URLs from frontmatter; summaries compressed from openings — no invented claims.
- * `featured` marks a small homepage set (≈ one post per flagship case study);
- * project pages filter via `relatedProjectSlug`.
+ * `featured` marks the homepage selected-writing set (`content/homepage.ts`
+ * `writing[]` slugs); project pages filter via `relatedProjectSlug`.
  */
 export const articles: Article[] = [
   {
@@ -26,7 +26,6 @@ export const articles: Article[] = [
     tags: ["ai", "testing", "architecture"],
     url: "https://dev.to/michaeltruong/model-experiments-became-an-architectural-stress-test-3gc0",
     relatedProjectSlug: "codenames-ai",
-    featured: true,
   },
   {
     slug: "evidence-driven-dependency-upgrades",
@@ -37,7 +36,6 @@ export const articles: Article[] = [
     tags: ["ai", "dependencies", "governance"],
     url: "https://dev.to/michaeltruong/upgrades-dont-have-to-be-a-blind-trust-exercise-13mj",
     relatedProjectSlug: "renovate-governance",
-    featured: true,
   },
   {
     slug: "reviewers-analysis-before-scoring",
@@ -48,7 +46,6 @@ export const articles: Article[] = [
     tags: ["ai", "workflow"],
     url: "https://dev.to/michaeltruong/the-ai-reviewer-scored-2325-and-missed-the-point-51mh",
     relatedProjectSlug: "editorial-workflow",
-    featured: true,
   },
   {
     slug: "ai-reviewer-kinds-of-reasoning",
@@ -59,6 +56,7 @@ export const articles: Article[] = [
     tags: ["ai", "workflow", "agents"],
     url: "https://dev.to/michaeltruong/i-fixed-my-ai-reviewer-then-i-kept-solving-the-wrong-problem-58am",
     relatedProjectSlug: "editorial-workflow",
+    featured: true,
   },
   {
     slug: "agent-plans-authority-handoffs",
@@ -69,6 +67,7 @@ export const articles: Article[] = [
     tags: ["ai", "automation", "governance"],
     url: "https://dev.to/michaeltruong/the-agent-plan-had-every-step-except-where-to-stop-357h",
     relatedProjectSlug: "renovate-governance",
+    featured: true,
   },
   {
     slug: "active-players-which-sessions-counted",
@@ -79,6 +78,7 @@ export const articles: Article[] = [
     tags: ["ai", "analytics"],
     url: "https://dev.to/michaeltruong/active-players-looked-real-until-we-asked-which-sessions-counted-11em",
     relatedProjectSlug: "codenames-ai",
+    featured: true,
   },
   {
     slug: "one-example-beats-style-guide",
