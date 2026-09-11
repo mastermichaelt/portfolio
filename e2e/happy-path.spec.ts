@@ -103,7 +103,7 @@ test.describe("portfolio happy path", () => {
   }) => {
     await page.goto("/");
 
-    await expect(page.getByText("175+")).toBeVisible();
+    await expect(page.getByText("150+", { exact: true })).toBeVisible();
     await expect(page.getByText(/durable floor/i)).toBeVisible();
     await expect(page.getByText("game_started")).toHaveCount(0);
     await expect(
