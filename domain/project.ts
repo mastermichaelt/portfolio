@@ -29,11 +29,6 @@ export interface Project {
   eyebrow?: string;
   /** Optional coarse kind for filtering later (e.g. "product", "governance"). */
   kind?: string;
-  /**
-   * Homepage flagship candidates. `listProjects()` returns the full inventory;
-   * surfaces filter on this field (e.g. Codenames + editorial).
-   */
-  featured?: boolean;
   sections: ProjectSection[];
   relatedLinks?: Evidence[];
   evidence?: Evidence[];

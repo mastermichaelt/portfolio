@@ -1,12 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const PROJECT_SLUGS = [
-  "codenames-ai",
-  "editorial-workflow",
-  "resume-generator",
-  "renovate-governance",
-] as const;
-
 async function expectPrimaryNav(page: Page) {
   const nav = page.getByRole("navigation", { name: "Primary" });
   await expect(nav.getByRole("link", { name: "Projects" })).toBeVisible();
@@ -146,40 +139,126 @@ test.describe("portfolio happy path", () => {
     expect(mobileBoxes[1]!.top).toBeGreaterThan(mobileBoxes[0]!.bottom - 1);
   });
 
-  test("projects index lists four case studies", async ({ page }) => {
+  test("projects index tiers co-primary, supporting and infrastructure rows", async ({
+    page,
+  }) => {
     await page.goto("/projects");
 
     await expect(
       page.getByRole("heading", {
-        name: "Work arranged as systems, not a résumé dump.",
+        name: "Every system, and what it is allowed to claim.",
       }),
     ).toBeVisible();
 
-    for (const slug of PROJECT_SLUGS) {
+    // Two co-primary rows, Atlassian first, each with an Open → link.
+    await expect(
+      page.locator('a.pindex-open[href="/projects/experiment-measurement"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('a.pindex-open[href="/projects/codenames-ai"]'),
+    ).toBeVisible();
+
+    // Two index figures per co-primary — value + name + scope together.
+    for (const value of ["175+", "350", ">10%", "9%–41%"]) {
       await expect(
-        page.locator(`a.work-card[href="/projects/${slug}"]`),
+        page.getByText(value, { exact: true }).first(),
       ).toBeVisible();
     }
+    await expect(page.getByText(/durable floor/i).first()).toBeVisible();
+
+    // Supporting rows link to a proof surface.
+    await expect(
+      page.locator(
+        'a.pindex-row--support[href="/projects/editorial-workflow"]',
+      ),
+    ).toBeVisible();
+    await expect(
+      page.locator(
+        'a.pindex-row--support[href="/projects/renovate-governance"]',
+      ),
+    ).toBeVisible();
+    await expect(
+      page.locator('a.pindex-row--support[href="/ecosystem"]'),
+    ).toBeVisible();
+
+    // Infrastructure row is not a link.
+    await expect(page.getByText("Resume generator")).toBeVisible();
+    await expect(
+      page.locator('a[href="/projects/resume-generator"]'),
+    ).toHaveCount(0);
+
+    // Provenance / fact-id review aids must not ship.
+    await expect(page.locator("body")).not.toContainText(".yml");
   });
 
-  test("case study page renders sections and links", async ({ page }) => {
+  test("co-primary case study renders blocks, figures, rail and artifacts", async ({
+    page,
+  }) => {
     await page.goto("/projects/codenames-ai");
 
     await expect(
-      page.getByRole("heading", { name: "Codenames AI", exact: true }),
-    ).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Problem" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Evidence" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Links" })).toBeVisible();
-    await expect(
-      page.getByRole("navigation", { name: "On this page" }),
+      page.getByRole("heading", {
+        name: /Valid JSON is not a legal move/i,
+        level: 1,
+      }),
     ).toBeVisible();
 
-    const liveLink = page
-      .locator("a.evidence-item")
-      .filter({ hasText: "codenames-ai.com" });
-    await expect(liveLink).toHaveAttribute("href", /codenames-ai\.com/);
-    await expect(liveLink).toHaveAttribute("target", "_blank");
+    // Sticky contents rail with per-block items.
+    const rail = page.getByRole("navigation", { name: "Contents" });
+    await expect(rail).toBeVisible();
+    await expect(rail.getByText("Legal-move validation")).toBeVisible();
+    await expect(rail.getByText("Domain coverage")).toBeVisible();
+
+    // Figure-absent block keeps its stated note rather than a placeholder.
+    await expect(
+      page.getByText(/No figure is claimed for this block/i),
+    ).toBeVisible();
+
+    // Qualified figure: value + scope shown together as one block.
+    const playersFigure = page.locator(".qfigure").filter({ hasText: "175+" });
+    await expect(playersFigure.locator(".figure-value")).toHaveText("175+");
+    await expect(playersFigure.locator(".figure-scope")).toContainText(
+      /durable floor/i,
+    );
+
+    // Every block ends on a contract line.
+    await expect(page.getByText(/^Contract:/).first()).toBeVisible();
+
+    // Live product opens externally.
+    await expect(
+      page.locator('a[href="https://codenames-ai.com/"]'),
+    ).toHaveAttribute("target", "_blank");
+
+    // Provenance / fact-id review aids must not ship.
+    await expect(page.locator("body")).not.toContainText(".yml");
+    await expect(page.locator("body")).not.toContainText(
+      "branded-search-position",
+    );
+  });
+
+  test("experiment-measurement case study is the Atlassian route", async ({
+    page,
+  }) => {
+    await page.goto("/projects/experiment-measurement");
+
+    await expect(
+      page.getByRole("heading", {
+        name: /attribution is checkable/i,
+        level: 1,
+      }),
+    ).toBeVisible();
+
+    // Role spine carries the EM period; it is not a figure or headline.
+    await expect(page.getByText("Role spine")).toBeVisible();
+    await expect(page.getByText(/Engineering Manager, Growth/)).toBeVisible();
+
+    // Both stated absences are present; no fabricated field report.
+    await expect(page.getByText("No public case-study artifact")).toBeVisible();
+    await expect(
+      page.getByText("No field report is tagged to this work"),
+    ).toBeVisible();
+    await expect(page.getByText("Private", { exact: true })).toBeVisible();
+    await expect(page.getByText("Adjacent", { exact: true })).toBeVisible();
   });
 
   test("unknown project slug returns not found", async ({ page }) => {

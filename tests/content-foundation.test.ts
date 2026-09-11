@@ -30,19 +30,15 @@ describe("content-foundation inventory", () => {
     expect(profile.bio.length).toBeLessThan(500);
   });
 
-  it("loads four evidence-backed projects with two homepage flagships", async () => {
+  it("loads the generic evidence-backed project inventory", async () => {
     const listed = await repository.listProjects();
+    // Co-primary case studies (experiment-measurement, codenames-ai) live in
+    // content/project-cases.ts, not this generic inventory. Hierarchy is no
+    // longer derived from a `featured` flag.
     expect(listed.map((project) => project.slug)).toEqual([
-      "codenames-ai",
       "editorial-workflow",
       "resume-generator",
       "renovate-governance",
-    ]);
-
-    const featured = listed.filter((project) => project.featured);
-    expect(featured.map((project) => project.slug)).toEqual([
-      "codenames-ai",
-      "editorial-workflow",
     ]);
 
     for (const project of listed) {
@@ -87,9 +83,15 @@ describe("content-foundation inventory", () => {
     expect(listed.length).toBeGreaterThan(0);
     expect(listed).toEqual(articles);
 
-    const projectSlugs = new Set(
-      (await repository.listProjects()).map((project) => project.slug),
-    );
+    // Valid project routes are the generic inventory plus the co-primary cases.
+    const [projectList, caseList] = await Promise.all([
+      repository.listProjects(),
+      repository.listProjectCases(),
+    ]);
+    const projectSlugs = new Set([
+      ...projectList.map((project) => project.slug),
+      ...caseList.map((entry) => entry.slug),
+    ]);
     const slugs = listed.map((article) => article.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
 

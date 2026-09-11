@@ -3,20 +3,44 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CaseStudyToc } from "@/components/CaseStudyToc";
 import { ExternalLink } from "@/components/ExternalLink";
+import { ProjectCaseDetail } from "@/components/ProjectCaseDetail";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
 type ProjectPageProps = PageProps<"/projects/[slug]">;
 
 export async function generateStaticParams() {
-  const projects = await getPortfolioRepository().listProjects();
-  return projects.map((project) => ({ slug: project.slug }));
+  const repository = getPortfolioRepository();
+  const [cases, projects] = await Promise.all([
+    repository.listProjectCases(),
+    repository.listProjects(),
+  ]);
+  return [...cases, ...projects].map((entry) => ({ slug: entry.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: ProjectPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const project = await getPortfolioRepository().getProject(slug);
+  const repository = getPortfolioRepository();
+
+  const projectCase = await repository.getProjectCase(slug);
+  if (projectCase) {
+    const path = `/projects/${projectCase.slug}`;
+    return {
+      title: projectCase.name,
+      description: projectCase.lead,
+      alternates: {
+        canonical: path,
+      },
+      openGraph: {
+        title: `${projectCase.name} · Michael Truong`,
+        description: projectCase.lead,
+        url: path,
+      },
+    };
+  }
+
+  const project = await repository.getProject(slug);
   if (!project) {
     return { title: "Project not found" };
   }
@@ -37,7 +61,14 @@ export async function generateMetadata({
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params;
-  const project = await getPortfolioRepository().getProject(slug);
+  const repository = getPortfolioRepository();
+
+  const projectCase = await repository.getProjectCase(slug);
+  if (projectCase) {
+    return <ProjectCaseDetail projectCase={projectCase} />;
+  }
+
+  const project = await repository.getProject(slug);
   if (!project) notFound();
 
   const tocItems = [

@@ -1,90 +1,16 @@
 import type { Project } from "@/domain/project";
 
 /**
- * Projects transcribed from sibling workspace evidence
- * (`resumes/*`, `codenames-ai-guesser` docs/README). Manual copy only.
- * Section kinds are chosen after evidence audit — unsupported kinds omitted.
- * `featured` marks homepage flagships (Codenames + editorial).
+ * Generic project inventory (supporting + infrastructure tiers) rendered by the
+ * `/projects/[slug]` case-study template. The two co-primary case studies —
+ * `experiment-measurement` and `codenames-ai` — live in `content/project-cases.ts`
+ * as a richer 1C presentation model and are not duplicated here.
+ *
+ * Transcribed from sibling workspace evidence (`resumes/*`, `codenames-ai-guesser`
+ * docs/README). Manual copy only. Section kinds are chosen after evidence audit —
+ * unsupported kinds omitted.
  */
 export const projects: Project[] = [
-  {
-    slug: "codenames-ai",
-    title: "Codenames AI",
-    summary:
-      "A production AI-assisted Codenames experience with structured LLM outputs, deterministic validation, model evaluation, and product analytics.",
-    tags: ["AI", "full-stack", "TypeScript", "OpenAI", "PostHog"],
-    eyebrow: "Product case study",
-    kind: "product",
-    featured: true,
-    sections: [
-      {
-        id: "problem",
-        kind: "problem",
-        title: "Problem",
-        body: "Building an AI teammate that feels believable is less about getting a model to reply and more about making outputs safe to expose to players. Valid JSON can still propose illegal moves, echo clues as guesses, or violate board membership — so the hard problem is domain validation and recoverable failure, not prompt cleverness alone.",
-      },
-      {
-        id: "role",
-        kind: "role",
-        title: "Role",
-        body: "I built and operate the product end to end: React/TypeScript frontend, Node.js/Express API, OpenAI integrations, deterministic validation, analytics instrumentation, CI/CD, and multi-environment deployment across Vercel, Render, and Cloudflare.",
-      },
-      {
-        id: "context",
-        kind: "context",
-        title: "Context",
-        body: "Live at codenames-ai.com. Solo mode is the default: the app asks an AI Spymaster for clues (direct, JUDGE, or STRANGE strategies). In classic mode you play Spymaster and the AI guesses. The guesser never sees unrevealed card identities — it reasons from the clue and board state only.",
-      },
-      {
-        id: "decisions",
-        kind: "decisions",
-        title: "Decisions",
-        body: "Schema-first structured outputs (Zod) plus board-aware domain validators separate “valid JSON” from “legal move.” Model migrations across generations are treated as controlled experiments: live-product telemetry and contract checks surface compatibility failures before they become silent gameplay regressions. Evaluation is built into product behavior rather than left as an offline afterthought.",
-      },
-      {
-        id: "outcomes",
-        kind: "outcomes",
-        title: "Outcomes",
-        body: "Findings from telemetry and model experiments are documented in a public engineering field-report series on DEV — covering schema guardrails, model-swap stress tests, and analytics-quality pitfalls. Hard product KPIs are intentionally not claimed here; the durable outcome is a production system with explicit validation contracts and publishable engineering lessons.",
-      },
-      {
-        id: "evidence",
-        kind: "evidence",
-        title: "Evidence",
-        body: "Public product, repository docs, and DEV field reports linked below. Prefer those artifacts over invented traction metrics.",
-      },
-    ],
-    relatedLinks: [
-      {
-        id: "codenames-live",
-        label: "Live product — codenames-ai.com",
-        url: "https://codenames-ai.com/",
-      },
-      {
-        id: "codenames-devto",
-        label: "DEV.to field reports",
-        url: "https://dev.to/michaeltruong",
-      },
-    ],
-    evidence: [
-      {
-        id: "article-schema-first",
-        label: "Schema first, prompt second: valid JSON wasn't enough",
-        url: "https://dev.to/michaeltruong/schema-first-prompt-second-valid-json-wasnt-enough-3nhm",
-      },
-      {
-        id: "article-model-experiments",
-        label: "Model experiments became an architectural stress test",
-        url: "https://dev.to/michaeltruong/model-experiments-became-an-architectural-stress-test-3gc0",
-      },
-      {
-        id: "article-active-players",
-        label:
-          "Active players looked real until we asked which sessions counted",
-        url: "https://dev.to/michaeltruong/active-players-looked-real-until-we-asked-which-sessions-counted-11em",
-      },
-    ],
-  },
   {
     slug: "editorial-workflow",
     title: "AI-assisted editorial workflow",
@@ -93,7 +19,6 @@ export const projects: Project[] = [
     tags: ["agents", "workflows", "writing", "evaluation", "Notion"],
     eyebrow: "Workflow case study",
     kind: "workflow",
-    featured: true,
     sections: [
       {
         id: "problem",
