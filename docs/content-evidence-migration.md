@@ -82,7 +82,7 @@ Comparison of **current on-site content** against baseline evidence and position
 | A                                                | B                                                                        | Conflict                                                |
 | ------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------- |
 | `content/homepage.ts` `hero.lead`                | `content/profile.ts` `bio`                                               | Different framing, emphasis, and length                 |
-| `content/homepage.ts` `writing[]` (3 slugs)      | `content/articles.ts` `featured: true` (3 **different** slugs)           | Two curation layers diverge                             |
+| `content/homepage.ts` `writing[]` (3 slugs)      | `content/articles.ts` `featured: true` (same 3 slugs — H3 Homepage wins) | Unified in `content-writing-curation`                   |
 | Homepage supporting                              | `projects.featured`                                                      | Editorial demoted vs still flagship on `/projects`      |
 | Homepage CH 02 `dateRange` `2020 – 2025`         | Role files: SSE 2024–2025, EM 2020–2024, cross-flow facts span SWE+EM    | Acceptable compression — document in human review       |
 | Ledger SSE 2019 detail “Informed Pull Requests…” | **Verified** — `growth-engineering-craft.yml` · `informed-pull-requests` | Safe for About optional Growth-craft beat (H6 resolved) |
@@ -199,8 +199,8 @@ Preserve 1b structure (hero → two case panels → ledger → supporting + writ
 | **Ledger ordering**              | Independent 2026 first (`current: true`)                                       | Keep reverse-chron **but** ensure hero lead establishes continuity before ledger scan                                                                                                                 | Content copy                                 |
 | **Ledger rows**                  | Missing Loom/Post Office/Admin Hub as separate rows                            | Do **not** add rows without redesign capacity — metrics belong in future Atlassian case study; ledger stays role-centric                                                                              | Baseline §2                                  |
 | **Supporting work**              | Editorial third after Renovate + agent-native                                  | Confirm order reflects demotion (editorial last among three)                                                                                                                                          | Current `homepage.supporting`                |
-| **Selected writing**             | 3 slugs (analytics, authority, reviewer)                                       | **Pick one curation rule** (see §7): homepage `writing` vs `articles.featured` vs DEV pins — recommend homepage rule: _measurement + contracts + production telemetry_                                | Baseline §2 pin table                        |
-| **Unify writing curation**       | `homepage.writing` ≠ `articles.featured`                                       | After rule agreed: set `featured: true` on the 3 homepage slugs; remove featured from others                                                                                                          | `content/articles.ts`, `content/homepage.ts` |
+| **Selected writing**             | 3 slugs (analytics, authority, reviewer)                                       | **H3 resolved (Homepage wins):** homepage `writing[]` is canonical; `articles.featured` matches those slugs                                                                                           | `content/homepage.ts`, `content/articles.ts` |
+| **Unify writing curation**       | ~~`homepage.writing` ≠ `articles.featured`~~                                   | **Shipped** — `featured: true` on homepage three only; DEV pins remain external                                                                                                                       | `content-writing-curation` slice             |
 
 ---
 
@@ -528,31 +528,28 @@ Curate structured evidence for the future **Articles / Writing** Claude Design p
 
 **H2 status:** **Resolved for docs** with recommendation above. **Optional human call:** confirm hero/series line on Articles redesign comp; re-sync inventory + `series-overview` when post **#16** publishes (count drift risk returns).
 
-#### C. Three curation layers (H3 — document only; do not unify in this slice)
+#### C. Three curation layers (H3 — resolved: Homepage wins)
 
-Three independent surfaces currently curate different subsets. **Zero title overlap** between `articles.featured` and inferred DEV pins; **partial overlap** between DEV pins and `homepage.writing`.
+**H3 status:** **Resolved** — homepage `writing[]` is the canonical curated set; `articles.featured` matches those three slugs. DEV profile pins remain a separate external signal (5 titles; not mirrored in portfolio `featured`).
 
-| Layer                    | Count | Current slugs / titles                                                                                                    | Source                                                      |
-| ------------------------ | ----- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| **`homepage.writing`**   | 3     | `active-players-which-sessions-counted`; `agent-plans-authority-handoffs`; `ai-reviewer-kinds-of-reasoning`               | `content/homepage.ts` — each row has an `argument`          |
-| **`articles.featured`**  | 3     | `model-experiments-architectural-stress-test`; `evidence-driven-dependency-upgrades`; `reviewers-analysis-before-scoring` | `content/articles.ts` — legacy “≈ one per flagship” comment |
-| **Inferred DEV pin set** | 5     | persist-game-state; agent-portability; active-players; ai-reviewer-kinds-of-reasoning; agent-plans-authority-handoffs     | DEV profile HTML “Pinned” block — **not** API field         |
+| Layer                    | Count | Slugs / titles                                                                                                        | Source                                                        |
+| ------------------------ | ----- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **`homepage.writing`**   | 3     | `active-players-which-sessions-counted`; `agent-plans-authority-handoffs`; `ai-reviewer-kinds-of-reasoning`           | `content/homepage.ts` — each row has an `argument`            |
+| **`articles.featured`**  | 3     | Same three slugs as homepage writing                                                                                  | `content/articles.ts` — aligned in `content-writing-curation` |
+| **Inferred DEV pin set** | 5     | persist-game-state; agent-portability; active-players; ai-reviewer-kinds-of-reasoning; agent-plans-authority-handoffs | DEV profile HTML “Pinned” block — **not** API field           |
 
-**Overlap matrix:**
+**Overlap matrix (post-H3):**
 
 | Set A → Set B               | Overlap                                                                 |
 | --------------------------- | ----------------------------------------------------------------------- |
-| Homepage writing ↔ Featured | **0 / 3** — completely divergent                                        |
+| Homepage writing ↔ Featured | **3 / 3** — unified                                                     |
 | DEV pins ↔ Homepage writing | **3 / 5** — active-players, ai-reviewer-kinds-of-reasoning, agent-plans |
-| DEV pins ↔ Featured         | **0 / 5**                                                               |
+| DEV pins ↔ Featured         | **3 / 5** — same as homepage writing                                    |
 
-**H3 options (human picks one — `content-writing-curation` slice applies outcome):**
+**Rejected options (for audit trail):**
 
-1. **Homepage-aligned (current homepage slugs):** measurement + governance + editorial reasoning — `_Selected writing_ on home becomes source of truth; set `featured: true` on those 3 only._
-2. **Flagship-paired:** one post per first-class system (Codenames + Atlassian + agent-native) — **no Atlassian-tagged post exists today**; accept non-1:1 or defer Atlassian slot.
-3. **DEV-pin-aligned:** 5 pinned titles — homepage may still show **3**; archive holds 5; featured flags may not match pin count.
-
-**Agent stop rule:** Do not unify `homepage.writing` and `articles.featured` until H3 is explicitly resolved. This prep slice documents options only.
+2. **Flagship-paired:** one post per first-class system — no Atlassian-tagged post exists today.
+3. **DEV-pin-aligned:** 5 pinned titles — homepage would still show 3; featured would not match pin count.
 
 #### D. Inferred DEV pin set (signal, not API fact)
 
@@ -562,11 +559,11 @@ Treat pinning as **profile-page structure** (baseline §2). Titles under the “
 | --- | ---------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------- | ------------------- | ------------- |
 | 1   | The board came back. The highlights lied.                        | `persist-game-state-not-ephemeral-ui-intent`                             | Yes              | No                  | No            |
 | 2   | I was solving agent portability at the wrong boundary            | `agent-portability-does-not-require-centralizing-methodology-behind-mcp` | Yes              | No                  | No            |
-| 3   | Active players looked real until we asked which sessions counted | `active-players-which-sessions-counted`                                  | Yes              | **Yes**             | No            |
-| 4   | I fixed my AI reviewer. Then I kept solving the wrong problem    | `ai-reviewer-kinds-of-reasoning`                                         | Yes              | **Yes**             | No            |
-| 5   | The agent plan had every step except where to stop               | `agent-plans-authority-handoffs`                                         | Yes              | **Yes**             | No            |
+| 3   | Active players looked real until we asked which sessions counted | `active-players-which-sessions-counted`                                  | Yes              | **Yes**             | **Yes**       |
+| 4   | I fixed my AI reviewer. Then I kept solving the wrong problem    | `ai-reviewer-kinds-of-reasoning`                                         | Yes              | **Yes**             | **Yes**       |
+| 5   | The agent plan had every step except where to stop               | `agent-plans-authority-handoffs`                                         | Yes              | **Yes**             | **Yes**       |
 
-**Design note:** Articles redesign may surface a “Pinned on DEV” band (5) distinct from homepage “Selected writing” (3) and `/articles` featured badges (3 legacy) — IA choice, not evidence requirement.
+**Design note:** Articles redesign may surface a “Pinned on DEV” band (5) distinct from homepage “Selected writing” (3) and `/articles` featured badges (3 homepage-aligned) — IA choice, not evidence requirement.
 
 #### E. `argument` field (homepage today → Articles type extension)
 
@@ -652,7 +649,7 @@ Group the 15-post corpus by **reasoning theme** — not by publish date alone �
 
 | Non-goal                                       | Rationale / owner slice                                        |
 | ---------------------------------------------- | -------------------------------------------------------------- |
-| Unify `homepage.writing` ↔ `articles.featured` | **H3** — `content-writing-curation` after human decision       |
+| Unify `homepage.writing` ↔ `articles.featured` | **Shipped** — H3 Homepage wins (`content-writing-curation`)    |
 | Edit `/articles` layout or route               | Claude Design session + follow-up content PR                   |
 | Rename route to `/writing`                     | Deferred in content-evidence plan                              |
 | Host in-site essay bodies                      | Writing exits via DEV (`ExternalLink`) — baseline architecture |
@@ -661,15 +658,12 @@ Group the 15-post corpus by **reasoning theme** — not by publish date alone �
 | Invent posts or strengthen claims              | Evidence rule — hub frontmatter only                           |
 | Resolve pin vs featured vs homepage in prep    | Document only — see §5.C                                       |
 
-#### K. Owned by `content-writing-curation` (later slice)
+#### K. `content-writing-curation` (shipped — H3 Homepage wins)
 
-After **H3** human decision, that slice applies:
-
-- Set `featured: true` on exactly the agreed slug set; clear featured from others
-- Align `homepage.writing[]` slugs + `argument` strings with H3 outcome (if rule changes homepage set)
-- Update `tests/content-foundation.test.ts` if featured uniqueness rule relaxes (e.g. DEV-pin rule with 5 pins, 3 homepage)
-- Optional: assign `relatedProjectSlug` on orphan slugs as part of curation pass
-- PR documents chosen H3 option in description for audit trail
+- **`articles.featured`** matches **`homepage.writing`** three slugs; legacy featured trio cleared
+- **`tests/content-foundation.test.ts`** asserts featured slugs equal homepage writing slugs
+- DEV pin set unchanged (external profile signal)
+- Optional follow-up: assign `relatedProjectSlug` on orphan slugs (e.g. `cloud-agent-felt-like-hiring`)
 
 ---
 

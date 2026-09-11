@@ -108,8 +108,11 @@ describe("content-foundation inventory", () => {
     }
 
     const featured = listed.filter((article) => article.featured);
-    expect(featured.length).toBeGreaterThan(0);
-    expect(featured.length).toBeLessThanOrEqual(3);
+    const homepageWritingSlugs = homepage.writing.map((item) => item.slug);
+    expect(new Set(featured.map((article) => article.slug))).toEqual(
+      new Set(homepageWritingSlugs),
+    );
+    expect(featured.length).toBe(3);
     expect(featured.length).toBeLessThan(listed.length);
     expect(
       new Set(featured.map((article) => article.relatedProjectSlug)).size,
