@@ -57,7 +57,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <a className="skip-link" href="#content">
           Skip to content
         </a>
-        <SiteHeader />
+        <SiteHeader email={profile.email} />
         {children}
         <SiteFooter profile={profile} />
       </body>

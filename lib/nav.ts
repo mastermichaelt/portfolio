@@ -1,8 +1,6 @@
 export const primaryNav = [
-  { href: "/", label: "Home" },
   { href: "/projects", label: "Projects" },
   { href: "/articles", label: "Articles" },
-  { href: "/ecosystem", label: "Ecosystem" },
   { href: "/about", label: "About" },
 ] as const;
 

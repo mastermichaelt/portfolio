@@ -7,7 +7,7 @@ import { isNavCurrent, primaryNav } from "@/lib/nav";
 
 const DESKTOP_MIN = "(min-width: 921px)";
 
-export function SiteHeader() {
+export function SiteHeader({ email }: { email: string }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [menuPath, setMenuPath] = useState(pathname);
@@ -28,14 +28,12 @@ export function SiteHeader() {
   }, []);
 
   const closeMenu = () => setOpen(false);
-  // Mobile: Home · Projects · Articles + Contact CTA (same /about destination as desktop).
-  const mobileNav = primaryNav.filter((item) => item.href !== "/about");
 
   return (
     <header className="topnav">
       <div className="container topnav-inner">
         <Link className="logo" href="/" onClick={closeMenu}>
-          Michael Truong <em>· systems</em>
+          Michael Truong
         </Link>
         <nav aria-label="Primary">
           {primaryNav.map((item) => (
@@ -50,9 +48,9 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <Link className="btn btn-primary topnav-cta" href="/about">
-          Contact
-        </Link>
+        <a className="topnav-address" href={`mailto:${email}`}>
+          {email}
+        </a>
         <button
           className="nav-toggle"
           type="button"
@@ -61,7 +59,7 @@ export function SiteHeader() {
           aria-label={open ? "Close menu" : "Open menu"}
           onClick={() => setOpen((value) => !value)}
         >
-          <span />
+          Menu
         </button>
       </div>
       <div
@@ -69,7 +67,7 @@ export function SiteHeader() {
         className={open ? "mobile-nav open" : "mobile-nav"}
         hidden={!open}
       >
-        {mobileNav.map((item) => (
+        {primaryNav.map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -81,14 +79,9 @@ export function SiteHeader() {
             {item.label}
           </Link>
         ))}
-        <Link
-          className="btn btn-primary mobile-nav-cta"
-          href="/about"
-          onClick={closeMenu}
-          aria-current={isNavCurrent(pathname, "/about") ? "page" : undefined}
-        >
-          Contact
-        </Link>
+        <a className="address" href={`mailto:${email}`} onClick={closeMenu}>
+          {email}
+        </a>
       </div>
     </header>
   );

@@ -112,13 +112,15 @@ Honest one-off spacing (distinct roles, single use) may stay as `style={{}}` or 
 | `.tag`                                           | Neutral topic chip, square                                                                                |
 | `.text-link`                                     | Links embedded in prose; underlined by default, accent on hover/focus                                     |
 | `.topnav`                                        | Opaque `--bg`, hairline, no blur                                                                          |
-| Hero / log-row / work-card                       | Page composition patterns already owned by CSS                                                            |
+| Hero / log-row / work-card                       | Inner-page composition patterns already owned by CSS                                                      |
+| `.section-head` / `.anchor-pair` / `.case-grid`  | Homepage 1b composition — hairline section rules, equal-weight anchors, two-column case panels            |
+| `.spine` / `.figures` / `.list-row`              | Homepage method spine, figure/scope pair (CSS present even when unused), supporting/writing lists         |
 
 Default: **no cards in the hero**. Cards exist for interaction or dense grouped content (contact, TOC), not for decorative boxing.
 
 Focus rings are amber, 2px, 3px offset. Interactive rows and buttons keep a 44px minimum hit target.
 
-[`components/SystemsDiagram.tsx`](../components/SystemsDiagram.tsx) remains a content component (homepage hero until a later slice demotes it to `/ecosystem`). It uses the same hairline/square tokens — it is not a signature identity layer.
+[`components/SystemsDiagram.tsx`](../components/SystemsDiagram.tsx) is demoted from the homepage hero. Keep the component for `/ecosystem` (do not delete). Live orientation on that route is the React Flow canvases. It uses the same hairline/square tokens — it is not a signature identity layer.
 
 ## Evidence qualification
 

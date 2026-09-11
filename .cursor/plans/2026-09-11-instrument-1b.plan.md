@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: homepage-1b
     content: "PR: Rebuild homepage + header/footer to 1b composition; Editorial is a temporary CH 02 placeholder; logo=Home and Ecosystem leave primary nav (approved shell/IA); omit ledger, figures, route renames, Atlassian case study"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after last implementation slice: add # Shipped note, move plan to .cursor/plans/archive/2026-09-11-instrument-1b.plan.md"
     status: pending
