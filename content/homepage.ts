@@ -33,10 +33,10 @@ export const homepage: Homepage = {
       },
       figures: [
         {
-          value: "150+",
+          value: "175+",
           name: "monthly active players",
           scope:
-            "Live-product telemetry · resume phrasing uses 150+ as durable floor, not the rolling monthly-active-players snapshot",
+            "Live-product telemetry · resume phrasing uses 175+ as durable floor, not the rolling monthly-active-players snapshot",
           source: {
             inventory: "resumes/facts/codenames-ai-telemetry.yml",
             factId: "telemetry-model-experiments",

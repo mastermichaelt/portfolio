@@ -140,7 +140,7 @@ describe("content-foundation inventory", () => {
     }
 
     expect(figures.map((figure) => figure.value)).toEqual([
-      "150+",
+      "175+",
       "#1",
       ">10%",
       "9%–41%",
