@@ -8,20 +8,17 @@ todos:
   - id: content-metadata-profile
     content: "PR: Align site metadata and profile.bio with continuity framing (no AI-retraining read); no layout redesign"
     status: pending
+  - id: content-homepage-figures
+    content: "PR (H1 early correction): Re-read codenames-ai-telemetry.yml; fix homepage MAU figure (175+ vs 150+ vs omit) — first content slice after metadata"
+    status: pending
   - id: content-articles-corpus
     content: "PR: Fix articles corpus comment; add 6 missing DEV posts as non-featured inventory rows from baseline hub list"
     status: pending
-  - id: content-project-tiers
-    content: "PR: Demote editorial-workflow featured flag; update projects.ts tier comments to match homepage supporting band"
-    status: pending
-  - id: content-homepage-figures
-    content: "PR: Resolve H1 MAU figure on homepage (175+ vs 150+ vs omit) after human decision; preserve figure/scope pairs"
+  - id: redesign-prep-projects
+    content: "Docs-only PR: Projects Claude Design handoff + tier intent (Editorial not featured; featured semantics redesigned with Projects)"
     status: pending
   - id: content-writing-curation
     content: "PR: Unify homepage.writing and articles.featured after H3 human decision on curation rule"
-    status: pending
-  - id: redesign-prep-projects
-    content: "Docs-only PR: Refresh Projects Claude Design handoff in docs/content-evidence-migration.md after content slices land"
     status: pending
   - id: redesign-prep-about
     content: "Docs-only PR: Curate About redesign evidence brief in docs/content-evidence-migration.md (no About page edits)"
@@ -43,11 +40,10 @@ isProject: false
 | ------------------------ | --------------------- | ------------------------------------------------------ |
 | plan-review              | Plan-only PR          | Do not implement. Stop after opening the plan-only PR. |
 | content-metadata-profile | Open PR only          | Do not merge. Stop after opening the PR.               |
-| content-articles-corpus  | Open PR only          | Do not merge. Stop after opening the PR.               |
-| content-project-tiers    | Open PR only          | Do not merge. Stop after opening the PR.               |
 | content-homepage-figures | Open PR only          | Do not merge. Stop after opening the PR.               |
-| content-writing-curation | Open PR only          | Do not merge. Stop after opening the PR.               |
+| content-articles-corpus  | Open PR only          | Do not merge. Stop after opening the PR.               |
 | redesign-prep-projects   | Open PR only          | Do not merge. Stop after opening the PR.               |
+| content-writing-curation | Open PR only          | Do not merge. Stop after opening the PR.               |
 | redesign-prep-about      | Open PR only          | Do not merge. Stop after opening the PR.               |
 | redesign-prep-articles   | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure             | Open PR only          | Do not merge. Stop after opening the PR.               |
@@ -65,6 +61,22 @@ The repository integration branch is `main`. Each slice starts from latest `orig
 **Before opening the PR:** verify the branch represents only this slice — previous-slice work is present through the integration branch, not through branch ancestry.
 
 **After opening the PR:** verify the GitHub PR base branch is `main` and the diff does not include previous-slice work except through merged `main`.
+
+---
+
+## Post-merge execution order
+
+After this plan merges, run implementation slices in this order (each from latest `origin/main`, Open PR only):
+
+1. `content-metadata-profile` — continuity framing in metadata + bio
+2. **`content-homepage-figures`** — **H1 early correction** (do not leave possibly unsupported `175+` on the live homepage)
+3. `content-articles-corpus` — DEV post inventory sync
+4. `redesign-prep-projects` — Claude Design handoff + tier/`featured` intent (no incumbent Projects model churn)
+5. `content-writing-curation` — after **H3** human decision
+6. `redesign-prep-about`, `redesign-prep-articles` — docs-only (may parallelize after prerequisites)
+7. `plan-closure` — after all slices complete
+
+**Removed from safe-now:** `content-project-tiers` — see [Runtime audit: `projects.featured`](#runtime-audit-projectsfeatured) below.
 
 ---
 
@@ -86,13 +98,12 @@ flowchart TD
   end
   subgraph safeNow [safe-now content slices]
     meta[content-metadata-profile]
+    figures[content-homepage-figures H1 early]
     corpus[content-articles-corpus]
-    tiers[content-project-tiers]
-    figures[content-homepage-figures H1 gate]
     writing[content-writing-curation H3 gate]
   end
   subgraph prep [docs-only redesign prep]
-    prepP[redesign-prep-projects]
+    prepP[redesign-prep-projects tier intent]
     prepA[redesign-prep-about]
     prepW[redesign-prep-articles]
   end
@@ -101,24 +112,54 @@ flowchart TD
     designA[Claude Design About]
     designW[Claude Design Articles]
   end
-  planReview --> safeNow
-  safeNow --> prep
-  prep -.-> deferred
+  planReview --> meta
+  meta --> figures
+  figures --> corpus
+  corpus --> prepP
+  prepP -.-> designP
+  writing -.-> prepW
 ```
+
+### Runtime audit: `projects.featured`
+
+Audited 2026-09-11 (on-portfolio):
+
+| Consumer                           | Uses `projects.featured`?                                                                       |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Homepage (`app/page.tsx`)          | **No** — uses `content/homepage.ts` (`channels`, `supporting`; Editorial already demoted there) |
+| `/projects` index                  | **No** — `listProjects()` renders all four projects in a grid; no featured filter               |
+| Case-study routes                  | **No**                                                                                          |
+| Ecosystem                          | **No**                                                                                          |
+| `tests/content-foundation.test.ts` | **Yes** — asserts two featured slugs (`codenames-ai`, `editorial-workflow`)                     |
+
+**Conclusion:** No current runtime outside the incumbent `/projects` content model and its test assertion depends on `editorial-workflow.featured`. Flipping the flag now is churn on a model Claude Design will replace. **Fold tier/`featured` intent into `redesign-prep-projects`** (Editorial is supporting, not co-equal with Codenames/Atlassian).
 
 ### Human-review gates (not decided — do not pretend resolved)
 
-| Id     | Decision                                                 | Blocks slice(s)                        |
-| ------ | -------------------------------------------------------- | -------------------------------------- |
-| H1     | MAU figure: `175+` vs `150+` vs omit                     | `content-homepage-figures`             |
-| H2     | Public post count: 14 vs 15 vs qualified wording         | `redesign-prep-articles`               |
-| H3     | Writing curation rule (homepage vs featured vs DEV pins) | `content-writing-curation`             |
-| H4     | DEV profile tagline sync                                 | External — not in-repo                 |
-| H5     | Atlassian case-study slug/title                          | Claude Design Projects (deferred)      |
-| H6     | Ledger “Informed Pull Requests” verify                   | About prep, off-home reuse             |
-| H7–H12 | See audit doc §7                                         | Various redesign / optional promotions |
+| Id     | Decision                                                 | Resolution                                                                                                                                                                                                                                  |
+| ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **H1** | MAU figure: `175+` vs `150+` vs omit                     | **Resolved by `content-homepage-figures`** (second slice after plan merge) — see [H1 decision rule](#h1-decision-rule-mau-figure) below. Leaving `175+` published while deferring this slice is **unacceptable** once the plan is approved. |
+| H2     | Public post count: 14 vs 15 vs qualified wording         | `redesign-prep-articles`                                                                                                                                                                                                                    |
+| H3     | Writing curation rule (homepage vs featured vs DEV pins) | `content-writing-curation` — agent stops if unresolved                                                                                                                                                                                      |
+| H4     | DEV profile tagline sync                                 | External — not in-repo                                                                                                                                                                                                                      |
+| H5     | Atlassian case-study slug/title                          | Claude Design Projects (deferred)                                                                                                                                                                                                           |
+| H6     | Ledger “Informed Pull Requests” verify                   | About prep, off-home reuse                                                                                                                                                                                                                  |
+| H7–H12 | See audit doc §7                                         | Various redesign / optional promotions                                                                                                                                                                                                      |
 
-Agents executing gated slices must **stop and escalate** if the gate is unresolved.
+Agents executing **H3** must **stop and escalate** if the gate is unresolved. **H1** is not deferred — the `content-homepage-figures` agent applies the decision rule after re-reading live inventory.
+
+#### H1 decision rule (MAU figure)
+
+The private `resumes` repo may be unreadable from the agent VM (GitHub API 404). The **`content-homepage-figures` slice must re-read** live `resumes/facts/codenames-ai-telemetry.yml` before publishing.
+
+| Outcome                                                                                | Action                                                                                                     |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Live inventory documents **`175+` as a durable floor** (fact ID + qualifier in source) | Keep `175+`; update `source` fields to match live fact ID/metricId; scope line must quote source qualifier |
+| Live inventory supports only **`150+` floor** (`telemetry-model-experiments`)          | **Revert promptly** to `150+` with durable-floor scope (baseline §2)                                       |
+| Neither value is supportable as public copy                                            | **Omit** the MAU figure (empty figures array entry removed; keep `#1` branded search if still valid)       |
+| Exact snapshot **`165`** (`monthly-active-players`)                                    | **Never publish** — fact comment forbids pasting into prose                                                |
+
+Baseline reference (2026-09-11): `telemetry-model-experiments` action text uses **150+**; `175+` from [#46](https://github.com/mastermichaelt/portfolio/pull/46) is **not** in the baseline table until live inventory confirms it.
 
 ### Explicitly deferred (out of this plan’s implementation slices)
 
@@ -130,6 +171,7 @@ Agents executing gated slices must **stop and escalate** if the gate is unresolv
 - Savepoints as a portfolio project
 - Optional `content-project-figures` (Codenames figures on case-study page) — only after Projects redesign or explicit type addition
 - Optional `content-related-writing` (wire `relatedProjectSlug` on case-study pages) — only if existing template supports it without layout redesign
+- **`content-project-tiers`** (standalone `featured` flip) — folded into `redesign-prep-projects`; homepage uses `content/homepage.ts`, not `projects.featured`
 
 ---
 
@@ -200,6 +242,38 @@ Agents executing gated slices must **stop and escalate** if the gate is unresolv
 
 ---
 
+## Slice — content-homepage-figures
+
+**Recommended authority:** Open PR only
+
+**Rationale:**
+
+- **H1 early correction** — `175+` MAU may be unsupported; leaving it on the live homepage until a late slice is unacceptable once this plan is approved
+- Figure/scope integrity is a `DESIGN.md` requirement; this is the **second slice** after `content-metadata-profile`
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Prerequisite:** `plan-review` merged; `content-metadata-profile` merged (recommended — may run in parallel only if metadata PR is already on `main`).
+
+**Goal:** Apply [H1 decision rule](#h1-decision-rule-mau-figure) to homepage CH 01 MAU figure after re-reading live inventory.
+
+**Scope (only):**
+
+- `content/homepage.ts` — CH 01 `figures[0]` value, name, scope, and `source` fields
+- `tests/content-foundation.test.ts`, `e2e/happy-path.spec.ts` — expect approved value and scope line
+
+**Out of scope:** Other CH 01/02 figures (`#1`, `>10%`, `9%–41%`) unless inventory drift found on re-read.
+
+**Acceptance:**
+
+- MAU figure matches H1 decision rule outcome (keep `175+` only with live fact backing, else `150+` or omit)
+- Every remaining figure retains value + name + scope; scope never truncated
+- No `game_started` event name in homepage JSON (existing test)
+
+**Verification:** `npm run lint`, `format:check`, `typecheck`, `test`, `test:coverage`, `build`, `test:e2e` (375px figure scope visible).
+
+---
+
 ## Slice — content-articles-corpus
 
 **Recommended authority:** Open PR only
@@ -211,7 +285,7 @@ Agents executing gated slices must **stop and escalate** if the gate is unresolv
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Prerequisite:** `plan-review` merged.
+**Prerequisite:** `plan-review` merged; `content-homepage-figures` merged (H1 corrected before corpus expansion).
 
 **Goal:** Fix provenance comment and add missing DEV posts as non-featured articles.
 
@@ -240,76 +314,6 @@ Assign `relatedProjectSlug` where evidence supports it; leave unset rather than 
 - Featured count unchanged until `content-writing-curation`
 
 **Verification:** `npm run lint`, `format:check`, `typecheck`, `test`, `test:coverage`, `build`; content-foundation article tests.
-
----
-
-## Slice — content-project-tiers
-
-**Recommended authority:** Open PR only
-
-**Rationale:**
-
-- Resolves homepage vs `/projects` flagship inconsistency without Projects page redesign
-- Editorial demotion matches Instrument 1b homepage supporting band
-
-**Agent instruction:** Do not merge. Stop after opening the PR.
-
-**Prerequisite:** `plan-review` merged.
-
-**Goal:** Align project `featured` flags and comments with tier intent.
-
-**Scope (only):**
-
-- `content/projects.ts` — set `editorial-workflow.featured: false`; keep `codenames-ai.featured: true`
-- Update file header comment to describe first-class vs supporting tiers (Codenames first-class; editorial/renovate/resume-generator supporting)
-
-**Evidence:** Homepage `supporting` order in `content/homepage.ts`; audit doc §6 retire/demote.
-
-**Acceptance:**
-
-- `tests/content-foundation.test.ts` updated: one featured project (`codenames-ai` only)
-- No case-study body copy changes required for merge-safety
-
-**Verification:** `npm run lint`, `format:check`, `typecheck`, `test`, `test:coverage`, `build`.
-
----
-
-## Slice — content-homepage-figures
-
-**Recommended authority:** Open PR only
-
-**Rationale:**
-
-- Figure/scope integrity is a `DESIGN.md` requirement; MAU value is evidence-sensitive
-- Single-metric correction is merge-safe on existing homepage panels
-
-**Agent instruction:** Do not merge. Stop after opening the PR.
-
-**Prerequisite:** `plan-review` merged; **H1 resolved by human** (agent stops if not).
-
-**Goal:** Publish only human-approved MAU figure (or omit) on homepage CH 01.
-
-**Scope (only):**
-
-- `content/homepage.ts` — CH 01 `figures[0]` value/scope/source
-- `tests/content-foundation.test.ts`, `e2e/happy-path.spec.ts` — expect approved value and scope line
-
-**Evidence (re-read before edit):**
-
-| Option       | Source                                                                                 |
-| ------------ | -------------------------------------------------------------------------------------- |
-| `150+` floor | `resumes/facts/codenames-ai-telemetry.yml` `telemetry-model-experiments` (baseline §2) |
-| `165`        | `monthly-active-players` — **do not publish** per fact comment                         |
-| `175+`       | **Not in baseline table** — requires live inventory confirmation or reject             |
-
-Other CH 01/02 figures (`#1`, `>10%`, `9%–41%`) unchanged unless inventory drift found on re-read.
-
-**Acceptance:**
-
-- Every figure retains value + name + scope; scope never truncated
-- No `game_started` event name in homepage JSON (existing test)
-
-**Verification:** `npm run lint`, `format:check`, `typecheck`, `test`, `test:coverage`, `build`, `test:e2e` (375px figure scope visible).
 
 ---
 
@@ -360,9 +364,9 @@ Other CH 01/02 figures (`#1`, `>10%`, `9%–41%`) unchanged unless inventory dri
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Prerequisite:** Safe-now content slices merged (`content-metadata-profile` through `content-writing-curation` as applicable).
+**Prerequisite:** `content-metadata-profile`, `content-homepage-figures`, and `content-articles-corpus` merged.
 
-**Goal:** Refresh Projects Claude Design handoff in audit doc after content truth stabilizes.
+**Goal:** Refresh Projects Claude Design handoff and document tier/`featured` intent for the upcoming Projects redesign — **without** flipping `projects.ts` flags on the incumbent model.
 
 **Scope (only):**
 
@@ -374,6 +378,11 @@ Other CH 01/02 figures (`#1`, `>10%`, `9%–41%`) unchanged unless inventory dri
 - Atlassian experiment measurement thesis + fact IDs (`cross-flow-experiment-measurement.yml`, `statsig-reliability.yml`, `loom-event-pipeline.yml`, `loom-acquisition.yml`, `admin-hub-experimentation.yml`, `post-office-ml-surfaces.yml`, `em-growth-delivery.yml`, AIM facts)
 - Codenames thesis + fact IDs (`codenames-ai-telemetry.yml`, `codenames-ai-e2e.yml`)
 - Supporting tier: editorial, renovate, agent-native, resume-generator
+- **Tier / `featured` intent (folded from removed `content-project-tiers`):**
+  - Editorial workflow is **supporting**, not co-equal with Codenames or Atlassian
+  - Homepage already demotes Editorial via `content/homepage.ts` `supporting[]` — independent of `projects.featured`
+  - **`featured` semantics will be redesigned with Claude Design Projects** — do not pre-flip `editorial-workflow.featured: false` on the incumbent four-card `/projects` model
+  - Runtime audit: `/projects` lists all projects equally; only `tests/content-foundation.test.ts` asserts two featured — update that test **with** Projects redesign, not in a standalone safe-now slice
 - Explicit non-goals from this plan’s deferred list
 
 **Acceptance:**
@@ -488,12 +497,28 @@ Deliverables: align app/layout.tsx and app/page.tsx metadata plus content/profil
 Verification: npm run lint, format:check, typecheck, test, test:coverage, build, test:e2e home hero.
 ```
 
+### content-homepage-figures
+
+```text
+@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
+
+Implement slice content-homepage-figures only (H1 early correction). Prerequisites: plan-review merged; content-metadata-profile merged (or on main). Do not start later slices. Do not archive the plan.
+
+Authority: Open PR only — implement and open the PR; do not merge.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: re-read live resumes/facts/codenames-ai-telemetry.yml; apply H1 decision rule to content/homepage.ts CH 01 MAU figure (keep 175+ only with live fact backing, else revert to 150+ or omit); update tests. Mark content-homepage-figures completed in plan frontmatter in this PR.
+
+Verification: npm run lint, format:check, typecheck, test, test:coverage, build, test:e2e figure scope at 375px.
+```
+
 ### content-articles-corpus
 
 ```text
 @.cursor/plans/2026-09-11-content-evidence-migration.plan.md
 
-Implement slice content-articles-corpus only. Prerequisite: plan-review merged. Do not start later slices. Do not archive the plan.
+Implement slice content-articles-corpus only. Prerequisites: plan-review merged; content-homepage-figures merged. Do not start later slices. Do not archive the plan.
 
 Authority: Open PR only — implement and open the PR; do not merge.
 
@@ -502,38 +527,6 @@ Topology: start from latest origin/main; branch represents only this slice; PR b
 Deliverables: fix content/articles.ts corpus comment; add 6 missing DEV posts as non-featured rows from baseline hub list. Do not change featured flags. Mark content-articles-corpus completed in plan frontmatter in this PR.
 
 Verification: npm run lint, format:check, typecheck, test, test:coverage, build; content-foundation article tests.
-```
-
-### content-project-tiers
-
-```text
-@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
-
-Implement slice content-project-tiers only. Prerequisite: plan-review merged. Do not start later slices. Do not archive the plan.
-
-Authority: Open PR only — implement and open the PR; do not merge.
-
-Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
-
-Deliverables: demote editorial-workflow featured flag; update content/projects.ts tier comments. Mark content-project-tiers completed in plan frontmatter in this PR.
-
-Verification: npm run lint, format:check, typecheck, test, test:coverage, build.
-```
-
-### content-homepage-figures
-
-```text
-@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
-
-Implement slice content-homepage-figures only. Prerequisites: plan-review merged; H1 human gate resolved (stop and escalate if not). Do not start later slices. Do not archive the plan.
-
-Authority: Open PR only — implement and open the PR; do not merge.
-
-Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
-
-Deliverables: apply human-approved MAU figure (or omit) in content/homepage.ts; update tests. Re-read resumes/facts/codenames-ai-telemetry.yml before editing. Mark content-homepage-figures completed in plan frontmatter in this PR.
-
-Verification: npm run lint, format:check, typecheck, test, test:coverage, build, test:e2e figure scope at 375px.
 ```
 
 ### content-writing-curation
@@ -557,13 +550,13 @@ Verification: npm run lint, format:check, typecheck, test, test:coverage, build,
 ```text
 @.cursor/plans/2026-09-11-content-evidence-migration.plan.md
 
-Implement slice redesign-prep-projects only. Prerequisites: safe-now content slices merged as applicable. Do not start plan-closure. Do not archive the plan.
+Implement slice redesign-prep-projects only. Prerequisites: content-metadata-profile, content-homepage-figures, and content-articles-corpus merged. Do not start plan-closure. Do not archive the plan.
 
 Authority: Open PR only — docs-only PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: refresh Projects Claude Design handoff in docs/content-evidence-migration.md. No content/* or app/* edits. Mark redesign-prep-projects completed in plan frontmatter in this PR.
+Deliverables: refresh Projects Claude Design handoff in docs/content-evidence-migration.md; document tier/featured intent (Editorial supporting; featured semantics redesigned with Projects — do not pre-flip projects.ts featured flags). No content/* or app/* edits. Mark redesign-prep-projects completed in plan frontmatter in this PR.
 
 Verification: npm run format:check.
 ```
