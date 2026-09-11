@@ -3,8 +3,7 @@
   position: sticky;
   top: 0;
   z-index: 40;
-  background: color-mix(in oklch, var(--bg) 86%, transparent);
-  backdrop-filter: blur(14px);
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 
@@ -12,58 +11,55 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-block: 14px;
-  gap: 16px;
+  padding-block: 22px;
+  gap: var(--gap-md);
 }
 
 .topnav .logo {
-  font-family: var(--font-display-stack);
-  font-size: 20px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-family: var(--font-mono-stack);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
 .topnav .logo em {
-  font-style: italic;
+  font-style: normal;
   color: var(--muted);
   font-weight: 400;
 }
 
 .topnav nav {
   display: flex;
-  gap: var(--gap-lg);
+  gap: 32px;
   flex-wrap: wrap;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
 }
 
 .topnav nav a {
-  font-size: 14px;
   color: var(--muted);
-  position: relative;
+  padding-bottom: 3px;
 }
 
-.topnav nav a:hover,
-.topnav nav a[aria-current="page"] {
+.topnav nav a:hover {
   color: var(--fg);
 }
 
-.topnav nav a[aria-current="page"]::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  height: 1.5px;
-  background: var(--accent);
+.topnav nav a[aria-current="page"] {
+  color: var(--fg);
+  border-bottom: 1px solid var(--accent);
 }
 
 .nav-toggle {
   display: none;
   width: 44px;
   height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  background: none;
   align-items: center;
   justify-content: center;
 }
@@ -96,13 +92,12 @@
 .mobile-nav {
   display: none;
   border-top: 1px solid var(--border);
-  background: var(--surface);
-  padding: 12px var(--gutter) 20px;
+  background: var(--bg);
+  padding: 0 0 12px;
 }
 
 .mobile-nav.open {
   display: grid;
-  gap: 4px;
 }
 
 .mobile-nav[hidden] {
@@ -113,14 +108,17 @@
   display: flex;
   align-items: center;
   min-height: 44px;
-  padding: 12px 10px;
-  border-radius: var(--radius);
+  padding: 16px var(--gutter);
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono-stack);
+  font-size: 13px;
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
   color: var(--muted);
 }
 
 .mobile-nav a:hover,
 .mobile-nav a[aria-current="page"] {
-  background: var(--fg-soft);
   color: var(--fg);
 }
 
@@ -128,7 +126,7 @@
 .mobile-nav a.mobile-nav-cta {
   justify-content: center;
   margin-top: 8px;
-  color: var(--surface);
+  color: var(--accent-ink);
   background: var(--accent);
   border-color: var(--accent);
 }
@@ -136,7 +134,7 @@
 .mobile-nav a.mobile-nav-cta:hover,
 .mobile-nav a.mobile-nav-cta[aria-current="page"] {
   background: color-mix(in oklch, var(--accent) 82%, black);
-  color: var(--surface);
+  color: var(--accent-ink);
 }
 
 .pagefoot {
@@ -161,7 +159,7 @@
 }
 
 .pagefoot a:hover {
-  color: var(--fg);
+  color: var(--accent);
 }
 
 /* Shared keyboard focus ring — docs/design-system.md § Accessibility */
@@ -207,23 +205,24 @@
 
 .btn-primary {
   background: var(--accent);
-  color: var(--surface);
+  color: var(--accent-ink);
   border-color: var(--accent);
 }
 
 .btn-primary:hover {
   background: color-mix(in oklch, var(--accent) 82%, black);
+  color: var(--accent-ink);
 }
 
 .btn-secondary {
   background: var(--surface);
   color: var(--fg);
   border-color: var(--border);
-  box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary:hover {
-  border-color: color-mix(in oklch, var(--fg) 28%, var(--border));
+  border-color: var(--border-strong);
+  color: var(--fg);
 }
 
 .btn-ghost {
@@ -250,22 +249,18 @@
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
   padding: 28px;
-  box-shadow: var(--shadow-sm);
 }
 
 .card-interactive {
   transition:
     border-color 0.15s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+    background 0.15s ease;
 }
 
 .card-interactive:hover {
-  border-color: color-mix(in oklch, var(--accent) 35%, var(--border));
-  box-shadow: var(--shadow);
-  transform: translateY(-2px);
+  background: var(--surface-2);
+  border-color: var(--border-strong);
 }
 
 .card-label {
@@ -279,7 +274,6 @@
   padding: 4px 10px;
   background: var(--accent-soft);
   color: var(--accent);
-  border-radius: 999px;
   font-family: var(--font-mono-stack);
   font-size: 11px;
   letter-spacing: 0.04em;
@@ -293,7 +287,6 @@
   background: transparent;
   color: var(--muted);
   border: 1px solid var(--border);
-  border-radius: 999px;
   font-size: 12px;
 }
 
@@ -305,10 +298,8 @@
 }
 
 .ph-img {
-  background:
-    linear-gradient(145deg, var(--accent-soft), var(--fg-soft)), var(--surface);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
   aspect-ratio: 16 / 10;
   display: grid;
   place-items: center;
@@ -317,7 +308,6 @@
   font-size: 12px;
   letter-spacing: 0.04em;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
 }
 
 .ph-img.diagram {
@@ -391,6 +381,7 @@
 .log-summary {
   margin: 6px 0 0;
   max-width: 62ch;
+  color: var(--fg-2);
 }
 
 .work-card {
@@ -408,8 +399,12 @@
 
 .work-card p {
   margin: 0;
-  color: var(--muted);
+  color: var(--fg-2);
   font-size: 15px;
+}
+
+.work-card .tag {
+  color: var(--muted);
 }
 
 .work-card .links {
@@ -441,7 +436,6 @@
   font-size: 13px;
   color: var(--muted);
   padding: 8px 10px;
-  border-radius: var(--radius);
   border-left: 2px solid transparent;
 }
 
@@ -462,7 +456,7 @@
 
 .detail-body {
   margin-top: var(--gap-sm);
-  color: var(--muted);
+  color: var(--fg-2);
   max-width: 62ch;
 }
 
@@ -477,7 +471,7 @@
 
 .evidence-item p {
   margin: 4px 0 0;
-  color: var(--muted);
+  color: var(--fg-2);
   font-size: 14px;
 }
 
@@ -512,7 +506,6 @@
 .text-link:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 2px;
 }
 
 .skill-row {
@@ -572,19 +565,11 @@
   .card-interactive {
     transition:
       border-color 0.15s ease,
-      box-shadow 0.2s ease;
-  }
-
-  .card-interactive:hover {
-    transform: none;
+      background 0.15s ease;
   }
 }
 
 @media (max-width: 920px) {
-  :root {
-    --gutter: 20px;
-  }
-
   .grid-2,
   .grid-1-2 {
     grid-template-columns: 1fr;

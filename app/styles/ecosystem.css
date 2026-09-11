@@ -17,8 +17,8 @@
 }
 
 .ecosystem-view:focus-visible {
-  box-shadow: 0 0 0 2px color-mix(in oklch, var(--accent) 45%, transparent);
-  border-radius: var(--radius);
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .ecosystem-view + .ecosystem-view {
@@ -29,8 +29,8 @@
 .ecosystem-talk-track {
   margin: 14px 0 0;
   padding: 12px 14px;
-  border-left: 2px solid color-mix(in oklch, var(--accent) 45%, var(--border));
-  color: var(--muted);
+  border-left: 2px solid var(--border-strong);
+  color: var(--fg-2);
   max-width: 62ch;
 }
 
@@ -44,11 +44,8 @@
   height: min(420px, 62vh);
   min-height: 280px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background:
-    linear-gradient(160deg, var(--fg-soft), transparent 42%), var(--surface);
+  background: var(--surface);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
   touch-action: none;
 }
 
@@ -77,8 +74,6 @@
 
 .ecosystem-canvas .react-flow__controls {
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
@@ -123,19 +118,15 @@
   gap: 6px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
   cursor: pointer;
 }
 
 .ecosystem-node.is-selected {
-  border-color: color-mix(in oklch, var(--accent) 55%, var(--border));
-  box-shadow: var(--shadow);
+  border-color: var(--accent);
 }
 
 .ecosystem-canvas .react-flow__node:focus-visible .ecosystem-node {
-  border-color: color-mix(in oklch, var(--accent) 55%, var(--border));
-  box-shadow: var(--shadow);
+  border-color: var(--accent);
 }
 
 .ecosystem-node-kind {
@@ -147,7 +138,7 @@
 .ecosystem-node-label {
   font-family: var(--font-display-stack);
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.25;
   color: var(--fg);
 }
@@ -192,7 +183,7 @@
 
 .ecosystem-panel p {
   margin: 0;
-  color: var(--muted);
+  color: var(--fg-2);
 }
 
 .ecosystem-panel p + p,
@@ -219,7 +210,6 @@
   gap: 8px;
   padding: 8px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
   background: var(--surface);
   color: var(--muted);
   font-family: var(--font-mono-stack);
@@ -264,4 +254,86 @@
   .ecosystem-canvas-compact {
     height: min(240px, 42vh);
   }
+}
+
+/* Systems diagram — hairline/square, no signature glow.
+   Homepage still renders this until homepage-1b demotes it to /ecosystem. */
+.sys-map-link {
+  display: block;
+}
+
+.sys-map {
+  display: flex;
+  flex-direction: column;
+  place-items: initial;
+  margin: 0;
+  padding: 10px 10px 0;
+  background: var(--surface);
+}
+
+.sys-map svg {
+  flex: 1;
+  min-height: 0;
+}
+
+.sys-edge-live {
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+
+.sys-edge-flow {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 3 11;
+}
+
+.sys-signal {
+  fill: var(--accent);
+  offset-path: path("M95 50 L200 138 L305 226 L410 314");
+  offset-rotate: 0deg;
+  offset-distance: 60%;
+}
+
+.sys-node rect {
+  fill: var(--surface);
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.sys-node-label {
+  font-family: var(--font-display-stack);
+  font-size: 14px;
+  font-weight: 600;
+  fill: var(--fg);
+}
+
+.sys-node-subtitle {
+  font-family: var(--font-mono-stack);
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  fill: var(--muted);
+}
+
+.sys-map-caption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 6px 14px;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sys-map-explore {
+  margin-left: auto;
+  color: var(--accent);
+}
+
+.sys-map-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
 }

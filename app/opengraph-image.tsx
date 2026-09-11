@@ -18,11 +18,10 @@ export default function OpenGraphImage() {
         flexDirection: "column",
         justifyContent: "space-between",
         padding: "72px 80px",
-        background: "#f6f2eb",
-        backgroundImage:
-          "radial-gradient(900px 420px at 12% -10%, rgba(92, 115, 89, 0.16), transparent 55%), radial-gradient(700px 360px at 92% 0%, rgba(26, 25, 22, 0.06), transparent 50%)",
-        color: "#1a1916",
-        fontFamily: "Georgia, 'Times New Roman', serif",
+        background: "#121110",
+        color: "#ece9e2",
+        fontFamily:
+          "IBM Plex Sans, system-ui, -apple-system, 'Segoe UI', sans-serif",
       }}
     >
       <div
@@ -31,15 +30,15 @@ export default function OpenGraphImage() {
           fontSize: 28,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: "#5c7359",
-          fontFamily: "ui-monospace, Menlo, monospace",
+          color: "#d9a441",
+          fontFamily: "IBM Plex Mono, ui-monospace, Menlo, monospace",
         }}
       >
         Senior software engineer · Sydney
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <div
-          style={{ fontSize: 84, lineHeight: 1.05, letterSpacing: "-0.03em" }}
+          style={{ fontSize: 84, lineHeight: 1.05, letterSpacing: "-0.035em" }}
         >
           Michael Truong
         </div>
@@ -47,7 +46,7 @@ export default function OpenGraphImage() {
           style={{
             fontSize: 34,
             lineHeight: 1.35,
-            color: "#6e6860",
+            color: "#bdb7ac",
             maxWidth: 820,
           }}
         >
@@ -59,8 +58,8 @@ export default function OpenGraphImage() {
         style={{
           display: "flex",
           fontSize: 24,
-          color: "#6e6860",
-          fontFamily: "ui-monospace, Menlo, monospace",
+          color: "#8d877c",
+          fontFamily: "IBM Plex Mono, ui-monospace, Menlo, monospace",
         }}
       >
         portfolio-multipliers-dev.vercel.app

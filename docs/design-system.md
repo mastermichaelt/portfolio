@@ -6,7 +6,7 @@ Production visual system for this portfolio. Change **values** in the token laye
 
 | Layer                   | Normative home                                      | Role                                                                                    |
 | ----------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Token values            | [`app/styles/tokens.css`](../app/styles/tokens.css) | Hex/OKLch, spacing scale, type scale, radii — edit literal values here                  |
+| Token values            | [`app/styles/tokens.css`](../app/styles/tokens.css) | Hex, spacing scale, type scale, radii — edit literal values here                        |
 | Implementation patterns | `app/styles/*` + React components                   | How tokens are applied (classes, chrome, page patterns)                                 |
 | Guidance / rationale    | This file                                           | Principles, semantic meaning, accent vs muted, accessibility — not a second value table |
 
@@ -16,61 +16,73 @@ Do **not** copy every token hex into this document — tables that duplicate CSS
 
 ## Visual principles
 
-Seeded from the pre-production brand posture that landed in production tokens:
+1. **Dark only** — near-black ground (`--bg`), one-step `--surface` / `--surface-2`. There is no light theme.
+2. **Single amber signal** — `--accent` for primary signals only. Aim for no more than four amber elements in a viewport.
+3. **No elevation** — hairline `--border` only. `--shadow` / `--shadow-sm` are `none`. No glow, gradient, or blur.
+4. **Square** — `--radius` and `--radius-lg` are `0`. Existing card/pill/tag classes keep their names and become square.
+5. **Hairline rhythm** — full-width 1px rules and 1px gaps over `--border` carry structure, not cards or shadows.
+6. **Evidence qualification** — a figure and its scope are one block; never show a number without its qualifier.
+7. **Restrained instrument vocabulary** — channel ids, section-head technical labels, mono dates. Do not extend into gauges, terminals, or scanlines.
+8. **Predominantly 4px/8px-derived spacing** — `--gap-xs` … `--gap-2xl` are the shared scale; `--gutter` tightens at 920px and 600px.
 
-1. **Warm neutrals** — page background (`--bg`) and surface (`--surface`) stay paper-warm; ink (`--fg`) stays soft-black, not pure black.
-2. **Single sage accent** — `--accent` for primary signals only (eyebrow, primary CTA). Aim for ≤2 primary accent uses per screen.
-3. **Soft depth** — hairline `--border`; `--shadow` / `--shadow-sm` only on interactive surfaces (cards, secondary buttons). Avoid stacked decorative shadows.
-4. **Progressive disclosure** — case studies and evidence packs favor scannable sections over dense dumps.
-5. **Predominantly 4px/8px rhythm** — spacing tokens are 4px/8px-derived (`--gap-xs` … `--gap-2xl`), not a strict multiples-of-8 scale (`--gap-sm` is 12px, `--gap-md` is 20px); radii stay modest (`--radius`, `--radius-lg`).
-6. **Systems-map identity** — the brand mark reads "· systems," so the site carries a light graph motif: soft ambient brand light across the top of the page, the hero as a live rendering of the ecosystem's System overview spine, and small nodes where sections meet. Keep it a whisper behind content, never a foreground pattern or texture. See [Signature — systems map](#signature--systems-map).
+The sage-on-paper canvas, serif display stack, and systems-map signature motif (ambient brand light, live spine animation, section connector nodes) are retired.
 
 ## Color token roles
 
-| Token           | Role                                                           |
-| --------------- | -------------------------------------------------------------- |
-| `--bg`          | Page canvas                                                    |
-| `--surface`     | Raised panels (cards, mobile nav sheet, secondary button fill) |
-| `--fg`          | Primary text and interactive ink                               |
-| `--muted`       | Secondary copy, meta, nav idle state                           |
-| `--border`      | Hairline rules and control outlines                            |
-| `--accent`      | Primary brand signal (eyebrow, primary CTA, active indicators) |
-| `--accent-soft` | Soft accent wash (pills, diagram fills)                        |
-| `--fg-soft`     | Soft ink wash (hover washes, diagram fills)                    |
-| `--shadow*`     | Elevation on interactive surfaces only                         |
-| `--edge-live`   | The live spine edge the signal travels                         |
-| `--signal`      | The moving signal along the spine (aliases `--accent`)         |
+| Token             | Role                                                                 |
+| ----------------- | -------------------------------------------------------------------- |
+| `--bg`            | Page canvas                                                          |
+| `--surface`       | Panels (cards, canvases, secondary button fill)                      |
+| `--surface-2`     | Hover wash and inline-code fill, one step above `--surface`          |
+| `--fg`            | Primary text and interactive ink                                     |
+| `--fg-2`          | Body copy inside panels, leads, supporting sentences                 |
+| `--muted`         | Meta, labels, idle nav — **contrast floor** (5.26:1 on `--bg`)       |
+| `--muted-strong`  | Scope / qualifier lines (above the floor)                            |
+| `--border`        | Hairline rules and 1px panel gaps                                    |
+| `--border-strong` | Stronger rules (scope bar, control outlines)                         |
+| `--rule`          | Section-head rule (aliases `--fg`)                                   |
+| `--accent`        | Primary brand signal (eyebrow, current nav, figures, address)        |
+| `--accent-ink`    | Ink on primary fill (buttons) — not `--surface`                      |
+| `--accent-soft`   | Soft accent wash (pills)                                             |
+| `--fg-soft`       | Soft ink wash (hover fills)                                          |
+| `--shadow*`       | Always `none` — kept so existing `box-shadow` declarations are inert |
 
-Derived hover sage uses `color-mix` with `--accent` in component CSS — keep that pattern rather than inventing a second accent token unless contrast needs force it.
+Do not darken `--muted`; it is the floor, not a starting point. Derived hover amber uses `color-mix` with `--accent` in component CSS — keep that pattern rather than inventing a second accent token.
 
 ### Accent vs muted
 
-- **Accent:** primary CTA fill, eyebrow, current-nav underline, TOC active border, contact links.
-- **Muted:** leads, meta, idle nav, card body copy, tags.
+- **Accent:** eyebrow, current-nav underline, primary CTA fill, TOC active border, contact links, outbound arrows.
+- **Muted:** meta, idle nav, labels, dates.
+- **`--fg-2`:** leads and panel body copy — not `--muted`, so reading text stays above the floor with room to spare.
 - Do not tint large text blocks with accent. Do not use accent for decorative chrome that is not a primary signal.
+- Primary fill text uses `--accent-ink` so amber buttons stay readable on dark ground.
 
 ## Typography roles
 
 **Stacks** (from `tokens.css`, faces loaded in `app/layout.tsx`):
 
-- `--font-display-stack` — display / headings / brand mark
-- `--font-body-stack` — body UI
-- `--font-mono-stack` — eyebrow, meta, pills
+- `--font-display-stack` — aliases the sans stack (headings, brand mark)
+- `--font-body-stack` — IBM Plex Sans (body UI)
+- `--font-mono-stack` — IBM Plex Mono (eyebrow, meta, pills, technical ids)
+
+Newsreader and Source Sans are retired.
 
 **Classes / elements:**
 
-| Class / element | Role                                          |
-| --------------- | --------------------------------------------- |
-| `.brand-mark`   | Hero identity (name as brand)                 |
-| `.h1` / `h1`    | Page title scale (`--fs-h1`)                  |
-| `.h2` / `h2`    | Section title scale (`--fs-h2`)               |
-| `.h3` / `h3`    | Card / list title scale (`--fs-h3`)           |
-| `.lead`         | Supporting sentence under a title (`--muted`) |
-| `.positioning`  | Short display positioning line                |
-| `.eyebrow`      | Mono uppercase accent label                   |
-| `.meta`         | Mono secondary metadata                       |
+| Class / element | Role                                         |
+| --------------- | -------------------------------------------- |
+| `.brand-mark`   | Hero identity (name as brand)                |
+| `.h1` / `h1`    | Page title scale (`--fs-h1`)                 |
+| `.h2` / `h2`    | Section title scale (`--fs-h2`)              |
+| `.h3` / `h3`    | Card / list title scale (`--fs-h3`)          |
+| `.lead`         | Supporting sentence under a title (`--fg-2`) |
+| `.positioning`  | Short display positioning line               |
+| `.eyebrow`      | Mono uppercase accent label (`--fs-label`)   |
+| `.meta`         | Mono secondary metadata                      |
 
-Size tokens: `--fs-h1` … `--fs-meta`. Prefer these over one-off `font-size` unless a surface is intentionally unique (e.g. a slightly smaller about-page brand mark).
+Size tokens: `--fs-h1` … `--fs-meta`, plus `--fs-figure` and `--fs-label`. Prefer these over one-off `font-size` unless a surface is intentionally unique (e.g. a slightly smaller about-page brand mark).
+
+Display headings use `--tracking-tight`. Labels use `--tracking-label` (wide, uppercase). Figures use tabular numerals.
 
 ## Spacing and measure
 
@@ -84,50 +96,47 @@ Size tokens: `--fs-h1` … `--fs-meta`. Prefer these over one-off `font-size` un
 | `.measure`                   | Long body / summary measure (~62ch)                                  |
 | `.measure-intro`             | Short section-intro column (~40ch) — not the same role as 34ch lines |
 | `.lead-follow`               | Lead that sits under a title with shared top spacing                 |
-| `.hero-cta`                  | Hero CTA row; includes shared top margin (28px exception vs scale)   |
+| `.hero-cta`                  | Hero CTA row; includes shared top margin                             |
 | `.hero-compact`              | Index/about heroes with tighter bottom padding (`--gap-lg`)          |
-| `.hero-case`                 | Case-study heroes with slightly deeper bottom padding (40px)         |
+| `.hero-case`                 | Case-study heroes with slightly deeper bottom padding                |
 
 Honest one-off spacing (distinct roles, single use) may stay as `style={{}}` or a narrowly named class — do not invent a utility vocabulary that flattens different layout needs.
 
 ## Component posture
 
-| Pattern                                          | When appropriate                                                      |
-| ------------------------------------------------ | --------------------------------------------------------------------- |
-| `.card` / `.card-interactive`                    | Interactive containers (project tiles, TOC, contact panel)            |
-| `.btn-primary` / `.btn-secondary` / `.btn-ghost` | CTAs; primary = accent fill; secondary = surface + border             |
-| `.pill`                                          | Kind / status chip with accent wash                                   |
-| `.tag`                                           | Neutral topic chip                                                    |
-| `.text-link`                                     | Links embedded in prose; underlined by default, accent on hover/focus |
-| Hero / log-row / work-card                       | Page composition patterns already owned by CSS                        |
+| Pattern                                          | When appropriate                                                                                          |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `.card` / `.card-interactive`                    | Interactive containers (project tiles, TOC, contact panel) — square, unshadowed; hover uses `--surface-2` |
+| `.btn-primary` / `.btn-secondary` / `.btn-ghost` | CTAs; primary = accent fill + `--accent-ink`; secondary = surface + border                                |
+| `.pill`                                          | Kind / status chip with accent wash, square                                                               |
+| `.tag`                                           | Neutral topic chip, square                                                                                |
+| `.text-link`                                     | Links embedded in prose; underlined by default, accent on hover/focus                                     |
+| `.topnav`                                        | Opaque `--bg`, hairline, no blur                                                                          |
+| Hero / log-row / work-card                       | Page composition patterns already owned by CSS                                                            |
 
 Default: **no cards in the hero**. Cards exist for interaction or dense grouped content (contact, TOC), not for decorative boxing.
 
-## Signature — systems map
+Focus rings are amber, 2px, 3px offset. Interactive rows and buttons keep a 44px minimum hit target.
 
-The site's distinctive treatment lives in one layer, [`app/styles/signature.css`](../app/styles/signature.css), driven by the `--edge-live` / `--signal` tokens. It is deliberately quiet: the character comes from a coherent motif, not from turning up any single effect.
+[`components/SystemsDiagram.tsx`](../components/SystemsDiagram.tsx) remains a content component (homepage hero until a later slice demotes it to `/ecosystem`). It uses the same hairline/square tokens — it is not a signature identity layer.
 
-| Element                 | Home / behavior                                                                                                           |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Ambient brand light     | `base.css` `body` background — soft sage radial glows across the top of the page, dissolving into paper above the content |
-| Hero systems map        | `.sys-map` on `SystemsDiagram` — the ecosystem's System overview spine as node cards; the whole map links to `/ecosystem` |
-| Live spine + signal     | `.sys-edge-live` / `.sys-edge-flow` / `.sys-signal` — a signal flows projects → workflows → governance → evidence         |
-| Section connector nodes | `.section + .section::before` — a small node straddles the seam so the page reads as one graph                            |
+## Evidence qualification
 
-Guidelines:
+A figure and its qualification are one component: `.figure-value`, `.figure-name`, `.figure-scope`. The scope line never drops below 11px or below 4.5:1, never truncates, never collapses behind a tooltip, and never sits in a horizontal scroller. A figure whose scope will not fit is not shown.
 
-- **Mirror the ecosystem, don't invent.** The hero map's nodes and order are the `system-overview` view in [`content/ecosystem.ts`](../content/ecosystem.ts). If that spine changes, update `SystemsDiagram`'s `NODES` / `SPINE` and the signal `offset-path` together — the hero must not drift from the page it teases.
-- **Light, not texture.** Page-level character comes from soft gradient light, never a repeating pattern behind text. A prior graph-paper grid was removed because grid lines under body copy hurt legibility and read dated — keep background treatments to gradients that dissolve before the reading column.
-- **One live spine only.** A single path carries the moving signal, and that signal is the map's only accent — the nodes stay uniform (`--surface` + `--border`), matching the ecosystem's un-accented overview. Node centers step evenly so the spine reads as one straight diagonal.
-- **Opaque surfaces win.** Cards and the ecosystem canvas sit on `--surface`, which reads cleanly over the ambient light — do not re-introduce texture inside a surface.
-- **Motion is optional.** Every animation here (and the shared `.fade-in`) is disabled under `prefers-reduced-motion: reduce`, including hover/focus transforms on the hero map; the signal parks mid-spine so the static map still reads as intentional. Keep that guard when adding motion.
+Ranges stay ranges. Qualifiers stay in the source's own words. No metric strip, no counters, no charts.
+
+## Restrained instrument vocabulary
+
+Identity is a small borrowed set: channel identifiers (`CH 01` / `CH 02`), technical identifiers on section heads, mono dates and labels. Do not extend it with gauges, dials, sparklines, charts, tick rulers, status LEDs, terminal frames, scanlines, or console chrome.
 
 ## Accessibility expectations
 
-- Preserve contrast between `--fg` / `--muted` and `--bg` / `--surface`; recheck after any token edit.
+- Preserve contrast between `--fg` / `--fg-2` / `--muted` and `--bg` / `--surface`; `--muted` is the floor — recheck after any token edit.
 - Focus rings and keyboard reachability for nav toggle, links, and buttons must remain usable (do not remove outline without an equivalent).
 - Prefer `text-wrap: pretty` / `balance` (already on body copy and headings) over manual line breaks.
 - Interactive cards and rows should remain full-hit targets (link wraps the card / log row).
+- `prefers-reduced-motion: reduce` is a global duration floor in `base.css`.
 
 ## Tailwind
 
@@ -142,5 +151,5 @@ Semantic CSS classes under `app/styles/` are the primary styling API.
 - Base / reset: [`app/styles/base.css`](../app/styles/base.css)
 - Layout + type roles: [`app/styles/layout.css`](../app/styles/layout.css)
 - Chrome, surfaces, page patterns: [`app/styles/components.css`](../app/styles/components.css)
-- Signature — systems map: [`app/styles/signature.css`](../app/styles/signature.css)
+- Ecosystem canvases + systems diagram: [`app/styles/ecosystem.css`](../app/styles/ecosystem.css)
 - Architecture context: [`docs/architecture/overview.md`](architecture/overview.md)

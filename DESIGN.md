@@ -1,66 +1,75 @@
 ---
 name: Portfolio
-description: Warm, systems-oriented personal engineering portfolio — paper canvas, sage accent, quiet graph motif
+description: Verification Discipline — near-black ground, warm off-white ink, a single amber signal, hairline panels and strong horizontal rhythm
 ---
 
 ## Overview
 
-Visual contract for this portfolio. **Normative token values** live in [`app/styles/tokens.css`](app/styles/tokens.css). **Guidance, rationale, and component posture** live in [`docs/design-system.md`](docs/design-system.md). This file states semantic roles and portfolio-specific constraints for Impeccable — it does not duplicate literal hex or OKLch values.
+Visual contract for this portfolio. **Normative token values** live in [`app/styles/tokens.css`](app/styles/tokens.css). **Guidance, rationale, and component posture** live in [`docs/design-system.md`](docs/design-system.md). This file states semantic roles and portfolio-specific constraints — it does not duplicate literal hex values.
 
-Mode: **Experience** — the artifact (projects, ecosystem map, case studies) leads; chrome recedes.
+Mode: **Document** — the page reads as a technical record. Evidence leads; chrome is hairlines and type.
+
+The system exists to serve one thesis: this engineer makes uncertain systems dependable. Every rule below is downstream of that. Where a visual choice and the legibility of evidence conflict, evidence wins.
 
 ## Colors
 
-Use semantic CSS variables (`--bg`, `--surface`, `--fg`, `--muted`, `--border`, `--accent`, and related roles) by purpose, not raw colors. Single sage accent for primary signals only. Warm neutrals for canvas and ink.
+Dark by default, and only dark — there is no light mode. Use semantic variables (`--bg`, `--surface`, `--fg`, `--fg-2`, `--muted`, `--border`, `--border-strong`, `--accent`) by role, never raw values.
 
-See [Color token roles](docs/design-system.md#color-token-roles) and [Accent vs muted](docs/design-system.md#accent-vs-muted).
+One signal colour: amber. It is permitted on section marks, the current nav item, evidence figures, the email address, and outbound arrows. Nowhere else. Aim for no more than four amber elements in a viewport.
+
+`--muted` is the contrast floor at 5.26:1 on `--bg`, not a starting point. Any text darker than it fails.
 
 ## Typography
 
-Three stacks: display (headings, brand mark), body (UI), mono (eyebrow, meta, pills). Use existing type roles (`.h1`, `.lead`, `.eyebrow`, and related classes) and size tokens — do not invent one-off scales.
+Two stacks: sans (IBM Plex Sans — headings, body, UI) and mono (IBM Plex Mono — eyebrows, technical identifiers, dates, evidence figures, scope lines). The serif display stack is retired. `--font-display-stack` aliases the sans stack.
 
-See [Typography roles](docs/design-system.md#typography-roles).
+Display headings set tight (`--tracking-tight`); labels set wide and uppercase (`--tracking-label`). Figures always use tabular numerals. Use the `--fs-*` scale; do not invent one-off sizes.
 
 ## Layout
 
-4px/8px-derived spacing rhythm via `--gap-*` tokens. Container, measure, and section classes define width and vertical rhythm — prefer them over ad-hoc margins.
+Content column `--container` with `--gutter` inset. Vertical rhythm comes from full-width 1px rules at section heads, not from cards. Panels are separated by 1px gaps over `--border` — the gap _is_ the border; do not add per-panel borders on top of it.
 
-See [Spacing and measure](docs/design-system.md#spacing-and-measure).
+Generous negative space is part of the identity. `--gap-2xl` above each major section; do not compress it to fit more content on screen.
 
 ## Elevation & Depth
 
-Soft depth only: hairline borders and shadows on interactive surfaces. No stacked decorative shadows or glow effects.
+None. No shadows, no glow, no gradient, no blur. Depth is expressed as `--surface` sitting one step off `--bg`, separated by a hairline.
 
 ## Shapes
 
-Modest radii via `--radius` and `--radius-lg`. Pills and tags use existing component patterns.
+Square. `--radius` and `--radius-lg` are `0`. Existing `.card` / `.pill` / `.tag` class names stay; they are square, not rounded.
 
 ## Components
 
-Semantic CSS classes under `app/styles/` are the primary styling API. Default: no decorative cards in the hero; cards for interaction or grouped content. Buttons follow `.btn-primary`, `.btn-secondary`, and `.btn-ghost` posture.
+Semantic CSS classes under `app/styles/` remain the primary styling API. Case studies are panels in a hairline grid; supporting work and writing are hairline lists. Primary fill text uses `--accent-ink`. There is no boxed chrome in the hero, and no separate signature/identity stylesheet.
 
-See [Component posture](docs/design-system.md#component-posture).
+## Evidence qualification
 
-## Signature — systems map
+A figure and its qualification are one component and one DOM block: value (`.figure-value`), metric name (`.figure-name`), scope and timeframe (`.figure-scope`). The scope line never drops below 11px or below 4.5:1, never truncates, never collapses behind a tooltip, and never sits in a horizontal scroller. A figure whose scope will not fit is not shown.
 
-The quiet graph motif (ambient brand light, hero systems map, live spine signal, section connector nodes) lives in `app/styles/signature.css`. Mirror ecosystem content — do not invent nodes. Keep character as a whisper behind content.
+Ranges stay ranges. Qualifiers stay in the source's own words. No metric strip, no counters, no charts.
 
-See [Signature — systems map](docs/design-system.md#signature--systems-map).
+## Restrained instrument vocabulary
+
+A small borrowed vocabulary carries identity: channel identifiers on first-class case studies (`CH 01` / `CH 02`), the technical identifier at the right of each section head, mono dates and labels. It is deliberately limited to those.
+
+Do not extend it: no gauges, dials, sparklines, charts, tick rulers, status LEDs, terminal frames, scanlines, or console chrome.
 
 ## Do's and Don'ts
 
 **Do**
 
 - Reference token names and roles; open `tokens.css` for current values
-- Preserve focus rings and full hit targets on interactive elements
-- Honor `prefers-reduced-motion: reduce` for signature animations
-- Keep accent use sparing (aim for ≤2 primary accent uses per screen)
+- Keep the figure/scope pair intact at every breakpoint
+- Preserve focus rings (amber, 2px, 3px offset) and 44px minimum hit targets
+- Honor `prefers-reduced-motion: reduce`
+- Let sections breathe before adding content
 
-**Don't (portfolio-specific)**
+**Don't**
 
-- Do not expand Tailwind `@theme` into a full utility surface without an explicit plan
-- Do not add cards or boxed chrome to the hero for decoration
-- Do not use accent for large text blocks or decorative non-signal chrome
-- Do not introduce graph-paper textures or repeating patterns behind body copy
-- Do not split accent into a second competing brand color without contrast justification
-- Do not duplicate token hex or OKLch values in this file — that creates drift from `tokens.css`
+- Do not introduce a light theme, a second accent, or accent-coloured body text
+- Do not add radii, shadows, gradients or glow
+- Do not reintroduce the warm-paper canvas, sage accent, serif display stack, or the graph/systems-map signature motif — all superseded
+- Do not put the ecosystem map in the first viewport or the primary nav
+- Do not show a number without its scope
+- Do not expand Tailwind `@theme` into a utility surface without an explicit plan

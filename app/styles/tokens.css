@@ -1,54 +1,87 @@
-/* Token values — see docs/design-system.md for roles and guidance. */
+/* Token values — Verification Discipline (dark).
+   Replaces app/styles/tokens.css. Roles and guidance: docs/design-system.md.
+
+   Contrast floor: every value below is checked against --bg #121110.
+   --muted 5.26:1 · --fg-2 8.4:1 · --accent 8.3:1 · --fg 15.6:1
+   Do not darken --muted; it is the floor, not a starting point. */
 :root {
-  --bg: #f6f2eb;
-  --surface: #fffdf9;
-  --fg: #1a1916;
-  --muted: #6e6860;
-  --border: #e2dbd0;
-  --accent: #5c7359;
+  color-scheme: dark;
 
-  --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
-  --fg-soft: color-mix(in oklch, var(--fg) 5%, transparent);
+  /* Ground and ink */
+  --bg: #121110;
+  --surface: #1a1917;
+  --surface-2: #1e1d1a;
+  --fg: #ece9e2;
+  --fg-2: #bdb7ac;
+  --muted: #8d877c;
+  --muted-strong: #9d968b;
+  --border: #2e2c28;
+  --border-strong: #3f3c37;
+  --rule: var(--fg);
 
-  /* Signature layer — systems-map identity (see docs/design-system.md). */
-  --edge-live: color-mix(in oklch, var(--accent) 65%, transparent);
-  --signal: var(--accent);
-  --shadow:
-    0 1px 0 color-mix(in oklch, var(--fg) 4%, transparent),
-    0 12px 32px color-mix(in oklch, var(--fg) 6%, transparent);
-  --shadow-sm:
-    0 1px 0 color-mix(in oklch, var(--fg) 4%, transparent),
-    0 4px 14px color-mix(in oklch, var(--fg) 5%, transparent);
+  /* Single signal. Section marks, current nav, figures, the address. */
+  --accent: #d9a441;
+  --accent-ink: #121110;
+
+  --accent-soft: color-mix(in oklch, var(--accent) 16%, transparent);
+  --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+
+  /* No elevation. Panels are separated by 1px gaps over --border. */
+  --shadow: none;
+  --shadow-sm: none;
 
   --font-display-stack:
-    var(--font-display), "Iowan Old Style", "Charter", Georgia,
-    "Times New Roman", serif;
+    var(--font-body), "IBM Plex Sans", system-ui, -apple-system, "Segoe UI",
+    sans-serif;
   --font-body-stack:
-    var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+    var(--font-body), "IBM Plex Sans", system-ui, -apple-system, "Segoe UI",
+    sans-serif;
   --font-mono-stack:
-    var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    var(--font-mono), "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  --fs-h1: clamp(40px, 5.4vw, 68px);
-  --fs-h2: clamp(28px, 3.4vw, 42px);
-  --fs-h3: 21px;
-  --fs-lead: 19px;
-  --fs-body: 16px;
-  --fs-meta: 13px;
+  --fs-h1: clamp(38px, 5.4vw, 68px);
+  --fs-h2: clamp(21px, 2.2vw, 26px);
+  --fs-h3: clamp(20px, 2.1vw, 25px);
+  --fs-figure: clamp(28px, 3vw, 34px);
+  --fs-lead: clamp(17px, 1.5vw, 19px);
+  --fs-body: 15px;
+  --fs-meta: 12px;
+  --fs-label: 10.5px;
+
+  --tracking-tight: -0.035em;
+  --tracking-label: 0.14em;
+  --tracking-nav: 0.08em;
 
   --gap-xs: 8px;
-  --gap-sm: 12px;
-  --gap-md: 20px;
-  --gap-lg: 32px;
-  --gap-xl: 56px;
-  --gap-2xl: 96px;
-  --container: 1120px;
-  --gutter: 32px;
+  --gap-sm: 14px;
+  --gap-md: 22px;
+  --gap-lg: 34px;
+  --gap-xl: 52px;
+  --gap-2xl: 76px;
+  --container: 1336px;
+  --gutter: 52px;
 
-  --radius: 8px;
-  --radius-lg: 12px;
+  /* Square. The system has no rounded chrome. */
+  --radius: 0px;
+  --radius-lg: 0px;
 
   --background: var(--bg);
   --foreground: var(--fg);
+}
+
+@media (max-width: 920px) {
+  :root {
+    --gutter: 28px;
+    --gap-2xl: 56px;
+    --gap-xl: 36px;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --gutter: 20px;
+    --gap-2xl: 44px;
+  }
 }
 
 /* Tailwind bridge only — do not expand utilities here without a plan. */

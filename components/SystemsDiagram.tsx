@@ -1,10 +1,9 @@
 import Link from "next/link";
 
 /**
- * Signature hero artifact: a live rendering of the ecosystem's System overview
- * spine (projects → AI workflows → governance/feedback → evidence). It mirrors
- * the orientation view on /ecosystem and links to it. A signal flows along the
- * spine; motion is gated by the `prefers-reduced-motion` guard in signature.css.
+ * Ecosystem System overview spine (projects → AI workflows → governance/feedback
+ * → evidence). Mirrors the orientation view on /ecosystem and links to it.
+ * Styled with shared hairline/square tokens — not a separate identity layer.
  */
 // Node centers step by an even (105, 88) each, so the spine reads as one
 // straight diagonal rather than kinking on the last leg.
@@ -59,30 +58,10 @@ export function SystemsDiagram() {
           height="100%"
           role="presentation"
         >
-          <defs>
-            <filter
-              id="sys-node-shadow"
-              x="-20%"
-              y="-20%"
-              width="140%"
-              height="160%"
-            >
-              <feDropShadow
-                dx="0"
-                dy="2"
-                stdDeviation="3"
-                floodColor="var(--fg)"
-                floodOpacity="0.08"
-              />
-            </filter>
-          </defs>
-
-          {/* The spine is the live pipeline the signal travels. */}
           <path className="sys-edge-live" d={SPINE} fill="none" />
           <path className="sys-edge-flow" d={SPINE} fill="none" />
           <circle className="sys-signal" r="3.5" />
 
-          {/* Nodes drawn over the edges: the signal reads as entering each. */}
           {NODES.map((node) => (
             <g key={node.label} className="sys-node">
               <rect
@@ -90,8 +69,7 @@ export function SystemsDiagram() {
                 y={node.y}
                 width={node.w}
                 height={NODE_H}
-                rx="10"
-                filter="url(#sys-node-shadow)"
+                rx="0"
               />
               <text className="sys-node-label" x={node.x + 14} y={node.y + 24}>
                 {node.label}
