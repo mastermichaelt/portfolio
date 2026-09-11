@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: content-homepage-figures
     content: "PR (H1 early correction): Re-read codenames-ai-telemetry.yml; fix homepage MAU figure (175+ vs 150+ vs omit) — first content slice after metadata"
-    status: pending
+    status: completed
   - id: content-articles-corpus
     content: "PR: Fix articles corpus comment; add 6 missing DEV posts as non-featured inventory rows from baseline hub list"
     status: pending
