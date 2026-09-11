@@ -24,24 +24,24 @@ const siteUrl = "https://portfolio-multipliers-dev.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Michael Truong · AI engineering systems",
+    default: "Michael Truong · Making uncertain systems dependable",
     template: "%s · Michael Truong",
   },
   description:
-    "Senior software engineer in Sydney. Production AI systems, editorial workflows, and evidence-backed engineering field reports.",
+    "Senior software engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
   openGraph: {
     type: "website",
     siteName: "Michael Truong",
-    title: "Michael Truong · AI engineering systems",
+    title: "Michael Truong · Making uncertain systems dependable",
     description:
-      "Senior software engineer in Sydney. Production AI systems, editorial workflows, and evidence-backed engineering field reports.",
+      "Senior software engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
     locale: "en_AU",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Michael Truong · AI engineering systems",
+    title: "Michael Truong · Making uncertain systems dependable",
     description:
-      "Senior software engineer in Sydney. Production AI systems, editorial workflows, and evidence-backed engineering field reports.",
+      "Senior software engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
   },
 };
 

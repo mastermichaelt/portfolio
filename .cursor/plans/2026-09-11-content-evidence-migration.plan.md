@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: content-metadata-profile
     content: "PR: Align site metadata and profile.bio with continuity framing (no AI-retraining read); no layout redesign"
-    status: pending
+    status: completed
   - id: content-homepage-figures
     content: "PR (H1 early correction): Re-read codenames-ai-telemetry.yml; fix homepage MAU figure (175+ vs 150+ vs omit) — first content slice after metadata"
     status: pending

@@ -9,7 +9,7 @@ export const profile: Profile = {
   location: "Sydney, Australia",
   email: "michael@multipliers.dev",
   headline: "Senior Software Engineer",
-  bio: "Senior software engineer in Sydney. Previously at Atlassian across Growth (SWE and Engineering Manager) and Atlassians in Mentoring. Building production AI systems and publishing engineering field reports on DEV.",
+  bio: "Senior software engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian, 2014–2025 (SWE, Engineering Manager, Atlassians in Mentoring). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do. Engineering field reports on DEV.",
   links: {
     linkedin: "https://www.linkedin.com/in/michael-truong-dev",
     github: "https://github.com/mastermichaelt",
