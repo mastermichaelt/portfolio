@@ -10,13 +10,13 @@ web
 
 Primary audience: hiring managers, engineering leaders, and peer engineers evaluating Michael Truong for senior software engineering roles — especially AI-enabled product and platform work.
 
-Secondary audience: engineers exploring how production AI systems, agent workflows, and editorial tooling connect in one practitioner's ecosystem.
+Secondary audience: engineers exploring how experimentation discipline, verification contracts, and agent-native workflows connect in one practitioner's practice.
 
 ## Product Purpose
 
 A public portfolio that lets visitors quickly understand who Michael is, what he has shipped, and how his projects connect — then drill into case studies, articles, and an interactive ecosystem map as evidence.
 
-Success means a visitor leaves with a clear mental model of Michael's scope (production AI products, experimentation discipline, agent harness work) and concrete links to proof (projects, DEV articles, GitHub, ecosystem map).
+Success means a visitor leaves with a clear mental model of Michael's scope (experimentation and measurement across Atlassian and product work, verification discipline, agent harness systems) and concrete links to proof (projects, DEV articles, GitHub, ecosystem map).
 
 ## Positioning
 

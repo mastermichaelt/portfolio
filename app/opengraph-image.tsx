@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Michael Truong · AI engineering systems";
+export const alt = "Michael Truong · Making uncertain systems dependable";
 export const size = {
   width: 1200,
   height: 630,
@@ -50,7 +50,7 @@ export default function OpenGraphImage() {
             maxWidth: 820,
           }}
         >
-          Production AI systems, editorial workflows, and evidence-backed field
+          Experimentation, measurement, verification, and evidence-backed field
           reports.
         </div>
       </div>
