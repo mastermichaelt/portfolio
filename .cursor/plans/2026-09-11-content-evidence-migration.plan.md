@@ -22,7 +22,7 @@ todos:
     status: pending
   - id: redesign-prep-about
     content: "Docs-only PR: Curate About redesign evidence brief in docs/content-evidence-migration.md (no About page edits)"
-    status: pending
+    status: completed
   - id: redesign-prep-articles
     content: "Docs-only PR: Curate Articles/Writing redesign brief; resolve H2 post-count tension in docs only"
     status: pending
@@ -159,7 +159,7 @@ The private `resumes` repo may be unreadable from the agent VM (GitHub API 404).
 | Neither value is supportable as public copy                                            | **Omit** the MAU figure (empty figures array entry removed; keep `#1` branded search if still valid)       |
 | Exact snapshot **`165`** (`monthly-active-players`)                                    | **Never publish** — fact comment forbids pasting into prose                                                |
 
-Baseline reference (2026-09-11): `telemetry-model-experiments` action text uses **150+**; `175+` from [#46](https://github.com/mastermichaelt/portfolio/pull/46) is **not** in the baseline table until live inventory confirms it.
+Baseline reference (2026-09-11): live `telemetry-model-experiments` action text uses **175+** as durable floor — H1 outcome shipped **175+** on homepage ([#52](https://github.com/mastermichaelt/portfolio/pull/52)) after interim **150+** ([#50](https://github.com/mastermichaelt/portfolio/pull/50)).
 
 ### Explicitly deferred (out of this plan’s implementation slices)
 
