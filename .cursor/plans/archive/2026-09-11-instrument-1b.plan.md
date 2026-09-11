@@ -13,9 +13,24 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after last implementation slice: add # Shipped note, move plan to .cursor/plans/archive/2026-09-11-instrument-1b.plan.md"
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-09-11.**
+
+| Slice         | Delivered                                                                                                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| plan-review   | [#44](https://github.com/mastermichaelt/portfolio/pull/44) — plan artifact only (Plan-only PR)                                                                                       |
+| visual-system | [#45](https://github.com/mastermichaelt/portfolio/pull/45) — dark/amber tokens, IBM Plex, DESIGN.md + design-system.md, retire signature motif, restyle shared chrome                |
+| homepage-1b   | [#46](https://github.com/mastermichaelt/portfolio/pull/46) — homepage + header/footer 1b composition; evidence-backed CH 02 / figures / ledger; logo=Home; Ecosystem off primary nav |
+| plan-closure  | This PR — archive to `.cursor/plans/archive/2026-09-11-instrument-1b.plan.md`                                                                                                        |
+
+**Deferred (out of scope):** Route renames `/projects` → `/work` and `/articles` → `/writing` (and Work / Writing labels); a full Atlassian experiment-measurement case-study page; storing figures on `Project`, a separate `content/ledger.ts`, or deleting `timeline.ts`; article inventory `argument` field and featured-flag changes; `tier: first-class | supporting` and dropping resume-generator from `/projects`; canonical host `michaeltruong.dev`; PRODUCT.md IA rewrite; About rewrite; ecosystem entity-inventory removal; expanding restrained instrument vocabulary.
+
+This plan is archived. The work described here has shipped; the remaining content is preserved for historical context.
 
 # Instrument 1b visual direction
 
@@ -28,7 +43,7 @@ isProject: false
 | homepage-1b   | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure  | Open PR only          | Do not merge. Stop after opening the PR.               |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ## Repository topology (default)
 
@@ -48,7 +63,7 @@ The repository integration branch is `main`. Each slice starts from latest `orig
 
 Source of truth for this plan: local Claude Design handoff at `~/Downloads/design_handoff_verification_discipline/` (project `dd82dab0-878d-4d8d-a390-7563fd955997`). The Claude Design MCP (`https://api.anthropic.com/v1/design/mcp`) was not connected in the planning session. `Homepage Explorations.dc.html` is not in that zip; the handoff README identifies **1b — Instrument** as the second option in the lower row.
 
-Do not transplant `homepage-reference.html` wholesale. Recreate 1b in the existing App Router, semantic CSS layers, `next/font`, and `PortfolioRepository` seam. Generated CSS is an implementation reference: `css/tokens.css` is a wholesale replacement for [`app/styles/tokens.css`](../../app/styles/tokens.css); `css/verification.css` is annotated for split into `base.css` / `layout.css` / `components.css`.
+Do not transplant `homepage-reference.html` wholesale. Recreate 1b in the existing App Router, semantic CSS layers, `next/font`, and `PortfolioRepository` seam. Generated CSS is an implementation reference: `css/tokens.css` is a wholesale replacement for [`app/styles/tokens.css`](../../../app/styles/tokens.css); `css/verification.css` is annotated for split into `base.css` / `layout.css` / `components.css`.
 
 ```mermaid
 flowchart TD
@@ -85,7 +100,7 @@ flowchart TD
 These are explicit IA decisions required by the selected 1b direction — not “purely visual”:
 
 - Logo is Home (wordmark links `/`).
-- Ecosystem leaves **primary navigation**. Keep `/ecosystem` as a real, deep-linkable route; link it from supporting-work and/or About, not the first viewport. Keep [`components/SystemsDiagram.tsx`](../../components/SystemsDiagram.tsx) for `/ecosystem` (demote, do not delete).
+- Ecosystem leaves **primary navigation**. Keep `/ecosystem` as a real, deep-linkable route; link it from supporting-work and/or About, not the first viewport. Keep [`components/SystemsDiagram.tsx`](../../../components/SystemsDiagram.tsx) for `/ecosystem` (demote, do not delete).
 - Primary nav membership becomes Projects / Articles / About at **existing** hrefs (`/projects`, `/articles`, `/about`).
 - Contact CTA in the header is replaced by the amber `mailto:` address (1b shell).
 
@@ -123,17 +138,17 @@ These are explicit IA decisions required by the selected 1b direction — not �
 
 **Goal:** Site-wide 1b identity. Do **not** rebuild homepage composition. Do **not** change primary nav membership. Existing routes must remain coherent on the new tokens.
 
-**Tokens** — replace [`app/styles/tokens.css`](../../app/styles/tokens.css) with the handoff values: near-black `--bg` `#121110`, `--surface` / `--surface-2`, warm off-white `--fg` / `--fg-2`, `--muted` as contrast floor (5.26:1), `--accent` `#d9a441`, `--accent-ink`, `--radius: 0`, `--shadow: none`, new type/spacing/container scales. Keep the Tailwind `@theme inline` bridge unchanged in scope.
+**Tokens** — replace [`app/styles/tokens.css`](../../../app/styles/tokens.css) with the handoff values: near-black `--bg` `#121110`, `--surface` / `--surface-2`, warm off-white `--fg` / `--fg-2`, `--muted` as contrast floor (5.26:1), `--accent` `#d9a441`, `--accent-ink`, `--radius: 0`, `--shadow: none`, new type/spacing/container scales. Keep the Tailwind `@theme inline` bridge unchanged in scope.
 
-**Type** — in [`app/layout.tsx`](../../app/layout.tsx) load IBM Plex Sans (400/500/600) and IBM Plex Mono (400/500). Retire Newsreader and Source Sans. `--font-display-stack` aliases the sans stack.
+**Type** — in [`app/layout.tsx`](../../../app/layout.tsx) load IBM Plex Sans (400/500/600) and IBM Plex Mono (400/500). Retire Newsreader and Source Sans. `--font-display-stack` aliases the sans stack.
 
-**Docs** — replace [`DESIGN.md`](../../DESIGN.md) with the handoff contract (Document mode, dark-only, amber-only signal, no elevation, square, evidence qualification, restrained instrument vocabulary). Rewrite [`docs/design-system.md`](../../docs/design-system.md) to match: colour roles, typography roles, component posture, delete **Signature — systems map**. Do not duplicate hex tables in DESIGN.md.
+**Docs** — replace [`DESIGN.md`](../../../DESIGN.md) with the handoff contract (Document mode, dark-only, amber-only signal, no elevation, square, evidence qualification, restrained instrument vocabulary). Rewrite [`docs/design-system.md`](../../../docs/design-system.md) to match: colour roles, typography roles, component posture, delete **Signature — systems map**. Do not duplicate hex tables in DESIGN.md.
 
-**Retire signature motif** — remove [`app/styles/signature.css`](../../app/styles/signature.css) from [`app/globals.css`](../../app/globals.css); delete ambient sage gradients in [`app/styles/base.css`](../../app/styles/base.css); drop `--edge-live` / `--signal` once unused. Keep [`components/SystemsDiagram.tsx`](../../components/SystemsDiagram.tsx) for `/ecosystem` only (unstick it from signature CSS). Replace [`tests/signature-motion.test.ts`](../../tests/signature-motion.test.ts) with a reduced-motion assertion against remaining transitions (or delete if none remain besides the global `prefers-reduced-motion` block).
+**Retire signature motif** — remove [`app/styles/signature.css`](../../../app/styles/signature.css) from [`app/globals.css`](../../../app/globals.css); delete ambient sage gradients in [`app/styles/base.css`](../../../app/styles/base.css); drop `--edge-live` / `--signal` once unused. Keep [`components/SystemsDiagram.tsx`](../../../components/SystemsDiagram.tsx) for `/ecosystem` only (unstick it from signature CSS). Replace [`tests/signature-motion.test.ts`](../../../tests/signature-motion.test.ts) with a reduced-motion assertion against remaining transitions (or delete if none remain besides the global `prefers-reduced-motion` block).
 
 **Port verification CSS into existing layers** — not a new stylesheet. Apply handoff `base`/`layout`/`components` rules that affect **shared** chrome: hairline borders, square surfaces, no blur on `.topnav`, focus ring 2px amber / 3px offset, hover to amber, `color-scheme: dark`. Existing `.card` / `.pill` / `.btn*` keep their class names so inner pages do not break; they become square, unshadowed, and dark. Primary fill text uses `--accent-ink`, not light-theme `--surface`.
 
-**OG / Twitter** — restyle [`app/opengraph-image.tsx`](../../app/opengraph-image.tsx) and [`app/twitter-image.tsx`](../../app/twitter-image.tsx) off paper/sage/serif onto the dark/amber/sans system. Do not change positioning copy here beyond colours/type.
+**OG / Twitter** — restyle [`app/opengraph-image.tsx`](../../../app/opengraph-image.tsx) and [`app/twitter-image.tsx`](../../../app/twitter-image.tsx) off paper/sage/serif onto the dark/amber/sans system. Do not change positioning copy here beyond colours/type.
 
 **Inner pages** — `/projects`, `/projects/[slug]`, `/articles`, `/about`, `/ecosystem` stay on current IA and copy. They pick up tokens automatically; fix any contrast or chrome breakage this PR introduces (do not defer).
 
@@ -161,27 +176,27 @@ These are explicit IA decisions required by the selected 1b direction — not �
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Goal:** Rebuild [`app/page.tsx`](../../app/page.tsx) to 1b composition using **existing repository data only**. Keep `/projects` and `/articles` hrefs and **Projects / Articles** labels.
+**Goal:** Rebuild [`app/page.tsx`](../../../app/page.tsx) to 1b composition using **existing repository data only**. Keep `/projects` and `/articles` hrefs and **Projects / Articles** labels.
 
 **Header / footer (approved 1b shell/IA)**
 
 - Wordmark: mono uppercase name; logo is Home. Drop `· systems`.
-- Primary nav: three items at existing routes — Projects → `/projects`, Articles → `/articles`, About → `/about`. Remove Home and Ecosystem from [`lib/nav.ts`](../../lib/nav.ts). Keep `/ecosystem` routed and deep-linkable; link it from the supporting-work note and/or About, not the first viewport.
-- Replace Contact button with amber `mailto:` from `profile.email`. Mobile: same three items + address (drop `mobileNav` filter in [`components/SiteHeader.tsx`](../../components/SiteHeader.tsx)). Keep existing 921px close-on-widen / close-on-route logic; restyle toggle to the handoff `Menu` control.
+- Primary nav: three items at existing routes — Projects → `/projects`, Articles → `/articles`, About → `/about`. Remove Home and Ecosystem from [`lib/nav.ts`](../../../lib/nav.ts). Keep `/ecosystem` routed and deep-linkable; link it from the supporting-work note and/or About, not the first viewport.
+- Replace Contact button with amber `mailto:` from `profile.email`. Mobile: same three items + address (drop `mobileNav` filter in [`components/SiteHeader.tsx`](../../../components/SiteHeader.tsx)). Keep existing 921px close-on-widen / close-on-route logic; restyle toggle to the handoff `Menu` control.
 - Footer: three-cell handoff layout using `profile.email`, `profile.location`, and existing DEV / GitHub / LinkedIn links. Do **not** add “open to senior engineering roles” unless that string is already on-site (it is not).
 
 **Homepage sections, mapped to current content**
 
 1. **Position** — Remove `SystemsDiagram` from the hero. Equal-weight `.anchor-pair` to the two current `featured` projects (`codenames-ai`, `editorial-workflow`) at `/projects/[slug]`, with `CH 01` / `CH 02` as visual channel ids only. Editorial as CH 02 is a **placeholder** (see Design). Do not add comments, domain fields, or tests that treat Editorial as the approved final second system.
-2. **Two systems, one method** — Balanced two-column `.case-grid` / `.case-panel` (1px gap over `--border`, `border-top: none` under the section-head rule). Channel id + title from project fields. Spine labels `Uncertain` / `Made checkable` / `Contract` are **visual structure**; body text must be selected from existing `project.sections` / `summary` without strengthening. Omit dates (no date field on [`domain/project.ts`](../../domain/project.ts)).
+2. **Two systems, one method** — Balanced two-column `.case-grid` / `.case-panel` (1px gap over `--border`, `border-top: none` under the section-head rule). Channel id + title from project fields. Spine labels `Uncertain` / `Made checkable` / `Contract` are **visual structure**; body text must be selected from existing `project.sections` / `summary` without strengthening. Omit dates (no date field on [`domain/project.ts`](../../../domain/project.ts)).
 3. **Figures** — **Omit** in this slice. Do not render `175+`, `#1`, `>10%`, `9–41%`, or any number not already stored in `content/` with its qualifier. Empty/short panels are correct. If a later content slice adds `{ value, name, scope }` on the project, the `.figure-value` / `.figure-name` / `.figure-scope` CSS from this slice should already exist so figures can land without a visual rewrite.
 4. **Career ledger** — **Omit** the seven-row ledger. No ledger module exists; mockup rows invent tenure detail and metrics not in `content/`.
-5. **Supporting work + Selected writing** — Two-column hairline lists. Supporting = non-featured projects (Renovate, resume-generator) using existing titles/summaries — do not invent a third “agent-native engineering systems” row. Writing = current `featured` articles (model-experiments, evidence-driven-upgrades, reviewers-23/25), not the mockup’s different three. Keep DEV outbound via [`ExternalLink`](../../components/ExternalLink.tsx).
-6. **Hero copy** — H1 may use the visual-contract thesis from handoff DESIGN.md (“Making uncertain systems dependable.”). Lead stays [`content/profile.ts`](../../content/profile.ts) `bio` (or a non-strengthening subset). Do not ship the mockup lead (“2014–2025… measure it, validate it…”) until copy is an approved product decision.
+5. **Supporting work + Selected writing** — Two-column hairline lists. Supporting = non-featured projects (Renovate, resume-generator) using existing titles/summaries — do not invent a third “agent-native engineering systems” row. Writing = current `featured` articles (model-experiments, evidence-driven-upgrades, reviewers-23/25), not the mockup’s different three. Keep DEV outbound via [`ExternalLink`](../../../components/ExternalLink.tsx).
+6. **Hero copy** — H1 may use the visual-contract thesis from handoff DESIGN.md (“Making uncertain systems dependable.”). Lead stays [`content/profile.ts`](../../../content/profile.ts) `bio` (or a non-strengthening subset). Do not ship the mockup lead (“2014–2025… measure it, validate it…”) until copy is an approved product decision.
 
 **CSS** — Add homepage-only classes from verification.css (`.section-head`, `.anchor-pair`, `.case-grid`, `.spine`, `.figures`, `.list-head`, `.list-row`, responsive 1100 / 920 / 700 / 600) into the existing layered files. Honor figure/scope integrity in CSS even while figures are unused.
 
-**Tests** — Update [`e2e/happy-path.spec.ts`](../../e2e/happy-path.spec.ts) for three-item nav, no Home/Ecosystem in primary nav, `/ecosystem` still reachable, no `h1` “Michael Truong” on home (name is the wordmark), flagships as case panels/anchors, writing rows (not necessarily `.log-row`). Leave [`tests/content-foundation.test.ts`](../../tests/content-foundation.test.ts) featured-flag assertions in place — do not add a new “two first-class systems” invariant that would freeze Editorial as CH 02.
+**Tests** — Update [`e2e/happy-path.spec.ts`](../../../e2e/happy-path.spec.ts) for three-item nav, no Home/Ecosystem in primary nav, `/ecosystem` still reachable, no `h1` “Michael Truong” on home (name is the wordmark), flagships as case panels/anchors, writing rows (not necessarily `.log-row`). Leave [`tests/content-foundation.test.ts`](../../../tests/content-foundation.test.ts) featured-flag assertions in place — do not add a new “two first-class systems” invariant that would freeze Editorial as CH 02.
 
 **Acceptance:**
 
@@ -245,7 +260,7 @@ Use a **fresh Agent-mode chat** per slice. Each default frontmatter todo has exa
 ### plan-review
 
 ```text
-@.cursor/plans/2026-09-11-instrument-1b.plan.md
+@.cursor/plans/archive/2026-09-11-instrument-1b.plan.md
 
 Execute only plan-review. Do not start implementation slices.
 
@@ -261,7 +276,7 @@ Verification: plan satisfies repo planning standards; no implementation changes 
 ### visual-system
 
 ```text
-@.cursor/plans/2026-09-11-instrument-1b.plan.md
+@.cursor/plans/archive/2026-09-11-instrument-1b.plan.md
 
 Implement slice visual-system only. Do not start homepage-1b or later slices. Do not archive the plan.
 
@@ -277,7 +292,7 @@ Verification: npm run lint, format:check, typecheck, test/test:coverage, build; 
 ### homepage-1b
 
 ```text
-@.cursor/plans/2026-09-11-instrument-1b.plan.md
+@.cursor/plans/archive/2026-09-11-instrument-1b.plan.md
 
 Implement slice homepage-1b only. Prerequisite: visual-system merged. Do not start plan-closure. Do not archive the plan.
 
@@ -293,7 +308,7 @@ Verification: npm run lint, format:check, typecheck, test/test:coverage, build, 
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-09-11-instrument-1b.plan.md
+@.cursor/plans/archive/2026-09-11-instrument-1b.plan.md
 
 Execute only plan-closure.
 
