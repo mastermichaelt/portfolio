@@ -114,7 +114,7 @@ Honest one-off spacing (distinct roles, single use) may stay as `style={{}}` or 
 | `.topnav`                                        | Opaque `--bg`, hairline, no blur                                                                          |
 | Hero / log-row / work-card                       | Inner-page composition patterns already owned by CSS                                                      |
 | `.section-head` / `.anchor-pair` / `.case-grid`  | Homepage 1b composition — hairline section rules, equal-weight anchors, two-column case panels            |
-| `.spine` / `.figures` / `.list-row`              | Homepage method spine, figure/scope pair (CSS present even when unused), supporting/writing lists         |
+| `.spine` / `.figures` / `.ledger` / `.list-row`  | Homepage method spine, figure/scope pair, career ledger, supporting/writing lists                         |
 
 Default: **no cards in the hero**. Cards exist for interaction or dense grouped content (contact, TOC), not for decorative boxing.
 

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ExternalLink } from "@/components/ExternalLink";
-import type { Project, ProjectSectionKind } from "@/domain/project";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
 export const metadata: Metadata = {
@@ -18,34 +17,26 @@ export const metadata: Metadata = {
   },
 };
 
-function visualChannelId(index: number): string {
-  return `CH ${String(index + 1).padStart(2, "0")}`;
-}
-
-function sectionText(
-  project: Project,
-  kinds: readonly ProjectSectionKind[],
-): string {
-  for (const kind of kinds) {
-    const section = project.sections.find((item) => item.kind === kind);
-    if (section?.body.trim()) {
-      return section.body;
-    }
-  }
-  return project.summary;
-}
-
 export default async function HomePage() {
   const repository = getPortfolioRepository();
-  const [profile, projects, articles] = await Promise.all([
+  const [profile, homepage, articles] = await Promise.all([
     repository.getProfile(),
-    repository.listProjects(),
+    repository.getHomepage(),
     repository.listArticles(),
   ]);
 
-  const featuredProjects = projects.filter((project) => project.featured);
-  const supportingProjects = projects.filter((project) => !project.featured);
-  const featuredArticles = articles.filter((article) => article.featured);
+  const articlesBySlug = new Map(
+    articles.map((article) => [article.slug, article]),
+  );
+  const writing = homepage.writing.map((item) => {
+    const article = articlesBySlug.get(item.slug);
+    if (!article) {
+      throw new Error(
+        `Homepage writing slug missing from article inventory: ${item.slug}`,
+      );
+    }
+    return { item, article };
+  });
 
   return (
     <main id="content" className="home">
@@ -54,17 +45,15 @@ export default async function HomePage() {
           <p className="label">
             {profile.headline} / {profile.location}
           </p>
-          <h1>Making uncertain systems dependable.</h1>
-          <p className="lead">{profile.bio}</p>
+          <h1>{homepage.hero.title}</h1>
+          <p className="lead">
+            {homepage.hero.lead} <strong>{homepage.hero.leadEmphasis}</strong>
+          </p>
           <div className="anchor-pair">
-            {featuredProjects.map((project, index) => (
-              <Link
-                key={project.slug}
-                className="anchor"
-                href={`/projects/${project.slug}`}
-              >
-                <span>{project.title}</span>
-                <span className="anchor-id">{visualChannelId(index)} →</span>
+            {homepage.channels.map((channel) => (
+              <Link key={channel.id} className="anchor" href={channel.href}>
+                <span>{channel.anchorLabel}</span>
+                <span className="anchor-id">{channel.channelLabel} →</span>
               </Link>
             ))}
           </div>
@@ -78,43 +67,78 @@ export default async function HomePage() {
             <p className="label">01 / instrumented</p>
           </div>
           <div className="case-grid">
-            {featuredProjects.map((project, index) => (
-              <article key={project.slug} className="case-panel">
-                <div className="case-head">
-                  <span className="case-id">
-                    {visualChannelId(index)} · {project.title}
-                  </span>
-                </div>
-                <h3>
-                  <Link href={`/projects/${project.slug}`}>
-                    {project.summary}
-                  </Link>
-                </h3>
-                <div className="spine">
-                  <div>
-                    <p className="label spine-term">Uncertain</p>
-                    <p>
-                      {sectionText(project, ["problem", "context", "system"])}
-                    </p>
+            {homepage.channels.map((channel) => {
+              const panelId = channel.href.startsWith("#")
+                ? channel.href.slice(1)
+                : undefined;
+              const thesisIsRoute = channel.href.startsWith("/");
+
+              return (
+                <article key={channel.id} className="case-panel" id={panelId}>
+                  <div className="case-head">
+                    <span className="case-id">
+                      {channel.channelLabel} · {channel.title}
+                    </span>
+                    <span className="meta">{channel.dateRange}</span>
                   </div>
-                  <div>
-                    <p className="label spine-term">Made checkable</p>
-                    <p>
-                      {sectionText(project, [
-                        "decisions",
-                        "system",
-                        "operation",
-                      ])}
-                    </p>
+                  <h3>
+                    {thesisIsRoute ? (
+                      <Link href={channel.href}>{channel.thesis}</Link>
+                    ) : (
+                      channel.thesis
+                    )}
+                  </h3>
+                  <div className="spine">
+                    <div>
+                      <p className="label spine-term">Uncertain</p>
+                      <p>{channel.spine.uncertain}</p>
+                    </div>
+                    <div>
+                      <p className="label spine-term">Made checkable</p>
+                      <p>{channel.spine.checkable}</p>
+                    </div>
+                    <div>
+                      <p className="label spine-term">Contract</p>
+                      <p className="contract">{channel.spine.contract}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="label spine-term">Contract</p>
-                    <p className="contract">
-                      {sectionText(project, ["constraints", "outcomes"])}
-                    </p>
+                  <div className="figures">
+                    {channel.figures.map((figure) => (
+                      <div key={figure.source.factId}>
+                        <p className="figure-value">{figure.value}</p>
+                        <p className="figure-name">{figure.name}</p>
+                        <p className="figure-scope">{figure.scope}</p>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </article>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="section fade-in delay-2">
+        <div className="container">
+          <div className="section-head">
+            <h2>Career ledger</h2>
+            <p className="label">02 / 2014 – present</p>
+          </div>
+          <div className="ledger">
+            {homepage.ledger.map((row) => (
+              <div
+                key={row.id}
+                className={row.current ? "ledger-row is-current" : "ledger-row"}
+              >
+                <span className="ledger-date">{row.dateRange}</span>
+                <span className="ledger-role">
+                  {row.role}
+                  {row.org ? (
+                    <span className="ledger-org">{row.org}</span>
+                  ) : null}
+                </span>
+                <span className="ledger-detail">{row.detail}</span>
+              </div>
             ))}
           </div>
         </div>
@@ -124,14 +148,10 @@ export default async function HomePage() {
         <div className="container two-col">
           <div>
             <h2 className="list-head">Supporting work</h2>
-            {supportingProjects.map((project) => (
-              <Link
-                key={project.slug}
-                className="list-row"
-                href={`/projects/${project.slug}`}
-              >
-                <p className="list-row-title">{project.title}</p>
-                <p>{project.summary}</p>
+            {homepage.supporting.map((item) => (
+              <Link key={item.id} className="list-row" href={item.href}>
+                <p className="list-row-title">{item.title}</p>
+                <p>{item.summary}</p>
               </Link>
             ))}
             <p className="list-note">
@@ -141,7 +161,7 @@ export default async function HomePage() {
           </div>
           <div>
             <h2 className="list-head">Selected writing</h2>
-            {featuredArticles.map((article) => (
+            {writing.map(({ item, article }) => (
               <ExternalLink
                 key={article.slug}
                 className="list-row"
@@ -149,7 +169,7 @@ export default async function HomePage() {
                 aria-label={article.title}
               >
                 <p className="list-row-title">{article.title}</p>
-                <p>{article.summary}</p>
+                <p>{item.argument}</p>
               </ExternalLink>
             ))}
             <p className="list-note">

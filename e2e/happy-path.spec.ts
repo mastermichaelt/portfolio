@@ -22,7 +22,9 @@ async function expectPrimaryNav(page: Page) {
 }
 
 test.describe("portfolio happy path", () => {
-  test("home is live with flagships and featured writing", async ({ page }) => {
+  test("home is live with first-class systems, ledger, and selected writing", async ({
+    page,
+  }) => {
     await page.goto("/");
 
     await expect(
@@ -48,18 +50,29 @@ test.describe("portfolio happy path", () => {
       page.locator('a.anchor[href="/projects/codenames-ai"]'),
     ).toBeVisible();
     await expect(
-      page.locator('a.anchor[href="/projects/editorial-workflow"]'),
+      page.locator('a.anchor[href="#experiment-measurement"]'),
     ).toBeVisible();
+    await expect(
+      page.locator('a.anchor[href="/projects/editorial-workflow"]'),
+    ).toHaveCount(0);
 
     await expect(page.locator("article.case-panel")).toHaveCount(2);
+    await expect(page.locator("#experiment-measurement")).toBeVisible();
     await expect(
-      page.getByRole("link", { name: /Codenames AI/i }).first(),
+      page.getByRole("heading", {
+        name: /valid JSON is not a legal move/i,
+      }),
     ).toBeVisible();
     await expect(
-      page
-        .getByRole("link", { name: /AI-assisted editorial workflow/i })
-        .first(),
+      page.getByRole("heading", {
+        name: /attribution is checkable/i,
+      }),
     ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "Career ledger" }),
+    ).toBeVisible();
+    await expect(page.locator(".ledger-row")).toHaveCount(7);
 
     const featuredWriting = page.locator("a.list-row[href*='dev.to']");
     await expect(featuredWriting).toHaveCount(3);
@@ -67,19 +80,35 @@ test.describe("portfolio happy path", () => {
       "href",
       /dev\.to\/michaeltruong/,
     );
+    await expect(
+      page.getByRole("link", {
+        name: /Active players looked real until we asked which sessions counted/i,
+      }),
+    ).toBeVisible();
+
+    await expect(
+      page.locator('a.list-row[href="/projects/editorial-workflow"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('a.list-row[href="/projects/resume-generator"]'),
+    ).toHaveCount(0);
 
     await expect(
       page.getByRole("link", { name: /ecosystem walkthrough/i }),
     ).toHaveAttribute("href", "/ecosystem");
   });
 
-  test("home 1b layout stacks at 375px without invented metrics", async ({
+  test("home 1b layout stacks at 375px with qualified figures", async ({
     page,
   }) => {
     await page.goto("/");
 
-    await expect(page.getByText("175+")).toHaveCount(0);
-    await expect(page.getByText("Career ledger")).toHaveCount(0);
+    await expect(page.getByText("175+")).toBeVisible();
+    await expect(page.getByText(/durable floor/i)).toBeVisible();
+    await expect(page.getByText("game_started")).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: "Career ledger" }),
+    ).toBeVisible();
     await expect(
       page.getByText("open to senior engineering roles"),
     ).toHaveCount(0);

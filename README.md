@@ -50,7 +50,7 @@ Local app: [http://localhost:3000](http://localhost:3000)
 
 Primary routes:
 
-- `/` — homepage (flagship projects + featured writing)
+- `/` — homepage (two first-class systems, career ledger, supporting work, selected writing)
 - `/projects` — four case studies
 - `/projects/[slug]` — case-study detail
 - `/articles` — published DEV.to index (external links)
