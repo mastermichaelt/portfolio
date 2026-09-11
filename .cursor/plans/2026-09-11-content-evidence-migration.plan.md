@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: redesign-prep-projects
     content: "Docs-only PR: Projects Claude Design handoff + tier intent (Editorial not featured; featured semantics redesigned with Projects)"
-    status: pending
+    status: completed
   - id: content-writing-curation
     content: "PR: Unify homepage.writing and articles.featured after H3 human decision on curation rule"
     status: pending

@@ -17,13 +17,13 @@ This document is a **migration map** from the pre-redesign portfolio content mod
 
 ## Sources consulted
 
-| Source                                                                                                                                             | Role in this audit                                                                                                                                                                                                  |
-| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`docs/redesign-baseline.md`](redesign-baseline.md)                                                                                                | Primary evidence index; quantitative facts with inventory paths and fact IDs (re-read 2026-09-11)                                                                                                                   |
-| [`content/*`](..), [`content/homepage.ts`](../content/homepage.ts)                                                                                 | Current committed portfolio content                                                                                                                                                                                 |
-| [`DESIGN.md`](../DESIGN.md), [`.cursor/plans/archive/2026-09-11-instrument-1b.plan.md`](../.cursor/plans/archive/2026-09-11-instrument-1b.plan.md) | Presentation constraints (thesis, figure/scope pairs, no fifth project for CH 02)                                                                                                                                   |
-| `mastermichaelt/resumes` (private)                                                                                                                 | **Not directly readable from this environment** (GitHub API 404). All résumé fact IDs below are cited via baseline re-verification; implementation slices must re-read live inventory files before publishing copy. |
-| DEV.to profile + API                                                                                                                               | External positioning surface (tagline, pin set, 15-post corpus) — baseline §2                                                                                                                                       |
+| Source                                                                                                                                             | Role in this audit                                                                                                                                                                         |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`docs/redesign-baseline.md`](redesign-baseline.md)                                                                                                | Primary evidence index; quantitative facts with inventory paths and fact IDs (re-read 2026-09-11)                                                                                          |
+| [`content/*`](..), [`content/homepage.ts`](../content/homepage.ts)                                                                                 | Current committed portfolio content                                                                                                                                                        |
+| [`DESIGN.md`](../DESIGN.md), [`.cursor/plans/archive/2026-09-11-instrument-1b.plan.md`](../.cursor/plans/archive/2026-09-11-instrument-1b.plan.md) | Presentation constraints (thesis, figure/scope pairs, no fifth project for CH 02)                                                                                                          |
+| `mastermichaelt/resumes` (private)                                                                                                                 | Canonical evidence for fact IDs and metric qualifiers. Re-read live `resumes/facts/*.yml` before publishing copy. Projects handoff below re-verified from sibling checkout **2026-09-11**. |
+| DEV.to profile + API                                                                                                                               | External positioning surface (tagline, pin set, 15-post corpus) — baseline §2                                                                                                              |
 
 ---
 
@@ -99,13 +99,13 @@ Comparison of **current on-site content** against baseline evidence and position
 
 ### 7. Claims with insufficient provenance for publication
 
-| Claim                                                     | Location                           | Issue                                                                                                                                                                                                                               | Action                                                                           |
-| --------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| **`175+` monthly active players**                         | `content/homepage.ts` CH 01 figure | Baseline cites `telemetry-model-experiments` action text as **150+** floor; separate metric `monthly-active-players` = **165** with comment “Do not paste this exact count into resume prose.” **175+** not found in baseline table | **Human review** — confirm live `codenames-ai-telemetry.yml` or revert to `150+` |
-| **`#1` branded search**                                   | Homepage figure                    | Sourced to `branded-search-position` `~1` — OK if scope line kept                                                                                                                                                                   | Safe with qualifier                                                              |
-| **`>10%`, `9%–41%`**                                      | Homepage CH 02                     | Match baseline fact IDs                                                                                                                                                                                                             | Safe with scope lines                                                            |
-| **Ledger “Informed Pull Requests”**                       | `homepage.ledger` SSE 2019 row     | Not in baseline quantitative table                                                                                                                                                                                                  | Verify fact module before About/Projects reuse                                   |
-| **“Agent-native engineering systems”** supporting summary | Homepage                           | Composite claim across team-harness + MCP integrations — no single fact ID                                                                                                                                                          | Tie to `ai-engineering-workflows.yml` facts in copy edit or soften               |
+| Claim                                                     | Location                           | Issue                                                                                                                                                                                                               | Action                                                                                 |
+| --------------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **`175+` monthly active players**                         | `content/homepage.ts` CH 01 figure | **Resolved #50:** site publishes **`150+`** durable floor. Live inventory (2026-09-11 re-read): `telemetry-model-experiments` action uses **175+**; `monthly-active-players` = **175** — never paste exact snapshot | **Shipped** — homepage `150+`; Projects redesign aligns with on-site copy at ship time |
+| **`#1` branded search**                                   | Homepage figure                    | Sourced to `branded-search-position` `~1` — OK if scope line kept                                                                                                                                                   | Safe with qualifier                                                                    |
+| **`>10%`, `9%–41%`**                                      | Homepage CH 02                     | Match baseline fact IDs                                                                                                                                                                                             | Safe with scope lines                                                                  |
+| **Ledger “Informed Pull Requests”**                       | `homepage.ledger` SSE 2019 row     | Not in baseline quantitative table                                                                                                                                                                                  | Verify fact module before About/Projects reuse                                         |
+| **“Agent-native engineering systems”** supporting summary | Homepage                           | Composite claim across team-harness + MCP integrations — no single fact ID                                                                                                                                          | Tie to `ai-engineering-workflows.yml` facts in copy edit or soften                     |
 
 ---
 
@@ -190,59 +190,84 @@ Small, merge-safe slices — copy/module/metadata only; existing pages consume d
 
 Preserve 1b structure (hero → two case panels → ledger → supporting + writing). No visual redesign.
 
-| Item                             | Current                                                                                            | Proposed direction                                                                                                                                                                                                     | Source                                                                                                              |
-| -------------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Hero lead**                    | “Growth experimentation… 2014–2025. Independent AI… since 2026.”                                   | Keep dual-era structure; soften “since 2026” isolation — e.g. explicit “same practice” already in `leadEmphasis`; avoid “retraining”, “return to IC”, “pivot”                                                          | User intent; `homepage.hero`                                                                                        |
-| **CH 01 figure MAU**             | `175+` (possibly unsupported — shipped [#46](https://github.com/mastermichaelt/portfolio/pull/46)) | **`content-homepage-figures`** — second slice after plan merge (H1 early correction). Re-read live inventory; keep `175+` only with fact backing, else **`150+`** or omit. Do not leave `175+` published while waiting | Plan [H1 decision rule](../.cursor/plans/2026-09-11-content-evidence-migration.plan.md#h1-decision-rule-mau-figure) |
-| **CH 01 outcomes on case study** | Refuses hard KPIs                                                                                  | Optional **one** qualified figure on `/projects/codenames-ai` only if scope component exists in case-study template — else keep homepage-only                                                                          | `DESIGN.md` figure/scope rules                                                                                      |
-| **CH 02 title/date**             | “Experiment measurement” `2020 – 2025`                                                             | Acceptable; optional subtitle referencing Cross Flow / Growth Experiment Impact Estimation for searchability                                                                                                           | `cross-flow-experiment-measurement.yml`                                                                             |
-| **Ledger ordering**              | Independent 2026 first (`current: true`)                                                           | Keep reverse-chron **but** ensure hero lead establishes continuity before ledger scan                                                                                                                                  | Content copy                                                                                                        |
-| **Ledger rows**                  | Missing Loom/Post Office/Admin Hub as separate rows                                                | Do **not** add rows without redesign capacity — metrics belong in future Atlassian case study; ledger stays role-centric                                                                                               | Baseline §2                                                                                                         |
-| **Supporting work**              | Editorial third after Renovate + agent-native                                                      | Confirm order reflects demotion (editorial last among three)                                                                                                                                                           | Current `homepage.supporting`                                                                                       |
-| **Selected writing**             | 3 slugs (analytics, authority, reviewer)                                                           | **Pick one curation rule** (see §7): homepage `writing` vs `articles.featured` vs DEV pins — recommend homepage rule: _measurement + contracts + production telemetry_                                                 | Baseline §2 pin table                                                                                               |
-| **Unify writing curation**       | `homepage.writing` ≠ `articles.featured`                                                           | After rule agreed: set `featured: true` on the 3 homepage slugs; remove featured from others                                                                                                                           | `content/articles.ts`, `content/homepage.ts`                                                                        |
+| Item                             | Current                                                                        | Proposed direction                                                                                                                                                                                  | Source                                       |
+| -------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Hero lead**                    | “Growth experimentation… 2014–2025. Independent AI… since 2026.”               | Keep dual-era structure; soften “since 2026” isolation — e.g. explicit “same practice” already in `leadEmphasis`; avoid “retraining”, “return to IC”, “pivot”                                       | User intent; `homepage.hero`                 |
+| **CH 01 figure MAU**             | **`150+`** (merged [#50](https://github.com/mastermichaelt/portfolio/pull/50)) | H1 resolved: reverted from unsupported `175+` to **`150+`** durable-floor scope. Live inventory action text now documents **175+** — reconcile in a future slice if inventory and site should match | Shipped                                      |
+| **CH 01 outcomes on case study** | Refuses hard KPIs                                                              | Optional **one** qualified figure on `/projects/codenames-ai` only if scope component exists in case-study template — else keep homepage-only                                                       | `DESIGN.md` figure/scope rules               |
+| **CH 02 title/date**             | “Experiment measurement” `2020 – 2025`                                         | Acceptable; optional subtitle referencing Cross Flow / Growth Experiment Impact Estimation for searchability                                                                                        | `cross-flow-experiment-measurement.yml`      |
+| **Ledger ordering**              | Independent 2026 first (`current: true`)                                       | Keep reverse-chron **but** ensure hero lead establishes continuity before ledger scan                                                                                                               | Content copy                                 |
+| **Ledger rows**                  | Missing Loom/Post Office/Admin Hub as separate rows                            | Do **not** add rows without redesign capacity — metrics belong in future Atlassian case study; ledger stays role-centric                                                                            | Baseline §2                                  |
+| **Supporting work**              | Editorial third after Renovate + agent-native                                  | Confirm order reflects demotion (editorial last among three)                                                                                                                                        | Current `homepage.supporting`                |
+| **Selected writing**             | 3 slugs (analytics, authority, reviewer)                                       | **Pick one curation rule** (see §7): homepage `writing` vs `articles.featured` vs DEV pins — recommend homepage rule: _measurement + contracts + production telemetry_                              | Baseline §2 pin table                        |
+| **Unify writing curation**       | `homepage.writing` ≠ `articles.featured`                                       | After rule agreed: set `featured: true` on the 3 homepage slugs; remove featured from others                                                                                                        | `content/articles.ts`, `content/homepage.ts` |
 
 ---
 
 ### 3. Content / evidence for upcoming **Projects** redesign
 
-Prepare curated modules — **do not** force into current four-card grid.
+Prepare curated modules — **do not** force into the incumbent four-card grid. Claude Design should treat **Atlassian experiment measurement** and **Codenames AI** as **co-primary** hero case studies; everything else is **supporting** or **infrastructure**, grouped below the fold.
 
-#### A. Atlassian experiment measurement (future first-class case study)
+**Tier / `featured` intent (folded from removed `content-project-tiers` slice):**
 
-**Proposed slug:** `experiment-measurement` (or `atlassian-growth-experimentation` — human pick).  
-**Not** the same as homepage `#experiment-measurement` anchor — full case study is redesign-blocked.
+| Surface                            | Current state                                                           | Redesign intent                                                                           |
+| ---------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Homepage                           | CH 01/02 panels + `supporting[]` already demote Editorial               | Unchanged — do not redesign home in Projects session                                      |
+| `/projects` index                  | `listProjects()` renders all four slugs equally; **no** featured filter | Two hero slots (Atlassian + Codenames) + supporting band                                  |
+| `content/projects.ts` `featured`   | `codenames-ai` + `editorial-workflow` still `true`                      | **Do not pre-flip** in safe-now slices — `featured` semantics redesigned with Projects IA |
+| `tests/content-foundation.test.ts` | Asserts two featured slugs                                              | Update **with** Projects redesign, not standalone                                         |
+| Editorial workflow                 | Homepage `supporting[]` (last of three)                                 | **Supporting**, not co-equal with Codenames or Atlassian                                  |
 
-| Section kind                             | Evidence to draft (from inventory)                                                                                                                                                                                                                                                                                                        |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Problem                                  | Attribution windows / pipeline gaps change experiment readouts — `statsig-reliability.yml` `attribution-window-variance`; `cross-flow-experiment-measurement.yml`                                                                                                                                                                         |
-| Role                                     | SSE 2019–2020, EM 2020–2024, SSE 2024–2025 Growth — `resumes/roles/atlassian-*.yml`                                                                                                                                                                                                                                                       |
-| Decisions                                | Authored attribution formula for Growth Experiment Impact Estimation; Cross Flow funnel observability audit — `cross-flow-experiment-measurement.yml` `attribution-uplift`                                                                                                                                                                |
-| Outcomes (qualified)                     | `>10%` over-attribution exposed; `9%–41%` StatSig window variance; Loom pipeline `20%` data recovered, `~50%` paid-user events preserved, `5` experiments unblocked — `loom-event-pipeline.yml`; Admin Hub `35%` D1D6AI, zero-incident launch — `admin-hub-experimentation.yml`; Loom OKR `10x` — `loom-acquisition.yml` `okr-attainment` |
-| Post Office / Switcher (optional module) | `2.5 million` impressions; D1D6AI `77%`/`62%`; `40%` signup share — `post-office-ml-surfaces.yml`                                                                                                                                                                                                                                         |
-| Evidence links                           | Internal stories **not** for public paste: `resumes/stories/billing-grandfathering.yml`, `loom-analytics-alignment.yml`, `technical-bottleneck.yml` — use for draft only                                                                                                                                                                  |
-| Related writing                          | None directly tagged today — consider future field report or omit                                                                                                                                                                                                                                                                         |
+Runtime audit: [plan § Runtime audit: `projects.featured`](../.cursor/plans/2026-09-11-content-evidence-migration.plan.md#runtime-audit-projectsfeatured).
 
-#### B. Codenames AI (elevate within Projects IA)
+#### A. Atlassian experiment measurement (co-primary — future first-class case study)
 
-Existing `content/projects.ts` entry is strong. For redesign, add **qualified figures** as optional `ProjectFigure[]` (mirror homepage model):
+**Proposed slug:** `experiment-measurement` (H5 — human pick vs `atlassian-growth-experimentation`).  
+**Not** the same as homepage `#experiment-measurement` anchor — full in-site case study is **deferred** to Claude Design; this slice is evidence prep only.
 
-| Figure                         | Fact ID                       | Notes              |
-| ------------------------------ | ----------------------------- | ------------------ |
-| `150+` (or approved floor) MAU | `telemetry-model-experiments` | Not rolling 165    |
-| `~1` branded search position   | `branded-search-position`     | Last 28 days scope |
-| `350` canonical concepts       | `canonical-concept-count`     | E2E/domain depth   |
+**One-line thesis:** Refuse a reported experiment number until attribution is checkable.
 
-Product doc citations for technical sections: `codenames-ai-guesser/docs/judge-ai-validation-flow.md`, `ai-pipeline-outcome.md`, `analytics-workflow.md`.
+| Section kind                            | Inventory module                                         | Fact IDs to cite                                                                                    | Qualified figures (value · metric name · scope)                                                                                    |
+| --------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Problem                                 | `cross-flow-experiment-measurement.yml`                  | `attribution-formula`, `attribution-uplift`                                                         | `>10%` · prior-approach over-attribution exposed · Cross Flow Growth Experiment Impact Estimation methodology                      |
+| StatSig reliability                     | `statsig-reliability.yml`                                | `attribution-window-analysis`, `attribution-window-variance`                                        | `9%–41%` · in-flight experiment uplift variance across StatSig attribution windows                                                 |
+| Loom event pipeline                     | `loom-event-pipeline.yml`                                | `loom-attribution-salvage`, `data-recovered`, `paid-user-events-preserved`, `experiments-unblocked` | `20%` lost Cross-flow data recovered; `~50%` paid-user events preserved; `5` in-flight experiments unblocked                       |
+| Loom acquisition                        | `loom-acquisition.yml`                                   | `acquisition-onboarding`, `okr-attainment`                                                          | `10×` · OKR attainment vs target · acquisition onboarding scope                                                                    |
+| Admin Hub experiments                   | `admin-hub-experimentation.yml`                          | `loom-global-requests-experiment`, `d1d6ai-increase`, `zero-incident-launch`                        | `35%` D1D6AI increase; zero-incident, zero-restart launch across three Cross Flow experiments                                      |
+| Post Office / Switcher (stretch module) | `post-office-ml-surfaces.yml`                            | `switcher-impressions`, `d1d6ai-untenanted`, `d1d6ai-tenanted`, `switcher-userid-signup-share`      | `2.5 million` monthly Switcher impressions; D1D6AI `77%`/`62%` (untenanted/tenanted); `40%` Loom signup share from userId Switcher |
+| EM delivery scope                       | `em-growth-delivery.yml`                                 | `org-change-leadership`, `direct-reports`, `fy22-projects-shipped`, `trust-score-card`              | `8–10` direct reports; FY22 `12` projects / `3` complex; Trust Score Card `100%`                                                   |
+| AIM (leadership parallel)               | `aim-participation-scale.yml`, `aim-sentiment-atlas.yml` | `matched-count`, `workforce-share`, `sentiment-score`, `atlas-projects`                             | `3,552` matched; `~20%` of Atlassians; `86%` Engineering sentiment; highest-followed Atlas project among `>60,000`                 |
 
-#### C. Supporting work (Projects redesign tier)
+**Role spine:** SSE 2019–2020 → EM 2020–2024 → SSE 2024–2025 Growth — `resumes/roles/atlassian-*.yml`. Voice: professional record 2014–2025; EM period as experiment-ops leadership, not a detour from engineering.
 
-| Slug                        | Tier                                      | Redesign notes                                                                                                                                                     |
-| --------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `editorial-workflow`        | Supporting                                | Demote visually; link to DEV series; weekly cadence from `ai-editorial-workflow.yml` `weekly-publishing-scale` (`14` reports via workflow — qualify vs hub **15**) |
-| `renovate-governance`       | Supporting                                | Keep no `outcomes` section (test-enforced); ladder + 2 DEV posts                                                                                                   |
-| `resume-generator`          | Infrastructure                            | Frame as facts-vs-prose method; private repo — no URL evidence                                                                                                     |
-| Agent-native / team-harness | Supporting (new stub or ecosystem bridge) | Facts: `ai-engineering-workflows.yml` `team-harness-plugin`, `cloud-hooks-primitive`, `hook-stack-model`; plugin `cursor-team-marketplace` v1.10.2                 |
+**Draft-only (do not paste publicly):** `resumes/stories/billing-grandfathering.yml`, `loom-analytics-alignment.yml`, `technical-bottleneck.yml`.
+
+**Related writing:** None tagged to Atlassian today — omit or add future field report in a later slice.
+
+#### B. Codenames AI (co-primary — elevate within Projects IA)
+
+Existing `content/projects.ts` entry is strong. Redesign should add **qualified figures** as optional `ProjectFigure[]` (mirror homepage `value` + `name` + `scope` model per `DESIGN.md`).
+
+| Figure            | Fact ID                                                           | Metric / action                         | Scope / qualifier                                                                                                                                                               |
+| ----------------- | ----------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MAU floor         | `codenames-ai-telemetry.yml` · `telemetry-model-experiments`      | Action text uses **175+** durable floor | **On-site today (post #50):** homepage publishes **`150+`** with durable-floor scope — do not re-litigate H1 in Projects prep; align case-study copy with homepage at ship time |
+| Rolling snapshot  | `monthly-active-players`                                          | `175`                                   | **Never publish** exact count — fact comment forbids pasting into prose                                                                                                         |
+| Branded search    | `branded-search-position`                                         | `~1`                                    | Branded Google Search average position · last 28 days                                                                                                                           |
+| Domain depth      | `codenames-ai-e2e.yml` · `canonical-concept-count`                | `350`                                   | Canonical English concepts · language-aware projection pipeline                                                                                                                 |
+| Validation thesis | `codenames-ai-e2e.yml` · `model-migrations`, `product-evaluation` | —                                       | Complementary jobs: migration robustness vs live telemetry (`telemetry-model-experiments`) — do not collapse                                                                    |
+
+**One-line thesis:** Valid JSON is not a legal move.
+
+Product doc citations for technical sections: `codenames-ai-guesser/docs/judge-ai-validation-flow.md`, `ai-pipeline-outcome.md`, `analytics-workflow.md`. Live URL: codenames-ai.com.
+
+#### C. Supporting work (grouped — not co-equal)
+
+| Slug / system               | Tier           | Inventory                                                                                                | Redesign notes                                                                                                                                                                                     |
+| --------------------------- | -------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `editorial-workflow`        | Supporting     | `ai-editorial-workflow.yml` · `editorial-lifecycle`, `weekly-publishing-scale`, `published-via-workflow` | Demote visually; DEV series as proof surface; **`15`** reports via workflow (metric) vs hub **15** posts — do not quote **`14`** without H2 resolution; **not** `featured` co-equal with Codenames |
+| `renovate-governance`       | Supporting     | `renovate-governance.yml` · `ladder-roles`, `contracts-stop-causes`, `operational-ladder`                | Keep no `outcomes` section (test-enforced); classifier / investigator / maintainer ladder + 2 DEV posts                                                                                            |
+| Agent-native / team-harness | Supporting     | `ai-engineering-workflows.yml` · `team-harness-plugin`, `cloud-hooks-primitive`, `hook-stack-model`      | Bridge to `/ecosystem`; optional stub slug (H10) — not co-primary                                                                                                                                  |
+| `resume-generator`          | Infrastructure | `resume-builder.yml` · `facts-vs-prose`, `quality-gates`                                                 | Facts-vs-prose method; private repo — no public URL; mention as meta-infrastructure, not career headline                                                                                           |
 
 ---
 
@@ -324,13 +349,39 @@ Prepare facts — do not dump full inventory.
 
 ## Claude Design handoff — Projects session
 
-Use this brief for the next **Projects page Claude Design** pass. Goal: a Projects experience that expresses **Atlassian + Codenames + supporting work** as one evidence set — not four equal 2026 side projects.
+**Slice:** `redesign-prep-projects` (docs-only). **Prerequisites merged:** [#49](https://github.com/mastermichaelt/portfolio/pull/49) metadata, [#50](https://github.com/mastermichaelt/portfolio/pull/50) H1 homepage figures (`150+` on site), [#51](https://github.com/mastermichaelt/portfolio/pull/51) articles corpus.
+
+Use this brief for the next **Projects page Claude Design** pass. Goal: a Projects experience that expresses **Atlassian experiment measurement + Codenames AI** as **co-primary** evidence — the same method (uncertain → checkable → contract) across eras — with **supporting** independent systems grouped below, not four equal 2026 side projects.
+
+### Session entry checklist
+
+1. Read [`DESIGN.md`](../DESIGN.md) — figure value + name + scope; no bare numbers.
+2. Read [`PRODUCT.md`](../PRODUCT.md) — continuity framing; thesis _Making uncertain systems dependable._
+3. Do **not** edit homepage (Instrument 1b shipped [#47](https://github.com/mastermichaelt/portfolio/pull/47)).
+4. Do **not** flip `content/projects.ts` `featured` flags in prep — redesign owns tier semantics.
+5. Re-read live `resumes/facts/*.yml` before any new quantitative copy ships in a follow-up content PR.
 
 ### Design intent
 
-- **Primary scan path:** Atlassian experiment measurement ↔ Codenames AI as two instances of the same method (uncertain → checkable → contract).
-- **Supporting band:** Editorial workflow, Renovate governance, agent-native systems, resume-generator (infrastructure).
-- **Do not** redesign homepage (already 1b). Projects should feel like **depth**, home like **thesis + ledger**.
+| Layer               | Systems                                                                   | Visual weight                                               |
+| ------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Co-primary**      | Atlassian experiment measurement; Codenames AI                            | Two hero case-study slots — equal prominence, linked thesis |
+| **Supporting band** | Editorial workflow; Renovate governance; agent-native engineering systems | Grouped grid or list — clearly subordinate                  |
+| **Infrastructure**  | Resume generator (facts-vs-prose)                                         | Smallest card or footnote — method, not headline            |
+
+**Primary scan path:** Atlassian ↔ Codenames as two instances of the same verification discipline. **Supporting band** proves the method extends into agent workflows, editorial gates, and dependency governance. **Do not** feature Editorial as co-equal (homepage already demotes via `content/homepage.ts` `supporting[]`; incumbent `editorial-workflow.featured: true` is legacy until redesign).
+
+Projects should feel like **depth**; home remains **thesis + ledger**.
+
+### Tier / `featured` intent for redesign
+
+| Decision                      | Guidance                                                                                                               |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Incumbent `projects.featured` | Leave unchanged until Projects redesign lands — flipping now is churn on a four-card model being replaced              |
+| New tier model                | Prefer presentation-only (hero vs supporting vs infrastructure) or optional `tier` schema (H8) — Claude Design chooses |
+| Editorial                     | **Supporting** — link DEV series; do not share hero row with Codenames                                                 |
+| Test update                   | When redesign ships, update `tests/content-foundation.test.ts` featured assertions to match new semantics              |
+| Homepage                      | Independent — `homepage.supporting[]` order already places Editorial last among three                                  |
 
 ### Curated evidence set (must appear in IA)
 
@@ -338,59 +389,73 @@ Use this brief for the next **Projects page Claude Design** pass. Goal: a Projec
 
 **One-line thesis:** Refuse a reported experiment number until attribution is checkable.
 
-| Evidence block                   | Key qualified figures                                                                                              | Source                                                       |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
-| Cross Flow attribution audit     | `>10%` prior-approach over-attribution exposed                                                                     | `cross-flow-experiment-measurement.yml` `attribution-uplift` |
-| StatSig reliability              | `9%–41%` uplift variance across attribution windows                                                                | `statsig-reliability.yml` `attribution-window-variance`      |
-| Loom event pipeline              | `20%` lost experiment data recovered; `~50%` paid-user events preserved; `5` experiments unblocked                 | `loom-event-pipeline.yml`                                    |
-| Loom acquisition OKR             | `10×` vs target                                                                                                    | `loom-acquisition.yml` `okr-attainment`                      |
-| Admin Hub experiments            | `35%` D1D6AI increase; zero-incident, zero-restart launch (three Cross Flow experiments)                           | `admin-hub-experimentation.yml`                              |
-| Post Office / Switcher (stretch) | `2.5M` monthly Switcher impressions; D1D6AI `77%`/`62%`; `40%` Loom signup share from userId Switcher              | `post-office-ml-surfaces.yml`                                |
-| EM / leadership scope            | `8–10` direct reports; FY22 `12` projects / `3` complex / `100%` trust score                                       | `em-growth-delivery.yml`                                     |
-| AIM (leadership parallel)        | `3,552` matched; `~20%` of Atlassians; `86%` engineering sentiment; highest-followed Atlas project among `>60,000` | `aim-participation-scale.yml`, `aim-sentiment-atlas.yml`     |
+| Evidence block                   | Key qualified figures                                                                                              | Fact module · fact ID                                                                                                               |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Cross Flow attribution audit     | `>10%` prior-approach over-attribution exposed                                                                     | `cross-flow-experiment-measurement.yml` · `attribution-uplift`                                                                      |
+| StatSig reliability              | `9%–41%` uplift variance across attribution windows                                                                | `statsig-reliability.yml` · `attribution-window-variance`                                                                           |
+| Loom event pipeline              | `20%` lost experiment data recovered; `~50%` paid-user events preserved; `5` experiments unblocked                 | `loom-event-pipeline.yml` · `data-recovered`, `paid-user-events-preserved`, `experiments-unblocked`                                 |
+| Loom acquisition OKR             | `10×` vs target                                                                                                    | `loom-acquisition.yml` · `okr-attainment`                                                                                           |
+| Admin Hub experiments            | `35%` D1D6AI increase; zero-incident, zero-restart launch (three Cross Flow experiments)                           | `admin-hub-experimentation.yml` · `d1d6ai-increase`, `zero-incident-launch`                                                         |
+| Post Office / Switcher (stretch) | `2.5 million` monthly Switcher impressions; D1D6AI `77%`/`62%`; `40%` Loom signup share from userId Switcher       | `post-office-ml-surfaces.yml` · `switcher-impressions`, `d1d6ai-untenanted`, `d1d6ai-tenanted`, `switcher-userid-signup-share`      |
+| EM / leadership scope            | `8–10` direct reports; FY22 `12` projects / `3` complex / `100%` trust score                                       | `em-growth-delivery.yml` · `direct-reports`, `fy22-projects-shipped`, `trust-score-card`                                            |
+| AIM (leadership parallel)        | `3,552` matched; `~20%` of Atlassians; `86%` engineering sentiment; highest-followed Atlas project among `>60,000` | `aim-participation-scale.yml` · `matched-count`, `workforce-share`; `aim-sentiment-atlas.yml` · `sentiment-score`, `atlas-projects` |
 
 **Voice:** Professional record 2014–2025; EM period visible as experiment-ops leadership, not a detour from engineering.
 
-**Artifacts:** No public case-study URL today — homepage `#experiment-measurement` is the only on-site copy. Design should plan for **in-site case study** with figure/scope components per `DESIGN.md`.
+**Artifacts:** No public case-study URL today — homepage `#experiment-measurement` is the only on-site copy. Design should plan for **in-site case study** (`/projects/experiment-measurement` or H5 slug) with figure/scope components per `DESIGN.md`. **Do not implement** the full case-study page in `redesign-prep-projects` — design + wireframe only.
 
 #### 2. Codenames AI — production AI verification
 
 **One-line thesis:** Valid JSON is not a legal move.
 
-| Evidence block          | Key qualified figures                                                              | Source                                           |
-| ----------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------ |
-| Live product            | codenames-ai.com                                                                   | On portfolio                                     |
-| Validation / evaluation | Schema-first (Zod) + domain validators; model migrations as controlled experiments | `content/projects.ts`; DEV posts                 |
-| Telemetry               | `150+` MAU floor (pending H1); `~1` branded search avg position (28d)              | `codenames-ai-telemetry.yml`                     |
-| Domain depth            | `350` canonical English concepts                                                   | `codenames-ai-e2e.yml` `canonical-concept-count` |
-| Writing                 | 3+ DEV field reports linked in project evidence                                    | `content/projects.ts` `evidence[]`               |
+| Evidence block          | Key qualified figures                                                                                                                                                                                  | Fact module · fact ID                                                           |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| Live product            | codenames-ai.com                                                                                                                                                                                       | On portfolio                                                                    |
+| Telemetry / MAU         | **`150+`** on homepage today (#50); live inventory action text uses **`175+`** floor (`telemetry-model-experiments`); snapshot **`175`** (`monthly-active-players`) — **never publish exact snapshot** | `codenames-ai-telemetry.yml`                                                    |
+| Branded search          | `~1` avg position (28d)                                                                                                                                                                                | `codenames-ai-telemetry.yml` · `branded-search-position`                        |
+| Domain depth            | `350` canonical English concepts                                                                                                                                                                       | `codenames-ai-e2e.yml` · `canonical-concept-count`                              |
+| Validation / evaluation | Schema-first (Zod) + domain validators; model migrations as controlled experiments                                                                                                                     | `codenames-ai-e2e.yml` · `model-migrations`, `product-evaluation`; product docs |
+| Writing                 | DEV field reports linked in `content/projects.ts` `evidence[]`                                                                                                                                         | `writing-field-reports.yml`; editorial corpus                                   |
 
-**Artifacts:** Live URL, DEV series, optional GitHub (if public policy allows).
+**Artifacts:** Live URL, DEV series, optional GitHub if public policy allows.
 
-#### 3. Supporting work (grouped, not co-equal)
+#### 3. Supporting work (grouped — not co-equal)
 
-| System                       | One-line                                                                                  | Proof surface                                            |
-| ---------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **Editorial workflow**       | Human-in-the-loop weekly field reports — retrieval, critique, verification before publish | DEV posts; Notion/repo/DEV ownership model               |
-| **Renovate governance**      | Classifier / investigator / maintainer with merge authority gates                         | 2 DEV posts; portfolio case study                        |
-| **Agent-native engineering** | Team-harness plugin, cloud-hooks, four-layer hook stack                                   | `ai-engineering-workflows.yml`; `/ecosystem` walkthrough |
-| **Resume generator**         | Facts-vs-prose inventory — generation refuses invented claims                             | Private repo; case study on `/projects`                  |
+| System                       | One-line                                                                                  | Proof surface                                            | Key fact IDs                                                                                         |
+| ---------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Editorial workflow**       | Human-in-the-loop weekly field reports — retrieval, critique, verification before publish | DEV posts; Notion/repo/DEV ownership model               | `ai-editorial-workflow.yml` · `editorial-lifecycle`, `human-publish-gates`, `published-via-workflow` |
+| **Renovate governance**      | Classifier / investigator / maintainer with merge-authority gates                         | 2 DEV posts; portfolio case study                        | `renovate-governance.yml` · `ladder-roles`, `contracts-stop-causes`                                  |
+| **Agent-native engineering** | Team-harness plugin, cloud-hooks, four-layer hook stack                                   | `ai-engineering-workflows.yml`; `/ecosystem` walkthrough | `team-harness-plugin`, `cloud-hooks-primitive`, `hook-stack-model`                                   |
+| **Resume generator**         | Facts-vs-prose inventory — generation refuses invented claims                             | Private repo; case study on `/projects`                  | `resume-builder.yml` · `facts-vs-prose`, `quality-gates`                                             |
 
 ### IA recommendations for Design (non-binding)
 
-- Two **hero case-study slots** (Atlassian, Codenames) + **supporting grid** (2×2 or list).
+- Two **hero case-study slots** (Atlassian, Codenames) + **supporting grid** (2×2 or compact list) + infrastructure footnote.
 - Channel ids `CH 01` / `CH 02` may extend to Projects for visual continuity with home.
-- Use figure/scope triples for Atlassian metrics — never bare numbers.
+- Use figure/scope triples for every metric — never bare numbers.
 - Link out to DEV for depth; keep case studies scannable.
 - Ecosystem link from supporting band, not primary Projects narrative.
+- Atlassian hero may use stretch Post Office module as secondary column — optional, not required for MVP.
 
 ### Explicit non-goals for Projects Design session
 
-- Rename routes to `/work`
-- Merge About + Contact
-- Full ecosystem entity graph on Projects page
-- Savepoints as a case study
-- Invent traction KPIs for Codenames
+| Non-goal                                                   | Rationale                                                                     |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Rename routes to `/work`                                   | Deferred in content-evidence plan                                             |
+| Merge About + Contact                                      | Out of scope                                                                  |
+| Full ecosystem entity graph on Projects page               | Ecosystem redesign is separate                                                |
+| **Savepoints as a case study**                             | Prototype scope — `savepoints-durable-capture.yml`; correctly invisible today |
+| **Invent traction KPIs for Codenames**                     | Use inventory fact IDs only; omit if unsupported                              |
+| **Implement full Atlassian case-study page in prep slice** | This slice is docs-only; page build is a follow-up after design approval      |
+| Flip `editorial-workflow.featured` before redesign         | Folded into tier intent — homepage already demotes                            |
+| Publish exact MAU **`175`** snapshot                       | Fact comment forbids                                                          |
+| Populate `content/ledger.ts` or delete `timeline.ts`       | Separate deferred slices                                                      |
+
+### Cross-links (optional in design comp only)
+
+- Homepage `#experiment-measurement`, `#codenames-ai` anchors for continuity.
+- `/ecosystem` from agent-native supporting row.
+- `/articles` from Editorial supporting row — do not resolve H3 writing curation in this session.
 
 ---
 
