@@ -1,6 +1,7 @@
-# Content & evidence migration plan
+# Content & evidence migration — supporting audit
 
-**Status:** Plan-only — no production `content/*` or page implementation in this document’s PR.  
+**Authority:** Executable slices, authority tags, and agent prompts live in [`.cursor/plans/2026-09-11-content-evidence-migration.plan.md`](../.cursor/plans/2026-09-11-content-evidence-migration.plan.md). This file is the **supporting audit / migration map** referenced by that plan.
+
 **Audit date:** 2026-09-11  
 **Prerequisite audits:** [`docs/redesign-baseline.md`](redesign-baseline.md) (merged [#42](https://github.com/mastermichaelt/portfolio/pull/42)); Instrument 1b visual direction (merged [#47](https://github.com/mastermichaelt/portfolio/pull/47)).
 
@@ -391,42 +392,12 @@ Use this brief for the next **Projects page Claude Design** pass. Goal: a Projec
 
 ---
 
-## Implementation slices (merge-safe)
-
-Execute in order after this plan merges. Each slice = one PR, **Open PR only**, branch from `origin/main`.
-
-| Order | Slice                      | Bucket             | Scope                                                                              | Verify                                |
-| ----- | -------------------------- | ------------------ | ---------------------------------------------------------------------------------- | ------------------------------------- |
-| 1     | `content-metadata-profile` | §1 S1–S2           | Metadata + `profile.bio` alignment                                                 | lint, typecheck, test, build          |
-| 2     | `content-articles-corpus`  | §1 S3–S4, §5       | Fix comment + add 6 articles (non-featured)                                        | content-foundation tests              |
-| 3     | `content-writing-curation` | §2, §6             | Unify `homepage.writing` + `articles.featured` after **H3** resolved               | content-foundation + e2e home writing |
-| 4     | `content-project-tiers`    | §1 S5–S6, §6       | Demote editorial featured; comments                                                | content-foundation                    |
-| 5     | `content-homepage-figures` | §2, §7 H1          | MAU figure correction if approved                                                  | e2e figure scope lines                |
-| 6     | `content-project-figures`  | §3B                | Optional `ProjectFigure` on Codenames only — if type added without layout redesign | figure/scope tests                    |
-| 7     | `content-related-writing`  | §1 S8              | Case study related articles — **only** if block exists                             | e2e project pages                     |
-| —     | **Projects redesign**      | §3, Design handoff | Claude Design + new Atlassian slug                                                 | Design pass                           |
-| —     | **About redesign**         | §4                 | Claude Design                                                                      | Design pass                           |
-| —     | **Articles redesign**      | §5                 | Claude Design + optional `argument` field                                          | Design pass                           |
-
-**Blocked until human review:** slices 3, 5 (H3, H1).
-
----
-
-## Success criteria (this plan PR)
-
-- [x] Seven deliverable buckets populated
-- [x] Quantitative/professional claims cite inventory paths and fact IDs (via baseline)
-- [x] Clear separation: safe-now vs redesign-blocked vs retire vs human-review
-- [x] Claude Design Projects handoff is concrete and curated
-- [x] Zero production `content/*` or page implementation edits in the plan PR
-
----
-
 ## Related documents
 
-| Document                                                                                                              | Relationship                                                                              |
-| --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [`docs/redesign-baseline.md`](redesign-baseline.md)                                                                   | Evidence index and §7 open questions — this plan answers the **content migration** subset |
-| [`DESIGN.md`](../DESIGN.md)                                                                                           | Visual/evidence qualification constraints for all copy slices                             |
-| [`.cursor/plans/archive/2026-09-11-instrument-1b.plan.md`](../.cursor/plans/archive/2026-09-11-instrument-1b.plan.md) | Homepage composition already shipped — do not redesign                                    |
-| [`PRODUCT.md`](../PRODUCT.md)                                                                                         | Update in a later slice if positioning paragraph changes                                  |
+| Document                                                                                                                        | Relationship                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| [`.cursor/plans/2026-09-11-content-evidence-migration.plan.md`](../.cursor/plans/2026-09-11-content-evidence-migration.plan.md) | **Executable plan** — slices, authority, agent prompts, human gates  |
+| [`docs/redesign-baseline.md`](redesign-baseline.md)                                                                             | Evidence index and §7 open questions                                 |
+| [`DESIGN.md`](../DESIGN.md)                                                                                                     | Visual/evidence qualification constraints                            |
+| [`.cursor/plans/archive/2026-09-11-instrument-1b.plan.md`](../.cursor/plans/archive/2026-09-11-instrument-1b.plan.md)           | Homepage composition shipped — do not redesign                       |
+| [`PRODUCT.md`](../PRODUCT.md)                                                                                                   | Product positioning — update in `content-metadata-profile` if needed |
