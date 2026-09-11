@@ -28,9 +28,31 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md"
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-09-11.**
+
+| Slice                    | Delivered                                                                                                                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| plan-review              | [#48](https://github.com/mastermichaelt/portfolio/pull/48) — plan artifact + supporting audit (Plan-only PR)                                                                                            |
+| content-metadata-profile | [#49](https://github.com/mastermichaelt/portfolio/pull/49) — continuity framing in metadata + `profile.bio`                                                                                             |
+| content-homepage-figures | [#50](https://github.com/mastermichaelt/portfolio/pull/50) (interim **150+**), [#52](https://github.com/mastermichaelt/portfolio/pull/52) — live re-verify restored **175+** MAU on homepage CH 01 (H1) |
+| content-articles-corpus  | [#51](https://github.com/mastermichaelt/portfolio/pull/51) — corpus comment fix + 6 missing DEV posts as non-featured rows                                                                              |
+| redesign-prep-projects   | [#53](https://github.com/mastermichaelt/portfolio/pull/53) — Projects Claude Design handoff + tier/`featured` intent (docs-only)                                                                        |
+| redesign-prep-about      | [#54](https://github.com/mastermichaelt/portfolio/pull/54) — About redesign evidence brief (docs-only)                                                                                                  |
+| redesign-prep-articles   | [#55](https://github.com/mastermichaelt/portfolio/pull/55) — Articles/Writing redesign brief; H2 post-count tension resolved in docs                                                                    |
+| content-writing-curation | [#56](https://github.com/mastermichaelt/portfolio/pull/56) — H3 **Homepage wins**; `articles.featured` matches `homepage.writing` three slugs                                                           |
+| plan-closure             | This PR — archive to `.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md`                                                                                                              |
+
+**Removed / folded:** `content-project-tiers` — standalone `featured` flip removed; tier/`featured` intent folded into `redesign-prep-projects` (homepage already demotes Editorial via `content/homepage.ts` `supporting[]`).
+
+**Deferred (out of scope):** Visual / IA redesign of `/projects`, `/projects/[slug]`, `/articles`, `/about`, and `/ecosystem` — use Claude Design with prepared handoffs in [`docs/content-evidence-migration.md`](../../docs/content-evidence-migration.md) §3–§5 (Projects, About, Articles). Also deferred: route renames (`/work`, `/writing`), full Atlassian `/projects/experiment-measurement` case-study page, canonical domain `michaeltruong.dev`, `tier` schema on `Project`, `content/ledger.ts`, deleting `timeline.ts`, Savepoints as portfolio project, optional `content-project-figures` and `content-related-writing`.
+
+This plan is archived. The work described here has shipped; the remaining content is preserved for historical context.
 
 # Content evidence migration
 
@@ -190,7 +212,7 @@ Baseline reference (2026-09-11): live `telemetry-model-experiments` action text 
 
 **Deliverables:**
 
-- This file: `.cursor/plans/2026-09-11-content-evidence-migration.plan.md`
+- This file: `.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md`
 - Supporting audit: [`docs/content-evidence-migration.md`](../../docs/content-evidence-migration.md)
 - Roadmap pointer: [`docs/plans/portfolio-roadmap.plan.md`](../../docs/plans/portfolio-roadmap.plan.md)
 
@@ -468,7 +490,7 @@ Use a **fresh Agent-mode chat** per slice. Each default frontmatter todo has exa
 ### plan-review
 
 ```text
-@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
+@.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md
 
 Execute only plan-review. Do not start implementation slices.
 
@@ -476,7 +498,7 @@ Authority: Plan-only PR — commit the plan artifact and supporting audit only; 
 
 Topology: start from latest origin/main; branch represents only the plan artifact; PR base must be main.
 
-Deliverables: .cursor/plans/2026-09-11-content-evidence-migration.plan.md; docs/content-evidence-migration.md (supporting audit); roadmap pointer; mark plan-review completed in frontmatter in the same PR.
+Deliverables: .cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md; docs/content-evidence-migration.md (supporting audit); roadmap pointer; mark plan-review completed in frontmatter in the same PR.
 
 Verification: plan satisfies repo planning standards; no production content/* or page implementation edits.
 ```
@@ -484,7 +506,7 @@ Verification: plan satisfies repo planning standards; no production content/* or
 ### content-metadata-profile
 
 ```text
-@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
+@.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md
 
 Implement slice content-metadata-profile only. Prerequisite: plan-review merged. Do not start later slices. Do not archive the plan.
 
@@ -500,7 +522,7 @@ Verification: npm run lint, format:check, typecheck, test, test:coverage, build,
 ### content-homepage-figures
 
 ```text
-@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
+@.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md
 
 Implement slice content-homepage-figures only (H1 early correction). Prerequisites: plan-review merged; content-metadata-profile merged (or on main). Do not start later slices. Do not archive the plan.
 
@@ -516,7 +538,7 @@ Verification: npm run lint, format:check, typecheck, test, test:coverage, build,
 ### content-articles-corpus
 
 ```text
-@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
+@.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md
 
 Implement slice content-articles-corpus only. Prerequisites: plan-review merged; content-homepage-figures merged. Do not start later slices. Do not archive the plan.
 
@@ -532,7 +554,7 @@ Verification: npm run lint, format:check, typecheck, test, test:coverage, build;
 ### content-writing-curation
 
 ```text
-@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
+@.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md
 
 Implement slice content-writing-curation only. Prerequisites: plan-review and content-articles-corpus merged; H3 human gate resolved (stop and escalate if not). Do not start later slices. Do not archive the plan.
 
@@ -548,7 +570,7 @@ Verification: npm run lint, format:check, typecheck, test, test:coverage, build,
 ### redesign-prep-projects
 
 ```text
-@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
+@.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md
 
 Implement slice redesign-prep-projects only. Prerequisites: content-metadata-profile, content-homepage-figures, and content-articles-corpus merged. Do not start plan-closure. Do not archive the plan.
 
@@ -564,7 +586,7 @@ Verification: npm run format:check.
 ### redesign-prep-about
 
 ```text
-@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
+@.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md
 
 Implement slice redesign-prep-about only. Prerequisite: plan-review merged. Do not start plan-closure. Do not archive the plan.
 
@@ -580,7 +602,7 @@ Verification: npm run format:check.
 ### redesign-prep-articles
 
 ```text
-@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
+@.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md
 
 Implement slice redesign-prep-articles only. Prerequisites: content-articles-corpus merged; H2 resolved for any count wording. Do not start plan-closure. Do not archive the plan.
 
@@ -596,7 +618,7 @@ Verification: npm run format:check.
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-09-11-content-evidence-migration.plan.md
+@.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md
 
 Execute only plan-closure.
 
