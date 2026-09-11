@@ -1,8 +1,8 @@
 import type { Article } from "@/domain/article";
 
 /**
- * Full published DEV.to inventory from sibling
- * `codenames-ai-guesser/docs/dev.to/published/`.
+ * Curated DEV.to inventory synced from sibling hub
+ * `editorial-workflow/docs/dev.to/published/` (15 posts; portfolio lists full corpus).
  * Titles/URLs from frontmatter; summaries compressed from openings — no invented claims.
  * `featured` marks a small homepage set (≈ one post per flagship case study);
  * project pages filter via `relatedProjectSlug`.
@@ -99,5 +99,64 @@ export const articles: Article[] = [
     tags: ["ai", "typescript", "validation"],
     url: "https://dev.to/michaeltruong/schema-first-prompt-second-valid-json-wasnt-enough-3nhm",
     relatedProjectSlug: "codenames-ai",
+  },
+  {
+    slug: "experiment-repos-need-first-class-retirement-semantics",
+    title:
+      "Throwaway experiments are easy to start. Retiring one safely is not",
+    summary:
+      "Closing a throwaway agent-workflow experiment repo surfaced missing retirement semantics.",
+    year: 2026,
+    tags: ["ai", "agents", "workflow"],
+    url: "https://dev.to/michaeltruong/throwaway-experiments-are-easy-to-start-retiring-one-safely-is-not-2afe",
+  },
+  {
+    slug: "persist-game-state-not-ephemeral-ui-intent",
+    title: "The board came back. The highlights lied.",
+    summary:
+      "Reloading a Codenames AI tab restored the board while UI highlights no longer matched persisted game state.",
+    year: 2026,
+    tags: ["ai", "webdev", "typescript"],
+    url: "https://dev.to/michaeltruong/the-board-came-back-the-highlights-lied-18bo",
+    relatedProjectSlug: "codenames-ai",
+  },
+  {
+    slug: "agent-portability-does-not-require-centralizing-methodology-behind-mcp",
+    title: "I was solving agent portability at the wrong boundary",
+    summary:
+      "Copying one repo's agent setup into a new project worked until product-specific boundaries came along.",
+    year: 2026,
+    tags: ["ai", "agents", "workflow", "cursor"],
+    url: "https://dev.to/michaeltruong/i-was-solving-agent-portability-at-the-wrong-boundary-1406",
+  },
+  {
+    slug: "ai-workflows-need-a-requirements-qa-stage",
+    title: "The pipeline was green. The product was underspecified",
+    summary:
+      "Green CI on a resume pipeline did not mean the output was ready to send.",
+    year: 2026,
+    tags: ["ai", "agents", "workflow"],
+    url: "https://dev.to/michaeltruong/the-pipeline-was-green-the-product-was-underspecified-1fnj",
+    relatedProjectSlug: "resume-generator",
+  },
+  {
+    slug: "ai-changed-the-build-vs-buy-threshold",
+    title: "AI changed the build-vs-buy threshold",
+    summary:
+      "Building a resume platform under recruiter deadline pressure changed the build-vs-buy calculus.",
+    year: 2026,
+    tags: ["ai", "automation", "workflow"],
+    url: "https://dev.to/michaeltruong/build-looked-absurd-under-a-recruiter-deadline-1145",
+    relatedProjectSlug: "resume-generator",
+  },
+  {
+    slug: "skills-should-own-capabilities-not-individual-actions",
+    title: "One skill per action looked like the safe boundary",
+    summary:
+      "An editorial pipeline in Cursor showed that one skill per action was the wrong capability boundary.",
+    year: 2026,
+    tags: ["ai", "agents", "workflow"],
+    url: "https://dev.to/michaeltruong/one-skill-per-action-looked-like-the-safe-boundary-13pj",
+    relatedProjectSlug: "editorial-workflow",
   },
 ];

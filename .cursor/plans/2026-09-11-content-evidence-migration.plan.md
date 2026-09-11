@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: content-articles-corpus
     content: "PR: Fix articles corpus comment; add 6 missing DEV posts as non-featured inventory rows from baseline hub list"
-    status: pending
+    status: completed
   - id: redesign-prep-projects
     content: "Docs-only PR: Projects Claude Design handoff + tier intent (Editorial not featured; featured semantics redesigned with Projects)"
     status: pending
