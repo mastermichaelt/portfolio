@@ -165,6 +165,8 @@ flowchart LR
 
 ## Deliverable buckets
 
+Implementation order, PR boundaries, and agent prompts: [`.cursor/plans/2026-09-11-content-evidence-migration.plan.md`](../.cursor/plans/2026-09-11-content-evidence-migration.plan.md). Buckets below are audit findings and evidence prep — not the executable control surface.
+
 ### 1. Content updates safe to land now (no page redesign)
 
 Small, merge-safe slices — copy/module/metadata only; existing pages consume data as-is.
