@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Newsreader, Source_Sans_3 } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getPortfolioRepository } from "@/lib/portfolio";
 import "./globals.css";
 
-const newsreader = Newsreader({
+const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-});
-
-const sourceSans = Source_Sans_3({
-  subsets: ["latin"],
+  weight: ["400", "500", "600"],
   variable: "--font-body",
   display: "swap",
 });
@@ -56,7 +51,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${newsreader.variable} ${sourceSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
+      className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <a className="skip-link" href="#content">

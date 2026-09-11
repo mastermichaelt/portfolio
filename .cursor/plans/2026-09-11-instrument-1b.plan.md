@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: visual-system
     content: "PR: Dark/amber tokens, IBM Plex, DESIGN.md + design-system.md, retire signature motif, restyle shared chrome so existing routes stay coherent"
-    status: pending
+    status: completed
   - id: homepage-1b
     content: "PR: Rebuild homepage + header/footer to 1b composition; Editorial is a temporary CH 02 placeholder; logo=Home and Ecosystem leave primary nav (approved shell/IA); omit ledger, figures, route renames, Atlassian case study"
     status: pending
