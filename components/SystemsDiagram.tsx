@@ -2,8 +2,8 @@ import Link from "next/link";
 
 /**
  * Ecosystem System overview spine (projects → AI workflows → governance/feedback
- * → evidence). Mirrors the orientation view on /ecosystem and links to it.
- * Styled with shared hairline/square tokens — not a separate identity layer.
+ * → evidence). Kept for `/ecosystem` (demoted from the homepage hero; do not
+ * delete). Styled with shared hairline/square tokens — not a signature layer.
  */
 // Node centers step by an even (105, 88) each, so the spine reads as one
 // straight diagonal rather than kinking on the last leg.

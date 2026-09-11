@@ -1,6 +1,6 @@
 ---
 name: Instrument 1b visual direction
-overview: Stage the approved 1b Instrument visual direction into the existing Next.js portfolio without adopting the handoff’s provisional content/IA. Visual system and homepage composition ship as separate merge-safe PRs. Editorial Workflow is a temporary CH 02 placeholder; Home/Ecosystem leaving primary nav is an approved 1b shell/IA decision. Route renames, Atlassian case-study content, metric selection, and remaining IA stay deferred.
+overview: Stage the approved 1b Instrument visual direction into the existing Next.js portfolio without adopting the handoff’s provisional inner-page IA. Visual system and homepage composition ship as separate merge-safe PRs. Homepage-1b includes evidence-backed CH 02 / figures / ledger as a visual-fidelity prerequisite. Home/Ecosystem leaving primary nav is an approved 1b shell/IA decision. Route renames, a full Atlassian case-study page, and remaining inner-page IA stay deferred.
 todos:
   - id: plan-review
     content: "Plan-only PR — commit plan artifact and open PR for review; do not implement"
@@ -9,8 +9,8 @@ todos:
     content: "PR: Dark/amber tokens, IBM Plex, DESIGN.md + design-system.md, retire signature motif, restyle shared chrome so existing routes stay coherent"
     status: completed
   - id: homepage-1b
-    content: "PR: Rebuild homepage + header/footer to 1b composition; Editorial is a temporary CH 02 placeholder; logo=Home and Ecosystem leave primary nav (approved shell/IA); omit ledger, figures, route renames, Atlassian case study"
-    status: pending
+    content: "PR: Rebuild homepage + header/footer to 1b composition; evidence-backed CH 02 / figures / ledger in this PR; logo=Home and Ecosystem leave primary nav; omit route renames and full Atlassian case-study page"
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after last implementation slice: add # Shipped note, move plan to .cursor/plans/archive/2026-09-11-instrument-1b.plan.md"
     status: pending
@@ -67,8 +67,7 @@ flowchart TD
   end
   subgraph deferred [flag do not ship]
     naming[route renames Work Writing]
-    atlassian[final CH 02 Atlassian case study]
-    metrics[175+ 10x ledger figures]
+    atlassian[full Atlassian case-study page]
     domain[michaeltruong.dev]
   end
   visual --> home
@@ -77,9 +76,9 @@ flowchart TD
 
 ### Evidence-safe vs approved-final (do not collapse)
 
-- **CH 01** = Codenames AI from existing `featured` inventory. Intended first-class system for this visual pass.
-- **CH 02** = Editorial Workflow as an **evidence-safe temporary placeholder** used only to establish 1b’s two-column case-study composition. Its content and relative prominence are **not** approved final homepage IA. Do not encode Editorial as a durable first-class peer of Codenames (no `tier`, comments, or tests that treat the pair as the intended evidence hierarchy). The intended Atlassian / current-work evidence hierarchy remains a **deferred content decision**.
-- Prefer a short panel over filling 1b with résumé facts that are not yet on-portfolio. Do not invent or strengthen claims.
+- **CH 01** = Codenames AI. Intended first-class system.
+- **CH 02** = Atlassian experiment measurement as **homepage presentation only** (in-page `#experiment-measurement`). Not a `/projects/experiment-measurement` case study and not a fifth inventory project. Editorial Workflow is supporting work on this page, and remains a `featured` project for `/projects` until a later inventory decision.
+- Do not invent or strengthen claims. Preserve value, name, and scope for every quantitative figure.
 
 ### Approved 1b shell/IA (homepage-1b only)
 
@@ -191,7 +190,11 @@ These are explicit IA decisions required by the selected 1b direction — not �
 - Logo = Home; Ecosystem absent from primary nav; `/ecosystem` still deep-linkable
 - No ledger, no figures, no `/work` or `/writing` paths, no Atlassian case study, no Work/Writing labels
 
-**Verification:** same npm gates + e2e; browser-check home at desktop and 375px: two-column panels → stacked, anchors 44px min, no systems map in the first viewport, no invented metrics.
+**Verification:** same npm gates + e2e; browser-check home at desktop and 375px: two-column panels → stacked, anchors 44px min, no systems map in the first viewport, qualified figures keep their scope lines.
+
+### Review follow-up (same PR)
+
+Visual fidelity to `homepage-reference.html` required the smallest evidence-backed homepage content model in this PR: Atlassian CH 02 (in-page, not a case-study route), four qualified figures, seven-row ledger, hero lead with emphasis, three supporting rows (Editorial demoted), and the three selected writing slugs. Still omitted: route renames, a full Atlassian case-study page, footer availability line.
 
 ---
 
@@ -200,19 +203,17 @@ These are explicit IA decisions required by the selected 1b direction — not �
 Do not implement the rest of the handoff `IA-and-content-changes.md` in these PRs. Flag only:
 
 - Route renames `/projects` → `/work`, `/articles` → `/writing`, and label change Work / Writing
-- New Atlassian experiment-measurement case study, stub page, or **final** CH 02 swap away from the Editorial placeholder
-- Exact metric selection (`175+` MAU floor vs rolling 165, `#1` branded search, `>10%`, `9–41%`, `3,552`, `10×`) and storing figures on content modules
-- Career ledger as a typed `content/ledger.ts` (and deleting `timeline.ts`)
-- Article inventory curation, `argument` field, dropping `featured`, changing the three homepage posts
-- `tier: first-class | supporting`, dropping resume-generator from `/work`
+- A full Atlassian experiment-measurement **case-study page** (homepage CH 02 is in-page presentation only)
+- Storing figures on `Project`, a separate `content/ledger.ts`, or deleting `timeline.ts`
+- Article inventory `argument` field, dropping `featured`, or changing `/articles` featured flags
+- `tier: first-class | supporting`, dropping resume-generator from `/projects`
 - Canonical host `michaeltruong.dev` (metadataBase, analytics hostname, Vercel domain)
 - PRODUCT.md IA rewrite; About rewrite; ecosystem entity-inventory removal
-- Mockup spine/contract one-liners and hero biographical reframing
 - Expanding restrained instrument vocabulary (gauges, terminal chrome, etc.)
 
-Not deferred (approved in `homepage-1b`): logo as Home; Ecosystem leaving primary nav while remaining a deep-linkable route.
+Not deferred (approved in `homepage-1b`): logo as Home; Ecosystem leaving primary nav while remaining a deep-linkable route; evidence-backed homepage presentation (CH 02 / figures / ledger) as a visual-fidelity prerequisite.
 
-Evidence rule: do not invent or strengthen claims. Prefer a short panel over filling 1b with résumé facts that are not yet on-portfolio. A visually quieter 1b than the mockup is correct until a later content pass models qualified evidence.
+Evidence rule: do not invent or strengthen claims. Preserve provenance and qualifiers for every quantitative claim.
 
 ---
 
@@ -284,7 +285,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: rebuild homepage + header/footer to 1b composition using existing content only. Editorial Workflow is an evidence-safe temporary CH 02 placeholder — do not treat equal weighting with Codenames as approved final IA. Logo is Home; Ecosystem leaves primary nav but stays a deep-linkable /ecosystem route. Do not rename Projects/Articles routes or labels. Omit ledger, figures, Atlassian case study. Mark homepage-1b completed in plan frontmatter in this PR.
+Deliverables: rebuild homepage + header/footer to 1b composition. Bind the evidence-backed homepage content model (Atlassian CH 02 in-page, qualified figures, ledger). Logo is Home; Ecosystem leaves primary nav but stays a deep-linkable /ecosystem route. Do not rename Projects/Articles routes or labels. Do not add a full Atlassian case-study page. Mark homepage-1b completed in plan frontmatter in this PR.
 
 Verification: npm run lint, format:check, typecheck, test/test:coverage, build, test:e2e; browser-check home at desktop and 375px.
 ```

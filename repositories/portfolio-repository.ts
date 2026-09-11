@@ -1,5 +1,6 @@
 import type { Article } from "@/domain/article";
 import type { Entity } from "@/domain/entities";
+import type { Homepage } from "@/domain/homepage";
 import type { Profile } from "@/domain/profile";
 import type { Project } from "@/domain/project";
 import type { Relationship } from "@/domain/relationships";
@@ -12,6 +13,7 @@ import type { WorkflowView } from "@/domain/workflow-view";
  */
 export interface PortfolioRepository {
   getProfile(): Promise<Profile>;
+  getHomepage(): Promise<Homepage>;
   listProjects(): Promise<Project[]>;
   getProject(slug: string): Promise<Project | null>;
   listArticles(): Promise<Article[]>;

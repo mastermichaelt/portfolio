@@ -55,6 +55,13 @@ p {
   text-wrap: pretty;
 }
 
+/* Numerals never shift width between figures. */
+.tabular,
+.figure-value,
+.ledger-date {
+  font-variant-numeric: tabular-nums;
+}
+
 h1,
 h2,
 h3,

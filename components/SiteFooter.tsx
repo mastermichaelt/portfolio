@@ -1,25 +1,21 @@
-import Link from "next/link";
 import { ExternalLink } from "@/components/ExternalLink";
 import type { Profile } from "@/domain/profile";
-import { primaryNav } from "@/lib/nav";
 
 export function SiteFooter({ profile }: { profile: Profile }) {
-  const year = new Date().getFullYear();
-
   return (
-    <footer className="pagefoot">
-      <div className="container row-between">
-        <p>
-          © {year} {profile.name} · {profile.location}
-        </p>
-        <nav aria-label="Footer" className="row">
-          {primaryNav.map((item) => (
-            <Link key={item.href} href={item.href}>
-              {item.label}
-            </Link>
-          ))}
+    <footer className="site-footer">
+      <div className="container site-footer-inner">
+        <a className="address" href={`mailto:${profile.email}`}>
+          {profile.email}
+        </a>
+        <span>{profile.location}</span>
+        <span className="site-footer-links">
+          <ExternalLink href={profile.links.blog}>DEV</ExternalLink>
+          <span aria-hidden="true"> · </span>
           <ExternalLink href={profile.links.github}>GitHub</ExternalLink>
-        </nav>
+          <span aria-hidden="true"> · </span>
+          <ExternalLink href={profile.links.linkedin}>LinkedIn</ExternalLink>
+        </span>
       </div>
     </footer>
   );

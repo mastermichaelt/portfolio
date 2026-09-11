@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { articles } from "@/content/articles";
+import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
 import type { ProjectSectionKind } from "@/domain/project";
 import { StaticPortfolioRepository } from "@/repositories/static-portfolio-repository";
@@ -10,6 +11,10 @@ const REQUIRED_KIND_GROUPS: ProjectSectionKind[][] = [
   ["role"],
   ["evidence"],
 ];
+
+function homepageText(): string {
+  return JSON.stringify(homepage);
+}
 
 describe("content-foundation inventory", () => {
   const repository = new StaticPortfolioRepository();
@@ -109,5 +114,84 @@ describe("content-foundation inventory", () => {
     expect(
       new Set(featured.map((article) => article.relatedProjectSlug)).size,
     ).toBe(featured.length);
+  });
+
+  it("loads an evidence-backed homepage presentation without a fifth project", async () => {
+    const loaded = await repository.getHomepage();
+    expect(loaded).toEqual(homepage);
+
+    expect(homepage.channels.map((channel) => channel.id)).toEqual([
+      "ch-01",
+      "ch-02",
+    ]);
+    expect(homepage.channels[0]?.href).toBe("/projects/codenames-ai");
+    expect(homepage.channels[1]?.title).toBe("Experiment measurement");
+    expect(homepage.channels[1]?.href).toBe("#experiment-measurement");
+    expect(homepage.channels[1]?.dateRange).toBe("2020 – 2025");
+
+    const figures = homepage.channels.flatMap((channel) => channel.figures);
+    expect(figures).toHaveLength(4);
+    for (const figure of figures) {
+      expect(figure.value.trim().length).toBeGreaterThan(0);
+      expect(figure.name.trim().length).toBeGreaterThan(0);
+      expect(figure.scope.trim().length).toBeGreaterThan(0);
+      expect(figure.source.inventory).toMatch(/^resumes\/facts\/.+\.yml$/);
+      expect(figure.source.factId.trim().length).toBeGreaterThan(0);
+    }
+
+    expect(figures.map((figure) => figure.value)).toEqual([
+      "175+",
+      "#1",
+      ">10%",
+      "9%–41%",
+    ]);
+    expect(figures[0]?.scope).toMatch(/durable floor/i);
+    expect(figures[1]?.scope).toMatch(/last 28 days/i);
+    expect(figures[2]?.scope).toMatch(/Cross Flow/i);
+    expect(figures[3]?.scope).toMatch(/Statsig/i);
+
+    expect(homepage.ledger).toHaveLength(7);
+    expect(homepage.ledger[0]?.current).toBe(true);
+    expect(homepage.ledger.map((row) => row.id)).toEqual([
+      "independent-2026",
+      "atlassian-sse-2024",
+      "aim-program-lead",
+      "atlassian-em-2020",
+      "atlassian-sse-2019",
+      "atlassian-swe-2015",
+      "atlassian-graduate-2014",
+    ]);
+    expect(homepage.ledger[1]?.detail).toMatch(/10×/);
+    expect(homepage.ledger[1]?.detail).toMatch(/associated business OKR/i);
+    expect(homepage.ledger[2]?.detail).toMatch(/3,552/);
+    expect(homepage.ledger[2]?.detail).toMatch(/approximately 20%/i);
+    expect(homepage.ledger[3]?.detail).toMatch(/8–10/);
+
+    expect(homepage.supporting.map((item) => item.id)).toEqual([
+      "renovate-governance",
+      "editorial-workflow",
+      "agent-native",
+    ]);
+    expect(homepage.supporting.map((item) => item.id)).not.toContain(
+      "resume-generator",
+    );
+
+    const articleSlugs = new Set(articles.map((article) => article.slug));
+    expect(homepage.writing.map((item) => item.slug)).toEqual([
+      "active-players-which-sessions-counted",
+      "agent-plans-authority-handoffs",
+      "ai-reviewer-kinds-of-reasoning",
+    ]);
+    for (const item of homepage.writing) {
+      expect(articleSlugs.has(item.slug)).toBe(true);
+      expect(item.argument.trim().length).toBeGreaterThan(0);
+    }
+
+    expect(homepageText()).not.toMatch(/game_started/i);
+    expect(
+      homepage.channels.some((channel) =>
+        channel.href.includes("editorial-workflow"),
+      ),
+    ).toBe(false);
   });
 });

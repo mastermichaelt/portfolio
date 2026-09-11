@@ -9,43 +9,141 @@ const PROJECT_SLUGS = [
 
 async function expectPrimaryNav(page: Page) {
   const nav = page.getByRole("navigation", { name: "Primary" });
-  await expect(nav.getByRole("link", { name: "Home" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Projects" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Articles" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "About" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Home" })).toHaveCount(0);
   await expect(
     nav.getByRole("link", { name: "Ecosystem", exact: true }),
-  ).toBeVisible();
-  await expect(nav.getByRole("link", { name: "About" })).toBeVisible();
+  ).toHaveCount(0);
   await expect(
     nav.getByRole("link", { name: "System", exact: true }),
   ).toHaveCount(0);
 }
 
 test.describe("portfolio happy path", () => {
-  test("home is live with flagships and featured writing", async ({ page }) => {
+  test("home is live with first-class systems, ledger, and selected writing", async ({
+    page,
+  }) => {
     await page.goto("/");
 
     await expect(
-      page.getByRole("heading", { name: "Michael Truong" }),
+      page.getByRole("link", { name: "Michael Truong" }),
+    ).toHaveAttribute("href", "/");
+    await expect(
+      page.getByRole("heading", {
+        name: "Making uncertain systems dependable.",
+      }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Michael Truong" }),
+    ).toHaveCount(0);
     await expect(page.getByText("under construction")).toHaveCount(0);
     await expectPrimaryNav(page);
-
     await expect(
-      page.getByRole("link", { name: /Codenames AI/i }).first(),
+      page.getByRole("link", { name: "Explore the systems ecosystem" }),
+    ).toHaveCount(0);
+
+    const anchors = page.locator("a.anchor");
+    await expect(anchors).toHaveCount(2);
+    await expect(
+      page.locator('a.anchor[href="/projects/codenames-ai"]'),
     ).toBeVisible();
     await expect(
-      page
-        .getByRole("link", { name: /AI-assisted editorial workflow/i })
-        .first(),
+      page.locator('a.anchor[href="#experiment-measurement"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('a.anchor[href="/projects/editorial-workflow"]'),
+    ).toHaveCount(0);
+
+    await expect(page.locator("article.case-panel")).toHaveCount(2);
+    await expect(page.locator("#experiment-measurement")).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: /valid JSON is not a legal move/i,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: /attribution is checkable/i,
+      }),
     ).toBeVisible();
 
-    const featuredWriting = page.locator("a.log-row");
+    await expect(
+      page.getByRole("heading", { name: "Career ledger" }),
+    ).toBeVisible();
+    await expect(page.locator(".ledger-row")).toHaveCount(7);
+
+    const featuredWriting = page.locator("a.list-row[href*='dev.to']");
     await expect(featuredWriting).toHaveCount(3);
     await expect(featuredWriting.first()).toHaveAttribute(
       "href",
       /dev\.to\/michaeltruong/,
     );
+    await expect(
+      page.getByRole("link", {
+        name: /Active players looked real until we asked which sessions counted/i,
+      }),
+    ).toBeVisible();
+
+    await expect(
+      page.locator('a.list-row[href="/projects/editorial-workflow"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('a.list-row[href="/projects/resume-generator"]'),
+    ).toHaveCount(0);
+
+    await expect(
+      page.getByRole("link", { name: /ecosystem walkthrough/i }),
+    ).toHaveAttribute("href", "/ecosystem");
+  });
+
+  test("home 1b layout stacks at 375px with qualified figures", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    await expect(page.getByText("175+")).toBeVisible();
+    await expect(page.getByText(/durable floor/i)).toBeVisible();
+    await expect(page.getByText("game_started")).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: "Career ledger" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("open to senior engineering roles"),
+    ).toHaveCount(0);
+
+    const desktopAnchors = page.locator("a.anchor");
+    for (const box of await desktopAnchors.evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().height),
+    )) {
+      expect(box).toBeGreaterThanOrEqual(44);
+    }
+
+    const desktopPanels = page.locator("article.case-panel");
+    const desktopTops = await desktopPanels.evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().top),
+    );
+    expect(desktopTops).toHaveLength(2);
+    expect(Math.abs(desktopTops[0]! - desktopTops[1]!)).toBeLessThan(48);
+
+    await page.setViewportSize({ width: 375, height: 812 });
+
+    const mobileAnchors = page.locator("a.anchor");
+    const mobileHeights = await mobileAnchors.evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().height),
+    );
+    for (const height of mobileHeights) {
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+
+    const mobileBoxes = await desktopPanels.evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const box = node.getBoundingClientRect();
+        return { top: box.top, bottom: box.bottom };
+      }),
+    );
+    expect(mobileBoxes[1]!.top).toBeGreaterThan(mobileBoxes[0]!.bottom - 1);
   });
 
   test("projects index lists four case studies", async ({ page }) => {
@@ -359,7 +457,7 @@ test.describe("portfolio happy path", () => {
     ).toHaveCount(0);
   });
 
-  test("mobile nav opens Contact and navigates", async ({ page }) => {
+  test("mobile nav opens About and navigates", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/");
 
@@ -372,13 +470,18 @@ test.describe("portfolio happy path", () => {
     await toggle.click();
     const mobile = page.locator("#mobile-nav");
     await expect(mobile).toBeVisible();
-    await expect(mobile.getByRole("link", { name: "Home" })).toBeVisible();
+    await expect(mobile.getByRole("link", { name: "Home" })).toHaveCount(0);
     await expect(mobile.getByRole("link", { name: "Projects" })).toBeVisible();
     await expect(mobile.getByRole("link", { name: "Articles" })).toBeVisible();
-    await expect(mobile.getByRole("link", { name: "Ecosystem" })).toBeVisible();
-    await expect(mobile.getByRole("link", { name: "About" })).toHaveCount(0);
+    await expect(mobile.getByRole("link", { name: "About" })).toBeVisible();
+    await expect(mobile.getByRole("link", { name: "Ecosystem" })).toHaveCount(
+      0,
+    );
+    await expect(
+      mobile.getByRole("link", { name: "michael@multipliers.dev" }),
+    ).toHaveAttribute("href", "mailto:michael@multipliers.dev");
 
-    await mobile.getByRole("link", { name: "Contact" }).click();
+    await mobile.getByRole("link", { name: "About" }).click();
     await expect(page).toHaveURL(/\/about$/);
     await expect(
       page.getByRole("heading", { name: "Michael Truong" }),
