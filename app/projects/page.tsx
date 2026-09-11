@@ -43,16 +43,35 @@ export default async function ProjectsPage() {
 
       <section className="pindex-table-section">
         <div className="container">
-          <div className="pindex-table fade-in delay-1">
-            <div className="pindex-head" aria-hidden="true">
-              <span>{index.columns.system}</span>
-              <span>{index.columns.contract}</span>
-              <span>{index.columns.evidence}</span>
+          <div
+            className="pindex-table fade-in delay-1"
+            role="table"
+            aria-label="Projects evidence index"
+          >
+            <div className="pindex-head" role="row">
+              <span role="columnheader" id="pindex-col-system">
+                {index.columns.system}
+              </span>
+              <span role="columnheader" id="pindex-col-contract">
+                {index.columns.contract}
+              </span>
+              <span role="columnheader" id="pindex-col-evidence">
+                {index.columns.evidence}
+              </span>
             </div>
 
             {index.coPrimary.map((row) => (
-              <article key={row.href} className="pindex-row pindex-row--co">
-                <div className="pindex-col-system">
+              <article
+                key={row.href}
+                className="pindex-row pindex-row--co"
+                role="row"
+                aria-label={`Co-primary: ${row.title}`}
+              >
+                <div
+                  className="pindex-col-system"
+                  role="cell"
+                  aria-labelledby="pindex-col-system"
+                >
                   <p className="pindex-ch">{row.channelLabel}</p>
                   <p className="pindex-sys">{row.title}</p>
                   <p className="pindex-era">
@@ -64,7 +83,11 @@ export default async function ProjectsPage() {
                     Open →
                   </Link>
                 </div>
-                <div className="pindex-col-contract">
+                <div
+                  className="pindex-col-contract"
+                  role="cell"
+                  aria-labelledby="pindex-col-contract"
+                >
                   <h2 className="pindex-contract">{row.contract}</h2>
                   <p className="pindex-summary">{row.summary}</p>
                   <div className="pindex-chips">
@@ -76,7 +99,11 @@ export default async function ProjectsPage() {
                   </div>
                   <p className="pindex-rolespine">{row.roleSpine}</p>
                 </div>
-                <div className="pindex-col-evidence">
+                <div
+                  className="pindex-col-evidence"
+                  role="cell"
+                  aria-labelledby="pindex-col-evidence"
+                >
                   <div className="pindex-figures">
                     {row.figures.map((figure) => (
                       <QualifiedFigure key={figure.name} figure={figure} />
@@ -94,6 +121,7 @@ export default async function ProjectsPage() {
                 key={row.href}
                 className="pindex-row pindex-row--support"
                 href={row.href}
+                aria-label={`Supporting: ${row.title}`}
               >
                 <div className="pindex-col-system">
                   <p className="pindex-tier">Supporting</p>
@@ -105,15 +133,34 @@ export default async function ProjectsPage() {
             ))}
 
             {index.infrastructure.map((row) => (
-              <div key={row.title} className="pindex-row pindex-row--infra">
-                <div className="pindex-col-system">
+              <div
+                key={row.title}
+                className="pindex-row pindex-row--infra"
+                role="row"
+                aria-label={`Infrastructure: ${row.title}`}
+              >
+                <div
+                  className="pindex-col-system"
+                  role="cell"
+                  aria-labelledby="pindex-col-system"
+                >
                   <p className="pindex-tier">Infrastructure</p>
                   <p className="pindex-sys pindex-sys--infra">{row.title}</p>
                 </div>
-                <p className="pindex-support-body pindex-support-body--infra">
+                <p
+                  className="pindex-support-body pindex-support-body--infra"
+                  role="cell"
+                  aria-labelledby="pindex-col-contract"
+                >
                   {row.summary}
                 </p>
-                <p className="pindex-proof">{row.proofSurface}</p>
+                <p
+                  className="pindex-proof"
+                  role="cell"
+                  aria-labelledby="pindex-col-evidence"
+                >
+                  {row.proofSurface}
+                </p>
               </div>
             ))}
 

@@ -134,6 +134,12 @@
 }
 
 .pindex-open {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  /* Tap area reaches into the era line’s bottom margin without shifting type. */
+  margin-top: -14px;
+  padding-block: 14px;
   font-family: var(--font-mono-stack);
   font-size: var(--fs-meta);
   letter-spacing: var(--tracking-nav);
@@ -381,8 +387,9 @@
 .pcase-rail-item {
   display: flex;
   gap: 10px;
-  align-items: stretch;
-  padding-block: 6px;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 12px;
   font-family: var(--font-mono-stack);
   font-size: 12.5px;
   color: var(--fg-2);
@@ -418,6 +425,9 @@
 }
 
 .pcase-rail-elsewhere a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--accent);
 }
 
@@ -432,6 +442,8 @@
 .pcase-block {
   padding-block: var(--gap-lg);
   border-bottom: 1px solid var(--border);
+  /* Anchor jumps: clear the sticky header. Scroll-spy reading line (136px) is
+     separate — see CaseStudyRail — and intentionally includes ~40px lead. */
   scroll-margin-top: 96px;
 }
 
@@ -583,6 +595,12 @@
 }
 
 .pcase-affordance-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 44px;
+  min-width: 44px;
+  padding-inline: 4px;
   color: var(--accent);
 }
 
@@ -610,9 +628,17 @@
     gap: var(--gap-lg);
   }
 
-  /* Header column labels are dropped rather than stacked. */
+  /* Column labels stay available to assistive tech; hidden visually only. */
   .pindex-head {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   /* Rows stack; column order (system → contract → evidence) is DOM order. */

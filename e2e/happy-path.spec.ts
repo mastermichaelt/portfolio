@@ -236,6 +236,120 @@ test.describe("portfolio happy path", () => {
     );
   });
 
+  test.describe("projects 1C at 375px", () => {
+    test.beforeEach(async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 812 });
+    });
+
+    test("index stacks with accessible columns, figures and tap targets", async ({
+      page,
+    }) => {
+      await page.goto("/projects");
+
+      await expect(
+        page.getByRole("columnheader", { name: "System / era" }),
+      ).toBeAttached();
+      await expect(
+        page.getByRole("columnheader", { name: "Qualified evidence" }),
+      ).toBeAttached();
+
+      const overflowX = await page.evaluate(
+        () => document.documentElement.scrollWidth > window.innerWidth + 1,
+      );
+      expect(overflowX).toBe(false);
+
+      for (const value of ["175+", "350", ">10%", "9%–41%"]) {
+        await expect(
+          page.getByText(value, { exact: true }).first(),
+        ).toBeVisible();
+      }
+      await expect(page.getByText(/durable floor/i).first()).toBeVisible();
+
+      const openHeights = await page
+        .locator("a.pindex-open")
+        .evaluateAll((nodes) =>
+          nodes.map((node) => node.getBoundingClientRect().height),
+        );
+      for (const height of openHeights) {
+        expect(height).toBeGreaterThanOrEqual(44);
+      }
+
+      await expect(
+        page.locator('a.pindex-row--support[href="/ecosystem"]'),
+      ).toBeVisible();
+    });
+
+    test("codenames-ai rail wraps, scroll-spy and figure states hold", async ({
+      page,
+    }) => {
+      await page.goto("/projects/codenames-ai");
+
+      await expect(page.locator(".pcase-rail")).toHaveCSS("position", "static");
+
+      const railHeights = await page
+        .locator(".pcase-rail-item")
+        .evaluateAll((nodes) =>
+          nodes.map((node) => node.getBoundingClientRect().height),
+        );
+      for (const height of railHeights) {
+        expect(height).toBeGreaterThanOrEqual(44);
+      }
+
+      await expect(
+        page.getByText(/No figure is claimed for this block/i),
+      ).toBeVisible();
+
+      const playersFigure = page
+        .locator(".qfigure")
+        .filter({ hasText: "175+" });
+      await expect(playersFigure.locator(".figure-scope")).toContainText(
+        /durable floor/i,
+      );
+      const scopeWidth = await playersFigure
+        .locator(".figure-scope")
+        .evaluate((node) => node.getBoundingClientRect().width);
+      expect(scopeWidth).toBeGreaterThan(300);
+
+      await page.locator("#b03").scrollIntoViewIfNeeded();
+      await expect(page.locator(".pcase-rail-item.is-active")).toContainText(
+        "Telemetry quality",
+      );
+
+      await page.locator('a.pcase-rail-item[href="#artifacts"]').click();
+      await expect(page).toHaveURL(/#artifacts$/);
+      const artifactsTop = await page
+        .locator("#artifacts")
+        .evaluate((node) => node.getBoundingClientRect().top);
+      expect(artifactsTop).toBeGreaterThanOrEqual(90);
+      expect(artifactsTop).toBeLessThanOrEqual(102);
+      await expect(page.locator(".pcase-rail-item.is-active")).toContainText(
+        "Artifacts",
+      );
+    });
+
+    test("experiment-measurement keeps qualified figures readable", async ({
+      page,
+    }) => {
+      await page.goto("/projects/experiment-measurement");
+
+      await expect(
+        page.getByRole("navigation", { name: "Contents" }),
+      ).toBeVisible();
+
+      const windowFigure = page
+        .locator(".qfigure")
+        .filter({ hasText: "9%–41%" });
+      await expect(windowFigure.locator(".figure-scope")).toContainText(
+        /Statsig/i,
+      );
+
+      const overflowX = await page.evaluate(
+        () => document.documentElement.scrollWidth > window.innerWidth + 1,
+      );
+      expect(overflowX).toBe(false);
+    });
+  });
+
   test("experiment-measurement case study is the Atlassian route", async ({
     page,
   }) => {
