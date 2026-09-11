@@ -86,8 +86,23 @@ vi.mock("@/content/timeline", () => ({
   timelineEvents: [{ id: "event-1", title: "Event" }],
 }));
 
+vi.mock("@/content/homepage", () => ({
+  homepage: {
+    hero: {
+      title: "Test title.",
+      lead: "Test lead.",
+      leadEmphasis: "Test emphasis.",
+    },
+    channels: [],
+    ledger: [],
+    supporting: [],
+    writing: [],
+  },
+}));
+
 import { articles } from "@/content/articles";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
+import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
 import { projects } from "@/content/projects";
 import { timelineEvents } from "@/content/timeline";
@@ -98,6 +113,10 @@ describe("StaticPortfolioRepository", () => {
 
   it("returns the static profile", async () => {
     await expect(repository.getProfile()).resolves.toEqual(profile);
+  });
+
+  it("returns the static homepage presentation", async () => {
+    await expect(repository.getHomepage()).resolves.toEqual(homepage);
   });
 
   it("lists projects from the static content module", async () => {

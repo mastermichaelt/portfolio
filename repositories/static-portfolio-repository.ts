@@ -1,5 +1,6 @@
 import { articles } from "@/content/articles";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
+import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
 import { projects } from "@/content/projects";
 import { timelineEvents } from "@/content/timeline";
@@ -9,6 +10,10 @@ import type { PortfolioRepository } from "@/repositories/portfolio-repository";
 export class StaticPortfolioRepository implements PortfolioRepository {
   async getProfile() {
     return profile;
+  }
+
+  async getHomepage() {
+    return homepage;
   }
 
   async listProjects() {
