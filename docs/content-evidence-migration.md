@@ -465,16 +465,16 @@ Use this brief for the next **About page Claude Design** pass. Goal: an About ex
 
 ### Explicit non-goals for About Design session
 
-| Non-goal                         | Rationale                                                      |
-| -------------------------------- | -------------------------------------------------------------- |
-| Merge About + Contact routes     | Deferred in content-evidence plan                              |
-| Full Atlassian figure table      | Projects redesign §3 / handoff                                 |
-| Résumé PDF download              | Out of scope                                                   |
-| Savepoints promotion             | Prototype — omit                                               |
-| Resolve H3 writing curation      | Separate slice — link `/articles` without featured-rule change |
-| Resolve H2 post count (14 vs 15) | `redesign-prep-articles` slice                                 |
-| Publish exact MAU **`175`**      | Fact comment forbids                                           |
-| “Return to IC” / retraining copy | Voice constraints §4                                           |
+| Non-goal                         | Rationale                                                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Merge About + Contact routes     | Deferred in content-evidence plan                                                                            |
+| Full Atlassian figure table      | Projects redesign §3 / handoff                                                                               |
+| Résumé PDF download              | Out of scope                                                                                                 |
+| Savepoints promotion             | Prototype — omit                                                                                             |
+| Resolve H3 writing curation      | Separate slice — link `/articles` without featured-rule change                                               |
+| Resolve H2 post count (14 vs 15) | **Resolved in §5.B** — recommend **15** / `series-overview` wording; optional human confirm on redesign hero |
+| Publish exact MAU **`175`**      | Fact comment forbids                                                                                         |
+| “Return to IC” / retraining copy | Voice constraints §4                                                                                         |
 
 ### Cross-links
 
@@ -487,22 +487,253 @@ Use this brief for the next **About page Claude Design** pass. Goal: an About ex
 
 ### 5. Content / evidence for **Articles / Writing** redesign
 
-| Topic                        | Detail                                                                                                                                                                                                          |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Canonical corpus**         | 15 posts — `editorial-workflow/docs/dev.to/published/` + DEV API (baseline §2)                                                                                                                                  |
-| **Inventory metric tension** | Resume facts say **14** published (`writing-field-reports.yml` `published-report-count`, `ai-editorial-workflow.yml` `published-via-workflow`); hub has **15** — reconcile before quoting “14” or “15” publicly |
-| **Missing 6 slugs**          | Add to `articles.ts` with compressed summaries from frontmatter only — baseline table                                                                                                                           |
-| **Pin set (5 titles)**       | Profile HTML structure — use as _signal_, not API fact; decide if Writing page shows “Pinned” subset                                                                                                            |
-| **Series framing**           | “AI Engineering Field Reports” — `writing-field-reports.yml` `series-overview`; follower `2200+` if promoted                                                                                                    |
-| **`argument` field**         | Homepage already uses per-slug `argument` in `homepage.writing`; extend to `Article` type in redesign for scannable index                                                                                       |
-| **Cross-links**              | Every post should have `relatedProjectSlug` where applicable; assign `cloud-agent-felt-like-hiring` → agent-native or editorial                                                                                 |
-| **Trusted Member**           | Keep qualification verbatim from `trusted-member` outcome                                                                                                                                                       |
+**Slice:** `redesign-prep-articles` (docs-only). Re-verified from sibling `resumes/` checkout and on-portfolio inventory **2026-09-11** (post [#51](https://github.com/mastermichaelt/portfolio/pull/51) corpus sync).
 
-**Proposed writing curation rules (pick one in human review):**
+Curate structured evidence for the future **Articles / Writing** Claude Design pass — **do not** edit `/articles` layout, unify curation layers, or invent posts. Writing on this portfolio is **evidence of engineering reasoning** (measurement, contracts, verification, governance) from production work — **not** an “AI retraining journey” diary (external DEV tagline is H4).
 
-1. **Homepage-aligned:** 3 posts = measurement + governance + production analytics (current homepage slugs)
-2. **Flagship-paired:** 1 post per first-class system (Codenames + Atlassian + agent-native) — requires Atlassian-tagged post or accept non-1:1
-3. **DEV-pin-aligned:** 5 pinned titles — overlaps portfolio inventory partially
+**Voice constraints (non-negotiable):**
+
+| Avoid                                                     | Prefer                                                                                                                   |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| “AI retraining journey”, learning-in-public diary framing | **AI Engineering Field Reports** — lessons from operating real systems (`writing-field-reports.yml` · `series-overview`) |
+| Writing as career pivot or side-project log               | Writing as **public trace** of the same method as Projects (uncertain → checkable → contract)                            |
+| Bare follower counts without staleness review             | **`2200+`** only with H12 human approval; omit if stale                                                                  |
+| Collapsing three curation layers without H3 decision      | Document divergence; **`content-writing-curation`** unifies after human picks a rule                                     |
+
+#### A. Canonical corpus (15 posts — synced)
+
+| Layer                         | Count  | Source / state                                                                                                 |
+| ----------------------------- | ------ | -------------------------------------------------------------------------------------------------------------- |
+| Hub markdown                  | **15** | `editorial-workflow/docs/dev.to/published/` (counted 2026-09-11)                                               |
+| DEV API                       | **15** | `https://dev.to/api/articles?username=michaeltruong`                                                           |
+| Portfolio inventory           | **15** | `content/articles.ts` — full corpus listed (merged [#51](https://github.com/mastermichaelt/portfolio/pull/51)) |
+| Live inventory metrics        | **15** | `writing-field-reports.yml` · `published-report-count`; `ai-editorial-workflow.yml` · `published-via-workflow` |
+| `series-overview` action text | **15** | “Published **15** weekly AI Engineering Field Reports to **2200+** DEV followers…”                             |
+
+**Sync rule (ongoing):** Hub `editorial-workflow/docs/dev.to/published/` is master; portfolio adds curated rows with titles/URLs/summaries from frontmatter only — no invented claims. New posts ship in hub first; portfolio inventory follows in a content slice.
+
+#### B. H2 — public post count (docs resolution)
+
+**Tension (baseline audit):** At plan authoring, inventory metrics said **14** while hub/API held **15** — a lag tension, not two different corpora.
+
+**Recommended public framing (2026-09-11 re-read):**
+
+| Context                       | Recommended wording                                                                                                  | Rationale                                                                                                     |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Full published archive        | **“15 weekly AI Engineering Field Reports”** or **“15 field reports”**                                               | Hub, DEV API, `articles.ts`, and live inventory metrics align at **15** post-corpus sync                      |
+| Series / credibility line     | Use `series-overview` action verbatim where space allows — includes **2200+** followers + Trusted Member in one beat | Single inventory-backed sentence; do not split into unsupported superlatives                                  |
+| Editorial workflow outcomes   | **`15`** field reports published via the workflow (`published-via-workflow`)                                         | Pairs with editorial system evidence on Projects supporting row                                               |
+| Historical / résumé snapshots | **Do not cite “14”** in new portfolio copy unless quoting a frozen historical artifact                               | Baseline captured transient inventory lag; live facts now read **15**                                         |
+| Qualified / open-ended        | **Avoid “15+”** unless a 16th post is imminent and copy must not stale quickly — prefer re-read before ship          | “15+” implies growth without a fact ID; use only if human explicitly wants forward-looking copy (H2 residual) |
+
+**H2 status:** **Resolved for docs** with recommendation above. **Optional human call:** confirm hero/series line on Articles redesign comp; re-sync inventory + `series-overview` when post **#16** publishes (count drift risk returns).
+
+#### C. Three curation layers (H3 — document only; do not unify in this slice)
+
+Three independent surfaces currently curate different subsets. **Zero title overlap** between `articles.featured` and inferred DEV pins; **partial overlap** between DEV pins and `homepage.writing`.
+
+| Layer                    | Count | Current slugs / titles                                                                                                    | Source                                                      |
+| ------------------------ | ----- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **`homepage.writing`**   | 3     | `active-players-which-sessions-counted`; `agent-plans-authority-handoffs`; `ai-reviewer-kinds-of-reasoning`               | `content/homepage.ts` — each row has an `argument`          |
+| **`articles.featured`**  | 3     | `model-experiments-architectural-stress-test`; `evidence-driven-dependency-upgrades`; `reviewers-analysis-before-scoring` | `content/articles.ts` — legacy “≈ one per flagship” comment |
+| **Inferred DEV pin set** | 5     | persist-game-state; agent-portability; active-players; ai-reviewer-kinds-of-reasoning; agent-plans-authority-handoffs     | DEV profile HTML “Pinned” block — **not** API field         |
+
+**Overlap matrix:**
+
+| Set A → Set B               | Overlap                                                                 |
+| --------------------------- | ----------------------------------------------------------------------- |
+| Homepage writing ↔ Featured | **0 / 3** — completely divergent                                        |
+| DEV pins ↔ Homepage writing | **3 / 5** — active-players, ai-reviewer-kinds-of-reasoning, agent-plans |
+| DEV pins ↔ Featured         | **0 / 5**                                                               |
+
+**H3 options (human picks one — `content-writing-curation` slice applies outcome):**
+
+1. **Homepage-aligned (current homepage slugs):** measurement + governance + editorial reasoning — `_Selected writing_ on home becomes source of truth; set `featured: true` on those 3 only._
+2. **Flagship-paired:** one post per first-class system (Codenames + Atlassian + agent-native) — **no Atlassian-tagged post exists today**; accept non-1:1 or defer Atlassian slot.
+3. **DEV-pin-aligned:** 5 pinned titles — homepage may still show **3**; archive holds 5; featured flags may not match pin count.
+
+**Agent stop rule:** Do not unify `homepage.writing` and `articles.featured` until H3 is explicitly resolved. This prep slice documents options only.
+
+#### D. Inferred DEV pin set (signal, not API fact)
+
+Treat pinning as **profile-page structure** (baseline §2). Titles under the “Pinned” heading before chronological feed (audited 2026-09-11):
+
+| #   | DEV title (pinned)                                               | Portfolio slug                                                           | In `articles.ts` | In homepage writing | In `featured` |
+| --- | ---------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------- | ------------------- | ------------- |
+| 1   | The board came back. The highlights lied.                        | `persist-game-state-not-ephemeral-ui-intent`                             | Yes              | No                  | No            |
+| 2   | I was solving agent portability at the wrong boundary            | `agent-portability-does-not-require-centralizing-methodology-behind-mcp` | Yes              | No                  | No            |
+| 3   | Active players looked real until we asked which sessions counted | `active-players-which-sessions-counted`                                  | Yes              | **Yes**             | No            |
+| 4   | I fixed my AI reviewer. Then I kept solving the wrong problem    | `ai-reviewer-kinds-of-reasoning`                                         | Yes              | **Yes**             | No            |
+| 5   | The agent plan had every step except where to stop               | `agent-plans-authority-handoffs`                                         | Yes              | **Yes**             | No            |
+
+**Design note:** Articles redesign may surface a “Pinned on DEV” band (5) distinct from homepage “Selected writing” (3) and `/articles` featured badges (3 legacy) — IA choice, not evidence requirement.
+
+#### E. `argument` field (homepage today → Articles type extension)
+
+| Surface              | Field          | Purpose                                                                                                                             |
+| -------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Homepage             | `argument`     | One-line **thesis** per selected post — why this report matters for measurement/governance/reasoning (not a duplicate of `summary`) |
+| `Article` type today | `summary` only | Compressed opening from frontmatter — scannable on `/articles` log rows                                                             |
+| Redesign intent      | `argument?`    | Optional on `Article` for featured/pinned rows — reuse homepage strings when H3 unifies; enables index scan without opening DEV     |
+
+**Current homepage arguments (copy-ready for redesign comp):**
+
+| Slug                                    | `argument` (verbatim from `homepage.writing`)                                                                                       |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `active-players-which-sessions-counted` | A healthy-looking Active players tile forced a sharper question about which sessions belonged in the metric.                        |
+| `agent-plans-authority-handoffs`        | Multi-slice agent plans need explicit authority handoffs and stop lines — not only implementation checklists.                       |
+| `ai-reviewer-kinds-of-reasoning`        | After fixing score-first critique, further reviewer gains came from separating kinds of reasoning rather than expanding the rubric. |
+
+#### F. Series framing & inventory facts
+
+| Beat             | Inventory source · fact ID                                                                                                   | Use on Articles redesign                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Series name      | `writing-field-reports.yml` · `series-overview`                                                                              | **“AI Engineering Field Reports”** — weekly cadence                                           |
+| Editorial method | `writing-field-reports.yml` · `editorial-system`; `ai-editorial-workflow.yml` · `editorial-lifecycle`, `human-publish-gates` | Human-in-the-loop; retrieval → critique → verification — ties to Editorial supporting project |
+| Scope            | `writing-field-reports.yml` · `field-report-scope`                                                                           | Agents, LLMs, evaluation, analytics, AI-assisted engineering from production workflows        |
+| Publish evidence | `writing-field-reports.yml` · `publish-field-reports`                                                                        | Documents Codenames AI + agent-assisted engineering workflows                                 |
+
+**Follower count (`2200+`):** `dev-followers` metric — **H12** staleness risk; optional promotion on Articles hero or About; omit from safe-now copy unless re-verified on DEV profile.
+
+#### G. Trusted Member (verbatim qualification)
+
+Keep on-site wording aligned with inventory outcome — current `/articles` hero matches closely:
+
+> Recognized as a Trusted Member of the DEV Community, contributing to community moderation and content quality.
+
+| Source                                    | Fact ID                 | Notes                                                                        |
+| ----------------------------------------- | ----------------------- | ---------------------------------------------------------------------------- |
+| `resumes/facts/writing-field-reports.yml` | `trusted-member`        | Outcome fact — link `https://dev.to/trusted-member#what-is-a-trusted-member` |
+| On portfolio                              | `app/articles/page.tsx` | Embedded in lead — **only** on-site Trusted Member surfacing today           |
+
+**Promotion options (design-only — no production change in this slice):**
+
+| Option                            | Tradeoff                                                              |
+| --------------------------------- | --------------------------------------------------------------------- |
+| Keep Articles-only                | Current state — credible without crowding homepage hero               |
+| One-line on homepage writing band | Adds social proof near selected posts — density vs Instrument 1b calm |
+| About depth band                  | Pairs with field reports in §4.G — avoid duplicate if both ship       |
+
+#### H. `relatedProjectSlug` cross-links
+
+| Status              | Slugs                                                                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Set (13/15)**     | Most posts tie to `codenames-ai`, `editorial-workflow`, `renovate-governance`, or `resume-generator`                                       |
+| **Unset (2/15)**    | `cloud-agent-felt-like-hiring`; `agent-portability-does-not-require-centralizing-methodology-behind-mcp`                                   |
+| **Orphan risk**     | `cloud-agent-felt-like-hiring` — assign → `editorial-workflow` or agent-native stub in **`content-writing-curation`** or follow-up PR      |
+| **Case-study wire** | `relatedProjectSlug` exists on articles; project pages **do not** render related writing yet — optional `content-related-writing` deferred |
+
+**Project distribution (inventory today):**
+
+| `relatedProjectSlug`  | Post count                                         |
+| --------------------- | -------------------------------------------------- |
+| `codenames-ai`        | 4                                                  |
+| `editorial-workflow`  | 4                                                  |
+| `renovate-governance` | 2                                                  |
+| `resume-generator`    | 2                                                  |
+| _(unset)_             | 2                                                  |
+| `agent-portability…`  | 0 project slug — cross-cutting agent/harness theme |
+
+#### I. Writing as engineering evidence (thematic clusters for IA)
+
+Group the 15-post corpus by **reasoning theme** — not by publish date alone — for Claude Design index/filter concepts:
+
+| Theme                         | Example slugs                                                                                                         | Pairs with project tier     |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| **Measurement & telemetry**   | active-players, model-experiments, schema-first-valid-json                                                            | Codenames co-primary        |
+| **Governance & authority**    | agent-plans-authority-handoffs, evidence-driven-dependency-upgrades, experiment-repos-retirement                      | Renovate; agent-native      |
+| **Editorial & critique**      | reviewers-analysis-before-scoring, ai-reviewer-kinds-of-reasoning, one-example-beats-style-guide, skills-capabilities | Editorial supporting        |
+| **Product & pipeline QA**     | ai-workflows-requirements-qa, ai-changed-build-vs-buy, persist-game-state                                             | Resume-generator; Codenames |
+| **Agent/harness portability** | cloud-agent-felt-like-hiring, agent-portability                                                                       | Agent-native / editorial    |
+
+**No Atlassian-tagged posts** — professional experiment-measurement record stays on Projects/About/homepage CH 02; do not invent Atlassian field reports for curation balance.
+
+#### J. Explicit non-goals (this slice + Articles Design session)
+
+| Non-goal                                       | Rationale / owner slice                                        |
+| ---------------------------------------------- | -------------------------------------------------------------- |
+| Unify `homepage.writing` ↔ `articles.featured` | **H3** — `content-writing-curation` after human decision       |
+| Edit `/articles` layout or route               | Claude Design session + follow-up content PR                   |
+| Rename route to `/writing`                     | Deferred in content-evidence plan                              |
+| Host in-site essay bodies                      | Writing exits via DEV (`ExternalLink`) — baseline architecture |
+| Fix DEV tagline “AI retraining journey”        | **H4** — external profile only                                 |
+| Promote follower **`2200+`** without H12       | Staleness risk                                                 |
+| Invent posts or strengthen claims              | Evidence rule — hub frontmatter only                           |
+| Resolve pin vs featured vs homepage in prep    | Document only — see §5.C                                       |
+
+#### K. Owned by `content-writing-curation` (later slice)
+
+After **H3** human decision, that slice applies:
+
+- Set `featured: true` on exactly the agreed slug set; clear featured from others
+- Align `homepage.writing[]` slugs + `argument` strings with H3 outcome (if rule changes homepage set)
+- Update `tests/content-foundation.test.ts` if featured uniqueness rule relaxes (e.g. DEV-pin rule with 5 pins, 3 homepage)
+- Optional: assign `relatedProjectSlug` on orphan slugs as part of curation pass
+- PR documents chosen H3 option in description for audit trail
+
+---
+
+## Claude Design handoff — Articles session
+
+**Slice:** `redesign-prep-articles` (docs-only). **Prerequisites merged:** [#51](https://github.com/mastermichaelt/portfolio/pull/51) articles corpus (15 rows); [#49](https://github.com/mastermichaelt/portfolio/pull/49) continuity metadata; About/Projects prep for cross-links.
+
+Use this brief for the next **Articles / Writing page Claude Design** pass. Goal: an Articles experience that presents writing as **engineering field reports** — public evidence of measurement, verification, and explicit contracts — not a chronological AI diary. Outbound DEV links remain canonical; redesign improves scanability, series framing, and curation clarity.
+
+### Session entry checklist
+
+1. Read [`DESIGN.md`](../DESIGN.md) — calm Instrument 1b system; log-row patterns; no decorative clutter on archive pages.
+2. Read [`PRODUCT.md`](../PRODUCT.md) — continuity framing; thesis _Making uncertain systems dependable._
+3. Read current [`content/articles.ts`](../content/articles.ts), [`content/homepage.ts`](../content/homepage.ts) `writing[]`, and [`app/articles/page.tsx`](../app/articles/page.tsx) — **design comp only**; copy/curation changes ship in follow-up content PRs.
+4. Do **not** edit homepage Instrument 1b composition ([#47](https://github.com/mastermichaelt/portfolio/pull/47)).
+5. Do **not** unify featured/homepage writing in the design session — wireframes may show **proposed** post-H3 states as variants; production unification is **`content-writing-curation`**.
+6. Re-read live `resumes/facts/writing-field-reports.yml` before any new quantitative copy in a follow-up PR.
+
+### Design intent
+
+| Layer                   | Content                                                                        | Visual weight                                    |
+| ----------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------ |
+| **Hero / series**       | AI Engineering Field Reports; Trusted Member; optional follower (H12)          | Primary — engineering reasoning, not DEV tagline |
+| **Selected / featured** | 3–5 posts max (H3-dependent) with `argument`-style thesis lines                | Secondary — scannable why-this-report            |
+| **Full archive**        | 15 outbound log rows (title, year, summary, tags)                              | Tertiary — complete corpus, DEV → affordance     |
+| **Cross-links**         | `relatedProjectSlug` → Projects supporting/co-primary (post-Projects redesign) | Inline tags or filter chips — optional           |
+
+**Primary scan path:** Series identity → selected reports prove the method → full archive for depth on DEV.
+
+### Proposed section IA (non-binding)
+
+1. **Hero** — series name + Trusted Member (verbatim §5.G) + one continuity line tying writing to Projects method.
+2. **Selected writing** — 3 cards/rows with **`argument`** thesis (homepage strings today if H3 picks homepage-aligned rule).
+3. **Optional: Pinned on DEV** — 5-title band if design wants parity with profile pins (distinct from selected 3).
+4. **Archive** — all 15 posts; year/tag filters optional; every row exits to DEV.
+5. **Footer cross-link** — `/projects` (Editorial supporting), `/ecosystem` (agent-native).
+
+### Curated evidence set (must be citable in follow-up copy PR)
+
+| Articles beat     | Key fact IDs (inventory path)                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| Series            | `writing-field-reports.yml` · `series-overview`, `field-report-scope`                                |
+| Editorial method  | `ai-editorial-workflow.yml` · `editorial-lifecycle`, `human-publish-gates`, `published-via-workflow` |
+| Credibility       | `writing-field-reports.yml` · `trusted-member`; optional `dev-followers` (H12)                       |
+| Corpus size       | **`15`** — `published-report-count`; H2 framing §5.B                                                 |
+| Thematic clusters | §5.I — measurement, governance, editorial, pipeline QA, agent portability                            |
+
+### Explicit non-goals for Articles Design session
+
+| Non-goal                                                    | Rationale                                         |
+| ----------------------------------------------------------- | ------------------------------------------------- |
+| Resolve H3 curation in design PR                            | `content-writing-curation` — human gate           |
+| In-site Markdown essays                                     | Architecture — DEV owns body                      |
+| Merge Articles into Projects                                | Separate route; cross-link only                   |
+| “AI retraining” series framing                              | H4 external tagline; portfolio continuity only    |
+| Unify featured flags in Figma-only comp without H3 sign-off | Document as variant; do not ship production flags |
+| Atlassian field-report slot                                 | No such posts — do not invent                     |
+
+### Cross-links
+
+- Homepage `#` selected writing band — same 3 slugs until H3 changes them.
+- `/projects/codenames-ai`, `/projects/editorial-workflow`, `/projects/renovate-governance` — `relatedProjectSlug` targets.
+- `/about` — optional Trusted Member / series mention if not duplicated.
+- DEV profile — outbound; tagline sync is H4 (external).
 
 ---
 
@@ -525,20 +756,20 @@ Use this brief for the next **About page Claude Design** pass. Goal: an About ex
 
 ### 7. Unresolved claims / decisions requiring human review
 
-| #   | Decision                                         | Options                                                                                                                                                                                                                     | Blocking                           |
-| --- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| H1  | **MAU figure on homepage**                       | **Resolved** — live inventory **`175+`** durable floor; site publishes **`175+`** ([#52](https://github.com/mastermichaelt/portfolio/pull/52); interim **150+** [#50](https://github.com/mastermichaelt/portfolio/pull/50)) | Done — `content-homepage-figures`  |
-| H2  | **Public post count**                            | 14 (inventory) vs 15 (hub/API) vs “15+”                                                                                                                                                                                     | Articles copy, editorial outcomes  |
-| H3  | **Writing curation rule**                        | Homepage vs featured vs DEV pins                                                                                                                                                                                            | S-unify writing, Articles redesign |
-| H4  | **DEV profile tagline**                          | Sync to portfolio continuity or keep independent                                                                                                                                                                            | External only — not in repo        |
-| H5  | **Atlassian case study slug & title**            | `experiment-measurement` vs longer name                                                                                                                                                                                     | Projects redesign                  |
-| H6  | **Ledger SSE 2019 “Informed Pull Requests”**     | **Resolved** — `growth-engineering-craft.yml` · `informed-pull-requests` (role `atlassian-senior-swe-2019`); optional About beat, not headline                                                                              | About prep — cite fact ID if used  |
-| H7  | **Promote Loom/Post Office metrics on homepage** | Extra figures vs case-study-only                                                                                                                                                                                            | Homepage density vs Projects       |
-| H8  | **`tier` schema**                                | Add `first-class \| supporting \| infrastructure` to `Project` vs presentation-only                                                                                                                                         | Projects redesign                  |
-| H9  | **Canonical domain**                             | `michaeltruong.dev` vs Vercel default                                                                                                                                                                                       | Metadata — out of scope            |
-| H10 | **Agent-native row**                             | Separate project slug vs ecosystem-only                                                                                                                                                                                     | Projects inventory                 |
-| H11 | **Populate `timeline.ts`**                       | Role-derived events vs keep ledger-only on home                                                                                                                                                                             | Timeline route decision            |
-| H12 | **Follower count `2200+` on site**               | Promote vs omit (staleness)                                                                                                                                                                                                 | About / Articles                   |
+| #   | Decision                                         | Options                                                                                                                                                                                                                                                                                                                                 | Blocking                                                                      |
+| --- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| H1  | **MAU figure on homepage**                       | **Resolved** — live inventory **`175+`** durable floor; site publishes **`175+`** ([#52](https://github.com/mastermichaelt/portfolio/pull/52); interim **150+** [#50](https://github.com/mastermichaelt/portfolio/pull/50))                                                                                                             | Done — `content-homepage-figures`                                             |
+| H2  | **Public post count**                            | **Resolved (docs)** — recommend **“15 weekly AI Engineering Field Reports”** / **“15 field reports”** when hub, API, `articles.ts`, and live inventory align ([#51](https://github.com/mastermichaelt/portfolio/pull/51)); do not cite historical **14** in new copy; avoid **“15+”** without human intent; re-sync when post #16 ships | Articles hero, editorial outcomes — optional human confirm on exact hero line |
+| H3  | **Writing curation rule**                        | Homepage vs featured vs DEV pins                                                                                                                                                                                                                                                                                                        | S-unify writing, Articles redesign                                            |
+| H4  | **DEV profile tagline**                          | Sync to portfolio continuity or keep independent                                                                                                                                                                                                                                                                                        | External only — not in repo                                                   |
+| H5  | **Atlassian case study slug & title**            | `experiment-measurement` vs longer name                                                                                                                                                                                                                                                                                                 | Projects redesign                                                             |
+| H6  | **Ledger SSE 2019 “Informed Pull Requests”**     | **Resolved** — `growth-engineering-craft.yml` · `informed-pull-requests` (role `atlassian-senior-swe-2019`); optional About beat, not headline                                                                                                                                                                                          | About prep — cite fact ID if used                                             |
+| H7  | **Promote Loom/Post Office metrics on homepage** | Extra figures vs case-study-only                                                                                                                                                                                                                                                                                                        | Homepage density vs Projects                                                  |
+| H8  | **`tier` schema**                                | Add `first-class \| supporting \| infrastructure` to `Project` vs presentation-only                                                                                                                                                                                                                                                     | Projects redesign                                                             |
+| H9  | **Canonical domain**                             | `michaeltruong.dev` vs Vercel default                                                                                                                                                                                                                                                                                                   | Metadata — out of scope                                                       |
+| H10 | **Agent-native row**                             | Separate project slug vs ecosystem-only                                                                                                                                                                                                                                                                                                 | Projects inventory                                                            |
+| H11 | **Populate `timeline.ts`**                       | Role-derived events vs keep ledger-only on home                                                                                                                                                                                                                                                                                         | Timeline route decision                                                       |
+| H12 | **Follower count `2200+` on site**               | Promote vs omit (staleness)                                                                                                                                                                                                                                                                                                             | About / Articles                                                              |
 
 ---
 
