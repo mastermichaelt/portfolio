@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: redesign-prep-articles
     content: "Docs-only PR: Curate Articles/Writing redesign brief; resolve H2 post-count tension in docs only"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md"
     status: pending
@@ -139,7 +139,7 @@ Audited 2026-09-11 (on-portfolio):
 | Id     | Decision                                                 | Resolution                                                                                                                                                                                                                                  |
 | ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **H1** | MAU figure: `175+` vs `150+` vs omit                     | **Resolved by `content-homepage-figures`** (second slice after plan merge) — see [H1 decision rule](#h1-decision-rule-mau-figure) below. Leaving `175+` published while deferring this slice is **unacceptable** once the plan is approved. |
-| H2     | Public post count: 14 vs 15 vs qualified wording         | `redesign-prep-articles`                                                                                                                                                                                                                    |
+| H2     | Public post count: 14 vs 15 vs qualified wording         | **Resolved (docs)** — see audit §5.B; recommend **15** / `series-overview` wording; optional human confirm on Articles hero line                                                                                                            |
 | H3     | Writing curation rule (homepage vs featured vs DEV pins) | `content-writing-curation` — agent stops if unresolved                                                                                                                                                                                      |
 | H4     | DEV profile tagline sync                                 | External — not in-repo                                                                                                                                                                                                                      |
 | H5     | Atlassian case-study slug/title                          | Claude Design Projects (deferred)                                                                                                                                                                                                           |
