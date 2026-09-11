@@ -61,7 +61,7 @@ const experimentMeasurement: ProjectCase = {
       heading:
         "Cross Flow reported an uplift the prior approach could not defend.",
       body: [
-        "A funnel observability audit established where credit was being assigned twice. The attribution formula authored from that audit was subsequently adopted for Growth Experiment Impact Estimation, so the correction outlived the experiment that prompted it.",
+        "A funnel observability audit established where the prior approach over-attributed credit. The attribution formula authored from that audit was subsequently adopted for Growth Experiment Impact Estimation, so the correction outlived the experiment that prompted it.",
       ],
       contract:
         "an uplift is reportable once its attribution is reproducible by formula, not by the dashboard that happened to render it.",
@@ -114,7 +114,7 @@ const experimentMeasurement: ProjectCase = {
       heading:
         "The Loom event pipeline stopped attributing while experiments were still running.",
       body: [
-        "Embedded event-pipeline work salvaged attribution mid-flight: lost Cross-flow experiment data was recovered, paid-user events were preserved, and experiments that had been blocked could continue.",
+        "Embedded event-pipeline work salvaged attribution mid-flight: lost Cross-flow experiment data was recovered, roughly half of paid-user events that would otherwise have been excluded were preserved, and experiments that had been blocked could continue.",
       ],
       contract:
         "statistical validity is preserved by repairing the pipeline, not by restarting the experiment.",
@@ -159,11 +159,11 @@ const experimentMeasurement: ProjectCase = {
         "I led cross-functional work to onboard Atlassian’s largest acquisition onto experimentation and growth infrastructure — the prerequisite for any of the measurement work above applying to it.",
       ],
       contract:
-        "a product is not part of the growth system until its events, assignment and attribution are.",
+        "a product is not part of the growth system until its events and attribution are on experimentation infrastructure.",
       figures: [
         {
           value: "10×",
-          name: "OKR attainment against target",
+          name: "exceeded associated business OKR targets",
           scope: "Acquisition onboarding scope · associated business OKR",
           source: {
             inventory: "resumes/facts/loom-acquisition.yml",
@@ -233,7 +233,7 @@ const experimentMeasurement: ProjectCase = {
         labelMuted: true,
         description: [
           {
-            text: "The nearest published reasoning asks the same question on my own telemetry: ",
+            text: "The nearest published reasoning applies the same discipline — what the metric is allowed to count — on my own telemetry: ",
           },
           {
             text: `${article("active-players-which-sessions-counted").title} →`,
@@ -413,7 +413,7 @@ const codenamesAi: ProjectCase = {
     ],
     closing: [
       {
-        text: "Hard product KPIs are not claimed here — the durable outcome is a production system with explicit validation contracts and publishable engineering lessons.  ·  Same method at Atlassian scale — ",
+        text: "Figures above are qualified engineering telemetry, not unaudited growth KPIs — the durable outcome is a production system with explicit validation contracts and publishable engineering lessons.  ·  Same method at Atlassian scale — ",
       },
       {
         text: "experiment measurement →",

@@ -70,7 +70,7 @@ export const projectsIndex: ProjectsIndex = {
       figures: indexFigures(atlassian.slug),
       deferral: [
         {
-          text: "Three further figures on the case study: recovered experiment data, acquisition OKR attainment, Admin Hub activation. No field report is tagged to this work.",
+          text: "Five additional qualified figures on the case study (pipeline recovery, OKR attainment, Admin Hub activation). No field report is tagged to this work.",
         },
       ],
     },
