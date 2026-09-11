@@ -1,0 +1,659 @@
+/* Projects 1C — "instrument index". Extends the Instrument 1b site-wide system
+   into a denser register for /projects and the co-primary case-study details.
+   Every value maps to a token in app/styles/tokens.css. */
+
+/* ============================================================ Index ===== */
+
+.pindex-hero-section {
+  padding-block: var(--gap-2xl) var(--gap-lg);
+}
+
+.pindex-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: var(--gap-2xl);
+  align-items: end;
+}
+
+.pindex-eyebrow {
+  margin-bottom: var(--gap-lg);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+
+.pindex-heading {
+  margin: 0 0 26px;
+  font-size: var(--fs-h1);
+  line-height: 1.04;
+  letter-spacing: var(--tracking-tight);
+  font-weight: 500;
+  max-width: 24ch;
+}
+
+.pindex-lead {
+  max-width: 58ch;
+}
+
+.pindex-key {
+  font-family: var(--font-mono-stack);
+  font-size: 11.5px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+
+.pindex-key-label {
+  margin: 0 0 12px;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.pindex-key-lines {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.pindex-key-lines p {
+  margin: 0;
+}
+
+.pindex-table-section {
+  padding-bottom: var(--gap-2xl);
+}
+
+.pindex-head,
+.pindex-row {
+  display: grid;
+  grid-template-columns: minmax(0, 172px) minmax(0, 1fr) minmax(0, 300px);
+  gap: var(--gap-lg);
+}
+
+/* The strong section rule beneath the column labels — matches .list-head. */
+.pindex-head {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pindex-row {
+  border-bottom: 1px solid var(--border);
+}
+
+.pindex-row--co {
+  padding-block: var(--gap-lg);
+}
+
+.pindex-row--support,
+.pindex-row--infra {
+  padding-block: var(--gap-md);
+  align-items: baseline;
+}
+
+.pindex-row--support {
+  color: inherit;
+}
+
+.pindex-row--support:hover {
+  background: var(--surface);
+}
+
+.pindex-row--support:hover .pindex-sys--support {
+  color: var(--accent);
+}
+
+.pindex-col-contract,
+.pindex-col-evidence {
+  min-width: 0;
+}
+
+.pindex-ch {
+  margin: 0 0 var(--gap-xs);
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.pindex-sys {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.pindex-era {
+  margin: 0 0 18px;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.pindex-open {
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.pindex-open:hover {
+  color: var(--fg);
+}
+
+.pindex-tier {
+  margin: 0 0 4px;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pindex-sys--support {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.pindex-sys--infra {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--fg-2);
+}
+
+.pindex-contract {
+  margin: 0 0 18px;
+  font-size: var(--fs-h3);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+}
+
+.pindex-summary {
+  margin: 0 0 20px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--fg-2);
+  max-width: 62ch;
+}
+
+.pindex-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pindex-chip {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+}
+
+.pindex-rolespine {
+  margin: 20px 0 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.pindex-col-evidence {
+  display: grid;
+  gap: var(--gap-md);
+  align-content: start;
+}
+
+.pindex-figures {
+  display: grid;
+  gap: var(--gap-md);
+}
+
+.pindex-defer {
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono-stack);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.pindex-defer a {
+  color: var(--accent);
+}
+
+.pindex-support-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--fg-2);
+}
+
+.pindex-support-body--infra {
+  color: var(--muted);
+}
+
+.pindex-proof {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.pindex-footer {
+  margin: var(--gap-md) 0 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+.pindex-footer a {
+  color: var(--accent);
+}
+
+/* =========================================================== Detail ===== */
+
+.pcase-head-section {
+  padding-block: var(--gap-xl) 0;
+}
+
+.pcase-breadcrumb {
+  margin-bottom: var(--gap-lg);
+}
+
+.pcase-breadcrumb a {
+  color: var(--muted);
+}
+
+.pcase-breadcrumb a:hover {
+  color: var(--accent);
+}
+
+.pcase-headgrid {
+  display: grid;
+  grid-template-columns: minmax(0, 172px) minmax(0, 1fr) minmax(0, 300px);
+  gap: var(--gap-lg);
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.pcase-ch {
+  margin: 0 0 var(--gap-xs);
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.pcase-meta-lines {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.pcase-title {
+  margin: 0 0 26px;
+  font-size: clamp(34px, 4.4vw, 52px);
+  line-height: 1.04;
+  letter-spacing: var(--tracking-tight);
+  font-weight: 500;
+  max-width: 26ch;
+}
+
+.pcase-lead {
+  max-width: 60ch;
+}
+
+.pcase-aside-label {
+  margin: 0 0 12px;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pcase-aside-lines {
+  margin: 0 0 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  line-height: 1.8;
+  color: var(--fg-2);
+}
+
+.pcase-aside-note {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.pcase-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+  gap: var(--gap-lg) var(--gap-xl);
+  align-items: start;
+}
+
+.pcase-rail {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+  padding: var(--gap-md) var(--gap-lg) var(--gap-md) 0;
+  border-right: 1px solid var(--border);
+}
+
+.pcase-rail-heading {
+  margin: 0 0 16px;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pcase-rail-heading-spaced {
+  margin-top: var(--gap-md);
+}
+
+.pcase-rail-list {
+  display: grid;
+  gap: 2px;
+}
+
+.pcase-rail-item {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  padding-block: 6px;
+  font-family: var(--font-mono-stack);
+  font-size: 12.5px;
+  color: var(--fg-2);
+}
+
+.pcase-rail-item:hover {
+  color: var(--fg);
+}
+
+/* The 2px bar is the whole active signal — the label colour never changes. */
+.pcase-rail-bar {
+  width: 2px;
+  flex: none;
+  align-self: stretch;
+  background: var(--border);
+}
+
+.pcase-rail-item.is-active .pcase-rail-bar {
+  background: var(--accent);
+}
+
+.pcase-rail-num {
+  margin-right: 10px;
+}
+
+.pcase-rail-elsewhere {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+}
+
+.pcase-rail-elsewhere a {
+  color: var(--accent);
+}
+
+.pcase-rail-elsewhere a:hover {
+  color: var(--fg);
+}
+
+.pcase-blocks {
+  min-width: 0;
+}
+
+.pcase-block {
+  padding-block: var(--gap-lg);
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 96px;
+}
+
+.pcase-block-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+  gap: var(--gap-xl);
+  align-items: start;
+}
+
+.pcase-block-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+/* Structural numeral: deliberately quiet, in --border-strong. */
+.pcase-ordinal {
+  font-family: var(--font-mono-stack);
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--border-strong);
+}
+
+.pcase-cat {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pcase-block-title {
+  margin: 0 0 18px;
+  font-size: var(--fs-h2);
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+}
+
+.pcase-block-body {
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--fg-2);
+  max-width: 62ch;
+}
+
+/* Every block ends on its contract line, in full --fg. */
+.pcase-contract {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--fg);
+  max-width: 62ch;
+}
+
+.pcase-block-gutter {
+  min-width: 0;
+}
+
+.pcase-figures {
+  display: grid;
+  gap: var(--gap-md);
+}
+
+/* Figure-absent state: a --surface note, never a placeholder figure. */
+.pcase-note {
+  background: var(--surface);
+  padding: 24px;
+  font-family: var(--font-mono-stack);
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+.pcase-note-label {
+  margin: 0 0 12px;
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pcase-note-lines {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--fg-2);
+}
+
+.pcase-note-lines p {
+  margin: 0;
+}
+
+.pcase-note-lines p + p {
+  margin-top: 12px;
+}
+
+.pcase-note-closing {
+  margin: 14px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.pcase-artifacts {
+  border-bottom: none;
+}
+
+.pcase-artifacts-label {
+  margin: 0 0 var(--gap-md);
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pcase-artifact strong {
+  font-weight: 600;
+}
+
+.pcase-artifact--absence strong {
+  color: var(--fg-2);
+}
+
+.pcase-artifact-desc {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--fg-2);
+}
+
+.pcase-artifact--absence .pcase-artifact-desc {
+  color: var(--muted);
+}
+
+.pcase-artifact-desc a {
+  color: var(--accent);
+}
+
+.pcase-affordance {
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.pcase-affordance-link {
+  color: var(--accent);
+}
+
+.pcase-affordance-link:hover {
+  color: var(--fg);
+}
+
+.pcase-artifacts-note {
+  margin: var(--gap-md) 0 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+.pcase-artifacts-note a {
+  color: var(--accent);
+}
+
+/* ======================================================= Responsive ===== */
+
+@media (max-width: 920px) {
+  .pindex-hero {
+    grid-template-columns: 1fr;
+    gap: var(--gap-lg);
+  }
+
+  /* Header column labels are dropped rather than stacked. */
+  .pindex-head {
+    display: none;
+  }
+
+  /* Rows stack; column order (system → contract → evidence) is DOM order. */
+  .pindex-row {
+    grid-template-columns: 1fr;
+    gap: var(--gap-sm);
+  }
+
+  .pcase-headgrid {
+    grid-template-columns: 1fr;
+    gap: var(--gap-md);
+  }
+
+  .pcase-shell {
+    grid-template-columns: 1fr;
+    gap: var(--gap-lg);
+  }
+
+  /* Rail unsticks and moves above the content as a horizontal wrap. */
+  .pcase-rail {
+    order: -1;
+    position: static;
+    top: auto;
+    padding: 0 0 var(--gap-md);
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pcase-rail-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+  }
+
+  .pcase-rail-heading-spaced {
+    margin-top: var(--gap-md);
+  }
+
+  /* Block grid stacks; figure gutter goes full width below the narrative. */
+  .pcase-block-grid {
+    grid-template-columns: 1fr;
+    gap: var(--gap-md);
+  }
+}

@@ -2,7 +2,9 @@ import { articles } from "@/content/articles";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
+import { projectCases } from "@/content/project-cases";
 import { projects } from "@/content/projects";
+import { projectsIndex } from "@/content/projects-index";
 import { timelineEvents } from "@/content/timeline";
 import type { PortfolioRepository } from "@/repositories/portfolio-repository";
 
@@ -14,6 +16,18 @@ export class StaticPortfolioRepository implements PortfolioRepository {
 
   async getHomepage() {
     return homepage;
+  }
+
+  async getProjectsIndex() {
+    return projectsIndex;
+  }
+
+  async listProjectCases() {
+    return projectCases;
+  }
+
+  async getProjectCase(slug: string) {
+    return projectCases.find((entry) => entry.slug === slug) ?? null;
   }
 
   async listProjects() {

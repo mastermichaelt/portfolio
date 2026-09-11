@@ -82,6 +82,35 @@ vi.mock("@/content/ecosystem", () => ({
   ],
 }));
 
+vi.mock("@/content/project-cases", () => ({
+  projectCases: [
+    {
+      slug: "test-case",
+      name: "Test case",
+      channelLabel: "CH 09",
+      metaLines: ["Org", "2026 – present"],
+      title: "Contract sentence.",
+      lead: "Lead paragraph.",
+      aside: { label: "Scope", lines: ["Line"], note: "Note." },
+      blocks: [],
+      elsewhere: [],
+      artifacts: { label: "Artifacts", rows: [], closing: [] },
+    },
+  ],
+}));
+
+vi.mock("@/content/projects-index", () => ({
+  projectsIndex: {
+    hero: { eyebrow: "Eyebrow", title: "Title", lead: "Lead" },
+    key: { label: "Index key", lines: ["Line"] },
+    columns: { system: "System", contract: "Contract", evidence: "Evidence" },
+    coPrimary: [],
+    supporting: [],
+    infrastructure: [],
+    footer: [],
+  },
+}));
+
 vi.mock("@/content/timeline", () => ({
   timelineEvents: [{ id: "event-1", title: "Event" }],
 }));
@@ -104,7 +133,9 @@ import { articles } from "@/content/articles";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
+import { projectCases } from "@/content/project-cases";
 import { projects } from "@/content/projects";
+import { projectsIndex } from "@/content/projects-index";
 import { timelineEvents } from "@/content/timeline";
 import { StaticPortfolioRepository } from "@/repositories/static-portfolio-repository";
 
@@ -135,6 +166,24 @@ describe("StaticPortfolioRepository", () => {
 
   it("returns null for an unknown project slug", async () => {
     await expect(repository.getProject("missing")).resolves.toBeNull();
+  });
+
+  it("returns the projects index composition", async () => {
+    await expect(repository.getProjectsIndex()).resolves.toEqual(projectsIndex);
+  });
+
+  it("lists project cases from the static content module", async () => {
+    await expect(repository.listProjectCases()).resolves.toEqual(projectCases);
+  });
+
+  it("returns a project case when the slug matches", async () => {
+    await expect(repository.getProjectCase("test-case")).resolves.toEqual(
+      projectCases[0],
+    );
+  });
+
+  it("returns null for an unknown project case slug", async () => {
+    await expect(repository.getProjectCase("missing")).resolves.toBeNull();
   });
 
   it("lists articles from the static content module", async () => {

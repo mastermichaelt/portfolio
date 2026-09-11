@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { QualifiedFigure } from "@/components/QualifiedFigure";
+import { RichText } from "@/components/RichText";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
 export const metadata: Metadata = {
   title: "Projects",
   description:
-    "Four interconnected systems: Codenames AI, AI-assisted editorial workflow, resume knowledge architecture, and Renovate governance.",
+    "Every system, and what it is allowed to claim. Two co-primary case studies — experiment measurement at Atlassian and Codenames AI — plus supporting and infrastructure systems, each stating its contract and qualified evidence.",
   alternates: {
     canonical: "/projects",
   },
@@ -15,50 +17,109 @@ export const metadata: Metadata = {
 };
 
 export default async function ProjectsPage() {
-  const projects = await getPortfolioRepository().listProjects();
+  const index = await getPortfolioRepository().getProjectsIndex();
 
   return (
     <main id="content">
-      <section className="section hero hero-compact">
-        <div className="container container-narrow fade-in">
-          <p className="eyebrow">Projects</p>
-          <h1>Work arranged as systems, not a résumé dump.</h1>
-          <p className="lead lead-follow">
-            Four case studies grounded in production evidence — product,
-            editorial workflow, knowledge architecture, and dependency
-            governance.
-          </p>
+      <section className="pindex-hero-section">
+        <div className="container">
+          <div className="pindex-hero fade-in">
+            <div>
+              <p className="label pindex-eyebrow">{index.hero.eyebrow}</p>
+              <h1 className="pindex-heading">{index.hero.title}</h1>
+              <p className="lead pindex-lead">{index.hero.lead}</p>
+            </div>
+            <div className="pindex-key">
+              <p className="pindex-key-label">{index.key.label}</p>
+              <div className="pindex-key-lines">
+                {index.key.lines.map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="section section-flush">
-        <div className="container fade-in delay-1">
-          <div className="grid-2">
-            {projects.map((project) => (
+      <section className="pindex-table-section">
+        <div className="container">
+          <div className="pindex-table fade-in delay-1">
+            <div className="pindex-head" aria-hidden="true">
+              <span>{index.columns.system}</span>
+              <span>{index.columns.contract}</span>
+              <span>{index.columns.evidence}</span>
+            </div>
+
+            {index.coPrimary.map((row) => (
+              <article key={row.href} className="pindex-row pindex-row--co">
+                <div className="pindex-col-system">
+                  <p className="pindex-ch">{row.channelLabel}</p>
+                  <p className="pindex-sys">{row.title}</p>
+                  <p className="pindex-era">
+                    {row.org}
+                    <br />
+                    {row.dateRange}
+                  </p>
+                  <Link className="pindex-open" href={row.href}>
+                    Open →
+                  </Link>
+                </div>
+                <div className="pindex-col-contract">
+                  <h2 className="pindex-contract">{row.contract}</h2>
+                  <p className="pindex-summary">{row.summary}</p>
+                  <div className="pindex-chips">
+                    {row.chips.map((chip) => (
+                      <span key={chip} className="pindex-chip">
+                        {chip}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="pindex-rolespine">{row.roleSpine}</p>
+                </div>
+                <div className="pindex-col-evidence">
+                  <div className="pindex-figures">
+                    {row.figures.map((figure) => (
+                      <QualifiedFigure key={figure.name} figure={figure} />
+                    ))}
+                  </div>
+                  <p className="pindex-defer">
+                    <RichText segments={row.deferral} />
+                  </p>
+                </div>
+              </article>
+            ))}
+
+            {index.supporting.map((row) => (
               <Link
-                key={project.slug}
-                className="card card-interactive work-card"
-                href={`/projects/${project.slug}`}
+                key={row.href}
+                className="pindex-row pindex-row--support"
+                href={row.href}
               >
-                <div className="kicker">
-                  <span className="pill">
-                    {project.eyebrow ?? "Case study"}
-                  </span>
-                  {project.kind ? (
-                    <span className="meta">{project.kind}</span>
-                  ) : null}
+                <div className="pindex-col-system">
+                  <p className="pindex-tier">Supporting</p>
+                  <p className="pindex-sys pindex-sys--support">{row.title}</p>
                 </div>
-                <h3>{project.title}</h3>
-                <p>{project.summary}</p>
-                <div className="links">
-                  {project.tags.slice(0, 4).map((tag) => (
-                    <span key={tag} className="tag">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                <p className="pindex-support-body">{row.summary}</p>
+                <p className="pindex-proof">{row.proofSurface}</p>
               </Link>
             ))}
+
+            {index.infrastructure.map((row) => (
+              <div key={row.title} className="pindex-row pindex-row--infra">
+                <div className="pindex-col-system">
+                  <p className="pindex-tier">Infrastructure</p>
+                  <p className="pindex-sys pindex-sys--infra">{row.title}</p>
+                </div>
+                <p className="pindex-support-body pindex-support-body--infra">
+                  {row.summary}
+                </p>
+                <p className="pindex-proof">{row.proofSurface}</p>
+              </div>
+            ))}
+
+            <p className="pindex-footer">
+              <RichText segments={index.footer} />
+            </p>
           </div>
         </div>
       </section>
