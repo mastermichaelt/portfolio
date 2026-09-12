@@ -401,26 +401,95 @@ test.describe("portfolio happy path", () => {
     await expect(rows.first()).toHaveAttribute("target", "_blank");
   });
 
-  test("about stays thin with contact channels", async ({ page }) => {
+  test("about carries the identity rail, arc and evidence boundary", async ({
+    page,
+  }) => {
     await page.goto("/about");
 
-    const content = page.locator("#content");
+    // Identity + contact live in the sticky rail (the CTA repeats the email, so
+    // these assertions are scoped to the rail to stay unambiguous).
+    const rail = page.locator(".about-rail");
     await expect(
-      content.getByRole("heading", { name: "Michael Truong" }),
+      rail.getByRole("heading", { level: 1, name: "Michael Truong" }),
     ).toBeVisible();
     await expect(
-      content.getByRole("link", { name: "michael@multipliers.dev" }),
+      rail.getByRole("link", { name: "michael@multipliers.dev" }),
     ).toHaveAttribute("href", "mailto:michael@multipliers.dev");
-    await expect(
-      content.getByRole("link", { name: "LinkedIn" }),
-    ).toHaveAttribute("href", /linkedin\.com/);
-    await expect(content.getByRole("link", { name: "GitHub" })).toHaveAttribute(
+    await expect(rail.getByRole("link", { name: "LinkedIn" })).toHaveAttribute(
+      "href",
+      /linkedin\.com/,
+    );
+    await expect(rail.getByRole("link", { name: "GitHub" })).toHaveAttribute(
       "href",
       /github\.com/,
     );
+    await expect(rail.getByRole("link", { name: "DEV blog" })).toHaveAttribute(
+      "href",
+      /dev\.to\/michaeltruong/,
+    );
+
+    // Every era but the 2014 origin ends on a carry-forward clause.
+    await expect(page.locator(".about-carry")).toHaveCount(4);
+
+    // Exactly four qualified figures, each keeping a non-empty scope line.
+    const figures = page.locator(".qfigure");
+    await expect(figures).toHaveCount(4);
+    const scopes = page.locator(".qfigure .figure-scope");
+    await expect(scopes).toHaveCount(4);
+    for (const text of await scopes.allInnerTexts()) {
+      expect(text.trim().length).toBeGreaterThan(0);
+    }
+
+    // The §04 then/now mapping and §05 surface boundary have fixed shapes.
+    await expect(page.locator(".about-map .about-map-row")).toHaveCount(3);
     await expect(
-      content.getByRole("link", { name: "DEV blog" }),
-    ).toHaveAttribute("href", /dev\.to\/michaeltruong/);
+      page.locator(".about-surfaces .about-surface-row"),
+    ).toHaveCount(5);
+
+    // Orientation links to the other evidence surfaces are present.
+    await expect(
+      page.locator('.about-doc a[href="/projects"]').first(),
+    ).toBeVisible();
+    await expect(
+      page.locator('.about-doc a[href="/articles"]').first(),
+    ).toBeVisible();
+  });
+
+  test("about stacks at 375px with a static rail and untruncated scope", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/about");
+
+    const overflowX = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
+    expect(overflowX).toBe(false);
+
+    // The rail unsticks and becomes a header block.
+    await expect(page.locator(".about-rail")).toHaveCSS("position", "static");
+
+    // Every rail link and the mailto CTA meets the 44px hit-target floor.
+    const railLinkHeights = await page
+      .locator(".about-rail a")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => node.getBoundingClientRect().height),
+      );
+    expect(railLinkHeights.length).toBeGreaterThan(0);
+    for (const height of railLinkHeights) {
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+    const ctaHeight = await page
+      .locator(".about-close-cta")
+      .evaluate((node) => node.getBoundingClientRect().height);
+    expect(ctaHeight).toBeGreaterThanOrEqual(44);
+
+    // A figure scope never truncates — it renders wider than the 300px gutter.
+    const scopeWidth = await page
+      .locator(".qfigure .figure-scope")
+      .first()
+      .evaluate((node) => node.getBoundingClientRect().width);
+    expect(scopeWidth).toBeGreaterThan(300);
   });
 
   test("ecosystem canvases open detail panel on node select", async ({

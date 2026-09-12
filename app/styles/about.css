@@ -1,0 +1,597 @@
+/* About — "Standing Record" (2a). A numbered practice record beside a
+   persistent identity rail: the site's career/person continuity surface.
+   Extends the Instrument system; every value maps to a token in
+   app/styles/tokens.css. No Tailwind utilities. Type and hairlines only —
+   the mailto button is the single filled element. */
+
+/* ============================================================ Shell ===== */
+
+.about-shell {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: var(--gap-2xl);
+  align-items: start;
+  padding-block: var(--gap-2xl) 0;
+}
+
+/* ============================================================= Rail ===== */
+
+.about-rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+  position: sticky;
+  /* Matches the sticky offsets of .toc and .pcase-rail. */
+  top: 88px;
+  align-self: start;
+}
+
+.about-portrait {
+  width: 100%;
+  /* height:auto is load-bearing: it lets aspect-ratio govern the box so the
+     width/height attributes (kept for CLS) do not force a 1500px-tall image. */
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: 50% 42%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.about-name {
+  font-size: var(--fs-h2);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: var(--fg);
+  margin: 0;
+}
+
+.about-headline {
+  margin: 8px 0 0;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+/* Every block below the identity group is separated by a hairline only. */
+.about-rail-block {
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.about-rail-label {
+  margin: 0 0 12px;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.about-rail-label--status {
+  margin-bottom: 10px;
+}
+
+.about-status {
+  margin: 0;
+  font-size: 14px;
+  color: var(--fg);
+}
+
+.about-focus {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  line-height: 1.6;
+  color: var(--fg-2);
+}
+
+/* ========================================================= Document ===== */
+
+.about-doc {
+  min-width: 0;
+  padding-bottom: var(--gap-2xl);
+}
+
+.about-eyebrow {
+  margin: 0 0 var(--gap-lg);
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  /* Muted, not accent — the amber budget is spent on figures and the address. */
+  color: var(--muted);
+}
+
+.about-page-statement {
+  margin: 0;
+  font-size: var(--fs-page-statement);
+  line-height: 1.06;
+  letter-spacing: var(--tracking-tight);
+  font-weight: 500;
+  max-width: 24ch;
+  color: var(--fg);
+}
+
+.about-lead {
+  margin: 26px 0 0;
+  font-size: var(--fs-lead);
+  line-height: 1.55;
+  color: var(--fg-2);
+  max-width: 62ch;
+}
+
+.about-lead-emph {
+  color: var(--fg);
+}
+
+/* ========================================================= Sections ===== */
+
+.about-section {
+  margin-top: var(--gap-xl);
+  padding-top: var(--gap-lg);
+  border-top: 1px solid var(--border);
+}
+
+/* §01 and the closing block carry the two strong rules. */
+.about-section--strong {
+  border-top-color: var(--rule);
+}
+
+.about-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.about-section-head--arc {
+  margin-bottom: 26px;
+}
+
+.about-ordinal {
+  font-family: var(--font-mono-stack);
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--border-strong);
+}
+
+.about-cat {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* §01 Through-line */
+.about-through {
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.75;
+  color: var(--fg-2);
+  max-width: 62ch;
+}
+
+.about-turn {
+  margin: 16px 0 0;
+  font-size: var(--fs-body);
+  line-height: 1.75;
+  color: var(--fg);
+  max-width: 62ch;
+}
+
+/* §02 Practice arc */
+.about-arc-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--gap-xl);
+  align-items: start;
+}
+
+.about-arc {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.about-era {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: var(--gap-lg);
+  padding-block: 26px;
+  border-top: 1px solid var(--border);
+}
+
+.about-era:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.about-era:last-child {
+  padding-bottom: 0;
+}
+
+.about-era-date {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.about-era.is-current .about-era-date {
+  color: var(--accent);
+}
+
+.about-era-body {
+  min-width: 0;
+}
+
+.about-era-lede {
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.75;
+  color: var(--fg-2);
+  max-width: 62ch;
+}
+
+.about-era-role {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+/* Borrows the .figure-scope treatment but is not a figure — kept separate so
+   the figure/scope invariant is not weakened by association. */
+.about-carry {
+  margin: 12px 0 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--muted-strong);
+  border-left: 2px solid var(--border-strong);
+  padding-left: 10px;
+}
+
+.about-carry-label {
+  color: var(--muted);
+}
+
+.about-arc-gutter {
+  min-width: 0;
+}
+
+.about-gutter-label {
+  margin: 0 0 16px;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.about-ledger-note {
+  margin: 22px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono-stack);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.about-ledger-note a {
+  color: var(--accent);
+}
+
+/* §03 Management band */
+.about-statement {
+  margin: 0 0 var(--gap-md);
+  font-size: var(--fs-statement);
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+  max-width: 28ch;
+  color: var(--fg);
+}
+
+.about-band-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--gap-xl);
+  align-items: start;
+}
+
+.about-band-narrative {
+  min-width: 0;
+}
+
+.about-band-body {
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.75;
+  color: var(--fg-2);
+  max-width: 62ch;
+}
+
+.about-band-body + .about-band-body {
+  margin-top: 16px;
+}
+
+/* The voice-constraint line closes the band in full --fg. */
+.about-band-body--turn {
+  color: var(--fg);
+}
+
+.about-figures {
+  display: grid;
+  gap: var(--gap-md);
+}
+
+/* §04 Current practice */
+.about-map-label {
+  margin: 26px 0 0;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.about-map {
+  margin: 14px 0 0;
+}
+
+.about-map-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--gap-lg);
+  padding-block: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.about-map-row:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.about-map-then {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  color: var(--muted);
+}
+
+.about-map-now {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  color: var(--fg-2);
+}
+
+.about-current-gutter {
+  min-width: 0;
+}
+
+.about-links {
+  margin: 22px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono-stack);
+  font-size: 11.5px;
+  line-height: 1.9;
+}
+
+.about-links a {
+  display: block;
+  color: var(--accent);
+}
+
+.about-links a:hover {
+  color: var(--fg);
+}
+
+/* §05 Four-surface boundary */
+.about-surfaces {
+  margin: 0;
+}
+
+.about-surface-row {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--gap-lg);
+  padding-block: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.about-surface-row:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.about-surface-name {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  color: var(--fg-2);
+}
+
+/* The self row is stated, not linked, and sits at full --fg. */
+.about-surface-name--self {
+  color: var(--fg);
+}
+
+.about-surface-desc {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Closing block */
+.about-close {
+  margin-top: var(--gap-xl);
+  padding-top: var(--gap-lg);
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: var(--gap-lg);
+}
+
+.about-close-label {
+  margin: 0 0 12px;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.about-close-statement {
+  margin: 0;
+  font-size: var(--fs-h2);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.about-close-note {
+  margin: 10px 0 0;
+  font-size: var(--fs-body);
+  color: var(--fg-2);
+}
+
+.about-close-cta {
+  flex: none;
+}
+
+/* ======================================================= Responsive ===== */
+
+/* 921–1100: rail narrows; inner narrative/evidence grids collapse; a section's
+   two figures sit side by side. Arc date gutter stays at 120px. */
+@media (max-width: 1100px) {
+  .about-shell {
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: var(--gap-xl);
+  }
+
+  .about-arc-grid,
+  .about-band-grid {
+    grid-template-columns: 1fr;
+    gap: var(--gap-md);
+  }
+
+  .about-figures {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ≤920: rail unsticks and becomes a header block above the document. */
+@media (max-width: 920px) {
+  .about-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .about-rail {
+    order: -1;
+    position: static;
+    top: auto;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    grid-template-areas:
+      "portrait identity"
+      "portrait status"
+      "contact focus";
+    column-gap: var(--gap-md);
+    row-gap: var(--gap-md);
+    align-items: start;
+    padding: 0 0 var(--gap-md);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .about-portrait {
+    grid-area: portrait;
+  }
+
+  .about-identity {
+    grid-area: identity;
+  }
+
+  .about-rail-block--status {
+    grid-area: status;
+    /* Beside the portrait, not a stacked block — drop the hairline here. */
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .about-rail-block--contact {
+    grid-area: contact;
+  }
+
+  .about-rail-block--focus {
+    grid-area: focus;
+  }
+
+  /* Contact links become 44px hit targets when the rail is a header. */
+  .about-rail .contact-list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Arc dates move above each paragraph as inline mono labels. */
+  .about-era {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .about-map-row {
+    gap: 16px;
+  }
+}
+
+/* ≤700: portrait full-rail-width above the name; rows and closing stack. */
+@media (max-width: 700px) {
+  .about-rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+  }
+
+  .about-rail-block--status {
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  .about-figures {
+    grid-template-columns: 1fr;
+  }
+
+  .about-map-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .about-surface-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .about-close {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .about-close-cta {
+    width: 100%;
+    max-width: 320px;
+  }
+}

@@ -4,7 +4,7 @@ Personal engineering portfolio and project knowledge base.
 
 ## Purpose
 
-Job-search-ready static MVP: recruiter link, resume companion, interview reference, and public portfolio. Home, projects (four case studies), articles (DEV.to archive), and a thin About/contact page — fed by typed content modules via `StaticPortfolioRepository`.
+Job-search-ready static MVP: recruiter link, resume companion, interview reference, and public portfolio. Home, projects (four case studies), articles (DEV.to archive), and an About continuity surface (identity rail + numbered practice record) — fed by typed content modules via `StaticPortfolioRepository`.
 
 **Current status:** static content MVP on production, plus a live read-only `/ecosystem` map (light layer-spine overview + three operational workflow canvases). Brand and IA live in the Next.js app (`app/`, `components/`, layered CSS under `app/styles/` via `app/globals.css`). Design-system guidance: [docs/design-system.md](docs/design-system.md). Supabase and chatbot work stay later.
 
@@ -55,7 +55,7 @@ Primary routes:
 - `/projects/[slug]` — case-study detail
 - `/articles` — published DEV.to index (external links)
 - `/ecosystem` — read-only React Flow canvases (orientation spine + operational workflows)
-- `/about` — short identity + contact
+- `/about` — the continuity/career surface ("Standing Record"): a persistent identity + contact rail beside a numbered practice record whose spine is chronological, each era ending on the mechanism it left behind
 
 ## Analytics (optional)
 

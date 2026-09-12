@@ -422,6 +422,14 @@ Use as **supporting color** in arc — not About headline.
 
 Use this brief for the next **About page Claude Design** pass. Goal: an About experience that presents **identity + continuity arc + optional depth bands** — not a résumé dump, not a career-restart narrative.
 
+> **Consumed — direction 2a "Standing Record" shipped.** The About redesign landed the locked 2a convergence (identity rail + numbered chronological practice record; each era ends on a carry-forward mechanism). Resolutions from that pass:
+>
+> - **Depth bands — superseded.** The "collapsible or below fold" weighting in _Design intent_ below is **not** how 2a ships: §03 (experiment ops & program scale) is **always visible**, never collapsed — a hidden management section reads as concealment, which the voice constraints forbid.
+> - **H12 (follower `2200+`) — resolved as omit on About.** No follower count and no phone number on the page.
+> - **Loom event-pipeline era gate — resolved keep on 2024–2025.** Live `resumes/facts/loom-event-pipeline.yml` declares `role: atlassian-senior-swe-2024`, so the pipeline-fix carry-forward clause stays on the 2024–2025 SSE era rather than moving to the 2020–2024 EM period.
+> - **`175+` durable floor** used for the monthly-active-players figure; exact `175` snapshot never in prose.
+> - **Four qualified figures total** (`>10%`, `8–10`, `3,552`, `175+`), each with its scope verbatim; all other metric tables stay on Projects.
+
 ### Session entry checklist
 
 1. Read [`DESIGN.md`](../DESIGN.md) — figure value + name + scope; no bare numbers.
