@@ -25,6 +25,8 @@ Two stacks: sans (IBM Plex Sans — headings, body, UI) and mono (IBM Plex Mono 
 
 Display headings set tight (`--tracking-tight`); labels set wide and uppercase (`--tracking-label`). Figures always use tabular numerals. Use the `--fs-*` scale; do not invent one-off sizes.
 
+The statement scale carries two named tokens for the About register: `--fs-page-statement` (`clamp(34px, 5.4vw, 52px)` — the About document statement) and `--fs-statement` (`clamp(26px, 4.6vw, 34px)` — the About §03 band statement). They were added rather than inlined because these sizes sit off the `--fs-*` heading scale; reuse them, do not introduce further one-off statement sizes.
+
 ## Layout
 
 Content column `--container` with `--gutter` inset. Vertical rhythm comes from full-width 1px rules at section heads, not from cards. Panels are separated by 1px gaps over `--border` — the gap _is_ the border; do not add per-panel borders on top of it.
@@ -42,6 +44,8 @@ Square. `--radius` and `--radius-lg` are `0`. Existing `.card` / `.pill` / `.tag
 ## Components
 
 Semantic CSS classes under `app/styles/` remain the primary styling API. Case studies are panels in a hairline grid; supporting work and writing are hairline lists. Primary fill text uses `--accent-ink`. There is no boxed chrome in the hero, and no separate signature/identity stylesheet.
+
+**About register (`app/styles/about.css`):** a document with a persistent identity rail — a numbered chronological practice record beside a sticky portrait/contact rail, type and hairlines only, with the mailto CTA the single filled element. The rail is why About needs no separate Contact route. `.about-carry` (the per-era carry-forward clause) reuses the `.figure-scope` treatment — mono, `--muted-strong`, a 2px `--border-strong` left rule — but is a separate class, **not** a figure: the figure/scope invariant below is not weakened by the visual borrow.
 
 ## Evidence qualification
 

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import { about } from "@/content/about";
 import { articles } from "@/content/articles";
 import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
+import type { CaseFigure } from "@/domain/project-case";
 import type { ProjectSectionKind } from "@/domain/project";
 import { StaticPortfolioRepository } from "@/repositories/static-portfolio-repository";
 
@@ -119,6 +121,45 @@ describe("content-foundation inventory", () => {
     expect(
       new Set(featured.map((article) => article.relatedProjectSlug)).size,
     ).toBe(featured.length);
+  });
+
+  it("carries the About standing record as one continuous practice", async () => {
+    const loaded = await repository.getAbout();
+    expect(loaded).toEqual(about);
+
+    // Five eras, newest first, exactly one current.
+    expect(about.arc).toHaveLength(5);
+    expect(about.arc[0]?.dateRange.startsWith("2026")).toBe(true);
+    expect(about.arc.filter((era) => era.current).length).toBe(1);
+    expect(about.arc[0]?.current).toBe(true);
+
+    // Exactly four qualified figures across the page, each fully qualified and
+    // traceable to a resumes/facts inventory file.
+    const figures: CaseFigure[] = [
+      about.arcEvidence.figure,
+      ...about.management.figures,
+      ...about.current.figures,
+    ];
+    expect(figures).toHaveLength(4);
+    for (const figure of figures) {
+      expect(figure.value.trim().length).toBeGreaterThan(0);
+      expect(figure.name.trim().length).toBeGreaterThan(0);
+      expect(figure.scope.trim().length).toBeGreaterThan(0);
+      expect(figure.source.inventory).toMatch(/^resumes\/facts\/.+\.yml$/);
+    }
+
+    // The rendered copy (review-aid `source` stripped) must respect the voice
+    // constraints and the evidence guardrails.
+    const copyText = JSON.stringify(about, (key, value) =>
+      key === "source" ? undefined : value,
+    );
+    expect(copyText).not.toMatch(
+      /retraining|career pivot|return to IC|side project/i,
+    );
+    // Never publish the exact 175 MAU snapshot — only the 175+ durable floor.
+    expect(copyText.replace(/175\+/g, "")).not.toContain("175");
+    // Fact-id / inventory-path review aids never leak into copy.
+    expect(copyText).not.toContain(".yml");
   });
 
   it("loads an evidence-backed homepage presentation without a fifth project", async () => {

@@ -104,19 +104,22 @@ Honest one-off spacing (distinct roles, single use) may stay as `style={{}}` or 
 
 ## Component posture
 
-| Pattern                                          | When appropriate                                                                                          |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `.card` / `.card-interactive`                    | Interactive containers (project tiles, TOC, contact panel) — square, unshadowed; hover uses `--surface-2` |
-| `.btn-primary` / `.btn-secondary` / `.btn-ghost` | CTAs; primary = accent fill + `--accent-ink`; secondary = surface + border                                |
-| `.pill`                                          | Kind / status chip with accent wash, square                                                               |
-| `.tag`                                           | Neutral topic chip, square                                                                                |
-| `.text-link`                                     | Links embedded in prose; underlined by default, accent on hover/focus                                     |
-| `.topnav`                                        | Opaque `--bg`, hairline, no blur                                                                          |
-| Hero / log-row / work-card                       | Inner-page composition patterns already owned by CSS                                                      |
-| `.section-head` / `.anchor-pair` / `.case-grid`  | Homepage 1b composition — hairline section rules, equal-weight anchors, two-column case panels            |
-| `.spine` / `.figures` / `.ledger` / `.list-row`  | Homepage method spine, figure/scope pair, career ledger, supporting/writing lists                         |
+| Pattern                                          | When appropriate                                                                                                                             |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.card` / `.card-interactive`                    | Interactive containers (project tiles, TOC, contact panel) — square, unshadowed; hover uses `--surface-2`                                    |
+| `.btn-primary` / `.btn-secondary` / `.btn-ghost` | CTAs; primary = accent fill + `--accent-ink`; secondary = surface + border                                                                   |
+| `.pill`                                          | Kind / status chip with accent wash, square                                                                                                  |
+| `.tag`                                           | Neutral topic chip, square                                                                                                                   |
+| `.text-link`                                     | Links embedded in prose; underlined by default, accent on hover/focus                                                                        |
+| `.topnav`                                        | Opaque `--bg`, hairline, no blur                                                                                                             |
+| Hero / log-row / work-card                       | Inner-page composition patterns already owned by CSS                                                                                         |
+| `.section-head` / `.anchor-pair` / `.case-grid`  | Homepage 1b composition — hairline section rules, equal-weight anchors, two-column case panels                                               |
+| `.spine` / `.figures` / `.ledger` / `.list-row`  | Homepage method spine, figure/scope pair, career ledger, supporting/writing lists                                                            |
+| `.about-rail` / `.about-*`                       | About "Standing Record": a sticky identity + contact rail beside a numbered chronological practice record — type and hairlines only, no card |
 
 Default: **no cards in the hero**. Cards exist for interaction or dense grouped content (contact, TOC), not for decorative boxing.
+
+The About rail keeps identity and contact co-present for the whole scroll (it satisfies the contact IA in place, so About needs no separate Contact route). Each era in the §02 arc ends on a carry-forward clause — `.about-carry`, mono `--muted-strong` with a 2px `--border-strong` left rule. It borrows the `.figure-scope` treatment but is **not** a figure and carries no number; keep it a separate class so the figure/scope invariant is not weakened by association.
 
 Focus rings are amber, 2px, 3px offset. Interactive rows and buttons keep a 44px minimum hit target.
 

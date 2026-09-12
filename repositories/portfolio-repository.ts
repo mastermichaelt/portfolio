@@ -1,3 +1,4 @@
+import type { AboutPage } from "@/domain/about";
 import type { Article } from "@/domain/article";
 import type { Entity } from "@/domain/entities";
 import type { Homepage } from "@/domain/homepage";
@@ -15,6 +16,8 @@ import type { WorkflowView } from "@/domain/workflow-view";
  */
 export interface PortfolioRepository {
   getProfile(): Promise<Profile>;
+  /** The About "Standing Record" (2a) practice-record composition. */
+  getAbout(): Promise<AboutPage>;
   getHomepage(): Promise<Homepage>;
   /** The Projects 1C index composition (explicit ordering and tiering). */
   getProjectsIndex(): Promise<ProjectsIndex>;

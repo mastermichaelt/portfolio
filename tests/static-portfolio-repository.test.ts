@@ -7,11 +7,51 @@ vi.mock("@/content/profile", () => ({
     email: "test@example.com",
     headline: "Engineer",
     bio: "Short bio.",
+    status: "Open to test roles.",
     links: {
       linkedin: "https://example.com/in/test",
       github: "https://example.com/test",
       blog: "https://example.com/blog",
     },
+  },
+}));
+
+vi.mock("@/content/about", () => ({
+  about: {
+    eyebrow: "About · practice record",
+    statement: "One practice.",
+    lead: { text: "Lead.", emphasis: "Emphasis." },
+    throughLine: ["Para one.", "Para two."],
+    arc: [
+      {
+        id: "arc-2026",
+        dateRange: "2026 —",
+        role: "Independent",
+        body: "Body.",
+        carry: { label: "In force now", text: "Mechanism." },
+        current: true,
+      },
+    ],
+    arcEvidence: {
+      label: "From the measurement era",
+      figure: {
+        value: ">10%",
+        name: "figure",
+        scope: "scope",
+        source: { inventory: "resumes/facts/test.yml", factId: "id" },
+      },
+      ledgerNote: { lead: "Lead — ", link: { label: "link →", href: "/#x" } },
+    },
+    management: { statement: "Statement.", body: ["Body."], figures: [] },
+    current: {
+      body: "Body.",
+      mapLabel: "Same mechanism, current form",
+      map: [{ then: "Then", now: "→ now" }],
+      figures: [],
+      links: [{ label: "Link →", href: "/projects" }],
+    },
+    surfaces: [{ name: "This page", self: true, description: "Description." }],
+    next: { label: "Next step", statement: "Statement.", note: "Note." },
   },
 }));
 
@@ -129,6 +169,7 @@ vi.mock("@/content/homepage", () => ({
   },
 }));
 
+import { about } from "@/content/about";
 import { articles } from "@/content/articles";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { homepage } from "@/content/homepage";
@@ -144,6 +185,10 @@ describe("StaticPortfolioRepository", () => {
 
   it("returns the static profile", async () => {
     await expect(repository.getProfile()).resolves.toEqual(profile);
+  });
+
+  it("returns the static About page", async () => {
+    await expect(repository.getAbout()).resolves.toEqual(about);
   });
 
   it("returns the static homepage presentation", async () => {

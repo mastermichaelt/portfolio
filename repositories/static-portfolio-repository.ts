@@ -1,3 +1,4 @@
+import { about } from "@/content/about";
 import { articles } from "@/content/articles";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { homepage } from "@/content/homepage";
@@ -12,6 +13,10 @@ import type { PortfolioRepository } from "@/repositories/portfolio-repository";
 export class StaticPortfolioRepository implements PortfolioRepository {
   async getProfile() {
     return profile;
+  }
+
+  async getAbout() {
+    return about;
   }
 
   async getHomepage() {

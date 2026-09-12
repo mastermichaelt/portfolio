@@ -118,7 +118,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="section fade-in delay-2">
+      <section id="career-ledger" className="section fade-in delay-2">
         <div className="container">
           <div className="section-head">
             <h2>Career ledger</h2>
