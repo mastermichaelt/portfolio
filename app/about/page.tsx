@@ -28,15 +28,19 @@ export default async function AboutPage() {
       <div className="container">
         <div className="about-shell fade-in">
           <aside className="about-rail">
-            {/* Identity portrait: hand-rolled with a 1×/2× set and height:auto
-                so aspect-ratio governs the box; next/image is not used in this
-                app and the handoff blesses the hand-rolled img. */}
+            {/* Identity portrait: hand-rolled with height:auto so aspect-ratio
+                governs the box; next/image is not used in this app and the
+                handoff blesses the hand-rolled img. Sizes track the three rail
+                widths: full viewport width when the rail becomes a header block
+                at ≤700px, 200px as a ≤920px header column, else the 300px
+                desktop rail. Derivatives are regenerated from the locked-crop
+                4:5 master. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className="about-portrait"
               src="/portrait-michael.jpg"
-              srcSet="/portrait-michael-200.jpg 200w, /portrait-michael-300.jpg 300w, /portrait-michael-400.jpg 400w, /portrait-michael-600.jpg 600w"
-              sizes="(max-width: 920px) 200px, 300px"
+              srcSet="/portrait-michael-200.jpg 200w, /portrait-michael-300.jpg 300w, /portrait-michael-400.jpg 400w, /portrait-michael-600.jpg 600w, /portrait-michael-900.jpg 900w, /portrait-michael-1200.jpg 1200w"
+              sizes="(max-width: 700px) 100vw, (max-width: 920px) 200px, 300px"
               alt={profile.name}
               width={1200}
               height={1500}
