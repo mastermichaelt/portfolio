@@ -555,17 +555,40 @@ test.describe("portfolio happy path", () => {
     expect(railOverflowX).toBe(false);
 
     // A focused rail link's visible focus treatment (2px outline, 3px offset =
-    // 5px reach) is not clipped by the scroll container's inline edges.
-    const linkClipped = await rail.evaluate((node) => {
-      const link = node.querySelector<HTMLAnchorElement>(".contact-list a");
-      if (!link) return true;
-      link.focus();
-      const r = node.getBoundingClientRect();
-      const l = link.getBoundingClientRect();
-      const outlineReach = 5;
-      return l.left - outlineReach < r.left || l.right + outlineReach > r.right;
+    // 5px reach) is not clipped by the scroll container on EITHER axis. Check
+    // the first and last focusable rail links, each pushed toward its edge
+    // before focusing so the block-axis (focus-scroll) path is exercised.
+    const clearances = await rail.evaluate((node) => {
+      const links = Array.from(node.querySelectorAll<HTMLAnchorElement>("a"));
+      const first = links[0];
+      const last = links[links.length - 1];
+      const clearance = (link: HTMLAnchorElement, presetScrollTop: number) => {
+        node.scrollTop = presetScrollTop;
+        link.focus();
+        const r = node.getBoundingClientRect();
+        const l = link.getBoundingClientRect();
+        return {
+          left: l.left - r.left,
+          right: r.right - l.right,
+          top: l.top - r.top,
+          bottom: r.bottom - l.bottom,
+        };
+      };
+      return [
+        // First link pushed above the fold → focus scrolls up toward the top.
+        clearance(first, node.scrollHeight),
+        // Last link pushed below the fold → focus scrolls down toward the bottom.
+        clearance(last, 0),
+      ];
     });
-    expect(linkClipped).toBe(false);
+    expect(clearances.length).toBe(2);
+    const outlineReach = 5;
+    for (const c of clearances) {
+      expect(c.left).toBeGreaterThanOrEqual(outlineReach);
+      expect(c.right).toBeGreaterThanOrEqual(outlineReach);
+      expect(c.top).toBeGreaterThanOrEqual(outlineReach);
+      expect(c.bottom).toBeGreaterThanOrEqual(outlineReach);
+    }
   });
 
   test("ecosystem canvases open detail panel on node select", async ({

@@ -7,8 +7,9 @@
 /* ============================================================ Shell ===== */
 
 .about-shell {
-  /* Sticky offset shared by the rail's `top` and its available-height cap, so
-     the two never drift. Matches the offsets of .toc and .pcase-rail. */
+  /* Shared About rail offset: the rail's `top` and its available-height cap
+     read the same value so the two never drift. Scoped to About — not a global
+     sticky token. */
   --about-sticky-top: 88px;
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
@@ -35,17 +36,27 @@
    sticky (≤920 it is a static header, handled below).
 
    overflow-y:auto makes the rail a scroll container, and per the CSS overflow
-   spec that forces the computed overflow-x to `auto` too — which would clip a
-   focused link's outline (2px, offset 3px) at the inline edges. The
-   padding-inline gives outlines room inside the scrollport; the matching
-   negative margin-inline keeps the rail's box geometry unchanged. */
+   spec that forces the computed overflow-x to `auto` too — so a focused link's
+   outline (2px, offset 3px = 5px reach) would be clipped at the scrollport
+   edges on BOTH axes. `padding: 6px` gives outlines room inside the scrollport
+   on every side; the matching `margin: -6px` cancels the box-geometry change so
+   the rail's external size and position are unchanged; `scroll-padding-block`
+   keeps focus-driven scrolls from aligning a link flush to a top/bottom edge. */
 @media (min-width: 921px) {
   .about-rail {
+    /* Single source for the outline breathing room (outline 2px + offset 3px). */
+    --focus-pad: 6px;
     max-height: calc(100vh - var(--about-sticky-top) - var(--gap-md));
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding-inline: 6px;
-    margin-inline: -6px;
+    /* Room inside the scrollport on both axes; the matching negative margin
+       cancels the box-size change so the rail's grid footprint is unchanged,
+       and pinning the border-box --focus-pad higher lands the padded content
+       back at --about-sticky-top so the portrait's pinned position is unchanged. */
+    padding: var(--focus-pad);
+    margin: calc(-1 * var(--focus-pad));
+    top: calc(var(--about-sticky-top) - var(--focus-pad));
+    scroll-padding-block: var(--focus-pad);
     /* Themed, thin scrollbar only when the rail actually overflows — keeps the
        gutter narrow and on-brand rather than a default OS bar. Safari uses
        overlay scrollbars, so it consumes no width there. */
