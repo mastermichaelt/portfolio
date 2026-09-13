@@ -26,6 +26,18 @@
   align-self: start;
 }
 
+/* Short desktop viewports: the sticky rail can stand taller than the space
+   below the 88px offset, pushing Focus areas out of reach. Cap it and let it
+   scroll internally. Height-only guard — the normal ≥861px composition is
+   untouched, and ≤920 (where the rail is a static header) is unaffected. */
+@media (min-width: 921px) and (max-height: 860px) {
+  .about-rail {
+    max-height: calc(100vh - 88px - var(--gap-md));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
 .about-portrait {
   width: 100%;
   /* height:auto is load-bearing: it lets aspect-ratio govern the box so the
@@ -250,12 +262,20 @@
   font-weight: 600;
 }
 
+/* Shared mono-annotation type for the carry-forward clauses, the arc ledger
+   note and the §04 link list. Matches the .figure-scope treatment (mono, 11px);
+   line-height, colour and rules stay per-block. */
+.about-carry,
+.about-ledger-note,
+.about-links {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+}
+
 /* Borrows the .figure-scope treatment but is not a figure — kept separate so
    the figure/scope invariant is not weakened by association. */
 .about-carry {
   margin: 12px 0 0;
-  font-family: var(--font-mono-stack);
-  font-size: 11.5px;
   line-height: 1.7;
   color: var(--muted-strong);
   border-left: 2px solid var(--border-strong);
@@ -283,8 +303,6 @@
   margin: 22px 0 0;
   padding-top: 16px;
   border-top: 1px solid var(--border);
-  font-family: var(--font-mono-stack);
-  font-size: 11.5px;
   line-height: 1.7;
   color: var(--muted);
 }
@@ -385,8 +403,6 @@
   margin: 22px 0 0;
   padding-top: 16px;
   border-top: 1px solid var(--border);
-  font-family: var(--font-mono-stack);
-  font-size: 11.5px;
   line-height: 1.9;
 }
 
@@ -543,6 +559,15 @@
   /* Contact links become 44px hit targets when the rail is a header. */
   .about-rail .contact-list a {
     display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* §04 gutter links are standalone targets once the band stacks. They are
+     direct children (not <li> rows), so use block-level flex to keep one link
+     per line while giving each a 44px row. */
+  .about-links a {
+    display: flex;
     align-items: center;
     min-height: 44px;
   }

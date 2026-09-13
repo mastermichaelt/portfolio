@@ -484,6 +484,17 @@ test.describe("portfolio happy path", () => {
       .evaluate((node) => node.getBoundingClientRect().height);
     expect(ctaHeight).toBeGreaterThanOrEqual(44);
 
+    // §04 gutter links are standalone targets and meet the same 44px floor.
+    const gutterLinkHeights = await page
+      .locator(".about-links a")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => node.getBoundingClientRect().height),
+      );
+    expect(gutterLinkHeights.length).toBeGreaterThan(0);
+    for (const height of gutterLinkHeights) {
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+
     // A figure scope never truncates — it renders wider than the 300px gutter.
     const scopeWidth = await page
       .locator(".qfigure .figure-scope")
