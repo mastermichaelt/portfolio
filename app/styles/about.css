@@ -7,6 +7,9 @@
 /* ============================================================ Shell ===== */
 
 .about-shell {
+  /* Sticky offset shared by the rail's `top` and its available-height cap, so
+     the two never drift. Matches the offsets of .toc and .pcase-rail. */
+  --about-sticky-top: 88px;
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
   gap: var(--gap-2xl);
@@ -21,20 +24,33 @@
   flex-direction: column;
   gap: var(--gap-md);
   position: sticky;
-  /* Matches the sticky offsets of .toc and .pcase-rail. */
-  top: 88px;
+  top: var(--about-sticky-top);
   align-self: start;
 }
 
-/* Short desktop viewports: the sticky rail can stand taller than the space
-   below the 88px offset, pushing Focus areas out of reach. Cap it and let it
-   scroll internally. Height-only guard — the normal ≥861px composition is
-   untouched, and ≤920 (where the rail is a static header) is unaffected. */
-@media (min-width: 921px) and (max-height: 860px) {
+/* The sticky rail can stand taller than the space below its offset, pushing
+   Focus areas out of reach while pinned. Cap it to the available height and let
+   it scroll internally. The cap only bites when the rail actually overflows, so
+   taller viewports are visually unchanged; it applies wherever the rail is
+   sticky (≤920 it is a static header, handled below).
+
+   overflow-y:auto makes the rail a scroll container, and per the CSS overflow
+   spec that forces the computed overflow-x to `auto` too — which would clip a
+   focused link's outline (2px, offset 3px) at the inline edges. The
+   padding-inline gives outlines room inside the scrollport; the matching
+   negative margin-inline keeps the rail's box geometry unchanged. */
+@media (min-width: 921px) {
   .about-rail {
-    max-height: calc(100vh - 88px - var(--gap-md));
+    max-height: calc(100vh - var(--about-sticky-top) - var(--gap-md));
     overflow-y: auto;
     overscroll-behavior: contain;
+    padding-inline: 6px;
+    margin-inline: -6px;
+    /* Themed, thin scrollbar only when the rail actually overflows — keeps the
+       gutter narrow and on-brand rather than a default OS bar. Safari uses
+       overlay scrollbars, so it consumes no width there. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
   }
 }
 
@@ -556,20 +572,22 @@
     grid-area: focus;
   }
 
-  /* Contact links become 44px hit targets when the rail is a header. */
-  .about-rail .contact-list a {
-    display: inline-flex;
+  /* Rail contact links and §04 gutter links both become 44px hit targets when
+     the rail/band stack. Shared floor here; the display differs below. */
+  .about-rail .contact-list a,
+  .about-links a {
     align-items: center;
     min-height: 44px;
   }
 
-  /* §04 gutter links are standalone targets once the band stacks. They are
-     direct children (not <li> rows), so use block-level flex to keep one link
-     per line while giving each a 44px row. */
+  /* Contact links are <li> rows — inline-flex hugs the label. §04 links are
+     direct children, so block-level flex keeps one link per line. */
+  .about-rail .contact-list a {
+    display: inline-flex;
+  }
+
   .about-links a {
     display: flex;
-    align-items: center;
-    min-height: 44px;
   }
 
   /* Arc dates move above each paragraph as inline mono labels. */

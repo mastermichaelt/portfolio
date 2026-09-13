@@ -503,6 +503,71 @@ test.describe("portfolio happy path", () => {
     expect(scopeWidth).toBeGreaterThan(300);
   });
 
+  test("about sticky rail stays capped and reachable on a short desktop", async ({
+    page,
+  }) => {
+    // Desktop width (rail is sticky), height too short for the full rail — the
+    // rail must cap to the viewport and scroll internally, not clip content.
+    await page.setViewportSize({ width: 1200, height: 700 });
+    await page.goto("/about");
+    // Scroll the document so the rail is actually pinned at its sticky offset.
+    await page.evaluate(() => window.scrollTo(0, 1200));
+
+    const rail = page.locator(".about-rail");
+    await expect(rail).toHaveCSS("position", "sticky");
+
+    const geom = await rail.evaluate((node) => {
+      const style = getComputedStyle(node);
+      const stickyTop = parseFloat(style.top);
+      return {
+        clientHeight: node.clientHeight,
+        scrollHeight: node.scrollHeight,
+        available: window.innerHeight - stickyTop,
+        overflowY: style.overflowY,
+      };
+    });
+    // The rail is capped to (roughly) the space below its sticky offset...
+    expect(geom.clientHeight).toBeLessThanOrEqual(geom.available);
+    // ...and only because its content genuinely exceeds that cap here.
+    expect(geom.scrollHeight).toBeGreaterThan(geom.clientHeight);
+    expect(geom.overflowY).toBe("auto");
+
+    // Focus areas is the last rail block; after scrolling the rail to the end it
+    // must sit fully inside the rail's own viewport (i.e. it is reachable).
+    const focusReachable = await rail.evaluate((node) => {
+      node.scrollTop = node.scrollHeight;
+      const focus = node.querySelector(".about-rail-block--focus");
+      if (!focus) return false;
+      const r = node.getBoundingClientRect();
+      const f = focus.getBoundingClientRect();
+      return f.top >= r.top - 1 && f.bottom <= r.bottom + 1;
+    });
+    expect(focusReachable).toBe(true);
+
+    // No horizontal scrollbar is introduced — on the page or inside the rail.
+    const pageOverflowX = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
+    expect(pageOverflowX).toBe(false);
+    const railOverflowX = await rail.evaluate(
+      (node) => node.scrollWidth > node.clientWidth + 1,
+    );
+    expect(railOverflowX).toBe(false);
+
+    // A focused rail link's visible focus treatment (2px outline, 3px offset =
+    // 5px reach) is not clipped by the scroll container's inline edges.
+    const linkClipped = await rail.evaluate((node) => {
+      const link = node.querySelector<HTMLAnchorElement>(".contact-list a");
+      if (!link) return true;
+      link.focus();
+      const r = node.getBoundingClientRect();
+      const l = link.getBoundingClientRect();
+      const outlineReach = 5;
+      return l.left - outlineReach < r.left || l.right + outlineReach > r.right;
+    });
+    expect(linkClipped).toBe(false);
+  });
+
   test("ecosystem canvases open detail panel on node select", async ({
     page,
   }) => {
