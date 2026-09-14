@@ -54,9 +54,13 @@ export default async function ArticlesPage() {
           <aside className="aline-register">
             <p className="aline-register-label">Register</p>
             <div className="aline-register-facts">
-              <span className="aline-register-fact">15 published</span>
+              <span className="aline-register-fact">
+                {articles.length} published
+              </span>
               <span className="aline-register-fact">weekly practice</span>
-              <span className="aline-register-fact">5 lines of reasoning</span>
+              <span className="aline-register-fact">
+                {lines.length} lines of reasoning
+              </span>
             </div>
             <p className="aline-register-note">
               Recognized as a{" "}

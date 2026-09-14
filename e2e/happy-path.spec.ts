@@ -423,6 +423,65 @@ test.describe("portfolio happy path", () => {
     ).toBeVisible();
   });
 
+  test("articles 2a collapses to the 390px single-column line index", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/articles");
+
+    // No horizontal overflow at the narrow width.
+    const overflowX = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
+    expect(overflowX).toBe(false);
+
+    // Line index collapses to a single column (one grid track).
+    const cells = page.locator("nav.aline-index a.aline-cell");
+    await expect(cells).toHaveCount(5);
+    const trackCount = await page
+      .locator("nav.aline-index")
+      .evaluate(
+        (node) =>
+          getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length,
+      );
+    expect(trackCount).toBe(1);
+    const cellLefts = await cells.evaluateAll((nodes) =>
+      nodes.map((node) => Math.round(node.getBoundingClientRect().left)),
+    );
+    expect(new Set(cellLefts).size).toBe(1);
+
+    // Each index target meets the 46px mobile row height (tap target).
+    const cellHeights = await cells.evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().height),
+    );
+    expect(cellHeights).toHaveLength(5);
+    for (const height of cellHeights) {
+      expect(height).toBeGreaterThanOrEqual(46);
+    }
+
+    // Band head stacks id / label / pairing (each fully below the previous).
+    const headGeom = await page
+      .locator("#line-01 .aline-head")
+      .evaluate((head) => {
+        const rect = (selector: string) =>
+          head.querySelector(selector)!.getBoundingClientRect();
+        return {
+          id: rect(".aline-line-id"),
+          label: rect("h2"),
+          pairing: rect(".aline-pairing"),
+        };
+      });
+    expect(headGeom.label.top).toBeGreaterThanOrEqual(headGeom.id.bottom - 1);
+    expect(headGeom.pairing.top).toBeGreaterThanOrEqual(
+      headGeom.label.bottom - 1,
+    );
+
+    // Line 05 still states its no-implementation absence, never linking /ecosystem.
+    const line05 = page.locator("#line-05");
+    await expect(line05.getByText("no implementation attached")).toBeVisible();
+    await expect(line05.locator('a[href="/ecosystem"]')).toHaveCount(0);
+  });
+
   test("about carries the identity rail, arc and evidence boundary", async ({
     page,
   }) => {
