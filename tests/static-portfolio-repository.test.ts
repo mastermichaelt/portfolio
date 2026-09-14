@@ -76,8 +76,22 @@ vi.mock("@/content/articles", () => ({
       year: 2026,
       tags: ["test"],
       url: "https://example.com/article",
+      line: "measurement",
+      lineLead: true,
+      argument: "Test argument.",
     },
   ],
+}));
+
+vi.mock("@/content/article-lines", () => ({
+  articleLines: [
+    {
+      id: "measurement",
+      label: "Measurement & telemetry",
+      pairs: "Test pairing",
+    },
+  ],
+  articleSystems: {},
 }));
 
 vi.mock("@/content/ecosystem", () => ({
@@ -170,6 +184,7 @@ vi.mock("@/content/homepage", () => ({
 }));
 
 import { about } from "@/content/about";
+import { articleLines } from "@/content/article-lines";
 import { articles } from "@/content/articles";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { homepage } from "@/content/homepage";
@@ -233,6 +248,10 @@ describe("StaticPortfolioRepository", () => {
 
   it("lists articles from the static content module", async () => {
     await expect(repository.listArticles()).resolves.toEqual(articles);
+  });
+
+  it("lists article reasoning lines from the static content module", async () => {
+    await expect(repository.listArticleLines()).resolves.toEqual(articleLines);
   });
 
   it("lists entities and relationships from the static content modules", async () => {

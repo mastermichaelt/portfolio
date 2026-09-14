@@ -380,25 +380,47 @@ test.describe("portfolio happy path", () => {
     expect(response?.status()).toBe(404);
   });
 
-  test("articles index links out to DEV.to", async ({ page }) => {
+  test("articles index leads five reasoning lines out to DEV.to", async ({
+    page,
+  }) => {
     await page.goto("/articles");
 
     await expect(
       page.getByRole("heading", {
-        name: "Writing that makes the system legible.",
+        level: 1,
+        name: "The writing returns to five problems.",
       }),
     ).toBeVisible();
 
-    const rows = page.locator("a.log-row");
-    await expect(rows.first()).toBeVisible();
-    const count = await rows.count();
-    expect(count).toBeGreaterThanOrEqual(8);
+    // Five line-index cells and five bands, one claim and one head per band.
+    await expect(page.locator("nav.aline-index a.aline-cell")).toHaveCount(5);
+    await expect(page.locator("section.aline-band")).toHaveCount(5);
+    await expect(page.locator(".aline-band .aline-head h2")).toHaveCount(5);
+    await expect(page.locator(".aline-band .aline-claim")).toHaveCount(5);
 
-    await expect(rows.first()).toHaveAttribute(
+    // Line 05 shows no implementation and never substitutes /ecosystem.
+    const line05 = page.locator("#line-05");
+    await expect(line05.getByText("no implementation attached")).toBeVisible();
+    await expect(line05.locator('a[href="/ecosystem"]')).toHaveCount(0);
+
+    // Every outbound report / archive row opens on DEV in a new tab.
+    const devLinks = page.locator("a.aline-report, a.aline-row");
+    await expect(devLinks.first()).toHaveAttribute(
       "href",
       /dev\.to\/michaeltruong/,
     );
-    await expect(rows.first()).toHaveAttribute("target", "_blank");
+    const targets = await devLinks.evaluateAll((nodes) =>
+      nodes.map((node) => node.getAttribute("target")),
+    );
+    expect(targets.length).toBeGreaterThanOrEqual(8);
+    for (const target of targets) {
+      expect(target).toBe("_blank");
+    }
+
+    // Lead implementation cross-links are internal (next/link), not DEV exits.
+    await expect(
+      page.locator('#line-01 a.aline-impl[href="/projects/codenames-ai"]'),
+    ).toBeVisible();
   });
 
   test("about carries the identity rail, arc and evidence boundary", async ({

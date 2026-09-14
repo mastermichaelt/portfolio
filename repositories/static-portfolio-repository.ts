@@ -1,4 +1,5 @@
 import { about } from "@/content/about";
+import { articleLines } from "@/content/article-lines";
 import { articles } from "@/content/articles";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { homepage } from "@/content/homepage";
@@ -45,6 +46,10 @@ export class StaticPortfolioRepository implements PortfolioRepository {
 
   async listArticles() {
     return articles;
+  }
+
+  async listArticleLines() {
+    return articleLines;
   }
 
   async listEntities() {

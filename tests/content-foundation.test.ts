@@ -123,6 +123,61 @@ describe("content-foundation inventory", () => {
     ).toBe(featured.length);
   });
 
+  it("organizes every article into one of the five reasoning lines", async () => {
+    const listed = await repository.listArticles();
+    const lineDefs = await repository.listArticleLines();
+    const lineIds = lineDefs.map((line) => line.id);
+
+    // Five lines, in fixed order, ids unique, each with label + pairing copy.
+    expect(lineIds).toEqual([
+      "measurement",
+      "authority",
+      "critique",
+      "readiness",
+      "portability",
+    ]);
+    expect(new Set(lineIds).size).toBe(lineIds.length);
+    for (const def of lineDefs) {
+      expect(def.label.trim().length).toBeGreaterThan(0);
+      expect(def.pairs.trim().length).toBeGreaterThan(0);
+    }
+
+    // Every article names a line that exists in article-lines.ts.
+    for (const article of listed) {
+      expect(lineIds).toContain(article.line);
+    }
+
+    // Membership counts are 3 / 3 / 4 / 3 / 2, and total 15.
+    const counts = Object.fromEntries(lineIds.map((id) => [id, 0]));
+    for (const article of listed) {
+      counts[article.line] += 1;
+    }
+    expect(counts).toEqual({
+      measurement: 3,
+      authority: 3,
+      critique: 4,
+      readiness: 3,
+      portability: 2,
+    });
+    expect(listed.length).toBe(15);
+
+    // Exactly one lead per line, each with a non-empty argument.
+    for (const id of lineIds) {
+      const members = listed.filter((article) => article.line === id);
+      const leads = members.filter((article) => article.lineLead);
+      expect(leads).toHaveLength(1);
+      expect((leads[0]?.argument ?? "").trim().length).toBeGreaterThan(0);
+    }
+
+    // Non-lead reports never carry an argument — guards against drift back to
+    // fifteen authored argument lines.
+    for (const article of listed) {
+      if (!article.lineLead) {
+        expect(article.argument).toBeUndefined();
+      }
+    }
+  });
+
   it("carries the About standing record as one continuous practice", async () => {
     const loaded = await repository.getAbout();
     expect(loaded).toEqual(about);
