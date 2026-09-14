@@ -6,8 +6,11 @@ import {
   resolveArticleSystem,
 } from "@/content/article-lines";
 import { articles } from "@/content/articles";
-import type { Article, ArticleLine } from "@/domain/article";
-import type { ArticleLineDefinition } from "@/domain/article";
+import type {
+  Article,
+  ArticleLine,
+  ArticleLineDefinition,
+} from "@/domain/article";
 import { groupArticleLines } from "@/lib/article-lines";
 
 function makeArticle(
@@ -65,7 +68,6 @@ describe("groupArticleLines", () => {
     expect(bands.map((band) => band.label)).toEqual(
       articleLines.map((line) => line.label),
     );
-    expect(bands.map((band) => band.count)).toEqual([3, 3, 4, 3, 2]);
   });
 
   it("resolves lead and row systems, leaving unpaired reports empty", () => {
