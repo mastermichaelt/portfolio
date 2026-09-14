@@ -1,5 +1,5 @@
 import type { AboutPage } from "@/domain/about";
-import type { Article } from "@/domain/article";
+import type { Article, ArticleLineDefinition } from "@/domain/article";
 import type { Entity } from "@/domain/entities";
 import type { Homepage } from "@/domain/homepage";
 import type { Profile } from "@/domain/profile";
@@ -28,6 +28,8 @@ export interface PortfolioRepository {
   listProjects(): Promise<Project[]>;
   getProject(slug: string): Promise<Project | null>;
   listArticles(): Promise<Article[]>;
+  /** The five `/articles` reasoning lines, in fixed render order. */
+  listArticleLines(): Promise<ArticleLineDefinition[]>;
   listEntities(): Promise<Entity[]>;
   listRelationships(): Promise<Relationship[]>;
   listWorkflowViews(): Promise<WorkflowView[]>;
