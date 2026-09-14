@@ -7,6 +7,10 @@
 /* ============================================================ Shell ===== */
 
 .about-shell {
+  /* Shared About rail offset: the rail's `top` and its available-height cap
+     read the same value so the two never drift. Scoped to About — not a global
+     sticky token. */
+  --about-sticky-top: 88px;
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
   gap: var(--gap-2xl);
@@ -21,9 +25,44 @@
   flex-direction: column;
   gap: var(--gap-md);
   position: sticky;
-  /* Matches the sticky offsets of .toc and .pcase-rail. */
-  top: 88px;
+  top: var(--about-sticky-top);
   align-self: start;
+}
+
+/* The sticky rail can stand taller than the space below its offset, pushing
+   Focus areas out of reach while pinned. Cap it to the available height and let
+   it scroll internally. The cap only bites when the rail actually overflows, so
+   taller viewports are visually unchanged; it applies wherever the rail is
+   sticky (≤920 it is a static header, handled below).
+
+   overflow-y:auto makes the rail a scroll container, and per the CSS overflow
+   spec that forces the computed overflow-x to `auto` too — so a focused link's
+   outline (2px, offset 3px = 5px reach) would be clipped at the scrollport
+   edges on BOTH axes. `padding: 6px` gives outlines room inside the scrollport
+   on every side; the matching `margin: -6px` cancels the box-geometry change so
+   the rail's external size and position are unchanged; `scroll-padding-block`
+   keeps focus-driven scrolls from aligning a link flush to a top/bottom edge. */
+@media (min-width: 921px) {
+  .about-rail {
+    /* Single source for the outline breathing room (outline 2px + offset 3px). */
+    --focus-pad: 6px;
+    max-height: calc(100vh - var(--about-sticky-top) - var(--gap-md));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Room inside the scrollport on both axes; the matching negative margin
+       cancels the box-size change so the rail's grid footprint is unchanged,
+       and pinning the border-box --focus-pad higher lands the padded content
+       back at --about-sticky-top so the portrait's pinned position is unchanged. */
+    padding: var(--focus-pad);
+    margin: calc(-1 * var(--focus-pad));
+    top: calc(var(--about-sticky-top) - var(--focus-pad));
+    scroll-padding-block: var(--focus-pad);
+    /* Themed, thin scrollbar only when the rail actually overflows — keeps the
+       gutter narrow and on-brand rather than a default OS bar. Safari uses
+       overlay scrollbars, so it consumes no width there. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
 }
 
 .about-portrait {
@@ -250,12 +289,20 @@
   font-weight: 600;
 }
 
+/* Shared mono-annotation type for the carry-forward clauses, the arc ledger
+   note and the §04 link list. Matches the .figure-scope treatment (mono, 11px);
+   line-height, colour and rules stay per-block. */
+.about-carry,
+.about-ledger-note,
+.about-links {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+}
+
 /* Borrows the .figure-scope treatment but is not a figure — kept separate so
    the figure/scope invariant is not weakened by association. */
 .about-carry {
   margin: 12px 0 0;
-  font-family: var(--font-mono-stack);
-  font-size: 11.5px;
   line-height: 1.7;
   color: var(--muted-strong);
   border-left: 2px solid var(--border-strong);
@@ -283,8 +330,6 @@
   margin: 22px 0 0;
   padding-top: 16px;
   border-top: 1px solid var(--border);
-  font-family: var(--font-mono-stack);
-  font-size: 11.5px;
   line-height: 1.7;
   color: var(--muted);
 }
@@ -385,8 +430,6 @@
   margin: 22px 0 0;
   padding-top: 16px;
   border-top: 1px solid var(--border);
-  font-family: var(--font-mono-stack);
-  font-size: 11.5px;
   line-height: 1.9;
 }
 
@@ -540,11 +583,22 @@
     grid-area: focus;
   }
 
-  /* Contact links become 44px hit targets when the rail is a header. */
-  .about-rail .contact-list a {
-    display: inline-flex;
+  /* Rail contact links and §04 gutter links both become 44px hit targets when
+     the rail/band stack. Shared floor here; the display differs below. */
+  .about-rail .contact-list a,
+  .about-links a {
     align-items: center;
     min-height: 44px;
+  }
+
+  /* Contact links are <li> rows — inline-flex hugs the label. §04 links are
+     direct children, so block-level flex keeps one link per line. */
+  .about-rail .contact-list a {
+    display: inline-flex;
+  }
+
+  .about-links a {
+    display: flex;
   }
 
   /* Arc dates move above each paragraph as inline mono labels. */

@@ -484,12 +484,111 @@ test.describe("portfolio happy path", () => {
       .evaluate((node) => node.getBoundingClientRect().height);
     expect(ctaHeight).toBeGreaterThanOrEqual(44);
 
+    // §04 gutter links are standalone targets and meet the same 44px floor.
+    const gutterLinkHeights = await page
+      .locator(".about-links a")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => node.getBoundingClientRect().height),
+      );
+    expect(gutterLinkHeights.length).toBeGreaterThan(0);
+    for (const height of gutterLinkHeights) {
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+
     // A figure scope never truncates — it renders wider than the 300px gutter.
     const scopeWidth = await page
       .locator(".qfigure .figure-scope")
       .first()
       .evaluate((node) => node.getBoundingClientRect().width);
     expect(scopeWidth).toBeGreaterThan(300);
+  });
+
+  test("about sticky rail stays capped and reachable on a short desktop", async ({
+    page,
+  }) => {
+    // Desktop width (rail is sticky), height too short for the full rail — the
+    // rail must cap to the viewport and scroll internally, not clip content.
+    await page.setViewportSize({ width: 1200, height: 700 });
+    await page.goto("/about");
+    // Scroll the document so the rail is actually pinned at its sticky offset.
+    await page.evaluate(() => window.scrollTo(0, 1200));
+
+    const rail = page.locator(".about-rail");
+    await expect(rail).toHaveCSS("position", "sticky");
+
+    const geom = await rail.evaluate((node) => {
+      const style = getComputedStyle(node);
+      const stickyTop = parseFloat(style.top);
+      return {
+        clientHeight: node.clientHeight,
+        scrollHeight: node.scrollHeight,
+        available: window.innerHeight - stickyTop,
+        overflowY: style.overflowY,
+      };
+    });
+    // The rail is capped to (roughly) the space below its sticky offset...
+    expect(geom.clientHeight).toBeLessThanOrEqual(geom.available);
+    // ...and only because its content genuinely exceeds that cap here.
+    expect(geom.scrollHeight).toBeGreaterThan(geom.clientHeight);
+    expect(geom.overflowY).toBe("auto");
+
+    // Focus areas is the last rail block; after scrolling the rail to the end it
+    // must sit fully inside the rail's own viewport (i.e. it is reachable).
+    const focusReachable = await rail.evaluate((node) => {
+      node.scrollTop = node.scrollHeight;
+      const focus = node.querySelector(".about-rail-block--focus");
+      if (!focus) return false;
+      const r = node.getBoundingClientRect();
+      const f = focus.getBoundingClientRect();
+      return f.top >= r.top - 1 && f.bottom <= r.bottom + 1;
+    });
+    expect(focusReachable).toBe(true);
+
+    // No horizontal scrollbar is introduced — on the page or inside the rail.
+    const pageOverflowX = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
+    expect(pageOverflowX).toBe(false);
+    const railOverflowX = await rail.evaluate(
+      (node) => node.scrollWidth > node.clientWidth + 1,
+    );
+    expect(railOverflowX).toBe(false);
+
+    // A focused rail link's visible focus treatment (2px outline, 3px offset =
+    // 5px reach) is not clipped by the scroll container on EITHER axis. Check
+    // the first and last focusable rail links, each pushed toward its edge
+    // before focusing so the block-axis (focus-scroll) path is exercised.
+    const clearances = await rail.evaluate((node) => {
+      const links = Array.from(node.querySelectorAll<HTMLAnchorElement>("a"));
+      const first = links[0];
+      const last = links[links.length - 1];
+      const clearance = (link: HTMLAnchorElement, presetScrollTop: number) => {
+        node.scrollTop = presetScrollTop;
+        link.focus();
+        const r = node.getBoundingClientRect();
+        const l = link.getBoundingClientRect();
+        return {
+          left: l.left - r.left,
+          right: r.right - l.right,
+          top: l.top - r.top,
+          bottom: r.bottom - l.bottom,
+        };
+      };
+      return [
+        // First link pushed above the fold → focus scrolls up toward the top.
+        clearance(first, node.scrollHeight),
+        // Last link pushed below the fold → focus scrolls down toward the bottom.
+        clearance(last, 0),
+      ];
+    });
+    expect(clearances.length).toBe(2);
+    const outlineReach = 5;
+    for (const c of clearances) {
+      expect(c.left).toBeGreaterThanOrEqual(outlineReach);
+      expect(c.right).toBeGreaterThanOrEqual(outlineReach);
+      expect(c.top).toBeGreaterThanOrEqual(outlineReach);
+      expect(c.bottom).toBeGreaterThanOrEqual(outlineReach);
+    }
   });
 
   test("ecosystem canvases open detail panel on node select", async ({
