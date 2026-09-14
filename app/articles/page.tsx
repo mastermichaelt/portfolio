@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { articleSystems } from "@/content/article-lines";
+import { resolveArticleSystem } from "@/content/article-lines";
 import { ExternalLink } from "@/components/ExternalLink";
-import {
-  articleLineIndex,
-  groupArticleLines,
-  type ResolveSystem,
-} from "@/lib/article-lines";
+import { groupArticleLines } from "@/lib/article-lines";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
 export const metadata: Metadata = {
@@ -21,9 +17,6 @@ export const metadata: Metadata = {
   },
 };
 
-const resolveSystem: ResolveSystem = (slug) =>
-  slug ? (articleSystems[slug] ?? null) : null;
-
 const DEV_ARCHIVE_URL = "https://dev.to/michaeltruong";
 
 export default async function ArticlesPage() {
@@ -33,8 +26,7 @@ export default async function ArticlesPage() {
     repository.listArticleLines(),
   ]);
 
-  const bands = groupArticleLines(lines, articles, resolveSystem);
-  const index = articleLineIndex(bands);
+  const bands = groupArticleLines(lines, articles, resolveArticleSystem);
 
   return (
     <main id="content">
@@ -78,18 +70,18 @@ export default async function ArticlesPage() {
 
         {/* Line index — the page's navigation structure (not sticky) */}
         <nav className="aline-index" aria-label="Lines of reasoning">
-          {index.map((cell) => (
+          {bands.map((band) => (
             <a
-              key={cell.id}
+              key={band.id}
               className="aline-cell"
-              href={`#line-${cell.ordinal}`}
+              href={`#line-${band.ordinal}`}
             >
               <span className="aline-cell-top">
-                <span className="aline-cell-id">{cell.ordinal}</span>
-                <span className="aline-cell-count">{cell.count}</span>
+                <span className="aline-cell-id">{band.ordinal}</span>
+                <span className="aline-cell-count">{band.count}</span>
               </span>
-              <span className="aline-cell-label" data-ordinal={cell.ordinal}>
-                {cell.label}
+              <span className="aline-cell-label" data-ordinal={band.ordinal}>
+                {band.label}
               </span>
             </a>
           ))}

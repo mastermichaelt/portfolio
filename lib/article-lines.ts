@@ -28,14 +28,6 @@ export interface ArticleLineBand {
   reports: ArticleReportRow[];
 }
 
-/** One line-index cell: ordinal, label, and count. */
-export interface ArticleLineIndexCell {
-  id: ArticleLineDefinition["id"];
-  ordinal: string;
-  label: string;
-  count: number;
-}
-
 /** Resolves a `relatedProjectSlug` to a system ref, or null when unknown/absent. */
 export type ResolveSystem = (
   slug: string | undefined,
@@ -48,13 +40,15 @@ function ordinalFor(index: number): string {
 /**
  * Group the article inventory into the five reasoning-line bands, in the order
  * the line definitions are given. Pure and render-free so it can be unit-tested.
+ * The bands carry everything the line index needs (ordinal, label, count), so
+ * the index nav renders straight from them.
  *
- * Each line takes its lead from the article marked `lineLead`; the remaining
- * reports keep their inventory order. Unknown or absent `relatedProjectSlug`
- * values resolve to `null` (rendered as an empty system / "no implementation
- * attached") rather than throwing. Throws only on structural violations the
- * content tests also guard: a line with no articles, no lead, or a lead with no
- * argument.
+ * Each line takes its lead from the single article marked `lineLead`; the
+ * remaining reports keep their inventory order. Unknown or absent
+ * `relatedProjectSlug` values resolve to `null` (rendered as an empty system /
+ * "no implementation attached") rather than throwing. Throws on the structural
+ * violations the content tests also guard: a line with no reports, a line whose
+ * lead count is not exactly one, or a lead with no argument.
  */
 export function groupArticleLines(
   lines: ArticleLineDefinition[],
@@ -67,10 +61,13 @@ export function groupArticleLines(
       throw new Error(`Reasoning line "${line.id}" has no reports.`);
     }
 
-    const leadArticle = members.find((article) => article.lineLead);
-    if (!leadArticle) {
-      throw new Error(`Reasoning line "${line.id}" has no lead report.`);
+    const leads = members.filter((article) => article.lineLead);
+    if (leads.length !== 1) {
+      throw new Error(
+        `Reasoning line "${line.id}" must have exactly one lead report, found ${leads.length}.`,
+      );
     }
+    const leadArticle = leads[0]!;
     if (!leadArticle.argument?.trim()) {
       throw new Error(
         `Reasoning line "${line.id}" lead "${leadArticle.slug}" has no argument.`,
@@ -99,16 +96,4 @@ export function groupArticleLines(
       reports,
     };
   });
-}
-
-/** Derive the five line-index cells from grouped bands. */
-export function articleLineIndex(
-  bands: ArticleLineBand[],
-): ArticleLineIndexCell[] {
-  return bands.map((band) => ({
-    id: band.id,
-    ordinal: band.ordinal,
-    label: band.label,
-    count: band.count,
-  }));
 }

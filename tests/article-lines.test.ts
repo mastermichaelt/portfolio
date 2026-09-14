@@ -1,19 +1,39 @@
 import { describe, expect, it } from "vitest";
 
-import { articleLines, articleSystems } from "@/content/article-lines";
-import { articles } from "@/content/articles";
 import {
-  articleLineIndex,
-  groupArticleLines,
-  type ResolveSystem,
-} from "@/lib/article-lines";
+  articleLines,
+  articleSystems,
+  resolveArticleSystem,
+} from "@/content/article-lines";
+import { articles } from "@/content/articles";
+import type { Article, ArticleLine } from "@/domain/article";
+import type { ArticleLineDefinition } from "@/domain/article";
+import { groupArticleLines } from "@/lib/article-lines";
 
-const resolveSystem: ResolveSystem = (slug) =>
-  slug ? (articleSystems[slug] ?? null) : null;
+function makeArticle(
+  slug: string,
+  line: ArticleLine,
+  extra: Partial<Article> = {},
+): Article {
+  return {
+    slug,
+    title: `Title ${slug}`,
+    summary: "Summary.",
+    year: 2026,
+    tags: ["ai"],
+    url: `https://dev.to/michaeltruong/${slug}`,
+    line,
+    ...extra,
+  };
+}
 
 describe("groupArticleLines", () => {
   it("groups the inventory into five ordered bands with one lead each", () => {
-    const bands = groupArticleLines(articleLines, articles, resolveSystem);
+    const bands = groupArticleLines(
+      articleLines,
+      articles,
+      resolveArticleSystem,
+    );
 
     expect(bands.map((band) => band.id)).toEqual(
       articleLines.map((line) => line.id),
@@ -35,8 +55,25 @@ describe("groupArticleLines", () => {
     }
   });
 
+  it("carries the label and count each line-index cell needs", () => {
+    const bands = groupArticleLines(
+      articleLines,
+      articles,
+      resolveArticleSystem,
+    );
+
+    expect(bands.map((band) => band.label)).toEqual(
+      articleLines.map((line) => line.label),
+    );
+    expect(bands.map((band) => band.count)).toEqual([3, 3, 4, 3, 2]);
+  });
+
   it("resolves lead and row systems, leaving unpaired reports empty", () => {
-    const bands = groupArticleLines(articleLines, articles, resolveSystem);
+    const bands = groupArticleLines(
+      articleLines,
+      articles,
+      resolveArticleSystem,
+    );
 
     const measurement = bands.find((band) => band.id === "measurement");
     expect(measurement?.lead.system?.href).toBe("/projects/codenames-ai");
@@ -57,7 +94,7 @@ describe("groupArticleLines", () => {
   });
 
   it("renders empty rather than throwing on an unresolved slug", () => {
-    const nullResolver: ResolveSystem = () => null;
+    const nullResolver = () => null;
     const bands = groupArticleLines(articleLines, articles, nullResolver);
 
     for (const band of bands) {
@@ -75,22 +112,43 @@ describe("groupArticleLines", () => {
       }
     }
   });
+});
 
-  it("derives one index cell per band", () => {
-    const bands = groupArticleLines(articleLines, articles, resolveSystem);
-    const index = articleLineIndex(bands);
+describe("groupArticleLines structural guards", () => {
+  const oneLine: ArticleLineDefinition[] = [
+    { id: "measurement", label: "Measurement", pairs: "Pairing" },
+  ];
 
-    expect(index).toHaveLength(5);
-    expect(index.map((cell) => cell.ordinal)).toEqual([
-      "01",
-      "02",
-      "03",
-      "04",
-      "05",
-    ]);
-    expect(index.map((cell) => cell.count)).toEqual([3, 3, 4, 3, 2]);
-    expect(index.map((cell) => cell.label)).toEqual(
-      articleLines.map((line) => line.label),
+  it("throws when a line has no reports", () => {
+    expect(() => groupArticleLines(oneLine, [], resolveArticleSystem)).toThrow(
+      /no reports/,
     );
+  });
+
+  it("throws when a line has no lead", () => {
+    const members = [
+      makeArticle("a", "measurement"),
+      makeArticle("b", "measurement"),
+    ];
+    expect(() =>
+      groupArticleLines(oneLine, members, resolveArticleSystem),
+    ).toThrow(/exactly one lead report, found 0/);
+  });
+
+  it("throws when a line has multiple leads", () => {
+    const members = [
+      makeArticle("a", "measurement", { lineLead: true, argument: "First." }),
+      makeArticle("b", "measurement", { lineLead: true, argument: "Second." }),
+    ];
+    expect(() =>
+      groupArticleLines(oneLine, members, resolveArticleSystem),
+    ).toThrow(/exactly one lead report, found 2/);
+  });
+
+  it("throws when the lead has no argument", () => {
+    const members = [makeArticle("a", "measurement", { lineLead: true })];
+    expect(() =>
+      groupArticleLines(oneLine, members, resolveArticleSystem),
+    ).toThrow(/has no argument/);
   });
 });

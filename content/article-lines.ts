@@ -65,3 +65,14 @@ export const articleSystems: Record<string, ArticleSystemRef> = {
   },
   "resume-generator": { label: "Resume generator" },
 };
+
+/**
+ * Resolve a report's `relatedProjectSlug` to its system ref, or `null` when the
+ * slug is absent or unknown. Shared by the `/articles` page and its tests so the
+ * lookup rule has a single source. Matches the `ResolveSystem` signature.
+ */
+export function resolveArticleSystem(
+  slug: string | undefined,
+): ArticleSystemRef | null {
+  return slug ? (articleSystems[slug] ?? null) : null;
+}
