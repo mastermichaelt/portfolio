@@ -57,7 +57,7 @@ export const about: AboutPage = {
       body: "Managed teams of 8–10 engineers through significant organizational and product change, and established the experiment-operations practices used by Growth teams running cross-product experimentation. Concurrently, from 2022, the engineering platform behind Atlassians in Mentoring.",
       carry: {
         label: "Carried forward",
-        text: "experiment-operations practice: written rules for what a team may launch, restart or report. The same artifact is now a workflow contract for agents.",
+        text: "two mechanisms. The Cross Flow attribution formula, later adopted for Growth Experiment Impact Estimation. And the experiment-operations practice: written rules for what a team may launch, restart or report — the same artifact is now a workflow contract for agents.",
       },
     },
     {
@@ -68,7 +68,7 @@ export const about: AboutPage = {
       body: "Experimentation initiatives, and Informed Pull Requests — surfacing security vulnerabilities in pull requests and running accessibility and performance audits on SPAs.",
       carry: {
         label: "Carried forward",
-        text: "two mechanisms. The Cross Flow attribution formula, later adopted for Growth Experiment Impact Estimation. And checks that run at the point of change, which is what the current hook stack does.",
+        text: "checks that run at the point of change, which is what the current hook stack does.",
       },
     },
     {
