@@ -143,6 +143,7 @@ export default async function ArticlesPage() {
                       ? `${row.article.title} — ${row.system.label}`
                       : row.article.title
                   }
+                  analyticsLabel={row.article.title}
                 >
                   <span className="aline-row-title">{row.article.title}</span>
                   <span className="aline-row-meta">

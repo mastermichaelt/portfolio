@@ -80,17 +80,6 @@
   border: 1px solid var(--border);
 }
 
-/* At 5 or 1 columns the five cells fill their rows exactly. In the 3-column
-   range one grid track is left over; without this it paints the container's
-   --border fill and reads as a filled, lighter sixth cell. The filler recedes
-   that leftover track to the page ground (--bg) so it reads as empty grid, not
-   a sixth line. Enabled only at the 3-column breakpoint. */
-.aline-index::after {
-  content: "";
-  display: none;
-  background: var(--bg);
-}
-
 .aline-cell {
   display: flex;
   flex-direction: column;
@@ -324,13 +313,23 @@
     grid-template-columns: repeat(3, 1fr);
   }
 
-  /* Recede the one leftover track in the 3 + 2 layout (see base rule). */
-  .aline-index::after {
-    display: block;
-  }
-
   .aline-row {
     grid-template-columns: minmax(0, 1fr) 150px 56px;
+  }
+}
+
+/* Three-column index only: the cells leave one grid track orphaned, which would
+   otherwise paint the container's --border fill and read as a filled, lighter
+   sixth cell. This filler recedes that track to the page ground (--bg) so it
+   reads as empty grid. Scoped to exactly the 3-column range so it can never leak
+   an empty row into the 5- or 1-column layouts. One filler completes the grid
+   only while a single track is orphaned (cell count % 3 === 2); the /articles
+   e2e asserts that invariant, so a corpus-size change that breaks it fails
+   loudly rather than silently returning the phantom cell. */
+@media (min-width: 701px) and (max-width: 1100px) {
+  .aline-index::after {
+    content: "";
+    background: var(--bg);
   }
 }
 
@@ -391,12 +390,6 @@
 @media (max-width: 700px) {
   .aline-index {
     grid-template-columns: 1fr;
-  }
-
-  /* Single column: five cells fill five rows with no leftover track, so the
-     filler is not needed and would otherwise add an empty sixth row. */
-  .aline-index::after {
-    display: none;
   }
 
   .aline-cell {
