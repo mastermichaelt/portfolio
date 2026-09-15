@@ -70,6 +70,16 @@ describe("groupArticleLines", () => {
     );
   });
 
+  it("exposes the evidence-audit public labels for all five reasoning lines", () => {
+    expect(articleLines.map((line) => [line.id, line.label])).toEqual([
+      ["measurement", "Measurement & Telemetry"],
+      ["authority", "Authority & Stop Conditions"],
+      ["critique", "Evals & Judgment"],
+      ["readiness", "Product Taste & Verification"],
+      ["portability", "Agent Portability"],
+    ]);
+  });
+
   it("resolves lead and row systems, leaving unpaired reports empty", () => {
     const bands = groupArticleLines(
       articleLines,
