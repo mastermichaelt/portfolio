@@ -138,7 +138,12 @@ export default async function ArticlesPage() {
                   key={row.article.slug}
                   className="aline-row"
                   href={row.article.url}
-                  aria-label={row.article.title}
+                  aria-label={
+                    row.system
+                      ? `${row.article.title} — ${row.system.label}`
+                      : row.article.title
+                  }
+                  analyticsLabel={row.article.title}
                 >
                   <span className="aline-row-title">{row.article.title}</span>
                   <span className="aline-row-meta">

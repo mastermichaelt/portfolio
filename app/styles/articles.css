@@ -152,7 +152,7 @@
 .aline-pairing {
   margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: 11.5px;
+  font-size: var(--fs-meta);
   color: var(--muted);
 }
 
@@ -175,7 +175,7 @@
 
 .aline-claim {
   margin: 0;
-  font-size: clamp(22px, 2.4vw, 28px);
+  font-size: var(--fs-claim);
   font-weight: 500;
   line-height: 1.26;
   letter-spacing: -0.025em;
@@ -203,7 +203,7 @@
 }
 
 .aline-report-title {
-  font-size: 16px;
+  font-size: var(--fs-body);
   font-weight: 600;
   line-height: 1.3;
 }
@@ -220,7 +220,7 @@
   flex-direction: column;
   gap: 8px;
   font-family: var(--font-mono-stack);
-  font-size: 11.5px;
+  font-size: var(--fs-meta);
   color: var(--muted);
 }
 
@@ -247,7 +247,7 @@
 }
 
 .aline-row-title {
-  font-size: 15px;
+  font-size: var(--fs-body);
 }
 
 .aline-row:hover .aline-row-title {
@@ -256,24 +256,26 @@
 
 .aline-row-system {
   font-family: var(--font-mono-stack);
-  font-size: 11.5px;
+  font-size: var(--fs-meta);
   color: var(--muted);
 }
 
 .aline-row-dev {
   font-family: var(--font-mono-stack);
-  font-size: 11.5px;
+  font-size: var(--fs-meta);
   color: var(--muted);
   text-align: right;
   white-space: nowrap;
 }
 
 /* Band note — reuses the .about-carry mono-annotation treatment; carries no
-   figure. Only the two lines whose reports pair without a single system. */
+   figure. Only the two lines whose reports pair without a single system. Sized
+   to that annotation register (11px, as .figure-scope / .about-carry), not the
+   meta-label register. */
 .aline-note {
   margin: var(--gap-sm) 0 0;
   font-family: var(--font-mono-stack);
-  font-size: 11.5px;
+  font-size: 11px;
   line-height: 1.7;
   color: var(--muted);
   border-left: 2px solid var(--border-strong);
@@ -295,7 +297,7 @@
 .aline-archive {
   margin: 0;
   font-family: var(--font-mono-stack);
-  font-size: 11.5px;
+  font-size: var(--fs-meta);
   color: var(--muted);
 }
 
@@ -316,9 +318,31 @@
   }
 }
 
+/* Three-column index only: the cells leave one grid track orphaned, which would
+   otherwise paint the container's --border fill and read as a filled, lighter
+   sixth cell. This filler recedes that track to the page ground (--bg) so it
+   reads as empty grid. Scoped to exactly the 3-column range so it can never leak
+   an empty row into the 5- or 1-column layouts. One filler completes the grid
+   only while a single track is orphaned (cell count % 3 === 2); the /articles
+   e2e asserts that invariant, so a corpus-size change that breaks it fails
+   loudly rather than silently returning the phantom cell. */
+@media (min-width: 701px) and (max-width: 1100px) {
+  .aline-index::after {
+    content: "";
+    background: var(--bg);
+  }
+}
+
 /* ≤920: hero and lead collapse to a single column; the register becomes a
    horizontal mono row under the lead; lead meta drops under the report row. */
 @media (max-width: 920px) {
+  /* Below 920 the sticky top nav grows to ~89px (the 44px menu button). Clear
+     it with deliberate breathing room so an index anchor never lands flush
+     beneath the nav; desktop keeps the 88px offset above. */
+  .aline-band {
+    scroll-margin-top: 104px;
+  }
+
   .aline-hero {
     grid-template-columns: 1fr;
     gap: var(--gap-lg);
@@ -350,6 +374,14 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: var(--gap-md);
+  }
+
+  /* Standalone cross-link: enlarge the tap area to 44px without touching the
+     type. "no implementation attached" stays plain, non-interactive text. */
+  .aline-impl {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 }
 

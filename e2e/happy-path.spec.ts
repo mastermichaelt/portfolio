@@ -482,6 +482,105 @@ test.describe("portfolio happy path", () => {
     await expect(line05.locator('a[href="/ecosystem"]')).toHaveCount(0);
   });
 
+  test("articles 2a hardening: tap targets, index filler, and anchor clearance", async ({
+    page,
+  }) => {
+    // 1) Implementation cross-links reach the 44px tap target on the stacked
+    //    (<=920) layout, and the no-implementation state stays non-interactive.
+    await page.setViewportSize({ width: 744, height: 1000 });
+    await page.goto("/articles");
+
+    const impls = page.locator(".aline-band a.aline-impl");
+    expect(await impls.count()).toBeGreaterThan(0);
+    const implHeights = await impls.evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().height),
+    );
+    for (const height of implHeights) {
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+    // "no implementation attached" is text, never a link.
+    await expect(page.locator("#line-05 .aline-impl-none")).toHaveText(
+      "no implementation attached",
+    );
+    await expect(page.locator("#line-05 a.aline-impl")).toHaveCount(0);
+
+    // Archive-row accessible names carry the paired system when one exists, and
+    // stay natural (title only, no dangling separator) when none does.
+    await expect(
+      page.locator("#line-01 a.aline-row").first(),
+    ).toHaveAccessibleName(/ — Codenames AI \(opens in new tab\)$/);
+    await expect(
+      page.locator("#line-05 a.aline-row").first(),
+    ).toHaveAccessibleName(
+      /^I expected pair programming .*\(opens in new tab\)$/,
+    );
+    await expect(
+      page.locator("#line-05 a.aline-row").first(),
+    ).not.toHaveAccessibleName(/—/);
+
+    // 2) In the 3-column index the leftover grid track must not expose a filled,
+    //    lighter sixth cell: the filler recedes it to the page ground (--bg),
+    //    which equals the body background. Checked by resolved color, not pixels.
+    await page.setViewportSize({ width: 900, height: 900 });
+    const fillerAt900 = await page
+      .locator("nav.aline-index")
+      .evaluate((node) => {
+        const after = getComputedStyle(node, "::after");
+        return {
+          content: after.content,
+          background: after.backgroundColor,
+          bodyBackground: getComputedStyle(document.body).backgroundColor,
+          columns: getComputedStyle(node)
+            .gridTemplateColumns.trim()
+            .split(/\s+/).length,
+          cells: node.querySelectorAll("a.aline-cell").length,
+        };
+      });
+    expect(fillerAt900.columns).toBe(3);
+    // Invariant made explicit: a single filler completes the 3-column grid only
+    // while exactly one track is orphaned (cells % 3 === 2). This is the real
+    // precondition the filler relies on — not "exactly five lines" — so a
+    // corpus-size change that breaks it fails here rather than silently.
+    expect(fillerAt900.cells % 3).toBe(2);
+    // The filler box is generated and recedes to the page ground, not --border.
+    expect(fillerAt900.content).not.toBe("none");
+    expect(fillerAt900.background).toBe(fillerAt900.bodyBackground);
+
+    // The filler is generated only in the 3-column range — no box (content:
+    // none) at 5 columns, where the cells fill their rows exactly…
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const contentWide = await page
+      .locator("nav.aline-index")
+      .evaluate((node) => getComputedStyle(node, "::after").content);
+    expect(contentWide).toBe("none");
+    // …nor in the single-column layout, where a box would add an empty sixth row.
+    await page.setViewportSize({ width: 390, height: 844 });
+    const contentNarrow = await page
+      .locator("nav.aline-index")
+      .evaluate((node) => getComputedStyle(node, "::after").content);
+    expect(contentNarrow).toBe("none");
+
+    // 3) Behavioral contract for the <=920 anchor offset: after the fragment
+    //    scroll settles, the target band clears the sticky nav by at least the
+    //    required breathing room and lands snug beneath it (not still below the
+    //    fold). Asserted against the nav's measured position, never the CSS
+    //    literal — an offset change fails as a readable assertion, not a timeout.
+    const MIN_CLEARANCE = 8; // px of deliberate breathing room below the nav
+    const MAX_CLEARANCE = 48; // snug: proves the anchor scrolled to just under it
+    await page.setViewportSize({ width: 744, height: 1000 });
+    await page.goto("/articles#line-03");
+    // Gate only on "the fragment scroll happened" (page moved), independent of
+    // the offset value, so a regressed offset still reaches the assertions.
+    await page.waitForFunction(() => window.scrollY > 0);
+    const clearance = await page.evaluate(() => {
+      const nav = document.querySelector(".topnav")!.getBoundingClientRect();
+      const band = document.querySelector("#line-03")!.getBoundingClientRect();
+      return band.top - nav.bottom;
+    });
+    expect(clearance).toBeGreaterThanOrEqual(MIN_CLEARANCE);
+    expect(clearance).toBeLessThanOrEqual(MAX_CLEARANCE);
+  });
+
   test("about carries the identity rail, arc and evidence boundary", async ({
     page,
   }) => {

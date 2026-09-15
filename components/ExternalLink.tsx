@@ -10,6 +10,14 @@ type ExternalLinkProps = Omit<
 > & {
   href: string;
   children: ReactNode;
+  /**
+   * Explicit PostHog `outbound_link` label. When set, it is used verbatim for
+   * analytics instead of deriving the label from the accessible name — so a
+   * link can carry a richer `aria-label` (e.g. title + paired system) without
+   * shifting the analytics identity. Falls back to the accessible-name
+   * derivation when omitted or blank.
+   */
+  analyticsLabel?: string;
 };
 
 const NEW_TAB_HINT = "opens in new tab";
@@ -46,18 +54,35 @@ function resolveLinkLabel(
   return accessibleName.replace(/\s*\(opens in new tab\)\s*$/i, "").trim();
 }
 
+/**
+ * The PostHog `outbound_link` label for a click. An explicit `analyticsLabel`
+ * wins (trimmed); otherwise the label is derived from the accessible name so
+ * analytics stays stable even when the visible/accessible text is richer. Pure
+ * and exported so the precedence is unit-tested without rendering.
+ */
+export function resolveOutboundLabel(
+  analyticsLabel: string | undefined,
+  children: ReactNode,
+  ariaLabel: string | undefined,
+): string | undefined {
+  const explicit = analyticsLabel?.trim();
+  if (explicit) return explicit;
+  return resolveLinkLabel(children, ariaLabel);
+}
+
 /** External destinations open in a new tab so portfolio browsing is preserved. */
 export function ExternalLink({
   href,
   children,
   onClick,
+  analyticsLabel,
   "aria-label": ariaLabel,
   ...props
 }: ExternalLinkProps) {
   const accessibleName = resolveAccessibleName(children, ariaLabel);
 
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    const linkLabel = resolveLinkLabel(children, ariaLabel);
+    const linkLabel = resolveOutboundLabel(analyticsLabel, children, ariaLabel);
     captureEvent("outbound_link", {
       href,
       ...(linkLabel ? { link_label: linkLabel } : {}),

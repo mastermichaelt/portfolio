@@ -27,6 +27,8 @@ Display headings set tight (`--tracking-tight`); labels set wide and uppercase (
 
 The statement scale carries two named tokens for the About register: `--fs-page-statement` (`clamp(34px, 5.4vw, 52px)` — the About document statement) and `--fs-statement` (`clamp(26px, 4.6vw, 34px)` — the About §03 band statement). They were added rather than inlined because these sizes sit off the `--fs-*` heading scale; reuse them, do not introduce further one-off statement sizes.
 
+The Articles reasoning-line claim has its own named token, `--fs-claim` (`clamp(22px, 2.4vw, 28px)`), for the same reason. It is deliberately a step below the statement scale: a claim opens a line _inside_ a band, not a page or §-band, so it caps at 28px rather than 34/52. Use it for the `/articles` claim only; do not substitute a statement token or inline the size.
+
 ## Layout
 
 Content column `--container` with `--gutter` inset. Vertical rhythm comes from full-width 1px rules at section heads, not from cards. Panels are separated by 1px gaps over `--border` — the gap _is_ the border; do not add per-panel borders on top of it.
