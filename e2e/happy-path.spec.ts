@@ -482,6 +482,94 @@ test.describe("portfolio happy path", () => {
     await expect(line05.locator('a[href="/ecosystem"]')).toHaveCount(0);
   });
 
+  test("articles 2a hardening: tap targets, index filler, and anchor clearance", async ({
+    page,
+  }) => {
+    // 1) Implementation cross-links reach the 44px tap target on the stacked
+    //    (<=920) layout, and the no-implementation state stays non-interactive.
+    await page.setViewportSize({ width: 744, height: 1000 });
+    await page.goto("/articles");
+
+    const impls = page.locator(".aline-band a.aline-impl");
+    expect(await impls.count()).toBeGreaterThan(0);
+    const implHeights = await impls.evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().height),
+    );
+    for (const height of implHeights) {
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+    // "no implementation attached" is text, never a link.
+    await expect(page.locator("#line-05 .aline-impl-none")).toHaveText(
+      "no implementation attached",
+    );
+    await expect(page.locator("#line-05 a.aline-impl")).toHaveCount(0);
+
+    // Archive-row accessible names carry the paired system when one exists, and
+    // stay natural (title only, no dangling separator) when none does.
+    await expect(
+      page.locator("#line-01 a.aline-row").first(),
+    ).toHaveAccessibleName(/ — Codenames AI \(opens in new tab\)$/);
+    await expect(
+      page.locator("#line-05 a.aline-row").first(),
+    ).toHaveAccessibleName(
+      /^I expected pair programming .*\(opens in new tab\)$/,
+    );
+    await expect(
+      page.locator("#line-05 a.aline-row").first(),
+    ).not.toHaveAccessibleName(/—/);
+
+    // 2) In the 3-column index the five lines must not expose a filled/lighter
+    //    sixth cell: the leftover track recedes to the page ground (--bg), which
+    //    equals the body background. Checked by resolved color, not pixels.
+    await page.setViewportSize({ width: 900, height: 900 });
+    const fillerAt900 = await page
+      .locator("nav.aline-index")
+      .evaluate((node) => {
+        const after = getComputedStyle(node, "::after");
+        return {
+          display: after.display,
+          background: after.backgroundColor,
+          bodyBackground: getComputedStyle(document.body).backgroundColor,
+          columns: getComputedStyle(node)
+            .gridTemplateColumns.trim()
+            .split(/\s+/).length,
+        };
+      });
+    expect(fillerAt900.columns).toBe(3);
+    expect(fillerAt900.display).not.toBe("none");
+    // Recedes to the page ground rather than the lighter hairline fill.
+    expect(fillerAt900.background).toBe(fillerAt900.bodyBackground);
+
+    // The filler exists only where a track is orphaned: not at 5 columns…
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const fillerWide = await page
+      .locator("nav.aline-index")
+      .evaluate((node) => getComputedStyle(node, "::after").display);
+    expect(fillerWide).toBe("none");
+    // …and not in the single-column layout (would add an empty sixth row).
+    await page.setViewportSize({ width: 390, height: 844 });
+    const fillerNarrow = await page
+      .locator("nav.aline-index")
+      .evaluate((node) => getComputedStyle(node, "::after").display);
+    expect(fillerNarrow).toBe("none");
+
+    // 3) At <=920 an index anchor lands below the ~89px sticky nav with positive
+    //    breathing room rather than flush beneath it.
+    await page.setViewportSize({ width: 744, height: 1000 });
+    await page.goto("/articles#line-03");
+    await page.waitForFunction(() => {
+      const band = document.querySelector("#line-03");
+      return !!band && Math.abs(band.getBoundingClientRect().top - 104) < 2;
+    });
+    const clearance = await page.evaluate(() => {
+      const nav = document.querySelector(".topnav")!.getBoundingClientRect();
+      const band = document.querySelector("#line-03")!.getBoundingClientRect();
+      return { navBottom: nav.bottom, bandTop: band.top };
+    });
+    expect(clearance.bandTop).toBeGreaterThan(clearance.navBottom);
+    expect(clearance.bandTop - clearance.navBottom).toBeGreaterThanOrEqual(8);
+  });
+
   test("about carries the identity rail, arc and evidence boundary", async ({
     page,
   }) => {
