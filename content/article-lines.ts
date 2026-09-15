@@ -3,8 +3,12 @@ import type { ArticleLineDefinition } from "@/domain/article";
 /**
  * The five reasoning lines of `/articles`, in fixed render order (direction 2a).
  *
- * `label` values are the approved public-facing wording (handoff §3.2;
- * critique and readiness labels adjusted 2026-09-15 post evidence audit);
+ * `label` values are named public reasoning lines (Title Case), locked
+ * 2026-09-15 after the post-ship evidence audit (PR #66). Each line denotes a
+ * broad recurring engineering concern — not a literal thesis classification
+ * for every report. Acknowledged stretch members: cloud-agent-felt-like-hiring
+ * under portability; skills-should-own-capabilities under evals/judgment.
+ *
  * `pairs` is the project-tier pairing shown in each band head, verbatim from
  * `docs/content-evidence-migration.md` §5.I; `note` is the band note for the two
  * lines whose reports carry no single system (handoff §4). Membership lives on
@@ -13,28 +17,28 @@ import type { ArticleLineDefinition } from "@/domain/article";
 export const articleLines: ArticleLineDefinition[] = [
   {
     id: "measurement",
-    label: "Measurement & telemetry",
+    label: "Measurement & Telemetry",
     pairs: "Codenames AI — co-primary",
   },
   {
     id: "authority",
-    label: "Authority & stop conditions",
+    label: "Authority & Stop Conditions",
     pairs: "Renovate governance; agent-native",
     note: "One report in this line — retiring a throwaway experiment repo — carries no system either. Three of fifteen reports sit this way; the line is paired, the row is not.",
   },
   {
     id: "critique",
-    label: "Editorial workflow & critique",
+    label: "Evals & Judgment",
     pairs: "Editorial workflow — supporting",
   },
   {
     id: "readiness",
-    label: "Product readiness & verification",
+    label: "Product Taste & Verification",
     pairs: "Resume generator; Codenames AI",
   },
   {
     id: "portability",
-    label: "Agent portability",
+    label: "Agent Portability",
     pairs: "agent-native / editorial",
     note: "Neither report here documents a single system — they describe how agent setups move between projects. The line is paired, the rows are not.",
   },

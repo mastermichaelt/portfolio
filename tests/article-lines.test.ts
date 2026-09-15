@@ -70,13 +70,14 @@ describe("groupArticleLines", () => {
     );
   });
 
-  it("exposes the evidence-audit-corrected public labels for critique and readiness", () => {
-    expect(articleLines.find((line) => line.id === "critique")?.label).toBe(
-      "Editorial workflow & critique",
-    );
-    expect(articleLines.find((line) => line.id === "readiness")?.label).toBe(
-      "Product readiness & verification",
-    );
+  it("exposes the evidence-audit public labels for all five reasoning lines", () => {
+    expect(articleLines.map((line) => [line.id, line.label])).toEqual([
+      ["measurement", "Measurement & Telemetry"],
+      ["authority", "Authority & Stop Conditions"],
+      ["critique", "Evals & Judgment"],
+      ["readiness", "Product Taste & Verification"],
+      ["portability", "Agent Portability"],
+    ]);
   });
 
   it("resolves lead and row systems, leaving unpaired reports empty", () => {
