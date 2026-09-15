@@ -70,6 +70,15 @@ describe("groupArticleLines", () => {
     );
   });
 
+  it("exposes the evidence-audit-corrected public labels for critique and readiness", () => {
+    expect(articleLines.find((line) => line.id === "critique")?.label).toBe(
+      "Editorial workflow & critique",
+    );
+    expect(articleLines.find((line) => line.id === "readiness")?.label).toBe(
+      "Product readiness & verification",
+    );
+  });
+
   it("resolves lead and row systems, leaving unpaired reports empty", () => {
     const bands = groupArticleLines(
       articleLines,

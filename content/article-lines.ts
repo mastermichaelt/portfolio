@@ -3,7 +3,8 @@ import type { ArticleLineDefinition } from "@/domain/article";
 /**
  * The five reasoning lines of `/articles`, in fixed render order (direction 2a).
  *
- * `label` values are the approved public-facing wording (handoff §3.2);
+ * `label` values are the approved public-facing wording (handoff §3.2;
+ * critique and readiness labels adjusted 2026-09-15 post evidence audit);
  * `pairs` is the project-tier pairing shown in each band head, verbatim from
  * `docs/content-evidence-migration.md` §5.I; `note` is the band note for the two
  * lines whose reports carry no single system (handoff §4). Membership lives on
@@ -23,12 +24,12 @@ export const articleLines: ArticleLineDefinition[] = [
   },
   {
     id: "critique",
-    label: "Critique & review quality",
+    label: "Editorial workflow & critique",
     pairs: "Editorial workflow — supporting",
   },
   {
     id: "readiness",
-    label: "Readiness & verification",
+    label: "Product readiness & verification",
     pairs: "Resume generator; Codenames AI",
   },
   {
