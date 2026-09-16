@@ -10,9 +10,23 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/2026-09-16-diagram-ownership-migration.plan.md"
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-09-16.**
+
+| Slice             | Delivered                                                                                                                                    |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| plan-review       | [#67](https://github.com/mastermichaelt/portfolio/pull/67) — plan artifact (Plan-only PR)                                                    |
+| diagram-migration | [#68](https://github.com/mastermichaelt/portfolio/pull/68) — Editorial + Renovate workflow diagrams on project pages; removed from Ecosystem |
+| plan-closure      | This PR — archive to `.cursor/plans/archive/2026-09-16-diagram-ownership-migration.plan.md`                                                  |
+
+**Deferred (out of scope):** 1b Ecosystem redesign (system selector + five-stage lane), remaining Ecosystem content migration, generalizing diagrams into a cross-project model.
+
+This plan is archived. The work described here has shipped; the remaining content is preserved for historical context.
 
 # Diagram ownership migration
 
@@ -26,7 +40,7 @@ Prerequisite migration before the approved 1b Ecosystem redesign. Move two proje
 | diagram-migration | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure      | Open PR only          | Do not merge. Stop after opening the PR.               |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ## Repository topology (default)
 
@@ -88,14 +102,14 @@ The repository integration branch is `main`. Each slice starts from latest `orig
 
 ### Current state
 
-Both diagrams are **data-driven React Flow canvases** in [`content/ecosystem.ts`](../../content/ecosystem.ts):
+Both diagrams are **data-driven React Flow canvases** in [`content/ecosystem.ts`](../../../content/ecosystem.ts):
 
 - `workflow-editorial` — 9 nodes, 10 edges (optional Refresh branch, Draft↔Critique loop, human Publish)
 - `workflow-renovate` — 5 nodes, 5 edges (Investigate / Auto path, audit → Maintainer → Merge gates)
 
-Pipeline: `content/ecosystem.ts` → `listWorkflowViews()` → [`EcosystemExplorer`](../../components/ecosystem/EcosystemExplorer.tsx) → [`EcosystemCanvas`](../../components/ecosystem/EcosystemCanvas.tsx) + [`EcosystemDetailPanel`](../../components/ecosystem/EcosystemDetailPanel.tsx) + [`lib/ecosystem-canvas.ts`](../../lib/ecosystem-canvas.ts).
+Pipeline: `content/ecosystem.ts` → `listWorkflowViews()` → [`EcosystemExplorer`](../../../components/ecosystem/EcosystemExplorer.tsx) → [`EcosystemCanvas`](../../../components/ecosystem/EcosystemCanvas.tsx) + [`EcosystemDetailPanel`](../../../components/ecosystem/EcosystemDetailPanel.tsx) + [`lib/ecosystem-canvas.ts`](../../../lib/ecosystem-canvas.ts).
 
-Destination: generic case-study template [`app/projects/[slug]/page.tsx`](../../app/projects/[slug]/page.tsx) + [`content/projects.ts`](../../content/projects.ts).
+Destination: generic case-study template [`app/projects/[slug]/page.tsx`](../../../app/projects/[slug]/page.tsx) + [`content/projects.ts`](../../../content/projects.ts).
 
 **Preserve on each migrated section:**
 
@@ -107,17 +121,17 @@ Destination: generic case-study template [`app/projects/[slug]/page.tsx`](../../
 
 ### Implementation steps
 
-1. **Move workflow data (verbatim)** — Create [`content/project-workflows.ts`](../../content/project-workflows.ts); cut/paste the two `WorkflowView` objects unchanged; export `projectWorkflowViewsBySlug`. Remove only those entries from `workflowViews` in [`content/ecosystem.ts`](../../content/ecosystem.ts). Keep `entities` and `relationships` untouched. Update [`domain/workflow-view.ts`](../../domain/workflow-view.ts) doc comment.
+1. **Move workflow data (verbatim)** — Create [`content/project-workflows.ts`](../../../content/project-workflows.ts); cut/paste the two `WorkflowView` objects unchanged; export `projectWorkflowViewsBySlug`. Remove only those entries from `workflowViews` in [`content/ecosystem.ts`](../../../content/ecosystem.ts). Keep `entities` and `relationships` untouched. Update [`domain/workflow-view.ts`](../../../domain/workflow-view.ts) doc comment.
 
-2. **Repository** — Add `getProjectWorkflowView(slug)` to [`PortfolioRepository`](../../repositories/portfolio-repository.ts) and [`StaticPortfolioRepository`](../../repositories/static-portfolio-repository.ts).
+2. **Repository** — Add `getProjectWorkflowView(slug)` to [`PortfolioRepository`](../../../repositories/portfolio-repository.ts) and [`StaticPortfolioRepository`](../../../repositories/static-portfolio-repository.ts).
 
-3. **Project diagram UI** — Add [`components/projects/ProjectWorkflowDiagram.tsx`](../../components/projects/ProjectWorkflowDiagram.tsx): single-view shell reusing `EcosystemCanvas`, `EcosystemDetailPanel`, and ecosystem CSS (920px side/inline panel). Extend `EcosystemDetailPanel` with optional `currentProjectSlug` to hide self-link on the owning project page.
+3. **Project diagram UI** — Add [`components/projects/ProjectWorkflowDiagram.tsx`](../../../components/projects/ProjectWorkflowDiagram.tsx): single-view shell reusing `EcosystemCanvas`, `EcosystemDetailPanel`, and ecosystem CSS (920px side/inline panel). Extend `EcosystemDetailPanel` with optional `currentProjectSlug` to hide self-link on the owning project page.
 
-4. **Project page integration** — In [`app/projects/[slug]/page.tsx`](../../app/projects/[slug]/page.tsx): load entities + `getProjectWorkflowView(slug)`; insert diagram **immediately after** the `system` section; TOC entry `{ id: "operational-workflow", title: "Operational workflow" }`. Do not displace existing prose sections.
+4. **Project page integration** — In [`app/projects/[slug]/page.tsx`](../../../app/projects/[slug]/page.tsx): load entities + `getProjectWorkflowView(slug)`; insert diagram **immediately after** the `system` section; TOC entry `{ id: "operational-workflow", title: "Operational workflow" }`. Do not displace existing prose sections.
 
 5. **Remove from Ecosystem** — After project pages render both diagrams, delete `workflow-renovate` and `workflow-editorial` from `workflowViews` only.
 
-6. **Tests** — Update [`tests/ecosystem-content.test.ts`](../../tests/ecosystem-content.test.ts) (2 ecosystem views: `system-overview`, `workflow-product-loop`); retarget [`tests/ecosystem-canvas.test.ts`](../../tests/ecosystem-canvas.test.ts) editorial/renovate imports to `content/project-workflows.ts`; add [`tests/project-workflows.test.ts`](../../tests/project-workflows.test.ts); update [`tests/static-portfolio-repository.test.ts`](../../tests/static-portfolio-repository.test.ts); retarget [`e2e/happy-path.spec.ts`](../../e2e/happy-path.spec.ts) ecosystem tests and add project-page diagram e2e coverage (desktop + 375px).
+6. **Tests** — Update [`tests/ecosystem-content.test.ts`](../../../tests/ecosystem-content.test.ts) (2 ecosystem views: `system-overview`, `workflow-product-loop`); retarget [`tests/ecosystem-canvas.test.ts`](../../../tests/ecosystem-canvas.test.ts) editorial/renovate imports to `content/project-workflows.ts`; add [`tests/project-workflows.test.ts`](../../../tests/project-workflows.test.ts); update [`tests/static-portfolio-repository.test.ts`](../../../tests/static-portfolio-repository.test.ts); retarget [`e2e/happy-path.spec.ts`](../../../e2e/happy-path.spec.ts) ecosystem tests and add project-page diagram e2e coverage (desktop + 375px).
 
 ### Acceptance
 
@@ -164,7 +178,7 @@ After `diagram-migration` merges:
 ### plan-review
 
 ```text
-@.cursor/plans/2026-09-16-diagram-ownership-migration.plan.md
+@.cursor/plans/archive/2026-09-16-diagram-ownership-migration.plan.md
 
 Execute slice plan-review only. Do not start diagram-migration or plan-closure.
 
@@ -180,7 +194,7 @@ Verification: PR diff is plan artifact only; clearly marked plan-only in PR desc
 ### diagram-migration
 
 ```text
-@.cursor/plans/2026-09-16-diagram-ownership-migration.plan.md
+@.cursor/plans/archive/2026-09-16-diagram-ownership-migration.plan.md
 
 Implement slice diagram-migration only. Prerequisite: plan-review merged. Do not start plan-closure. Do not archive the plan.
 
@@ -198,7 +212,7 @@ Verification: npm run lint && npm run typecheck && npm test && npm run build && 
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-09-16-diagram-ownership-migration.plan.md
+@.cursor/plans/archive/2026-09-16-diagram-ownership-migration.plan.md
 
 Execute only plan-closure.
 
