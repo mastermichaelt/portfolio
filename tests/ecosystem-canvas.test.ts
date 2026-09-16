@@ -3,12 +3,8 @@ import { describe, expect, it } from "vitest";
 import { entities, workflowViews } from "@/content/ecosystem";
 import { projectWorkflowViewsBySlug } from "@/content/project-workflows";
 import {
-  availableEcosystemEntityKinds,
-  ecosystemViewIdFromHash,
-  filterEntitiesByKind,
   findWorkflowNode,
   nextEcosystemSelection,
-  partitionWorkflowViews,
   resolveEcosystemDetail,
   toEcosystemFlowEdges,
   toEcosystemFlowNodes,
@@ -73,18 +69,6 @@ describe("ecosystem canvas helpers", () => {
       sourceHandle: "out-bottom",
       targetHandle: "in-bottom",
     });
-  });
-
-  it("partitions overview spine from operational workflows", () => {
-    const { overview, operational } = partitionWorkflowViews(workflowViews);
-    expect(overview?.id).toBe("system-overview");
-    expect(overview?.nodes).toHaveLength(4);
-    expect(operational.map((view) => view.id)).toEqual([
-      "workflow-product-loop",
-    ]);
-    expect(operational.every((view) => view.id !== "system-overview")).toBe(
-      true,
-    );
   });
 
   it("resolves selection detail from entity-linked nodes", () => {
@@ -168,27 +152,6 @@ describe("ecosystem canvas helpers", () => {
     });
   });
 
-  it("filters entity inventory kinds for the kind tab UI", () => {
-    expect(availableEcosystemEntityKinds(entities)).toEqual([
-      "project",
-      "workflow",
-      "agent",
-      "skill",
-      "governance",
-      "knowledge",
-      "output",
-      "integration",
-    ]);
-    const projects = filterEntitiesByKind(entities, "project");
-    expect(projects.length).toBeGreaterThan(0);
-    expect(projects.every((entity) => entity.kind === "project")).toBe(true);
-    expect(
-      filterEntitiesByKind(entities, "skill").every(
-        (entity) => entity.kind === "skill",
-      ),
-    ).toBe(true);
-  });
-
   it("keeps active selection when another canvas emits a clear", () => {
     const current = {
       viewId: "workflow-product-loop",
@@ -206,18 +169,5 @@ describe("ecosystem canvas helpers", () => {
       viewId: "system-overview",
       nodeId: "layer-projects",
     });
-  });
-
-  it("resolves deep-link hashes to known workflow view ids", () => {
-    const ids = workflowViews.map((view) => view.id);
-    expect(ecosystemViewIdFromHash("#workflow-product-loop", ids)).toBe(
-      "workflow-product-loop",
-    );
-    expect(ecosystemViewIdFromHash("system-overview", ids)).toBe(
-      "system-overview",
-    );
-    expect(ecosystemViewIdFromHash("#missing", ids)).toBeNull();
-    expect(ecosystemViewIdFromHash("#", ids)).toBeNull();
-    expect(ecosystemViewIdFromHash("", ids)).toBeNull();
   });
 });

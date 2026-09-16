@@ -1048,6 +1048,62 @@ test.describe("portfolio happy path", () => {
     expect(overflowAfter).toBe(false);
   });
 
+  test("ecosystem 1b renders the complete default lane with JavaScript disabled", async ({
+    browser,
+    baseURL,
+  }) => {
+    // The default Codenames AI line must be server-rendered — a complete worked
+    // example even when hydration never runs. Assert against the SSR HTML in a
+    // JS-disabled context, behaviourally (rendered content, not internals).
+    const context = await browser.newContext({
+      javaScriptEnabled: false,
+      baseURL,
+    });
+    const page = await context.newPage();
+    try {
+      await page.goto("/ecosystem");
+
+      await expect(
+        page.getByRole("heading", {
+          name: "Everything here ships down the same five stages.",
+          level: 1,
+        }),
+      ).toBeVisible();
+
+      // The full five-stage rack is present without JS.
+      await expect(
+        page
+          .getByRole("list", { name: "Production stages" })
+          .locator(".line-stage-name"),
+      ).toHaveText([
+        "Intent",
+        "Agent execution",
+        "Verification",
+        "Judgment",
+        "Evidence",
+      ]);
+
+      // The default lane is Codenames AI, five cells, with its chip pressed.
+      const lane = page.getByTestId("line-lane");
+      await expect(lane).toHaveAttribute("data-system", "codenames");
+      await expect(lane.locator(".line-cell")).toHaveCount(5);
+      await expect(
+        lane.getByText("Model migration as experiment"),
+      ).toBeVisible();
+      await expect(
+        lane.getByText("Live product and three reports"),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Codenames AI" }),
+      ).toHaveAttribute("aria-pressed", "true");
+
+      // The constant Under-the-line strip is server-rendered too.
+      await expect(page.getByText("Savepoints")).toBeVisible();
+    } finally {
+      await context.close();
+    }
+  });
+
   test("project pages render migrated workflow diagrams on desktop", async ({
     page,
   }) => {

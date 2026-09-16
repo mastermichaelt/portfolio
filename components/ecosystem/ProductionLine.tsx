@@ -22,12 +22,27 @@ type ProductionLineProps = {
 export function ProductionLine({ line }: ProductionLineProps) {
   const { stages, lanes, defaultSystemId } = line;
   const [selectedId, setSelectedId] = useState(defaultSystemId);
+  // Gate the lane transition so it plays on a real selection change, never on
+  // the initial/default render. Reduced motion is still honoured by the global
+  // duration floor in base.css.
+  const [hasSwapped, setHasSwapped] = useState(false);
 
+  // Resolve the effective selection once. A defaultSystemId (or state) that
+  // matches no lane falls back to the first lane, and this same id drives both
+  // the rendered lane and aria-pressed, so a lane can never show with no chip
+  // selected.
   const activeLane =
     lanes.find((lane) => lane.systemId === selectedId) ?? lanes[0];
+  const activeSystemId = activeLane.systemId;
   const cellByStage = new Map(
     activeLane.cells.map((cell) => [cell.stageId, cell] as const),
   );
+
+  const selectSystem = (systemId: string) => {
+    if (systemId === activeSystemId) return;
+    setHasSwapped(true);
+    setSelectedId(systemId);
+  };
 
   return (
     <div className="line">
@@ -47,17 +62,17 @@ export function ProductionLine({ line }: ProductionLineProps) {
 
       {/* Selector — always exactly one system pressed; no deselect. */}
       <div className="line-selector">
-        <p className="label line-selector-label">{SELECTOR_LABEL}</p>
+        <p className="label">{SELECTOR_LABEL}</p>
         <div className="line-chips" role="group" aria-label={SELECTOR_LABEL}>
           {lanes.map((lane) => {
-            const isSelected = lane.systemId === selectedId;
+            const isSelected = lane.systemId === activeSystemId;
             return (
               <button
                 key={lane.systemId}
                 type="button"
                 aria-pressed={isSelected}
                 className={`line-chip${isSelected ? " is-selected" : ""}`}
-                onClick={() => setSelectedId(lane.systemId)}
+                onClick={() => selectSystem(lane.systemId)}
               >
                 {lane.name}
               </button>
@@ -69,9 +84,9 @@ export function ProductionLine({ line }: ProductionLineProps) {
       {/* Lane — only these five cells swap on selection. */}
       <div className="line-lane-region" aria-live="polite">
         <div
-          key={selectedId}
-          className="line-lane"
-          data-system={selectedId}
+          key={activeSystemId}
+          className={`line-lane${hasSwapped ? " is-swapping" : ""}`}
+          data-system={activeSystemId}
           data-testid="line-lane"
         >
           {stages.map((stage) => {

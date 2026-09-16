@@ -342,10 +342,6 @@
   margin-top: var(--gap-lg);
 }
 
-.line-selector-label {
-  color: var(--muted);
-}
-
 .line-chips {
   display: flex;
   gap: 8px;
@@ -393,6 +389,12 @@
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
+}
+
+/* The fade plays only on a selection swap (the component adds .is-swapping
+   after the first change), never on the initial/default render. The global
+   reduced-motion floor in base.css still collapses its duration. */
+.line-lane.is-swapping {
   animation: line-lane-fade 120ms ease;
 }
 
@@ -528,10 +530,6 @@
 
   .line-cell-stage {
     display: block;
-  }
-
-  .line-cell-stage .line-stage-code {
-    letter-spacing: 0.12em;
   }
 
   .line-cell-body {
