@@ -2,6 +2,7 @@ import { about } from "@/content/about";
 import { articleLines } from "@/content/article-lines";
 import { articles } from "@/content/articles";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
+import { projectWorkflowViewsBySlug } from "@/content/project-workflows";
 import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
 import { projectCases } from "@/content/project-cases";
@@ -66,6 +67,10 @@ export class StaticPortfolioRepository implements PortfolioRepository {
 
   async getWorkflowView(id: string) {
     return workflowViews.find((view) => view.id === id) ?? null;
+  }
+
+  async getProjectWorkflowView(slug: string) {
+    return projectWorkflowViewsBySlug[slug] ?? null;
   }
 
   async listTimelineEvents() {

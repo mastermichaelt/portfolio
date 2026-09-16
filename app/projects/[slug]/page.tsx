@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CaseStudyToc } from "@/components/CaseStudyToc";
 import { ExternalLink } from "@/components/ExternalLink";
 import { ProjectCaseDetail } from "@/components/ProjectCaseDetail";
+import { ProjectWorkflowDiagram } from "@/components/projects/ProjectWorkflowDiagram";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
 type ProjectPageProps = PageProps<"/projects/[slug]">;
@@ -71,11 +72,22 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const project = await repository.getProject(slug);
   if (!project) notFound();
 
+  const [entities, workflowView] = await Promise.all([
+    repository.listEntities(),
+    repository.getProjectWorkflowView(slug),
+  ]);
+
   const tocItems = [
-    ...project.sections.map((section) => ({
-      id: section.id,
-      title: section.title,
-    })),
+    ...project.sections.flatMap((section) => {
+      const items = [{ id: section.id, title: section.title }];
+      if (section.id === "system" && workflowView) {
+        items.push({
+          id: "operational-workflow",
+          title: "Operational workflow",
+        });
+      }
+      return items;
+    }),
     ...(project.relatedLinks?.length || project.evidence?.length
       ? [{ id: "links", title: "Links" }]
       : []),
@@ -110,12 +122,30 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             <CaseStudyToc items={tocItems} />
           </aside>
           <div>
-            {project.sections.map((section) => (
-              <div key={section.id} className="detail-block" id={section.id}>
-                <h2>{section.title}</h2>
-                <p className="detail-body">{section.body}</p>
-              </div>
-            ))}
+            {project.sections.flatMap((section) => {
+              const blocks = [
+                <div key={section.id} className="detail-block" id={section.id}>
+                  <h2>{section.title}</h2>
+                  <p className="detail-body">{section.body}</p>
+                </div>,
+              ];
+              if (section.id === "system" && workflowView) {
+                blocks.push(
+                  <div
+                    key="operational-workflow"
+                    className="detail-block"
+                    id="operational-workflow"
+                  >
+                    <ProjectWorkflowDiagram
+                      view={workflowView}
+                      entities={entities}
+                      projectSlug={slug}
+                    />
+                  </div>,
+                );
+              }
+              return blocks;
+            })}
 
             {(project.relatedLinks?.length || project.evidence?.length) && (
               <div className="detail-block" id="links">

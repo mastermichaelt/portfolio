@@ -787,12 +787,18 @@ test.describe("portfolio happy path", () => {
     await expect(
       page.getByTestId("ecosystem-canvas-system-overview"),
     ).toBeVisible();
-    const renovateCanvas = page.getByTestId(
-      "ecosystem-canvas-workflow-renovate",
+    await expect(
+      page.getByTestId("ecosystem-canvas-workflow-renovate"),
+    ).toHaveCount(0);
+    await expect(
+      page.getByTestId("ecosystem-canvas-workflow-editorial"),
+    ).toHaveCount(0);
+
+    const productCanvas = page.getByTestId(
+      "ecosystem-canvas-workflow-product-loop",
     );
-    await expect(renovateCanvas).toBeVisible();
-    // SVG <g> edges are often "hidden" to Playwright; assert rendered paths instead.
-    const edgePaths = renovateCanvas.locator(".react-flow__edge-path");
+    await expect(productCanvas).toBeVisible();
+    const edgePaths = productCanvas.locator(".react-flow__edge-path");
     await expect(edgePaths).toHaveCount(5);
     await expect
       .poll(async () => {
@@ -811,18 +817,18 @@ test.describe("portfolio happy path", () => {
       panel.getByRole("heading", { name: "Select a node" }),
     ).toBeVisible();
 
-    const classifyNode = renovateCanvas
+    const productNode = productCanvas
       .locator(".react-flow__node")
-      .filter({ hasText: "Classify" });
-    await classifyNode.click();
+      .filter({ hasText: "Codenames AI" });
+    await productNode.click();
 
     await expect(
-      panel.getByRole("heading", { name: "Classify" }),
+      panel.getByRole("heading", { name: "Codenames AI" }),
     ).toBeVisible();
-    await expect(panel.getByText(/Renovate governance ladder/i)).toBeVisible();
+    await expect(panel.getByText(/Product improvement loop/i)).toBeVisible();
     await expect(
       panel.getByRole("link", { name: "Open project case study" }),
-    ).toHaveAttribute("href", "/projects/renovate-governance");
+    ).toHaveAttribute("href", "/projects/codenames-ai");
 
     // Evidence outbound links use ExternalLink (new tab + analytics hookup).
     const overviewCanvas = page.getByTestId("ecosystem-canvas-system-overview");
@@ -885,21 +891,18 @@ test.describe("portfolio happy path", () => {
         .click();
     }
 
-    await selectNode("ecosystem-canvas-workflow-renovate", "Classify");
+    await selectNode("ecosystem-canvas-system-overview", "Projects");
     await expect(
       page.getByTestId("ecosystem-detail-panel").getByRole("heading", {
-        name: "Classify",
+        name: "Projects",
       }),
     ).toBeVisible();
 
-    await selectNode("ecosystem-canvas-workflow-editorial", "Capture");
+    await selectNode("ecosystem-canvas-workflow-product-loop", "PostHog");
     await expect(
       page.getByTestId("ecosystem-detail-panel").getByRole("heading", {
-        name: "Capture",
+        name: "PostHog",
       }),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("ecosystem-canvas-workflow-product-loop"),
     ).toBeVisible();
 
     await selectNode("ecosystem-canvas-workflow-product-loop", "Codenames AI");
@@ -920,15 +923,15 @@ test.describe("portfolio happy path", () => {
   test("ecosystem hash deep link scrolls to a workflow section", async ({
     page,
   }) => {
-    await page.goto("/ecosystem#workflow-renovate");
+    await page.goto("/ecosystem#workflow-product-loop");
 
-    const section = page.locator("#workflow-renovate");
+    const section = page.locator("#workflow-product-loop");
     await expect(
-      section.getByRole("heading", { name: "Renovate governance ladder" }),
+      section.getByRole("heading", { name: "Product improvement loop" }),
     ).toBeVisible();
     await expect(section).toBeInViewport();
     await expect(
-      page.getByTestId("ecosystem-talk-track-workflow-renovate"),
+      page.getByTestId("ecosystem-talk-track-workflow-product-loop"),
     ).toBeVisible();
     await expect(section).toBeFocused();
 
@@ -946,17 +949,17 @@ test.describe("portfolio happy path", () => {
   test("ecosystem Escape clears the detail selection", async ({ page }) => {
     await page.goto("/ecosystem");
 
-    const canvas = page.getByTestId("ecosystem-canvas-workflow-renovate");
+    const canvas = page.getByTestId("ecosystem-canvas-workflow-product-loop");
     await canvas.scrollIntoViewIfNeeded();
     await canvas
       .locator(".react-flow__node")
-      .filter({ hasText: "Classify" })
+      .filter({ hasText: "Codenames AI" })
       .first()
       .click();
 
     const panel = page.getByTestId("ecosystem-detail-panel");
     await expect(
-      panel.getByRole("heading", { name: "Classify" }),
+      panel.getByRole("heading", { name: "Codenames AI" }),
     ).toBeVisible();
 
     await page.keyboard.press("Escape");
@@ -971,31 +974,113 @@ test.describe("portfolio happy path", () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/ecosystem");
 
-    const renovateCanvas = page.getByTestId(
-      "ecosystem-canvas-workflow-renovate",
+    const productCanvas = page.getByTestId(
+      "ecosystem-canvas-workflow-product-loop",
     );
-    await renovateCanvas.scrollIntoViewIfNeeded();
+    await productCanvas.scrollIntoViewIfNeeded();
 
-    const classifyNode = renovateCanvas
+    const productNode = productCanvas
       .locator(".react-flow__node")
-      .filter({ hasText: "Classify" });
-    await classifyNode.click();
+      .filter({ hasText: "Codenames AI" });
+    await productNode.click();
 
     const inlinePanel = page.getByTestId("ecosystem-detail-inline");
-    const heading = inlinePanel.getByRole("heading", { name: "Classify" });
+    const heading = inlinePanel.getByRole("heading", { name: "Codenames AI" });
     await expect(heading).toBeVisible();
     await expect(heading).toBeInViewport();
 
-    // Panel must sit under the interacted canvas, not after every workflow.
-    const renovateSection = page.locator("#workflow-renovate");
+    const productSection = page.locator("#workflow-product-loop");
     await expect(
-      renovateSection.getByTestId("ecosystem-detail-inline"),
+      productSection.getByTestId("ecosystem-detail-inline"),
     ).toBeVisible();
     await expect(
-      page
-        .locator("#workflow-editorial")
-        .getByTestId("ecosystem-detail-inline"),
+      page.locator("#system-overview").getByTestId("ecosystem-detail-inline"),
     ).toHaveCount(0);
+  });
+
+  test("project pages render migrated workflow diagrams on desktop", async ({
+    page,
+  }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => {
+      pageErrors.push(String(error));
+    });
+
+    await page.goto("/projects/editorial-workflow");
+    await expect(page.locator("#operational-workflow")).toBeVisible();
+    await expect(
+      page
+        .locator("#operational-workflow")
+        .getByRole("heading", { name: "Editorial field-report pipeline" }),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("ecosystem-talk-track-workflow-editorial"),
+    ).toBeVisible();
+    const editorialCanvas = page.getByTestId(
+      "ecosystem-canvas-workflow-editorial",
+    );
+    await editorialCanvas
+      .locator(".react-flow__node")
+      .filter({ hasText: "Capture" })
+      .click();
+    const editorialPanel = page.getByTestId("ecosystem-detail-panel");
+    await expect(
+      editorialPanel.getByRole("heading", { name: "Capture" }),
+    ).toBeVisible();
+    await expect(
+      editorialPanel.getByRole("link", { name: "Open project case study" }),
+    ).toHaveCount(0);
+
+    await page.goto("/projects/renovate-governance");
+    await expect(page.locator("#operational-workflow")).toBeVisible();
+    await expect(
+      page
+        .locator("#operational-workflow")
+        .getByRole("heading", { name: "Renovate governance ladder" }),
+    ).toBeVisible();
+    const renovateCanvas = page.getByTestId(
+      "ecosystem-canvas-workflow-renovate",
+    );
+    await renovateCanvas
+      .locator(".react-flow__node")
+      .filter({ hasText: "Classify" })
+      .click();
+    const renovatePanel = page.getByTestId("ecosystem-detail-panel");
+    await expect(
+      renovatePanel.getByRole("heading", { name: "Classify" }),
+    ).toBeVisible();
+    await expect(
+      renovatePanel.getByRole("link", { name: "Open project case study" }),
+    ).toHaveCount(0);
+
+    const toc = page.getByRole("navigation", { name: "On this page" });
+    await expect(
+      toc.getByRole("link", { name: "Operational workflow" }),
+    ).toBeVisible();
+
+    expect(pageErrors, pageErrors.join("\n")).toEqual([]);
+  });
+
+  test("project workflow diagrams stack inline detail at 375px", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/projects/editorial-workflow#operational-workflow");
+
+    const canvas = page.getByTestId("ecosystem-canvas-workflow-editorial");
+    await canvas.scrollIntoViewIfNeeded();
+    await canvas.getByTestId("rf__node-node-capture").click({ force: true });
+
+    const inlinePanel = page.getByTestId("ecosystem-detail-inline");
+    await expect(
+      inlinePanel.getByRole("heading", { name: "Capture" }),
+    ).toBeVisible();
+    await expect(page.locator(".ecosystem-panel-side")).toHaveCount(0);
+
+    const overflowX = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
+    expect(overflowX).toBe(false);
   });
 
   test("mobile nav opens About and navigates", async ({ page }) => {

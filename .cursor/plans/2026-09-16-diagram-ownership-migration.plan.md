@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: diagram-migration
     content: "PR 1: Move Editorial + Renovate workflow views to project pages; remove from Ecosystem; tests + e2e"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after last slice: add # Shipped note, move plan to .cursor/plans/archive/2026-09-16-diagram-ownership-migration.plan.md"
     status: pending
