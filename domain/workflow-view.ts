@@ -27,7 +27,7 @@ export interface WorkflowEdge {
 }
 
 /**
- * Composition/layout view for `/ecosystem` canvases.
+ * Composition/layout view for ecosystem and project-page workflow canvases.
  * Optional talkTrack is view-level interview presentation — not Entity fields.
  */
 export interface WorkflowView {

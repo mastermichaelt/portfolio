@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { entities, workflowViews } from "@/content/ecosystem";
+import { projectWorkflowViewsBySlug } from "@/content/project-workflows";
 import {
   availableEcosystemEntityKinds,
   ecosystemViewIdFromHash,
@@ -19,9 +20,7 @@ describe("ecosystem canvas helpers", () => {
   );
 
   it("maps workflow views into React Flow nodes and edges", () => {
-    const renovate = workflowViews.find(
-      (view) => view.id === "workflow-renovate",
-    );
+    const renovate = projectWorkflowViewsBySlug["renovate-governance"];
     expect(renovate).toBeDefined();
 
     const nodes = toEcosystemFlowNodes(renovate!);
@@ -81,8 +80,6 @@ describe("ecosystem canvas helpers", () => {
     expect(overview?.id).toBe("system-overview");
     expect(overview?.nodes).toHaveLength(4);
     expect(operational.map((view) => view.id)).toEqual([
-      "workflow-renovate",
-      "workflow-editorial",
       "workflow-product-loop",
     ]);
     expect(operational.every((view) => view.id !== "system-overview")).toBe(
@@ -91,8 +88,9 @@ describe("ecosystem canvas helpers", () => {
   });
 
   it("resolves selection detail from entity-linked nodes", () => {
+    const projectViews = Object.values(projectWorkflowViewsBySlug);
     const detail = resolveEcosystemDetail({
-      views: workflowViews,
+      views: projectViews,
       entitiesById,
       viewId: "workflow-renovate",
       nodeId: "node-classify",
@@ -119,15 +117,13 @@ describe("ecosystem canvas helpers", () => {
     ).toBeNull();
 
     expect(
-      findWorkflowNode(workflowViews, "workflow-editorial", "node-publish"),
+      findWorkflowNode(projectViews, "workflow-editorial", "node-publish"),
     ).toMatchObject({
       view: { id: "workflow-editorial" },
       node: { id: "node-publish", label: "Publish" },
     });
 
-    const editorial = workflowViews.find(
-      (view) => view.id === "workflow-editorial",
-    );
+    const editorial = projectWorkflowViewsBySlug["editorial-workflow"];
     expect(editorial?.nodes.map((node) => node.id)).toEqual([
       "node-refresh",
       "node-capture",
@@ -195,27 +191,27 @@ describe("ecosystem canvas helpers", () => {
 
   it("keeps active selection when another canvas emits a clear", () => {
     const current = {
-      viewId: "workflow-editorial",
-      nodeId: "node-capture",
+      viewId: "workflow-product-loop",
+      nodeId: "node-product",
     };
-    expect(nextEcosystemSelection(current, "workflow-renovate", null)).toEqual(
+    expect(nextEcosystemSelection(current, "workflow-editorial", null)).toEqual(
       current,
     );
     expect(
-      nextEcosystemSelection(current, "workflow-editorial", null),
+      nextEcosystemSelection(current, "workflow-product-loop", null),
     ).toBeNull();
     expect(
-      nextEcosystemSelection(current, "workflow-product-loop", "node-product"),
+      nextEcosystemSelection(current, "system-overview", "layer-projects"),
     ).toEqual({
-      viewId: "workflow-product-loop",
-      nodeId: "node-product",
+      viewId: "system-overview",
+      nodeId: "layer-projects",
     });
   });
 
   it("resolves deep-link hashes to known workflow view ids", () => {
     const ids = workflowViews.map((view) => view.id);
-    expect(ecosystemViewIdFromHash("#workflow-renovate", ids)).toBe(
-      "workflow-renovate",
+    expect(ecosystemViewIdFromHash("#workflow-product-loop", ids)).toBe(
+      "workflow-product-loop",
     );
     expect(ecosystemViewIdFromHash("system-overview", ids)).toBe(
       "system-overview",

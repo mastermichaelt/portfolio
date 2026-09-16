@@ -5,8 +5,6 @@ import { StaticPortfolioRepository } from "@/repositories/static-portfolio-repos
 
 const REQUIRED_WORKFLOW_VIEW_IDS = [
   "system-overview",
-  "workflow-renovate",
-  "workflow-editorial",
   "workflow-product-loop",
 ] as const;
 
@@ -75,7 +73,7 @@ describe("ecosystem content inventory", () => {
     ).toBe(true);
   });
 
-  it("seeds four workflow views including a light system-overview spine", async () => {
+  it("seeds two ecosystem workflow views including a light system-overview spine", async () => {
     const listed = await repository.listWorkflowViews();
     expect(listed.map((view) => view.id)).toEqual([
       ...REQUIRED_WORKFLOW_VIEW_IDS,

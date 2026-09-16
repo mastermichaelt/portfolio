@@ -5,9 +5,14 @@ import type { EcosystemDetailModel } from "@/lib/ecosystem-canvas";
 
 type EcosystemDetailPanelProps = {
   detail: EcosystemDetailModel | null;
+  /** When set, hides the project case-study link on the owning project page. */
+  currentProjectSlug?: string;
 };
 
-export function EcosystemDetailPanel({ detail }: EcosystemDetailPanelProps) {
+export function EcosystemDetailPanel({
+  detail,
+  currentProjectSlug,
+}: EcosystemDetailPanelProps) {
   return (
     <aside
       className="ecosystem-panel card"
@@ -23,7 +28,8 @@ export function EcosystemDetailPanel({ detail }: EcosystemDetailPanelProps) {
           <h3>{detail.label}</h3>
           {detail.subtitle ? <p className="meta">{detail.subtitle}</p> : null}
           {detail.summary ? <p>{detail.summary}</p> : null}
-          {detail.relatedProjectSlug ? (
+          {detail.relatedProjectSlug &&
+          detail.relatedProjectSlug !== currentProjectSlug ? (
             <p>
               <Link
                 className="text-link"

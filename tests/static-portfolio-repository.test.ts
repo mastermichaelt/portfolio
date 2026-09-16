@@ -94,6 +94,18 @@ vi.mock("@/content/article-lines", () => ({
   articleSystems: {},
 }));
 
+vi.mock("@/content/project-workflows", () => ({
+  projectWorkflowViewsBySlug: {
+    "editorial-workflow": {
+      id: "workflow-editorial",
+      title: "Editorial field-report pipeline",
+      summary: "Capture through publish",
+      nodes: [],
+      edges: [],
+    },
+  },
+}));
+
 vi.mock("@/content/ecosystem", () => ({
   entities: [
     {
@@ -124,13 +136,6 @@ vi.mock("@/content/ecosystem", () => ({
           position: { x: 0, y: 0 },
         },
       ],
-      edges: [],
-    },
-    {
-      id: "workflow-renovate",
-      title: "Renovate governance ladder",
-      summary: "Classify and merge",
-      nodes: [],
       edges: [],
     },
   ],
@@ -187,6 +192,7 @@ import { about } from "@/content/about";
 import { articleLines } from "@/content/article-lines";
 import { articles } from "@/content/articles";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
+import { projectWorkflowViewsBySlug } from "@/content/project-workflows";
 import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
 import { projectCases } from "@/content/project-cases";
@@ -275,6 +281,18 @@ describe("StaticPortfolioRepository", () => {
 
   it("returns null for an unknown workflow view id", async () => {
     await expect(repository.getWorkflowView("missing")).resolves.toBeNull();
+  });
+
+  it("returns a project workflow view when the slug matches", async () => {
+    await expect(
+      repository.getProjectWorkflowView("editorial-workflow"),
+    ).resolves.toEqual(projectWorkflowViewsBySlug["editorial-workflow"]);
+  });
+
+  it("returns null for an unknown project workflow slug", async () => {
+    await expect(
+      repository.getProjectWorkflowView("missing"),
+    ).resolves.toBeNull();
   });
 
   it("lists timeline events from the static content module", async () => {

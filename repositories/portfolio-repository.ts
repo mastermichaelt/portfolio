@@ -34,5 +34,7 @@ export interface PortfolioRepository {
   listRelationships(): Promise<Relationship[]>;
   listWorkflowViews(): Promise<WorkflowView[]>;
   getWorkflowView(id: string): Promise<WorkflowView | null>;
+  /** Operational workflow canvas owned by a project page, when one exists. */
+  getProjectWorkflowView(slug: string): Promise<WorkflowView | null>;
   listTimelineEvents(): Promise<TimelineEvent[]>;
 }
