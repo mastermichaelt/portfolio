@@ -195,6 +195,7 @@ import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { projectWorkflowViewsBySlug } from "@/content/project-workflows";
 import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
+import { productionLine } from "@/content/production-line";
 import { projectCases } from "@/content/project-cases";
 import { projects } from "@/content/projects";
 import { projectsIndex } from "@/content/projects-index";
@@ -293,6 +294,12 @@ describe("StaticPortfolioRepository", () => {
     await expect(
       repository.getProjectWorkflowView("missing"),
     ).resolves.toBeNull();
+  });
+
+  it("returns the production line from the static content module", async () => {
+    await expect(repository.getProductionLine()).resolves.toEqual(
+      productionLine,
+    );
   });
 
   it("lists timeline events from the static content module", async () => {

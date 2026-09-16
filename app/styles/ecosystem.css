@@ -11,21 +11,6 @@
   min-width: 0;
 }
 
-.ecosystem-view {
-  scroll-margin-top: 96px;
-  outline: none;
-}
-
-.ecosystem-view:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
-
-.ecosystem-view + .ecosystem-view {
-  padding-top: var(--gap-xl);
-  border-top: 1px solid var(--border);
-}
-
 .ecosystem-talk-track {
   margin: 14px 0 0;
   padding: 12px 14px;
@@ -198,46 +183,6 @@
   gap: 8px;
 }
 
-.ecosystem-inventory-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.ecosystem-inventory-filter {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--muted);
-  font-family: var(--font-mono-stack);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  transition:
-    border-color 0.15s ease,
-    color 0.15s ease,
-    background 0.15s ease;
-}
-
-.ecosystem-inventory-filter:hover {
-  border-color: color-mix(in oklch, var(--accent) 35%, var(--border));
-  color: var(--fg);
-}
-
-.ecosystem-inventory-filter.is-active {
-  border-color: color-mix(in oklch, var(--accent) 45%, var(--border));
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.ecosystem-inventory-filter .meta {
-  color: inherit;
-  opacity: 0.75;
-}
-
 @media (max-width: 920px) {
   .ecosystem-shell {
     grid-template-columns: 1fr;
@@ -336,4 +281,295 @@
   width: 7px;
   height: 7px;
   background: var(--accent);
+}
+
+/* Ecosystem 1b — "The Line". A fixed five-stage rack, a four-chip selector and
+   one lane of five cells that re-fills on selection. Square, hairline-ruled,
+   portfolio tokens only. The rack is the only heavy (--rule) line. */
+.line {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Rack — fixed and identical across every selection. Sits under one --rule
+   hairline; column dividers are --border. */
+.line-rack {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-top: 1px solid var(--rule);
+}
+
+.line-stage {
+  padding: 26px 24px;
+  border-right: 1px solid var(--border);
+}
+
+.line-stage:last-child {
+  border-right: none;
+}
+
+.line-stage-code {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin: 0 0 10px;
+}
+
+.line-stage-name {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 10px;
+}
+
+.line-stage-pass {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--muted-strong);
+  margin: 0;
+}
+
+/* Selector — always exactly one system pressed; no multi-select, no deselect. */
+.line-selector {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-md);
+  flex-wrap: wrap;
+  margin-top: var(--gap-lg);
+}
+
+.line-selector-label {
+  color: var(--muted);
+}
+
+.line-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.line-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.line-chip:hover {
+  border-color: var(--fg);
+}
+
+.line-chip.is-selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.line-chip:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+/* Lane — only these five cells swap on selection. */
+.line-lane-region {
+  margin-top: var(--gap-md);
+}
+
+.line-lane {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  animation: line-lane-fade 120ms ease;
+}
+
+@keyframes line-lane-fade {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.line-cell {
+  background: var(--surface);
+  padding: 24px;
+}
+
+/* Stage identity in-cell is only for the stacked (<=920) layout. */
+.line-cell-stage {
+  display: none;
+}
+
+.line-cell-label {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.line-cell-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.line-cell-text {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--fg-2);
+  margin: 0;
+}
+
+.line-cell-empty {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* Under the line — shared infrastructure; constant across selections. */
+.under-line-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-md);
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.under-line-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-top: none;
+}
+
+.under-line-item {
+  background: var(--bg);
+  padding: 20px 22px;
+}
+
+.under-line-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.under-line-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg-2);
+  margin: 0 0 8px;
+}
+
+.under-line-meta {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.under-line-meta.is-prototype {
+  color: var(--accent);
+}
+
+/* Tablet — the five-column rack restacks into per-stage rows, each keeping its
+   gate line, with the lane cell beside its stage. Selector stays a row of chips. */
+@media (max-width: 920px) {
+  .line-rack {
+    display: none;
+  }
+
+  .line-selector {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin-top: 0;
+  }
+
+  .line-lane {
+    grid-template-columns: 1fr;
+    gap: 0;
+    background: none;
+    border-top-color: var(--rule);
+  }
+
+  .line-cell {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+    padding: 22px 24px;
+    background: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .line-cell:first-child {
+    border-top: none;
+  }
+
+  .line-cell-stage {
+    display: block;
+  }
+
+  .line-cell-stage .line-stage-code {
+    letter-spacing: 0.12em;
+  }
+
+  .line-cell-body {
+    background: var(--surface);
+    padding: 18px 20px;
+  }
+
+  .under-line-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile — one column, the chip row becomes a horizontal scroll rail with a
+   44px minimum tap target, and each stage stacks above its lane cell. */
+@media (max-width: 600px) {
+  .line-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    /* Bound to the selector width so the row scrolls instead of forcing the
+       page wider than the viewport. */
+    width: 100%;
+    min-width: 0;
+    padding-bottom: 4px;
+  }
+
+  .line-chip {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    min-height: 44px;
+    padding: 12px 14px;
+  }
+
+  .line-cell {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .under-line-grid {
+    grid-template-columns: 1fr;
+  }
 }

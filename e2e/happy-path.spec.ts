@@ -771,7 +771,7 @@ test.describe("portfolio happy path", () => {
     }
   });
 
-  test("ecosystem canvases open detail panel on node select", async ({
+  test("ecosystem 1b renders the fixed rack and the default Codenames lane", async ({
     page,
   }) => {
     const pageErrors: string[] = [];
@@ -782,220 +782,270 @@ test.describe("portfolio happy path", () => {
     await page.goto("/ecosystem");
 
     await expect(
-      page.getByRole("heading", { name: "How the systems connect." }),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("ecosystem-canvas-system-overview"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("ecosystem-canvas-workflow-renovate"),
-    ).toHaveCount(0);
-    await expect(
-      page.getByTestId("ecosystem-canvas-workflow-editorial"),
-    ).toHaveCount(0);
-
-    const productCanvas = page.getByTestId(
-      "ecosystem-canvas-workflow-product-loop",
-    );
-    await expect(productCanvas).toBeVisible();
-    const edgePaths = productCanvas.locator(".react-flow__edge-path");
-    await expect(edgePaths).toHaveCount(5);
-    await expect
-      .poll(async () => {
-        const boxes = await edgePaths.evaluateAll((paths) =>
-          paths.map((path) => {
-            const box = path.getBoundingClientRect();
-            return box.width + box.height;
-          }),
-        );
-        return boxes.filter((size) => size > 0).length;
-      })
-      .toBeGreaterThan(0);
-
-    const panel = page.getByTestId("ecosystem-detail-panel");
-    await expect(
-      panel.getByRole("heading", { name: "Select a node" }),
+      page.getByRole("heading", {
+        name: "Everything here ships down the same five stages.",
+        level: 1,
+      }),
     ).toBeVisible();
 
-    const productNode = productCanvas
-      .locator(".react-flow__node")
-      .filter({ hasText: "Codenames AI" });
-    await productNode.click();
+    // The rack is a list of exactly the five stages, in the locked order.
+    const rack = page.getByRole("list", { name: "Production stages" });
+    await expect(rack.locator(".line-stage-name")).toHaveText([
+      "Intent",
+      "Agent execution",
+      "Verification",
+      "Judgment",
+      "Evidence",
+    ]);
 
-    await expect(
-      panel.getByRole("heading", { name: "Codenames AI" }),
-    ).toBeVisible();
-    await expect(panel.getByText(/Product improvement loop/i)).toBeVisible();
-    await expect(
-      panel.getByRole("link", { name: "Open project case study" }),
-    ).toHaveAttribute("href", "/projects/codenames-ai");
+    // Exactly one lane, five cells, defaulting to Codenames AI.
+    const lane = page.getByTestId("line-lane");
+    await expect(lane).toHaveCount(1);
+    await expect(lane).toHaveAttribute("data-system", "codenames");
+    await expect(lane.locator(".line-cell")).toHaveCount(5);
 
-    // Evidence outbound links use ExternalLink (new tab + analytics hookup).
-    const overviewCanvas = page.getByTestId("ecosystem-canvas-system-overview");
-    await overviewCanvas.scrollIntoViewIfNeeded();
-    await overviewCanvas
-      .locator(".react-flow__node")
-      .filter({ hasText: "Evidence & outputs" })
-      .first()
-      .click();
-    const evidenceLink = panel.getByRole("link", {
-      name: /DEV\.to/i,
+    const group = page.getByRole("group", {
+      name: "Run a system down the line",
     });
-    await expect(evidenceLink).toBeVisible();
-    await expect(evidenceLink).toHaveAttribute("target", "_blank");
-    await expect(evidenceLink).toHaveAttribute("rel", /noopener/);
+    await expect(group.getByRole("button")).toHaveCount(4);
+    await expect(
+      group.getByRole("button", { name: "Codenames AI" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    for (const name of [
+      "Renovate governance",
+      "Editorial workflow",
+      "This portfolio",
+    ]) {
+      await expect(group.getByRole("button", { name })).toHaveAttribute(
+        "aria-pressed",
+        "false",
+      );
+    }
+    await expect(lane.getByText("Model migration as experiment")).toBeVisible();
+    await expect(lane.getByText("Board-aware domain validators")).toBeVisible();
+
+    // The retired explorer / canvas / entity-inventory presentation is gone.
+    await expect(page.locator(".react-flow")).toHaveCount(0);
+    await expect(page.getByTestId("ecosystem-detail-panel")).toHaveCount(0);
+    await expect(page.getByTestId("ecosystem-inventory-panel")).toHaveCount(0);
+    await expect(
+      page.getByRole("tablist", { name: "Entity kinds" }),
+    ).toHaveCount(0);
+
+    // Implementer provenance strings never ship as visitor copy.
+    await expect(page.locator("body")).not.toContainText("content/");
+    await expect(page.locator("body")).not.toContainText(
+      "openai integration entity",
+    );
 
     expect(pageErrors, pageErrors.join("\n")).toEqual([]);
   });
 
-  test("ecosystem entity inventory filters by kind", async ({ page }) => {
-    await page.goto("/ecosystem");
-
-    const inventory = page.getByTestId("ecosystem-inventory-panel");
-    await inventory.scrollIntoViewIfNeeded();
-
-    const tabs = page.getByRole("tablist", { name: "Entity kinds" });
-    await expect(tabs.getByRole("tab", { name: /Projects/i })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    await expect(inventory.getByText("Codenames AI")).toBeVisible();
-    await expect(inventory.getByText("Renovate classifier")).toHaveCount(0);
-
-    await tabs.getByRole("tab", { name: /Agents/i }).click();
-    await expect(tabs.getByRole("tab", { name: /Agents/i })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    await expect(inventory.getByText("Renovate classifier")).toBeVisible();
-    await expect(inventory.getByText("Codenames AI")).toHaveCount(0);
-  });
-
-  test("ecosystem selection survives switching between canvases", async ({
+  test("ecosystem 1b selector swaps only the lane, leaving rack and under-the-line fixed", async ({
     page,
   }) => {
-    const pageErrors: string[] = [];
-    page.on("pageerror", (error) => {
-      pageErrors.push(String(error));
-    });
-
     await page.goto("/ecosystem");
 
-    async function selectNode(canvasTestId: string, label: string) {
-      const canvas = page.getByTestId(canvasTestId);
-      await canvas.scrollIntoViewIfNeeded();
-      await canvas
-        .locator(".react-flow__node")
-        .filter({ hasText: label })
-        .first()
-        .click();
+    const rack = page.getByRole("list", { name: "Production stages" });
+    const rackNames = await rack.locator(".line-stage-name").allInnerTexts();
+    const rackPass = await rack.locator(".line-stage-pass").allInnerTexts();
+    const underNames = await page.locator(".under-line-name").allInnerTexts();
+
+    const group = page.getByRole("group", {
+      name: "Run a system down the line",
+    });
+    const lane = page.getByTestId("line-lane");
+
+    const cases: Array<{
+      name: string;
+      system: string;
+      first: string;
+      last: string;
+    }> = [
+      {
+        name: "Renovate governance",
+        system: "renovate",
+        first: "Policy file, with stop causes",
+        last: "Two reports, no outcomes claim",
+      },
+      {
+        name: "Editorial workflow",
+        system: "editorial",
+        first: "One card reaches Drafting",
+        last: "15 reports, published by hand",
+      },
+      {
+        name: "This portfolio",
+        system: "portfolio",
+        first: "Plan with authority and topology",
+        last: "This site",
+      },
+      {
+        name: "Codenames AI",
+        system: "codenames",
+        first: "Model migration as experiment",
+        last: "Live product and three reports",
+      },
+    ];
+
+    for (const { name, system, first, last } of cases) {
+      await group.getByRole("button", { name }).click();
+
+      // Exactly one system is pressed, and it is this one.
+      await expect(group.locator('button[aria-pressed="true"]')).toHaveCount(1);
+      await expect(group.getByRole("button", { name })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+
+      // The lane re-fills for that system, still five cells.
+      await expect(lane).toHaveAttribute("data-system", system);
+      await expect(lane.locator(".line-cell")).toHaveCount(5);
+      await expect(lane.getByText(first)).toBeVisible();
+      await expect(lane.getByText(last)).toBeVisible();
+
+      // The rack and the under-the-line strip do not change with selection.
+      await expect(rack.locator(".line-stage-name")).toHaveText(rackNames);
+      await expect(rack.locator(".line-stage-pass")).toHaveText(rackPass);
+      await expect(page.locator(".under-line-name")).toHaveText(underNames);
     }
 
-    await selectNode("ecosystem-canvas-system-overview", "Projects");
+    // Savepoints keeps its prototype flag, in the accent, across selections.
+    const savepoints = page
+      .locator(".under-line-item")
+      .filter({ hasText: "Savepoints" });
+    await expect(savepoints.locator(".under-line-meta")).toHaveText(
+      "prototype · not a shipped surface",
+    );
     await expect(
-      page.getByTestId("ecosystem-detail-panel").getByRole("heading", {
-        name: "Projects",
-      }),
-    ).toBeVisible();
-
-    await selectNode("ecosystem-canvas-workflow-product-loop", "PostHog");
-    await expect(
-      page.getByTestId("ecosystem-detail-panel").getByRole("heading", {
-        name: "PostHog",
-      }),
-    ).toBeVisible();
-
-    await selectNode("ecosystem-canvas-workflow-product-loop", "Codenames AI");
-    await expect(
-      page.getByTestId("ecosystem-detail-panel").getByRole("heading", {
-        name: "Codenames AI",
-      }),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("ecosystem-detail-panel").getByRole("link", {
-        name: "Open project case study",
-      }),
-    ).toHaveAttribute("href", "/projects/codenames-ai");
-
-    expect(pageErrors).toEqual([]);
+      savepoints.locator(".under-line-meta.is-prototype"),
+    ).toHaveCount(1);
   });
 
-  test("ecosystem hash deep link scrolls to a workflow section", async ({
+  test("ecosystem 1b selector is a single-select group reachable by keyboard", async ({
     page,
   }) => {
-    await page.goto("/ecosystem#workflow-product-loop");
-
-    const section = page.locator("#workflow-product-loop");
-    await expect(
-      section.getByRole("heading", { name: "Product improvement loop" }),
-    ).toBeVisible();
-    await expect(section).toBeInViewport();
-    await expect(
-      page.getByTestId("ecosystem-talk-track-workflow-product-loop"),
-    ).toBeVisible();
-    await expect(section).toBeFocused();
-
-    await page.evaluate(() => {
-      window.location.hash = "system-overview";
-    });
-    const overview = page.locator("#system-overview");
-    await expect(
-      overview.getByRole("heading", { name: "System overview" }),
-    ).toBeVisible();
-    await expect(overview).toBeInViewport();
-    await expect(overview).toBeFocused();
-  });
-
-  test("ecosystem Escape clears the detail selection", async ({ page }) => {
     await page.goto("/ecosystem");
 
-    const canvas = page.getByTestId("ecosystem-canvas-workflow-product-loop");
-    await canvas.scrollIntoViewIfNeeded();
-    await canvas
-      .locator(".react-flow__node")
-      .filter({ hasText: "Codenames AI" })
-      .first()
-      .click();
+    const group = page.getByRole("group", {
+      name: "Run a system down the line",
+    });
+    const codenames = group.getByRole("button", { name: "Codenames AI" });
 
-    const panel = page.getByTestId("ecosystem-detail-panel");
-    await expect(
-      panel.getByRole("heading", { name: "Codenames AI" }),
-    ).toBeVisible();
+    // The lane region announces changes politely.
+    await expect(page.locator(".line-lane-region")).toHaveAttribute(
+      "aria-live",
+      "polite",
+    );
 
-    await page.keyboard.press("Escape");
+    // Clicking the already-selected chip does not clear the selection.
+    await codenames.click();
+    await expect(codenames).toHaveAttribute("aria-pressed", "true");
+    await expect(group.locator('button[aria-pressed="true"]')).toHaveCount(1);
+
+    // A keyboard-focused chip shows a visible focus ring (>= 2px outline)...
+    await codenames.focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    await expect(codenames).toBeFocused();
+    const ring = await codenames.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return {
+        style: style.outlineStyle,
+        width: parseFloat(style.outlineWidth),
+      };
+    });
+    expect(ring.style).not.toBe("none");
+    expect(ring.width).toBeGreaterThanOrEqual(2);
+
+    // ...and Tab advances through the chips in DOM order.
+    await page.keyboard.press("Tab");
     await expect(
-      panel.getByRole("heading", { name: "Select a node" }),
-    ).toBeVisible();
+      group.getByRole("button", { name: "Renovate governance" }),
+    ).toBeFocused();
   });
 
-  test("mobile ecosystem detail appears beside the selected canvas", async ({
+  test("ecosystem 1b restacks into per-stage rows at 920px", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 900, height: 1000 });
+    await page.goto("/ecosystem");
+
+    // The horizontal rack is hidden; each cell restates its own stage header.
+    await expect(page.locator(".line-rack")).toBeHidden();
+    const firstCellStage = page.locator(".line-cell .line-cell-stage").first();
+    await expect(firstCellStage).toBeVisible();
+    await expect(firstCellStage.locator(".line-stage-name")).toHaveText(
+      "Intent",
+    );
+
+    // The lane is a single column: all five cells share one left edge.
+    const lefts = await page
+      .locator(".line-cell")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => Math.round(node.getBoundingClientRect().left)),
+      );
+    expect(lefts).toHaveLength(5);
+    expect(new Set(lefts).size).toBe(1);
+
+    // Selecting a system still swaps the lane; the stage header is unchanged.
+    await page.getByRole("button", { name: "Editorial workflow" }).click();
+    await expect(page.getByTestId("line-lane")).toHaveAttribute(
+      "data-system",
+      "editorial",
+    );
+    await expect(
+      page.locator(".line-cell-stage .line-stage-name").first(),
+    ).toHaveText("Intent");
+  });
+
+  test("ecosystem 1b at 375px scrolls chips, meets 44px targets, and never overflows", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/ecosystem");
 
-    const productCanvas = page.getByTestId(
-      "ecosystem-canvas-workflow-product-loop",
+    const overflowX = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
     );
-    await productCanvas.scrollIntoViewIfNeeded();
+    expect(overflowX).toBe(false);
 
-    const productNode = productCanvas
-      .locator(".react-flow__node")
-      .filter({ hasText: "Codenames AI" });
-    await productNode.click();
+    // Chips meet the 44px tap-target floor.
+    const chipHeights = await page
+      .locator(".line-chip")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => node.getBoundingClientRect().height),
+      );
+    expect(chipHeights).toHaveLength(4);
+    for (const height of chipHeights) {
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
 
-    const inlinePanel = page.getByTestId("ecosystem-detail-inline");
-    const heading = inlinePanel.getByRole("heading", { name: "Codenames AI" });
-    await expect(heading).toBeVisible();
-    await expect(heading).toBeInViewport();
+    // The chip row is a horizontal scroll rail, not a wrap.
+    const overflowStyle = await page
+      .locator(".line-chips")
+      .evaluate((node) => getComputedStyle(node).overflowX);
+    expect(overflowStyle).toBe("auto");
 
-    const productSection = page.locator("#workflow-product-loop");
-    await expect(
-      productSection.getByTestId("ecosystem-detail-inline"),
-    ).toBeVisible();
-    await expect(
-      page.locator("#system-overview").getByTestId("ecosystem-detail-inline"),
-    ).toHaveCount(0);
+    // Under the line collapses to a single column.
+    const underLefts = await page
+      .locator(".under-line-item")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => Math.round(node.getBoundingClientRect().left)),
+      );
+    expect(underLefts).toHaveLength(4);
+    expect(new Set(underLefts).size).toBe(1);
+
+    // Selection still works and introduces no horizontal overflow.
+    await page.getByRole("button", { name: "This portfolio" }).click();
+    await expect(page.getByTestId("line-lane")).toHaveAttribute(
+      "data-system",
+      "portfolio",
+    );
+    const overflowAfter = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
+    expect(overflowAfter).toBe(false);
   });
 
   test("project pages render migrated workflow diagrams on desktop", async ({
