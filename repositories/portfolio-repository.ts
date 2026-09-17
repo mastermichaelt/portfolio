@@ -5,6 +5,7 @@ import type { Homepage } from "@/domain/homepage";
 import type { Profile } from "@/domain/profile";
 import type { Project } from "@/domain/project";
 import type { ProjectCase } from "@/domain/project-case";
+import type { SupportingCase } from "@/domain/supporting-case";
 import type { ProductionLine } from "@/domain/production-line";
 import type { ProjectsIndex } from "@/domain/projects-index";
 import type { Relationship } from "@/domain/relationships";
@@ -25,6 +26,9 @@ export interface PortfolioRepository {
   /** Co-primary case studies rendered with the 1C detail template. */
   listProjectCases(): Promise<ProjectCase[]>;
   getProjectCase(slug: string): Promise<ProjectCase | null>;
+  /** Supporting-tier case studies with a static architecture figure. */
+  listSupportingCases(): Promise<SupportingCase[]>;
+  getSupportingCase(slug: string): Promise<SupportingCase | null>;
   /** Generic project inventory rendered with the standard case-study template. */
   listProjects(): Promise<Project[]>;
   getProject(slug: string): Promise<Project | null>;

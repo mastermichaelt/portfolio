@@ -303,6 +303,17 @@
   color: var(--accent);
 }
 
+/* Supporting tier: the identifier slot carries the tier word in --muted;
+   amber CH numerals stay reserved for the two co-primary channels. */
+.pcase-tier {
+  margin: 0 0 var(--gap-xs);
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .pcase-meta-lines {
   margin: 0;
   font-family: var(--font-mono-stack);
@@ -486,6 +497,20 @@
   font-weight: 500;
 }
 
+/* Supporting-block opening line: lead scale at 56ch, in --fg-2. */
+.pcase-block-lead {
+  margin: 0;
+  font-size: var(--fs-lead);
+  line-height: 1.55;
+  color: var(--fg-2);
+  max-width: 56ch;
+}
+
+.pcase-block-lead + .pcase-block-body,
+.pcase-block-lead + .pcase-contract {
+  margin-top: 16px;
+}
+
 .pcase-block-body {
   margin: 0 0 16px;
   font-size: 15px;
@@ -620,6 +645,384 @@
   color: var(--accent);
 }
 
+/* ==================================================== Architecture ===== */
+
+/* The architecture block drops the narrative/gutter split and takes the full
+   content column, so it reads visibly wider than every prose block. */
+.pcase-arch-block .pcase-block-head {
+  margin-bottom: 18px;
+}
+
+.pcase-arch-view-title {
+  margin: 0 0 16px;
+  font-size: var(--fs-h2);
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+  max-width: 34ch;
+}
+
+.pcase-arch-view-summary {
+  max-width: 60ch;
+}
+
+/* Interview talk track behind a 2px --border-strong left rule. */
+.pcase-arch-talk {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid var(--border-strong);
+  color: var(--fg-2);
+  max-width: 62ch;
+}
+
+.pcase-arch-talk-label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-mono-stack);
+  font-size: 10.5px;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Two edge weights, one stroke. Reused by edges, the legend and the stack. */
+.pcase-arch {
+  --arch-edge: color-mix(in oklch, var(--fg) 42%, var(--border));
+  margin-top: 34px;
+}
+
+/* Figure head rule: figure id left, counts and provenance right. */
+.pcase-arch-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 22px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The canvas frame — the figure viewport. The artboard inside is fitted to it
+   by a uniform scale (see ArchitectureFigure). Only a horizontal scrollbar can
+   appear, and only when the column is below 0.80x the intrinsic width. The
+   vertical axis is explicitly `hidden`, not `visible`: paired with a scrolling
+   x-axis the browser would compute a `visible` y as `auto`, so a classic
+   horizontal scrollbar (which steals ~15px of height in the below-floor state)
+   would spawn a spurious vertical scrollbar. The figure always fits its artboard
+   vertically — the deepest content sits ~27px above the artboard floor — so
+   `hidden` clips only that empty bottom padding, never a node, label or outline. */
+.pcase-arch-canvas {
+  position: relative;
+  border: 1px solid var(--border);
+  border-top: none;
+  background: var(--bg);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Sizing box: carries the rendered (scaled) dimensions so surrounding block
+   geometry and the frame's scroll width reflect the fitted figure, not the
+   intrinsic artboard. Centres when the figure is narrower than the frame. */
+.pcase-arch-sizer {
+  position: relative;
+  margin-inline: auto;
+}
+
+/* Intrinsic coordinate space, taken out of flow and scaled from its top-left so
+   its rendered box equals the sizing box. transform: scale(s) is set inline. */
+.pcase-arch-artboard {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.pcase-arch-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: none;
+  pointer-events: none;
+}
+
+.pcase-arch-edge {
+  fill: none;
+  stroke: var(--arch-edge);
+  stroke-width: 1.75;
+}
+
+.pcase-arch-edge.is-dashed {
+  stroke-width: 1.25;
+  stroke-dasharray: 4 3;
+}
+
+.pcase-arch-arrowhead {
+  fill: var(--arch-edge);
+}
+
+.pcase-arch-edge-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: var(--bg);
+  padding: 0 6px;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Node: --surface box, hairline border, chip + ordinal row, label, subtitle.
+   No per-kind fill, no icon, no radius. Rendered as a button. */
+.pcase-arch-node {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+}
+
+.pcase-arch-node:hover {
+  border-color: var(--border-strong);
+}
+
+/* Selection is the only amber in the figure; no fill, scale or shadow. */
+.pcase-arch-node.is-selected {
+  border-color: var(--accent);
+}
+
+.pcase-arch-canvas-node {
+  position: absolute;
+  width: 168px;
+  height: 104px;
+}
+
+.pcase-arch-node-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
+.pcase-arch-node-kind {
+  font-family: var(--font-mono-stack);
+  /* 11px — the architecture family's mono register (ordinal, subtitle, edge
+     label), not an isolated 10px. Renders ~8.8px at the locked 0.80 floor. */
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+}
+
+.pcase-arch-node-ord {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pcase-arch-node-label {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--fg);
+}
+
+.pcase-arch-node-sub {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+/* Local detail strip — always present, shared border with the canvas. */
+.pcase-arch-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 22px;
+  padding: 22px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+}
+
+.pcase-arch-strip-label {
+  flex: 0 1 180px;
+}
+
+.pcase-arch-strip-eyebrow {
+  margin: 0 0 10px;
+  font-family: var(--font-mono-stack);
+  font-size: 10.5px;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pcase-arch-strip-kind {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pcase-arch-strip-body {
+  flex: 1 1 520px;
+  min-width: 0;
+  padding-left: 22px;
+  border-left: 1px solid var(--border);
+}
+
+.pcase-arch-strip-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.pcase-arch-strip-sub {
+  margin: 4px 0 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pcase-arch-strip-summary {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--fg-2);
+  max-width: 62ch;
+}
+
+.pcase-arch-strip-evidence {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.pcase-arch-strip-evlink {
+  font-family: var(--font-mono-stack);
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.pcase-arch-strip-evmuted {
+  font-family: var(--font-mono-stack);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Legend register under the strip: two weights and this diagram's kinds. */
+.pcase-arch-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px 40px;
+  padding: 16px 0 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.pcase-arch-legend-line {
+  display: inline-block;
+  width: 22px;
+  border-top: 1.75px solid var(--arch-edge);
+  transform: translateY(-4px);
+  margin-right: 8px;
+}
+
+.pcase-arch-legend-line.is-dashed {
+  border-top-width: 1.25px;
+  border-top-style: dashed;
+}
+
+/* Return row: back to contents left, next block right; architecture detail
+   always exits into the case study. */
+.pcase-arch-return {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+}
+
+.pcase-arch-return-back {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
+}
+
+.pcase-arch-return-back:hover {
+  color: var(--fg);
+}
+
+.pcase-arch-return-fwd {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--accent);
+}
+
+.pcase-arch-return-fwd:hover {
+  color: var(--fg);
+}
+
+/* Narrow stack — replaces the canvas at <=740px, never scales it. */
+.pcase-arch-stack {
+  display: none;
+}
+
+.pcase-arch-stack-node {
+  width: 100%;
+}
+
+.pcase-arch-stack-connector {
+  margin: 0;
+  padding: 8px 0 8px 14px;
+  border-left: 1px solid var(--arch-edge);
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pcase-arch-stack-connector.is-dashed {
+  border-left-style: dashed;
+}
+
+.pcase-arch-stack-connector.is-indent,
+.pcase-arch-stack-node.is-indent {
+  margin-left: 20px;
+}
+
+/* The node is width:100%, so the 20px indent above must be reclaimed from its
+   width or its right edge overruns the content column (connectors are auto-width
+   blocks and already align). Keeps the left indent; right edge stays on column. */
+.pcase-arch-stack-node.is-indent {
+  width: calc(100% - 20px);
+}
+
 /* ======================================================= Responsive ===== */
 
 @media (max-width: 920px) {
@@ -681,5 +1084,21 @@
   .pcase-block-grid {
     grid-template-columns: 1fr;
     gap: var(--gap-md);
+  }
+}
+
+/* The architecture canvas is replaced by the stack — not scaled — at <=740px,
+   so no artboard scrolls sideways. The head, strip, legend and return hold. */
+@media (max-width: 740px) {
+  .pcase-arch-canvas {
+    display: none;
+  }
+
+  .pcase-arch-stack {
+    display: block;
+  }
+
+  .pcase-arch-strip {
+    border-top: 1px solid var(--border);
   }
 }

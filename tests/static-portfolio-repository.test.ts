@@ -158,6 +158,23 @@ vi.mock("@/content/project-cases", () => ({
   ],
 }));
 
+vi.mock("@/content/supporting-cases", () => ({
+  supportingCases: [
+    {
+      slug: "test-supporting",
+      name: "Test supporting",
+      header: { tier: "Supporting", lines: ["Line"] },
+      title: "Test supporting",
+      lead: "Lead paragraph.",
+      aside: { label: "Aside", lines: ["Line"], note: "Note." },
+      blocks: [],
+      elsewhere: [],
+      artifacts: { label: "Artifacts", rows: [], closing: [] },
+    },
+  ],
+  supportingCaseSourceProse: {},
+}));
+
 vi.mock("@/content/projects-index", () => ({
   projectsIndex: {
     hero: { eyebrow: "Eyebrow", title: "Title", lead: "Lead" },
@@ -198,6 +215,7 @@ import { profile } from "@/content/profile";
 import { productionLine } from "@/content/production-line";
 import { projectCases } from "@/content/project-cases";
 import { projects } from "@/content/projects";
+import { supportingCases } from "@/content/supporting-cases";
 import { projectsIndex } from "@/content/projects-index";
 import { timelineEvents } from "@/content/timeline";
 import { StaticPortfolioRepository } from "@/repositories/static-portfolio-repository";
@@ -251,6 +269,22 @@ describe("StaticPortfolioRepository", () => {
 
   it("returns null for an unknown project case slug", async () => {
     await expect(repository.getProjectCase("missing")).resolves.toBeNull();
+  });
+
+  it("lists supporting cases from the static content module", async () => {
+    await expect(repository.listSupportingCases()).resolves.toEqual(
+      supportingCases,
+    );
+  });
+
+  it("returns a supporting case when the slug matches", async () => {
+    await expect(
+      repository.getSupportingCase("test-supporting"),
+    ).resolves.toEqual(supportingCases[0]);
+  });
+
+  it("returns null for an unknown supporting case slug", async () => {
+    await expect(repository.getSupportingCase("missing")).resolves.toBeNull();
   });
 
   it("lists articles from the static content module", async () => {

@@ -1,16 +1,6 @@
-import { MarkerType, type Edge, type Node } from "@xyflow/react";
-
 import type { Entity } from "@/domain/entities";
 import type { Evidence } from "@/domain/evidence";
 import type { WorkflowNode, WorkflowView } from "@/domain/workflow-view";
-
-export type EcosystemNodeData = {
-  label: string;
-  subtitle?: string;
-  kind: WorkflowNode["kind"];
-  entityId?: string;
-  relatedProjectSlug?: string;
-};
 
 export type EcosystemDetailModel = {
   nodeId: string;
@@ -23,47 +13,6 @@ export type EcosystemDetailModel = {
   sourceViewId: string;
   sourceViewTitle: string;
 };
-
-export function toEcosystemFlowNodes(
-  view: WorkflowView,
-): Node<EcosystemNodeData>[] {
-  return view.nodes.map((node) => ({
-    id: node.id,
-    type: "ecosystem",
-    position: { ...node.position },
-    data: {
-      label: node.label,
-      subtitle: node.subtitle,
-      kind: node.kind,
-      entityId: node.entityId,
-      relatedProjectSlug: node.relatedProjectSlug,
-    },
-    draggable: false,
-    connectable: false,
-    deletable: false,
-    focusable: true,
-    ariaLabel: node.subtitle ? `${node.label}, ${node.subtitle}` : node.label,
-  }));
-}
-
-export function toEcosystemFlowEdges(view: WorkflowView): Edge[] {
-  return view.edges.map((edge) => ({
-    id: edge.id,
-    source: edge.source,
-    target: edge.target,
-    label: edge.label,
-    sourceHandle: edge.sourceHandle,
-    targetHandle: edge.targetHandle,
-    type: "smoothstep",
-    deletable: false,
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-      width: 16,
-      height: 16,
-      color: "var(--ecosystem-edge-stroke, #8a847c)",
-    },
-  }));
-}
 
 export function findWorkflowNode(
   views: WorkflowView[],
@@ -99,25 +48,10 @@ export function resolveEcosystemDetail(input: {
     kind: node.kind,
     summary: entity?.summary,
     relatedProjectSlug: node.relatedProjectSlug ?? entity?.relatedProjectSlug,
+    // A node shows evidence only where its own entity carries it — never the
+    // project-level evidence. (Handoff evidence constraint 06.)
     evidence: entity?.evidence ?? [],
     sourceViewId: view.id,
     sourceViewTitle: view.title,
   };
-}
-
-export type EcosystemSelection = {
-  viewId: string;
-  nodeId: string;
-} | null;
-
-/** Apply a canvas selection/clear without letting other canvases wipe active detail. */
-export function nextEcosystemSelection(
-  current: EcosystemSelection,
-  viewId: string,
-  nodeId: string | null,
-): EcosystemSelection {
-  if (!nodeId) {
-    return current?.viewId === viewId ? null : current;
-  }
-  return { viewId, nodeId };
 }
