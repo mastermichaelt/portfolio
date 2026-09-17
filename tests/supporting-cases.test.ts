@@ -43,9 +43,9 @@ describe("supporting-tier cases", () => {
       expect(before.category).toBe("System");
       const arch = entry.blocks[archIndex]!;
       expect(arch.navLabel).toBe("Architecture");
-      if (arch.type === "architecture") {
-        expect(arch.viewSlug).toBe(entry.slug);
-      }
+      // The figure resolves its workflow from the supporting-case slug alone —
+      // the block carries no independent view selector.
+      expect(arch).not.toHaveProperty("viewSlug");
     }
   });
 

@@ -3,6 +3,7 @@
 import {
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type MouseEvent,
@@ -59,10 +60,14 @@ export function ArchitectureFigure({
 }: ArchitectureFigureProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
-  const geometry = buildFigureGeometry(view);
-  const narrowRows = narrowLayoutFor(view);
-  const entitiesById = new Map(
-    entities.map((entity) => [entity.id, entity] as const),
+  // Geometry, narrow layout and entity index are pure functions of the
+  // immutable view/entities. Memoize so selection toggles and ResizeObserver
+  // fit-scale updates re-render without rebuilding edge routing or the index.
+  const geometry = useMemo(() => buildFigureGeometry(view), [view]);
+  const narrowRows = useMemo(() => narrowLayoutFor(view), [view]);
+  const entitiesById = useMemo(
+    () => new Map(entities.map((entity) => [entity.id, entity] as const)),
+    [entities],
   );
   const markerId = `arch-arrow-${view.id}`;
 

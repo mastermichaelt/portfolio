@@ -53,8 +53,6 @@ export interface SupportingArchitectureBlock {
   ordinal: string;
   category: string;
   navLabel: string;
-  /** The project slug whose `projectWorkflowViewsBySlug` view this renders. */
-  viewSlug: string;
   /** Figure-head provenance, e.g. `migrated from /ecosystem`. */
   provenance: string;
   /** Detail-strip census shown when no node is selected. */

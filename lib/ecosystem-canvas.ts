@@ -55,20 +55,3 @@ export function resolveEcosystemDetail(input: {
     sourceViewTitle: view.title,
   };
 }
-
-export type EcosystemSelection = {
-  viewId: string;
-  nodeId: string;
-} | null;
-
-/** Apply a canvas selection/clear without letting other canvases wipe active detail. */
-export function nextEcosystemSelection(
-  current: EcosystemSelection,
-  viewId: string,
-  nodeId: string | null,
-): EcosystemSelection {
-  if (!nodeId) {
-    return current?.viewId === viewId ? null : current;
-  }
-  return { viewId, nodeId };
-}

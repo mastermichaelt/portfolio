@@ -109,7 +109,6 @@ const editorialWorkflow: SupportingCase = {
       ordinal: "04",
       category: "Architecture",
       navLabel: "Architecture",
-      viewSlug: "editorial-workflow",
       provenance: "migrated from /ecosystem",
       defaultSub: "Eight operator skills and one public output",
       defaultSummary:
@@ -247,7 +246,6 @@ const renovateGovernance: SupportingCase = {
       ordinal: "02",
       category: "Architecture",
       navLabel: "Architecture",
-      viewSlug: "renovate-governance",
       provenance: "migrated from /ecosystem",
       defaultSub: "Three agents, one routing step, one governance gate",
       defaultSummary:

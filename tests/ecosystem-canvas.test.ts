@@ -4,7 +4,6 @@ import { entities, workflowViews } from "@/content/ecosystem";
 import { projectWorkflowViewsBySlug } from "@/content/project-workflows";
 import {
   findWorkflowNode,
-  nextEcosystemSelection,
   resolveEcosystemDetail,
 } from "@/lib/ecosystem-canvas";
 
@@ -100,24 +99,5 @@ describe("workflow detail resolver", () => {
         expect(detail?.evidence).toEqual([]);
       }
     }
-  });
-
-  it("keeps active selection when another canvas emits a clear", () => {
-    const current = {
-      viewId: "workflow-product-loop",
-      nodeId: "node-product",
-    };
-    expect(nextEcosystemSelection(current, "workflow-editorial", null)).toEqual(
-      current,
-    );
-    expect(
-      nextEcosystemSelection(current, "workflow-product-loop", null),
-    ).toBeNull();
-    expect(
-      nextEcosystemSelection(current, "system-overview", "layer-projects"),
-    ).toEqual({
-      viewId: "system-overview",
-      nodeId: "layer-projects",
-    });
   });
 });

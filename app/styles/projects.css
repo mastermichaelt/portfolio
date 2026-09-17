@@ -709,14 +709,20 @@
 
 /* The canvas frame — the figure viewport. The artboard inside is fitted to it
    by a uniform scale (see ArchitectureFigure). Only a horizontal scrollbar can
-   appear, and only when the column is below 0.80x the intrinsic width. */
+   appear, and only when the column is below 0.80x the intrinsic width. The
+   vertical axis is explicitly `hidden`, not `visible`: paired with a scrolling
+   x-axis the browser would compute a `visible` y as `auto`, so a classic
+   horizontal scrollbar (which steals ~15px of height in the below-floor state)
+   would spawn a spurious vertical scrollbar. The figure always fits its artboard
+   vertically — the deepest content sits ~27px above the artboard floor — so
+   `hidden` clips only that empty bottom padding, never a node, label or outline. */
 .pcase-arch-canvas {
   position: relative;
   border: 1px solid var(--border);
   border-top: none;
   background: var(--bg);
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: hidden;
 }
 
 /* Sizing box: carries the rendered (scaled) dimensions so surrounding block
