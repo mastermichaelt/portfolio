@@ -1048,6 +1048,27 @@ test.describe("portfolio happy path", () => {
     expect(overflowAfter).toBe(false);
   });
 
+  test("ecosystem 1b animates the lane only after a selection change", async ({
+    page,
+  }) => {
+    await page.goto("/ecosystem");
+
+    const lane = page.getByTestId("line-lane");
+    // The default lane is rendered without the swap-transition class...
+    await expect(lane).not.toHaveClass(/\bis-swapping\b/);
+
+    // ...selecting a different system puts the rendered lane into the swap
+    // state...
+    await page.getByRole("button", { name: "Renovate governance" }).click();
+    await expect(lane).toHaveAttribute("data-system", "renovate");
+    await expect(lane).toHaveClass(/\bis-swapping\b/);
+
+    // ...and selecting another different system keeps triggering it.
+    await page.getByRole("button", { name: "Editorial workflow" }).click();
+    await expect(lane).toHaveAttribute("data-system", "editorial");
+    await expect(lane).toHaveClass(/\bis-swapping\b/);
+  });
+
   test("ecosystem 1b renders the complete default lane with JavaScript disabled", async ({
     browser,
     baseURL,
