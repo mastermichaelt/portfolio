@@ -838,6 +838,19 @@ test.describe("portfolio happy path", () => {
       "openai integration entity",
     );
 
+    // The rack and lane share column geometry: a stage column and a lane cell
+    // are the same width, so the gate hairlines line up with the cell
+    // separators beneath them rather than drifting apart.
+    const stageWidth = await page
+      .locator(".line-rack .line-stage")
+      .first()
+      .evaluate((el) => el.getBoundingClientRect().width);
+    const cellWidth = await lane
+      .locator(".line-cell")
+      .first()
+      .evaluate((el) => el.getBoundingClientRect().width);
+    expect(Math.abs(stageWidth - cellWidth)).toBeLessThan(1);
+
     expect(pageErrors, pageErrors.join("\n")).toEqual([]);
   });
 
@@ -987,6 +1000,18 @@ test.describe("portfolio happy path", () => {
       );
     expect(lefts).toHaveLength(5);
     expect(new Set(lefts).size).toBe(1);
+
+    // The selector chips meet the 44px hit-target floor across the whole
+    // <=920px touch layout, not only at <=600px.
+    const chipHeights = await page
+      .locator(".line-chip")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => node.getBoundingClientRect().height),
+      );
+    expect(chipHeights).toHaveLength(4);
+    for (const height of chipHeights) {
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
 
     // Selecting a system still swaps the lane; the stage header is unchanged.
     await page.getByRole("button", { name: "Editorial workflow" }).click();

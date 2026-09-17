@@ -57,6 +57,17 @@
   --fs-body: 15px;
   --fs-meta: 12px;
   --fs-label: 10.5px;
+  /* Ecosystem "line" register — the production-line rack, lane cells and
+     under-the-line cards. These sizes are fixed (not on the fluid heading
+     scale) and sit in the gap between --fs-meta and --fs-body, or just above.
+     Named rather than inlined per DESIGN.md's no-one-off-sizes rule, like
+     --fs-statement / --fs-claim. Values are the locked 1b artboard's, preserved
+     exactly; --fs-body (cell title) and --fs-meta (chip) are reused as-is. */
+  --fs-stage: 20px;
+  --fs-technical: 11px;
+  --fs-cell: 13.5px;
+  --fs-card: 14px;
+  --fs-card-body: 13px;
 
   --tracking-tight: -0.035em;
   --tracking-label: 0.14em;

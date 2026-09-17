@@ -292,32 +292,36 @@
 }
 
 /* Rack — fixed and identical across every selection. Sits under one --rule
-   hairline; column dividers are --border. */
+   hairline; column dividers are the 1px gaps over --border, matching the lane's
+   grid exactly (same track widths, same 1px box) so the gate hairlines line up
+   with the lane cell separators beneath them. The l/r/bottom border is a
+   transparent 1px purely for that column geometry; background-clip keeps the
+   --border ground out of it, so only the gaps and the top --rule show. */
 .line-rack {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  border-top: 1px solid var(--rule);
+  gap: 1px;
+  background: var(--border);
+  background-clip: padding-box;
+  border: 1px solid transparent;
+  border-top-color: var(--rule);
 }
 
 .line-stage {
   padding: 26px 24px;
-  border-right: 1px solid var(--border);
-}
-
-.line-stage:last-child {
-  border-right: none;
+  background: var(--bg);
 }
 
 .line-stage-code {
   font-family: var(--font-mono-stack);
-  font-size: 11px;
+  font-size: var(--fs-technical);
   letter-spacing: 0.12em;
   color: var(--accent);
   margin: 0 0 10px;
 }
 
 .line-stage-name {
-  font-size: 20px;
+  font-size: var(--fs-stage);
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -326,7 +330,7 @@
 
 .line-stage-pass {
   font-family: var(--font-mono-stack);
-  font-size: 11px;
+  font-size: var(--fs-technical);
   line-height: 1.55;
   color: var(--muted-strong);
   margin: 0;
@@ -373,10 +377,8 @@
   color: var(--accent-ink);
 }
 
-.line-chip:focus-visible {
-  outline: 2px solid var(--fg);
-  outline-offset: 2px;
-}
+/* Focus ring is the portfolio-wide amber 2px / 3px-offset treatment from
+   base.css — the chips take no bespoke override. */
 
 /* Lane — only these five cells swap on selection. */
 .line-lane-region {
@@ -419,26 +421,26 @@
 
 .line-cell-label {
   font-family: var(--font-mono-stack);
-  font-size: 11px;
+  font-size: var(--fs-technical);
   color: var(--muted);
   margin: 0 0 10px;
 }
 
 .line-cell-title {
-  font-size: 15px;
+  font-size: var(--fs-body);
   font-weight: 600;
   margin: 0 0 8px;
 }
 
 .line-cell-text {
-  font-size: 13.5px;
+  font-size: var(--fs-cell);
   line-height: 1.5;
   color: var(--fg-2);
   margin: 0;
 }
 
 .line-cell-empty {
-  font-size: 13.5px;
+  font-size: var(--fs-cell);
   line-height: 1.5;
   color: var(--muted);
   margin: 0;
@@ -470,13 +472,13 @@
 }
 
 .under-line-name {
-  font-size: 14px;
+  font-size: var(--fs-card);
   font-weight: 600;
   margin: 0 0 6px;
 }
 
 .under-line-text {
-  font-size: 13px;
+  font-size: var(--fs-card-body);
   line-height: 1.5;
   color: var(--fg-2);
   margin: 0 0 8px;
@@ -484,7 +486,7 @@
 
 .under-line-meta {
   font-family: var(--font-mono-stack);
-  font-size: 11px;
+  font-size: var(--fs-technical);
   color: var(--muted);
   margin: 0;
 }
@@ -505,6 +507,12 @@
     align-items: flex-start;
     gap: 14px;
     margin-top: 0;
+  }
+
+  /* Touch layout: chips meet the 44px minimum hit target across the whole
+     stacked selector, not just at <=600px. */
+  .line-chip {
+    min-height: 44px;
   }
 
   .line-lane {
@@ -558,7 +566,6 @@
   .line-chip {
     flex: 0 0 auto;
     white-space: nowrap;
-    min-height: 44px;
     padding: 12px 14px;
   }
 
