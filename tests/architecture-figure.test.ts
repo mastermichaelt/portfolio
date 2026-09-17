@@ -56,6 +56,24 @@ describe("architecture figure geometry", () => {
     expect(nodeOrdinalMap(renovate).get("node-merge-gates")).toBe("05");
   });
 
+  it("emits wide-figure node boxes in ordinal reading order (DOM/tab order)", () => {
+    for (const view of views) {
+      // geometry.nodes is the order the wide figure renders its buttons, so it
+      // is the keyboard tab order. It must be 01..0N — not source-array order,
+      // where Editorial's Refresh (04) is authored first and would focus first.
+      const geometry = buildFigureGeometry(view);
+      expect(geometry.nodes.map((box) => box.ordinal)).toEqual(
+        view.nodes.map((_, index) => String(index + 1).padStart(2, "0")),
+      );
+      // And it matches the narrow stack's node reading order exactly, so both
+      // representations traverse the workflow in the same sequence.
+      const stackNodeIds = narrowLayoutFor(view)
+        .filter((row): row is NarrowNodeRow => row.type === "node")
+        .map((row) => row.nodeId);
+      expect(geometry.nodes.map((box) => box.id)).toEqual(stackNodeIds);
+    }
+  });
+
   it("renders every edge once, with source labels and directions intact", () => {
     for (const view of views) {
       const geometry = buildFigureGeometry(view);

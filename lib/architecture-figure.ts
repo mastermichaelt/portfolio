@@ -228,21 +228,33 @@ function edgePath(view: WorkflowView, edge: WorkflowEdge): FigureEdgePath {
   };
 }
 
+/** Numeric sort key for a padded ordinal string; unknown ("—") sorts last. */
+function ordinalRank(ordinal: string): number {
+  const n = Number.parseInt(ordinal, 10);
+  return Number.isNaN(n) ? Number.POSITIVE_INFINITY : n;
+}
+
 export function buildFigureGeometry(view: WorkflowView): FigureGeometry {
   const artboard = ARTBOARDS[view.id];
   const ordinals = nodeOrdinalMap(view);
-  const nodes: FigureNodeBox[] = view.nodes.map((node) => {
-    const box = boxFor(view, node.id);
-    return {
-      id: node.id,
-      left: box.left,
-      top: box.top,
-      ordinal: ordinals.get(node.id) ?? "—",
-      kind: node.kind,
-      label: node.label,
-      subtitle: node.subtitle,
-    };
-  });
+  const nodes: FigureNodeBox[] = view.nodes
+    .map((node) => {
+      const box = boxFor(view, node.id);
+      return {
+        id: node.id,
+        left: box.left,
+        top: box.top,
+        ordinal: ordinals.get(node.id) ?? "—",
+        kind: node.kind,
+        label: node.label,
+        subtitle: node.subtitle,
+      };
+    })
+    // Emit nodes in ordinal (reading) order, not source-array order. Boxes are
+    // absolutely positioned by left/top, so this changes DOM/tab order only —
+    // keyboard focus then follows 01→N, matching the narrow stack and the
+    // rendered numbering. Nodes without an ordinal sort to the end.
+    .sort((a, b) => ordinalRank(a.ordinal) - ordinalRank(b.ordinal));
   const edges = view.edges.map((edge) => edgePath(view, edge));
 
   // Fall back to node extent + symmetric padding if a view is not in the

@@ -1183,6 +1183,25 @@ test.describe("portfolio happy path", () => {
       }),
     ).toBeVisible();
 
+    // DOM order of the canvas node buttons is the keyboard tab order. It must
+    // follow the ordinal reading order (01..09) — not the source-array order,
+    // where Editorial's Refresh (04) is authored first. This is what makes a
+    // keyboard user enter the figure at Capture, not Refresh.
+    const editorialOrdinals = await page
+      .locator(".pcase-arch-canvas [data-node] .pcase-arch-node-ord")
+      .allInnerTexts();
+    expect(editorialOrdinals).toEqual([
+      "01",
+      "02",
+      "03",
+      "04",
+      "05",
+      "06",
+      "07",
+      "08",
+      "09",
+    ]);
+
     // The strip defaults to the census, then resolves a selected node.
     const strip = page.getByTestId("architecture-detail-strip");
     await expect(strip).toContainText(
@@ -1206,6 +1225,13 @@ test.describe("portfolio happy path", () => {
     await expect(
       page.getByText("Renovate governance ladder").first(),
     ).toBeVisible();
+
+    // Renovate's canvas node buttons are likewise emitted in ordinal order.
+    const renovateOrdinals = await page
+      .locator(".pcase-arch-canvas [data-node] .pcase-arch-node-ord")
+      .allInnerTexts();
+    expect(renovateOrdinals).toEqual(["01", "02", "03", "04", "05"]);
+
     const renovateStrip = page.getByTestId("architecture-detail-strip");
     await page
       .locator('.pcase-arch-canvas [data-node="node-classify"]')

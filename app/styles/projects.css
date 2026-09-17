@@ -815,7 +815,9 @@
 
 .pcase-arch-node-kind {
   font-family: var(--font-mono-stack);
-  font-size: 10px;
+  /* 11px — the architecture family's mono register (ordinal, subtitle, edge
+     label), not an isolated 10px. Renders ~8.8px at the locked 0.80 floor. */
+  font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
@@ -1012,6 +1014,13 @@
 .pcase-arch-stack-connector.is-indent,
 .pcase-arch-stack-node.is-indent {
   margin-left: 20px;
+}
+
+/* The node is width:100%, so the 20px indent above must be reclaimed from its
+   width or its right edge overruns the content column (connectors are auto-width
+   blocks and already align). Keeps the left indent; right edge stays on column. */
+.pcase-arch-stack-node.is-indent {
+  width: calc(100% - 20px);
 }
 
 /* ======================================================= Responsive ===== */
