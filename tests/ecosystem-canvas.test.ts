@@ -6,73 +6,15 @@ import {
   findWorkflowNode,
   nextEcosystemSelection,
   resolveEcosystemDetail,
-  toEcosystemFlowEdges,
-  toEcosystemFlowNodes,
 } from "@/lib/ecosystem-canvas";
 
-describe("ecosystem canvas helpers", () => {
+describe("workflow detail resolver", () => {
   const entitiesById = new Map(
     entities.map((entity) => [entity.id, entity] as const),
   );
-
-  it("maps workflow views into React Flow nodes and edges", () => {
-    const renovate = projectWorkflowViewsBySlug["renovate-governance"];
-    expect(renovate).toBeDefined();
-
-    const nodes = toEcosystemFlowNodes(renovate!);
-    const edges = toEcosystemFlowEdges(renovate!);
-
-    expect(nodes).toHaveLength(renovate!.nodes.length);
-    expect(edges).toHaveLength(renovate!.edges.length);
-    expect(nodes.every((node) => node.type === "ecosystem")).toBe(true);
-    expect(nodes.every((node) => node.draggable === false)).toBe(true);
-    expect(nodes.every((node) => node.connectable === false)).toBe(true);
-    expect(nodes.every((node) => node.deletable === false)).toBe(true);
-    expect(nodes.every((node) => node.focusable === true)).toBe(true);
-    expect(nodes[0]).toMatchObject({
-      id: "node-classify",
-      position: { x: 0, y: 160 },
-      ariaLabel: "Classify, One active PR → packet",
-      data: {
-        label: "Classify",
-        kind: "agent",
-        entityId: "agent-renovate-classifier",
-      },
-    });
-    expect(edges.find((edge) => edge.id === "e-reno-2")).toMatchObject({
-      source: "node-route",
-      target: "node-investigate",
-      label: "Investigate",
-      sourceHandle: "out-top",
-      targetHandle: "in",
-      type: "smoothstep",
-      deletable: false,
-    });
-    expect(edges.find((edge) => edge.id === "e-reno-4")).toMatchObject({
-      source: "node-investigate",
-      target: "node-maintainer",
-      label: "After audit",
-      sourceHandle: "out-bottom",
-      targetHandle: "in-top",
-    });
-    expect(edges.every((edge) => edge.markerEnd)).toBeTruthy();
-
-    const product = workflowViews.find(
-      (view) => view.id === "workflow-product-loop",
-    );
-    expect(
-      toEcosystemFlowEdges(product!).find((edge) => edge.id === "e-prod-5"),
-    ).toMatchObject({
-      source: "node-decisions",
-      target: "node-product",
-      label: "Ship",
-      sourceHandle: "out-bottom",
-      targetHandle: "in-bottom",
-    });
-  });
+  const projectViews = Object.values(projectWorkflowViewsBySlug);
 
   it("resolves selection detail from entity-linked nodes", () => {
-    const projectViews = Object.values(projectWorkflowViewsBySlug);
     const detail = resolveEcosystemDetail({
       views: projectViews,
       entitiesById,
@@ -89,8 +31,9 @@ describe("ecosystem canvas helpers", () => {
       sourceViewTitle: "Renovate governance ladder",
     });
     expect(detail?.summary).toMatch(/Classifies one active/i);
-    expect(detail?.evidence.length).toBeGreaterThanOrEqual(0);
+  });
 
+  it("returns null for an unknown view", () => {
     expect(
       resolveEcosystemDetail({
         views: workflowViews,
@@ -99,57 +42,64 @@ describe("ecosystem canvas helpers", () => {
         nodeId: "node-classify",
       }),
     ).toBeNull();
+  });
 
+  it("finds a workflow node by view and id", () => {
     expect(
       findWorkflowNode(projectViews, "workflow-editorial", "node-publish"),
     ).toMatchObject({
       view: { id: "workflow-editorial" },
       node: { id: "node-publish", label: "Publish" },
     });
+  });
 
-    const editorial = projectWorkflowViewsBySlug["editorial-workflow"];
-    expect(editorial?.nodes.map((node) => node.id)).toEqual([
-      "node-refresh",
-      "node-capture",
-      "node-triage",
-      "node-schedule",
-      "node-context",
-      "node-draft",
-      "node-critique",
-      "node-sync",
-      "node-publish",
+  // Handoff evidence constraint 06 + the Design fidelity correction: a node
+  // shows evidence only where its own entity carries it. Editorial's Publish
+  // output owns evidence; no Renovate node does — including Merge gates.
+  it("surfaces node evidence only where the entity owns it", () => {
+    const publish = resolveEcosystemDetail({
+      views: projectViews,
+      entitiesById,
+      viewId: "workflow-editorial",
+      nodeId: "node-publish",
+    });
+    expect(publish?.evidence.map((item) => item.url)).toEqual([
+      "https://dev.to/michaeltruong",
     ]);
-    expect(
-      editorial?.edges.find((edge) => edge.id === "e-edit-10"),
-    ).toMatchObject({
-      source: "node-sync",
-      target: "node-publish",
-      label: "Human",
-    });
-    expect(
-      editorial?.edges.find((edge) => edge.id === "e-edit-5"),
-    ).toMatchObject({
-      source: "node-schedule",
-      target: "node-context",
-      label: "Skip",
-      sourceHandle: "out",
-      targetHandle: "in",
-    });
-    expect(
-      editorial?.edges.find((edge) => edge.id === "e-edit-8"),
-    ).toMatchObject({
-      source: "node-critique",
-      target: "node-draft",
-      label: "Revise",
-      sourceHandle: "out-bottom",
-      targetHandle: "in-bottom",
-    });
 
-    const edges = toEcosystemFlowEdges(editorial!);
-    expect(edges.find((edge) => edge.id === "e-edit-3")).toMatchObject({
-      sourceHandle: "out-top",
-      targetHandle: "in-bottom",
-    });
+    for (const nodeId of [
+      "node-classify",
+      "node-route",
+      "node-investigate",
+      "node-maintainer",
+      "node-merge-gates",
+    ]) {
+      const detail = resolveEcosystemDetail({
+        views: projectViews,
+        entitiesById,
+        viewId: "workflow-renovate",
+        nodeId,
+      });
+      expect(detail?.evidence, `${nodeId} carries no node evidence`).toEqual(
+        [],
+      );
+    }
+
+    // Every editorial skill node is also evidence-free — only the output is not.
+    for (const node of projectWorkflowViewsBySlug["editorial-workflow"]!
+      .nodes) {
+      const detail = resolveEcosystemDetail({
+        views: projectViews,
+        entitiesById,
+        viewId: "workflow-editorial",
+        nodeId: node.id,
+      });
+      if (node.id === "node-publish") {
+        expect(detail?.evidence.length).toBe(1);
+      } else {
+        expect(detail?.evidence).toEqual([]);
+      }
+    }
   });
 
   it("keeps active selection when another canvas emits a clear", () => {

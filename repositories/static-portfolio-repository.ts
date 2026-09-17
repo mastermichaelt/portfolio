@@ -8,6 +8,7 @@ import { profile } from "@/content/profile";
 import { productionLine } from "@/content/production-line";
 import { projectCases } from "@/content/project-cases";
 import { projects } from "@/content/projects";
+import { supportingCases } from "@/content/supporting-cases";
 import { projectsIndex } from "@/content/projects-index";
 import { timelineEvents } from "@/content/timeline";
 import type { PortfolioRepository } from "@/repositories/portfolio-repository";
@@ -36,6 +37,14 @@ export class StaticPortfolioRepository implements PortfolioRepository {
 
   async getProjectCase(slug: string) {
     return projectCases.find((entry) => entry.slug === slug) ?? null;
+  }
+
+  async listSupportingCases() {
+    return supportingCases;
+  }
+
+  async getSupportingCase(slug: string) {
+    return supportingCases.find((entry) => entry.slug === slug) ?? null;
   }
 
   async listProjects() {

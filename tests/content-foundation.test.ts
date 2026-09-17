@@ -35,13 +35,10 @@ describe("content-foundation inventory", () => {
   it("loads the generic evidence-backed project inventory", async () => {
     const listed = await repository.listProjects();
     // Co-primary case studies (experiment-measurement, codenames-ai) live in
-    // content/project-cases.ts, not this generic inventory. Hierarchy is no
-    // longer derived from a `featured` flag.
-    expect(listed.map((project) => project.slug)).toEqual([
-      "editorial-workflow",
-      "resume-generator",
-      "renovate-governance",
-    ]);
+    // content/project-cases.ts, and the supporting-tier cases (editorial-workflow,
+    // renovate-governance) live in content/supporting-cases.ts — neither is in
+    // this generic inventory. Hierarchy is not derived from a `featured` flag.
+    expect(listed.map((project) => project.slug)).toEqual(["resume-generator"]);
 
     for (const project of listed) {
       const kinds = new Set(project.sections.map((section) => section.kind));
@@ -73,11 +70,15 @@ describe("content-foundation inventory", () => {
       }
     }
 
-    const renovate = await repository.getProject("renovate-governance");
-    expect(renovate).not.toBeNull();
+    // The two migrated systems are no longer generic projects.
+    expect(await repository.getProject("editorial-workflow")).toBeNull();
+    expect(await repository.getProject("renovate-governance")).toBeNull();
     expect(
-      renovate!.sections.some((section) => section.kind === "outcomes"),
-    ).toBe(false);
+      await repository.getSupportingCase("editorial-workflow"),
+    ).not.toBeNull();
+    expect(
+      await repository.getSupportingCase("renovate-governance"),
+    ).not.toBeNull();
   });
 
   it("loads the full article inventory with valid fields and project refs", async () => {
@@ -85,14 +86,17 @@ describe("content-foundation inventory", () => {
     expect(listed.length).toBeGreaterThan(0);
     expect(listed).toEqual(articles);
 
-    // Valid project routes are the generic inventory plus the co-primary cases.
-    const [projectList, caseList] = await Promise.all([
+    // Valid project routes are the generic inventory, the co-primary cases and
+    // the supporting-tier cases.
+    const [projectList, caseList, supportingList] = await Promise.all([
       repository.listProjects(),
       repository.listProjectCases(),
+      repository.listSupportingCases(),
     ]);
     const projectSlugs = new Set([
       ...projectList.map((project) => project.slug),
       ...caseList.map((entry) => entry.slug),
+      ...supportingList.map((entry) => entry.slug),
     ]);
     const slugs = listed.map((article) => article.slug);
     expect(new Set(slugs).size).toBe(slugs.length);

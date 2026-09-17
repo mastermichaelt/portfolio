@@ -1150,7 +1150,7 @@ test.describe("portfolio happy path", () => {
     }
   });
 
-  test("project pages render migrated workflow diagrams on desktop", async ({
+  test("supporting cases render the static architecture figure on desktop", async ({
     page,
   }) => {
     const pageErrors: string[] = [];
@@ -1159,75 +1159,83 @@ test.describe("portfolio happy path", () => {
     });
 
     await page.goto("/projects/editorial-workflow");
-    await expect(page.locator("#operational-workflow")).toBeVisible();
+
+    // Supporting tier reads in --muted; amber CH stays reserved.
+    await expect(page.getByText("Supporting", { exact: true })).toBeVisible();
+
+    // The architecture block sits under an "Architecture" rail item.
+    const rail = page.getByRole("navigation", { name: "Contents" });
+    await expect(rail.getByText("Architecture")).toBeVisible();
+
+    // The migrated figure carries the view title and talk track, and no canvas.
     await expect(
-      page
-        .locator("#operational-workflow")
-        .getByRole("heading", { name: "Editorial field-report pipeline" }),
+      page.getByText("Editorial field-report pipeline"),
     ).toBeVisible();
     await expect(
-      page.getByTestId("ecosystem-talk-track-workflow-editorial"),
+      page.getByTestId("architecture-talk-track-workflow-editorial"),
     ).toBeVisible();
-    const editorialCanvas = page.getByTestId(
-      "ecosystem-canvas-workflow-editorial",
+    await expect(page.locator(".react-flow")).toHaveCount(0);
+
+    // The strip defaults to the census, then resolves a selected node.
+    const strip = page.getByTestId("architecture-detail-strip");
+    await expect(strip).toContainText(
+      "Eight operator skills and one public output",
     );
-    await editorialCanvas
-      .locator(".react-flow__node")
-      .filter({ hasText: "Capture" })
-      .click();
-    const editorialPanel = page.getByTestId("ecosystem-detail-panel");
+    await page.locator('.pcase-arch-canvas [data-node="node-capture"]').click();
+    await expect(strip).toContainText("Capture");
+    await expect(strip).toContainText("skill · node 01");
+
+    // Refresh is authored first in the data but numbers as step 04.
+    await page.locator('.pcase-arch-canvas [data-node="node-refresh"]').click();
+    await expect(strip).toContainText("skill · node 04");
+
+    // The output node is the only one with an evidence link.
+    await page.locator('.pcase-arch-canvas [data-node="node-publish"]').click();
     await expect(
-      editorialPanel.getByRole("heading", { name: "Capture" }),
+      strip.locator('a[href="https://dev.to/michaeltruong"]'),
     ).toBeVisible();
-    await expect(
-      editorialPanel.getByRole("link", { name: "Open project case study" }),
-    ).toHaveCount(0);
 
     await page.goto("/projects/renovate-governance");
-    await expect(page.locator("#operational-workflow")).toBeVisible();
     await expect(
-      page
-        .locator("#operational-workflow")
-        .getByRole("heading", { name: "Renovate governance ladder" }),
+      page.getByText("Renovate governance ladder").first(),
     ).toBeVisible();
-    const renovateCanvas = page.getByTestId(
-      "ecosystem-canvas-workflow-renovate",
-    );
-    await renovateCanvas
-      .locator(".react-flow__node")
-      .filter({ hasText: "Classify" })
+    const renovateStrip = page.getByTestId("architecture-detail-strip");
+    await page
+      .locator('.pcase-arch-canvas [data-node="node-classify"]')
       .click();
-    const renovatePanel = page.getByTestId("ecosystem-detail-panel");
-    await expect(
-      renovatePanel.getByRole("heading", { name: "Classify" }),
-    ).toBeVisible();
-    await expect(
-      renovatePanel.getByRole("link", { name: "Open project case study" }),
-    ).toHaveCount(0);
-
-    const toc = page.getByRole("navigation", { name: "On this page" });
-    await expect(
-      toc.getByRole("link", { name: "Operational workflow" }),
-    ).toBeVisible();
+    await expect(renovateStrip).toContainText("Classify");
+    // The governance node owns no evidence — no node evidence link appears.
+    await page
+      .locator('.pcase-arch-canvas [data-node="node-merge-gates"]')
+      .click();
+    await expect(renovateStrip.locator("a")).toHaveCount(0);
 
     expect(pageErrors, pageErrors.join("\n")).toEqual([]);
   });
 
-  test("project workflow diagrams stack inline detail at 375px", async ({
+  test("architecture figure replaces the canvas with the stack at 390px", async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 375, height: 812 });
-    await page.goto("/projects/editorial-workflow#operational-workflow");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/projects/editorial-workflow#b04");
 
-    const canvas = page.getByTestId("ecosystem-canvas-workflow-editorial");
-    await canvas.scrollIntoViewIfNeeded();
-    await canvas.getByTestId("rf__node-node-capture").click({ force: true });
+    // The wide canvas is hidden; the stack takes over.
+    await expect(page.locator(".pcase-arch-canvas")).toBeHidden();
+    const stack = page.getByTestId("architecture-stack");
+    await expect(stack).toBeVisible();
 
-    const inlinePanel = page.getByTestId("ecosystem-detail-inline");
-    await expect(
-      inlinePanel.getByRole("heading", { name: "Capture" }),
-    ).toBeVisible();
-    await expect(page.locator(".ecosystem-panel-side")).toHaveCount(0);
+    // All nine nodes and the revise-return connector survive as text.
+    await expect(stack.locator("[data-node]")).toHaveCount(9);
+    await expect(stack).toContainText("↑ Revise — returns to 06 Draft");
+    await expect(stack).toContainText(
+      "↓ Skip — 03 Schedule → 05 Context, bypassing 04",
+    );
+
+    // Selecting a stacked node fills the shared strip.
+    await stack.locator('[data-node="node-critique"]').click();
+    await expect(page.getByTestId("architecture-detail-strip")).toContainText(
+      "Analyze before score",
+    );
 
     const overflowX = await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth + 1,
