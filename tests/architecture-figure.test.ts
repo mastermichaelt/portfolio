@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 import { projectWorkflowViewsBySlug } from "@/content/project-workflows";
 import {
   FIGURE_OFFSET,
+  MIN_FIGURE_SCALE,
   NODE_H,
   NODE_W,
   buildFigureGeometry,
+  fitScale,
   isConditionalEdge,
   narrowLayoutFor,
   nodeOrdinalMap,
@@ -26,6 +28,8 @@ function pathPoints(d: string): Array<[number, number]> {
 const editorial = projectWorkflowViewsBySlug["editorial-workflow"]!;
 const renovate = projectWorkflowViewsBySlug["renovate-governance"]!;
 const views = [editorial, renovate];
+
+const INTRINSIC = { editorial: 1104, renovate: 1064 };
 
 describe("architecture figure geometry", () => {
   it("places every node at source position + offset, once", () => {
@@ -161,6 +165,83 @@ describe("architecture figure geometry", () => {
           expect(y, `${view.id} ${edge.id} y`).toBeGreaterThanOrEqual(0);
           expect(y, `${view.id} ${edge.id} y`).toBeLessThanOrEqual(
             geometry.height,
+          );
+        }
+      }
+    }
+  });
+});
+
+describe("architecture fit scale", () => {
+  // The locked §03 column → scale table from the updated handoff. Columns are
+  // the design's reference figure-viewport widths; scales are its stated values.
+  const EDITORIAL_TABLE: Array<[column: number, scale: number]> = [
+    [980, 0.8877],
+    [924, 0.837],
+    [883, 0.8],
+    [838, 0.8],
+    [816, 0.8],
+    [796, 0.8],
+    [668, 0.8],
+    [637, 0.8],
+    [565, 0.8],
+  ];
+  const RENOVATE_TABLE: Array<[column: number, scale: number]> = [
+    [980, 0.9211],
+    [924, 0.8684],
+    [851, 0.8],
+    [838, 0.8],
+    [816, 0.8],
+    [796, 0.8],
+    [668, 0.8],
+    [637, 0.8],
+    [565, 0.8],
+  ];
+
+  it("matches the locked column → scale table for both projects", () => {
+    for (const [column, scale] of EDITORIAL_TABLE) {
+      expect(
+        fitScale(column, INTRINSIC.editorial),
+        `editorial ${column}`,
+      ).toBeCloseTo(scale, 3);
+    }
+    for (const [column, scale] of RENOVATE_TABLE) {
+      expect(
+        fitScale(column, INTRINSIC.renovate),
+        `renovate ${column}`,
+      ).toBeCloseTo(scale, 3);
+    }
+  });
+
+  it("is clamped to [0.80, 1] and equals the raw ratio between", () => {
+    expect(fitScale(500, 1104)).toBe(MIN_FIGURE_SCALE); // below floor → pinned
+    expect(fitScale(2000, 1104)).toBe(1); // wider than intrinsic → 1:1
+    expect(fitScale(1104, 1104)).toBe(1); // exactly intrinsic → 1:1
+    expect(fitScale(924, 1104)).toBeCloseTo(924 / 1104, 6); // between → raw ratio
+    // Degenerate inputs (e.g. a hidden frame) never divide by zero.
+    expect(fitScale(0, 1104)).toBe(1);
+  });
+
+  it("permits horizontal overflow only below 0.80 × intrinsic", () => {
+    for (const [name, intrinsic] of Object.entries(INTRINSIC)) {
+      const boundary = MIN_FIGURE_SCALE * intrinsic;
+      for (const column of [
+        boundary + 40,
+        boundary + 1,
+        boundary,
+        boundary - 1,
+        boundary - 200,
+      ]) {
+        const rendered = intrinsic * fitScale(column, intrinsic);
+        if (column < boundary - 0.001) {
+          // Frame scrolls: the rendered figure is wider than the column.
+          expect(rendered, `${name} ${column} overflows`).toBeGreaterThan(
+            column + 0.001,
+          );
+        } else {
+          // Figure is whole in the frame: rendered fits within the column.
+          expect(rendered, `${name} ${column} fits`).toBeLessThanOrEqual(
+            column + 0.001,
           );
         }
       }

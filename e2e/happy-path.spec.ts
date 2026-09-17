@@ -1250,6 +1250,127 @@ test.describe("portfolio happy path", () => {
     expect(overflowX).toBe(false);
   });
 
+  // Behavioral read of the wide architecture figure: the rendered artboard width
+  // (its bounding box, post-transform), the measured column, whether the frame
+  // scrolls, and whether the last node's trailing edge is inside the frame.
+  async function figureFit(page: Page) {
+    return page.evaluate(() => {
+      const frame = document.querySelector<HTMLElement>(".pcase-arch-canvas")!;
+      const art = document.querySelector<HTMLElement>(".pcase-arch-artboard")!;
+      const label = document.querySelector<HTMLElement>(
+        ".pcase-arch-canvas .pcase-arch-node-label",
+      )!;
+      const frameRect = frame.getBoundingClientRect();
+      let maxRight = -Infinity;
+      for (const node of frame.querySelectorAll("[data-node]")) {
+        maxRight = Math.max(maxRight, node.getBoundingClientRect().right);
+      }
+      const rendered = art.getBoundingClientRect().width;
+      return {
+        column: frame.clientWidth,
+        rendered,
+        authoredLabelPx: parseFloat(getComputedStyle(label).fontSize),
+        headPx: parseFloat(
+          getComputedStyle(document.querySelector(".pcase-arch-head span")!)
+            .fontSize,
+        ),
+        hScroll: frame.scrollWidth > frame.clientWidth + 1,
+        rightmostInside: maxRight <= frameRect.right + 1,
+      };
+    });
+  }
+
+  const INTRINSIC: Record<string, number> = {
+    "editorial-workflow": 1104,
+    "renovate-governance": 1064,
+  };
+
+  // Acceptance 05b — at representative desktop widths both figures are whole in
+  // the frame at initial render, with no horizontal scrolling.
+  test("architecture figures fit whole at 1440 and 1280 without horizontal scroll", async ({
+    page,
+  }) => {
+    for (const slug of Object.keys(INTRINSIC)) {
+      for (const width of [1440, 1280]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.goto(`/projects/${slug}`);
+        // Wait for the ResizeObserver-driven fit to settle.
+        await expect
+          .poll(
+            async () => {
+              const fit = await figureFit(page);
+              return fit.hScroll === false && fit.rightmostInside === true;
+            },
+            { timeout: 5000, message: `${slug} @ ${width}` },
+          )
+          .toBe(true);
+
+        const fit = await figureFit(page);
+        const scale = fit.rendered / INTRINSIC[slug]!;
+        // The whole topology is visible and nothing scrolls sideways.
+        expect(fit.hScroll, `${slug} @ ${width} no scroll`).toBe(false);
+        expect(fit.rightmostInside, `${slug} @ ${width} whole`).toBe(true);
+        // Node label never renders below the 12px floor in wide mode.
+        expect(fit.authoredLabelPx * scale).toBeGreaterThanOrEqual(11.99);
+        // Page-scale UI outside the artboard is not scaled (head stays mono 11).
+        expect(fit.headPx).toBeCloseTo(11, 1);
+      }
+    }
+  });
+
+  // Acceptance 09 — measured scale follows clamp(0.80, column/intrinsic, 1) at
+  // the nine specified widths, and the frame scrolls only below the 0.80 floor.
+  // Assertions are self-consistent against the measured column (robust to the
+  // host's scrollbar width) rather than tied to the table's idealised numbers.
+  test("architecture fit scale follows the locked formula across nine widths", async ({
+    page,
+  }) => {
+    const widths = [1440, 1280, 1194, 1152, 1024, 921, 920, 768, 741];
+    for (const slug of Object.keys(INTRINSIC)) {
+      const intrinsic = INTRINSIC[slug]!;
+      for (const width of widths) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.goto(`/projects/${slug}`);
+
+        // Settle: poll until the rendered scale matches the formula on the
+        // measured column (the ResizeObserver fit converges within a frame).
+        await expect
+          .poll(
+            async () => {
+              const fit = await figureFit(page);
+              const expected = Math.min(
+                1,
+                Math.max(0.8, fit.column / intrinsic),
+              );
+              return Math.abs(fit.rendered / intrinsic - expected) < 0.01;
+            },
+            { timeout: 5000, message: `${slug} @ ${width} scale` },
+          )
+          .toBe(true);
+
+        const fit = await figureFit(page);
+        const scale = fit.rendered / intrinsic;
+        const expected = Math.min(1, Math.max(0.8, fit.column / intrinsic));
+        expect(scale, `${slug} @ ${width}`).toBeCloseTo(expected, 2);
+        expect(scale, `${slug} @ ${width} floor`).toBeGreaterThanOrEqual(
+          0.7999,
+        );
+        expect(scale, `${slug} @ ${width} ceil`).toBeLessThanOrEqual(1);
+
+        // Overflow only below 0.80 x intrinsic; whole in the frame above it.
+        const floorColumn = 0.8 * intrinsic;
+        if (fit.column < floorColumn - 2) {
+          expect(fit.hScroll, `${slug} @ ${width} scrolls`).toBe(true);
+        } else if (fit.column > floorColumn + 2) {
+          expect(fit.hScroll, `${slug} @ ${width} fits`).toBe(false);
+        }
+
+        // No text outside the artboard is ever scaled.
+        expect(fit.headPx, `${slug} @ ${width} head`).toBeCloseTo(11, 1);
+      }
+    }
+  });
+
   test("mobile nav opens About and navigates", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/");

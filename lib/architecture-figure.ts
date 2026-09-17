@@ -23,14 +23,36 @@ const ARROW_GAP = 4;
 const LOOP_DROP = 32;
 
 /**
- * Locked artboard sizes from the implementation handoff. These are the rule
- * where node extent alone would under-size the board (e.g. the Editorial
- * "Revise" loop dips below the lowest node row).
+ * Locked artboard sizes from the implementation handoff. These are intrinsic
+ * authoring coordinates, not rendered sizes: on the desktop figure the artboard
+ * is fitted to the architecture column by a uniform scale (see fitScale). They
+ * are also the rule where node extent alone would under-size the board (e.g. the
+ * Editorial "Revise" loop dips below the lowest node row).
  */
 const ARTBOARDS: Record<string, { width: number; height: number }> = {
   "workflow-editorial": { width: 1104, height: 560 },
   "workflow-renovate": { width: 1064, height: 468 },
 };
+
+/**
+ * The floor of the desktop fit scale. Set by the node label — the only figure
+ * text that must be read while scanning topology: 15px authored renders at 12px
+ * at 0.80, the system's read-mono floor. Below 0.80 the artboard holds its size
+ * and the frame scrolls rather than shrinking type further.
+ */
+export const MIN_FIGURE_SCALE = 0.8;
+
+/**
+ * Proportional fit-to-width scale for the wide (>740px) architecture artboard:
+ * `s = clamp(0.80, frameWidth / intrinsicWidth, 1)`. `frameWidth` is the
+ * measured architecture-column width inside the canvas frame; `intrinsicWidth`
+ * is the project's locked artboard width. One uniform scale on the whole
+ * artboard, never above 1, continuous with no breakpoints.
+ */
+export function fitScale(frameWidth: number, intrinsicWidth: number): number {
+  if (!(frameWidth > 0) || !(intrinsicWidth > 0)) return 1;
+  return Math.min(1, Math.max(MIN_FIGURE_SCALE, frameWidth / intrinsicWidth));
+}
 
 /**
  * Edge ids that carry the conditional/optional (dashed) weight. This is a

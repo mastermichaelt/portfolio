@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 
 import {
   ArchitectureDetailStrip,
@@ -11,10 +17,16 @@ import type { Entity } from "@/domain/entities";
 import type { WorkflowView } from "@/domain/workflow-view";
 import {
   buildFigureGeometry,
+  fitScale,
   narrowLayoutFor,
   ordinalFor,
 } from "@/lib/architecture-figure";
 import { resolveEcosystemDetail } from "@/lib/ecosystem-canvas";
+
+// useLayoutEffect measures before paint on the client; fall back to useEffect on
+// the server (where it is a no-op) to avoid the SSR warning.
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export interface ArchitectureForwardLink {
   label: string;
@@ -53,6 +65,33 @@ export function ArchitectureFigure({
     entities.map((entity) => [entity.id, entity] as const),
   );
   const markerId = `arch-arrow-${view.id}`;
+
+  // Fit the wide artboard to the real architecture column: measure the canvas
+  // frame with a ResizeObserver (the column is container-dependent, not a media
+  // query) and scale the whole artboard uniformly. Only a horizontal scrollbar
+  // can appear on the frame, so the measured content width is stable.
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useIsomorphicLayoutEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const measure = () => {
+      const frameWidth = frame.clientWidth;
+      // Skip while the frame is display:none (the <=740px stack is showing) so
+      // the last wide scale is retained rather than collapsing to the floor.
+      if (frameWidth === 0) return;
+      const next = fitScale(frameWidth, geometry.width);
+      setScale((prev) => (Math.abs(prev - next) > 0.0005 ? next : prev));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [geometry.width]);
+
+  const renderedWidth = geometry.width * scale;
+  const renderedHeight = geometry.height * scale;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -117,89 +156,100 @@ export function ArchitectureFigure({
         </span>
       </div>
 
-      {/* Wide figure — a fixed coordinate space that scrolls horizontally when
-          the column is narrower than the artboard, replaced by the stack at
-          <=740px. It never scales its type. */}
+      {/* Wide figure — the intrinsic artboard fitted to the frame by a uniform
+          scale (never > 1, floored at 0.80). The sizing box carries the rendered
+          dimensions so block height and the frame's scroll width follow the
+          figure, not its intrinsic size. Replaced by the stack at <=740px. */}
       <div
         className="pcase-arch-canvas"
+        ref={frameRef}
         onClick={clearOnGround}
         role="presentation"
       >
         <div
-          className="pcase-arch-artboard"
-          style={{ width: geometry.width, height: geometry.height }}
+          className="pcase-arch-sizer"
+          style={{ width: renderedWidth, height: renderedHeight }}
         >
-          <svg
-            width={geometry.width}
-            height={geometry.height}
-            viewBox={`0 0 ${geometry.width} ${geometry.height}`}
-            className="pcase-arch-svg"
-            aria-hidden="true"
+          <div
+            className="pcase-arch-artboard"
+            style={{
+              width: geometry.width,
+              height: geometry.height,
+              transform: `scale(${scale})`,
+            }}
           >
-            <defs>
-              <marker
-                id={markerId}
-                viewBox="0 0 10 10"
-                refX="8"
-                refY="5"
-                markerWidth="7"
-                markerHeight="7"
-                orient="auto-start-reverse"
-              >
-                <path d="M0,1 L9,5 L0,9 z" className="pcase-arch-arrowhead" />
-              </marker>
-            </defs>
-            {geometry.edges.map((edge) => (
-              <path
-                key={edge.id}
-                d={edge.d}
-                className={
-                  "pcase-arch-edge" + (edge.dashed ? " is-dashed" : "")
-                }
-                markerEnd={`url(#${markerId})`}
-              />
-            ))}
-          </svg>
+            <svg
+              width={geometry.width}
+              height={geometry.height}
+              viewBox={`0 0 ${geometry.width} ${geometry.height}`}
+              className="pcase-arch-svg"
+              aria-hidden="true"
+            >
+              <defs>
+                <marker
+                  id={markerId}
+                  viewBox="0 0 10 10"
+                  refX="8"
+                  refY="5"
+                  markerWidth="7"
+                  markerHeight="7"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M0,1 L9,5 L0,9 z" className="pcase-arch-arrowhead" />
+                </marker>
+              </defs>
+              {geometry.edges.map((edge) => (
+                <path
+                  key={edge.id}
+                  d={edge.d}
+                  className={
+                    "pcase-arch-edge" + (edge.dashed ? " is-dashed" : "")
+                  }
+                  markerEnd={`url(#${markerId})`}
+                />
+              ))}
+            </svg>
 
-          {geometry.edges.map((edge) =>
-            edge.label && edge.labelX != null && edge.labelY != null ? (
-              <span
-                key={`l-${edge.id}`}
-                className="pcase-arch-edge-label"
-                style={{ left: edge.labelX, top: edge.labelY }}
-                aria-hidden="true"
-              >
-                {edge.label}
-              </span>
-            ) : null,
-          )}
-
-          {geometry.nodes.map((node) => {
-            const selected = node.id === selectedNodeId;
-            return (
-              <button
-                key={node.id}
-                type="button"
-                data-node={node.id}
-                aria-pressed={selected}
-                className={
-                  "pcase-arch-node pcase-arch-canvas-node" +
-                  (selected ? " is-selected" : "")
-                }
-                style={{ left: node.left, top: node.top }}
-                onClick={() => toggle(node.id)}
-              >
-                <span className="pcase-arch-node-head">
-                  <span className="pcase-arch-node-kind">{node.kind}</span>
-                  <span className="pcase-arch-node-ord">{node.ordinal}</span>
+            {geometry.edges.map((edge) =>
+              edge.label && edge.labelX != null && edge.labelY != null ? (
+                <span
+                  key={`l-${edge.id}`}
+                  className="pcase-arch-edge-label"
+                  style={{ left: edge.labelX, top: edge.labelY }}
+                  aria-hidden="true"
+                >
+                  {edge.label}
                 </span>
-                <span className="pcase-arch-node-label">{node.label}</span>
-                {node.subtitle ? (
-                  <span className="pcase-arch-node-sub">{node.subtitle}</span>
-                ) : null}
-              </button>
-            );
-          })}
+              ) : null,
+            )}
+
+            {geometry.nodes.map((node) => {
+              const selected = node.id === selectedNodeId;
+              return (
+                <button
+                  key={node.id}
+                  type="button"
+                  data-node={node.id}
+                  aria-pressed={selected}
+                  className={
+                    "pcase-arch-node pcase-arch-canvas-node" +
+                    (selected ? " is-selected" : "")
+                  }
+                  style={{ left: node.left, top: node.top }}
+                  onClick={() => toggle(node.id)}
+                >
+                  <span className="pcase-arch-node-head">
+                    <span className="pcase-arch-node-kind">{node.kind}</span>
+                    <span className="pcase-arch-node-ord">{node.ordinal}</span>
+                  </span>
+                  <span className="pcase-arch-node-label">{node.label}</span>
+                  {node.subtitle ? (
+                    <span className="pcase-arch-node-sub">{node.subtitle}</span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 

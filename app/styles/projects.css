@@ -707,18 +707,33 @@
   color: var(--muted);
 }
 
-/* Fixed coordinate space; scrolls horizontally, never scales its type. */
+/* The canvas frame — the figure viewport. The artboard inside is fitted to it
+   by a uniform scale (see ArchitectureFigure). Only a horizontal scrollbar can
+   appear, and only when the column is below 0.80x the intrinsic width. */
 .pcase-arch-canvas {
   position: relative;
   border: 1px solid var(--border);
   border-top: none;
   background: var(--bg);
   overflow-x: auto;
+  overflow-y: visible;
 }
 
-.pcase-arch-artboard {
+/* Sizing box: carries the rendered (scaled) dimensions so surrounding block
+   geometry and the frame's scroll width reflect the fitted figure, not the
+   intrinsic artboard. Centres when the figure is narrower than the frame. */
+.pcase-arch-sizer {
   position: relative;
   margin-inline: auto;
+}
+
+/* Intrinsic coordinate space, taken out of flow and scaled from its top-left so
+   its rendered box equals the sizing box. transform: scale(s) is set inline. */
+.pcase-arch-artboard {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
 }
 
 .pcase-arch-svg {
