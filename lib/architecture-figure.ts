@@ -32,6 +32,24 @@ const ARTBOARDS: Record<string, { width: number; height: number }> = {
   "workflow-renovate": { width: 1064, height: 468 },
 };
 
+/**
+ * Edge ids that carry the conditional/optional (dashed) weight. This is a
+ * presentation semantic, declared explicitly and kept separate from the routing
+ * handles that shape the path: a handle is a layout hint (which side an edge
+ * leaves/enters), not a statement that the edge is conditional. The source
+ * `WorkflowView` has no conditional field, so the meaning is authored here, once,
+ * and shared by the wide figure and the narrow stack.
+ */
+const CONDITIONAL_EDGE_IDS = new Set<string>([
+  "e-edit-3", // Editorial: Optional — Schedule → Refresh
+  "e-reno-2", // Renovate: Investigate — Route → Investigate
+]);
+
+/** Whether an edge renders on the dashed (conditional/optional) weight. */
+export function isConditionalEdge(edgeId: string): boolean {
+  return CONDITIONAL_EDGE_IDS.has(edgeId);
+}
+
 export interface FigureNodeBox {
   id: string;
   left: number;
@@ -178,14 +196,10 @@ function edgePath(view: WorkflowView, edge: WorkflowEdge): FigureEdgePath {
   const t = port(tBox, tSide);
   const points = routePoints(s, sSide, t, tSide);
   const anchor = labelAnchor(points);
-  // The dashed weight carries a conditional/optional edge. In both views those
-  // are exactly the edges routed through a non-default (top/bottom) handle pair
-  // that opens an optional lane — data marks them with sourceHandle out-top.
-  const dashed = edge.sourceHandle === "out-top";
   return {
     id: edge.id,
     d: toPathD(withArrowGap(points)),
-    dashed,
+    dashed: isConditionalEdge(edge.id),
     label: edge.label,
     labelX: edge.label ? anchor.x : undefined,
     labelY: edge.label ? anchor.y : undefined,

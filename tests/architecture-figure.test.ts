@@ -6,11 +6,22 @@ import {
   NODE_H,
   NODE_W,
   buildFigureGeometry,
+  isConditionalEdge,
   narrowLayoutFor,
   nodeOrdinalMap,
   type NarrowConnectorRow,
   type NarrowNodeRow,
 } from "@/lib/architecture-figure";
+
+/** Every (x, y) coordinate pair in an SVG path `d` (all commands are M/L here). */
+function pathPoints(d: string): Array<[number, number]> {
+  const nums = (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
+  const points: Array<[number, number]> = [];
+  for (let i = 0; i + 1 < nums.length; i += 2) {
+    points.push([nums[i]!, nums[i + 1]!]);
+  }
+  return points;
+}
 
 const editorial = projectWorkflowViewsBySlug["editorial-workflow"]!;
 const renovate = projectWorkflowViewsBySlug["renovate-governance"]!;
@@ -62,13 +73,58 @@ describe("architecture figure geometry", () => {
     }
   });
 
-  it("uses exactly one dashed (conditional) edge per view", () => {
-    expect(
-      buildFigureGeometry(editorial).edges.filter((edge) => edge.dashed),
-    ).toHaveLength(1);
-    expect(
-      buildFigureGeometry(renovate).edges.filter((edge) => edge.dashed),
-    ).toHaveLength(1);
+  it("dashes edges from explicit conditional semantics, not routing handles", () => {
+    // The conditional (dashed) weight is an authored presentation semantic, not
+    // an inference from the out-top routing handle. Assert it stays exactly the
+    // Optional / Investigate edges even though other edges also use non-default
+    // handles (e.g. e-edit-4 out / in-top, e-reno-4 out-bottom / in-top).
+    const expectedByView: Record<string, string[]> = {
+      "workflow-editorial": ["e-edit-3"],
+      "workflow-renovate": ["e-reno-2"],
+    };
+    for (const view of views) {
+      const dashed = buildFigureGeometry(view)
+        .edges.filter((edge) => edge.dashed)
+        .map((edge) => edge.id)
+        .sort();
+      expect(dashed).toEqual(expectedByView[view.id]);
+      for (const edge of view.edges) {
+        expect(isConditionalEdge(edge.id)).toBe(
+          expectedByView[view.id]!.includes(edge.id),
+        );
+      }
+      // A solid edge routed through a non-default handle must stay solid.
+      const nonDefaultSolid = view.edges.find(
+        (edge) =>
+          (edge.sourceHandle === "out-top" ||
+            edge.sourceHandle === "out-bottom" ||
+            edge.targetHandle === "in-top") &&
+          !expectedByView[view.id]!.includes(edge.id),
+      );
+      if (nonDefaultSolid) {
+        const drawn = buildFigureGeometry(view).edges.find(
+          (edge) => edge.id === nonDefaultSolid.id,
+        );
+        expect(drawn!.dashed).toBe(false);
+      }
+    }
+  });
+
+  it("keeps the wide and narrow conditional weights consistent", () => {
+    for (const view of views) {
+      const wideDashed = buildFigureGeometry(view)
+        .edges.filter((edge) => edge.dashed)
+        .map((edge) => edge.id)
+        .sort();
+      const narrowDashed = narrowLayoutFor(view)
+        .filter(
+          (row): row is NarrowConnectorRow =>
+            row.type === "connector" && row.dashed === true,
+        )
+        .flatMap((row) => row.edgeIds)
+        .sort();
+      expect(narrowDashed).toEqual(wideDashed);
+    }
   });
 
   it("carries the locked artboard sizes", () => {
@@ -82,12 +138,31 @@ describe("architecture figure geometry", () => {
     });
   });
 
-  it("keeps the wide figure inside its artboard", () => {
+  it("keeps the wide figure — nodes and routed edges — inside its artboard", () => {
     for (const view of views) {
       const geometry = buildFigureGeometry(view);
+
       for (const node of geometry.nodes) {
+        expect(node.left).toBeGreaterThanOrEqual(0);
+        expect(node.top).toBeGreaterThanOrEqual(0);
         expect(node.left + NODE_W).toBeLessThanOrEqual(geometry.width);
         expect(node.top + NODE_H).toBeLessThanOrEqual(geometry.height);
+      }
+
+      // The routed topology — not just the node boxes — must stay in bounds.
+      // This is the contract that justifies an artboard taller than the node
+      // extent (e.g. the Editorial "Revise" loop drops below the last node row).
+      for (const edge of geometry.edges) {
+        for (const [x, y] of pathPoints(edge.d)) {
+          expect(x, `${view.id} ${edge.id} x`).toBeGreaterThanOrEqual(0);
+          expect(x, `${view.id} ${edge.id} x`).toBeLessThanOrEqual(
+            geometry.width,
+          );
+          expect(y, `${view.id} ${edge.id} y`).toBeGreaterThanOrEqual(0);
+          expect(y, `${view.id} ${edge.id} y`).toBeLessThanOrEqual(
+            geometry.height,
+          );
+        }
       }
     }
   });

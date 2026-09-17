@@ -103,7 +103,11 @@ export function ArchitectureFigure({
       : null;
 
   return (
-    <div className="pcase-arch">
+    <div
+      className="pcase-arch"
+      role="group"
+      aria-label={`${view.title} — architecture figure`}
+    >
       <div className="pcase-arch-head">
         <span>
           Fig. {figureNumber} — {view.id}

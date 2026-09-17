@@ -2,14 +2,6 @@ import type { Entity } from "@/domain/entities";
 import type { Evidence } from "@/domain/evidence";
 import type { WorkflowNode, WorkflowView } from "@/domain/workflow-view";
 
-export type EcosystemNodeData = {
-  label: string;
-  subtitle?: string;
-  kind: WorkflowNode["kind"];
-  entityId?: string;
-  relatedProjectSlug?: string;
-};
-
 export type EcosystemDetailModel = {
   nodeId: string;
   label: string;

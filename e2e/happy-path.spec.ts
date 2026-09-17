@@ -1176,6 +1176,13 @@ test.describe("portfolio happy path", () => {
     ).toBeVisible();
     await expect(page.locator(".react-flow")).toHaveCount(0);
 
+    // The interactive figure is a programmatically named group.
+    await expect(
+      page.getByRole("group", {
+        name: "Editorial field-report pipeline — architecture figure",
+      }),
+    ).toBeVisible();
+
     // The strip defaults to the census, then resolves a selected node.
     const strip = page.getByTestId("architecture-detail-strip");
     await expect(strip).toContainText(
