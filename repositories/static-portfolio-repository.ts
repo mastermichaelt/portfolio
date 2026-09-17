@@ -5,6 +5,7 @@ import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { projectWorkflowViewsBySlug } from "@/content/project-workflows";
 import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
+import { productionLine } from "@/content/production-line";
 import { projectCases } from "@/content/project-cases";
 import { projects } from "@/content/projects";
 import { projectsIndex } from "@/content/projects-index";
@@ -71,6 +72,10 @@ export class StaticPortfolioRepository implements PortfolioRepository {
 
   async getProjectWorkflowView(slug: string) {
     return projectWorkflowViewsBySlug[slug] ?? null;
+  }
+
+  async getProductionLine() {
+    return productionLine;
   }
 
   async listTimelineEvents() {

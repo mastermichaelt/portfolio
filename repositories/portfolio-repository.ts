@@ -5,6 +5,7 @@ import type { Homepage } from "@/domain/homepage";
 import type { Profile } from "@/domain/profile";
 import type { Project } from "@/domain/project";
 import type { ProjectCase } from "@/domain/project-case";
+import type { ProductionLine } from "@/domain/production-line";
 import type { ProjectsIndex } from "@/domain/projects-index";
 import type { Relationship } from "@/domain/relationships";
 import type { TimelineEvent } from "@/domain/timeline";
@@ -36,5 +37,7 @@ export interface PortfolioRepository {
   getWorkflowView(id: string): Promise<WorkflowView | null>;
   /** Operational workflow canvas owned by a project page, when one exists. */
   getProjectWorkflowView(slug: string): Promise<WorkflowView | null>;
+  /** The Ecosystem 1b "line": fixed stages, selectable lanes, shared infra. */
+  getProductionLine(): Promise<ProductionLine>;
   listTimelineEvents(): Promise<TimelineEvent[]>;
 }
