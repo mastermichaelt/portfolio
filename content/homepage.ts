@@ -1,12 +1,15 @@
 import type { Homepage } from "@/domain/homepage";
 
 /**
- * Homepage-only presentation, transcribed from sibling `resumes/` inventory.
- * Not generate input; not a new project. Do not invent metrics or attach
+ * Homepage 2 content, transcribed from sibling `resumes/` inventory. Not
+ * generate input; not a new project. Do not invent metrics or attach
  * `game_started` unless that event name is in the cited fact text.
  *
- * CH 02 is Atlassian experiment-measurement copy on this page only — there is
- * no `/projects/experiment-measurement` case study in this slice.
+ * CH 02 routes to the `experiment-measurement` case study in
+ * content/project-cases.ts. The `9%–41%` figure keeps its source meaning: it is
+ * the spread in what an in-flight experiment reported across Statsig attribution
+ * windows — the range is the measurement-reliability finding, not a delivery or
+ * run-time outcome.
  */
 export const homepage: Homepage = {
   hero: {
@@ -15,15 +18,40 @@ export const homepage: Homepage = {
     leadEmphasis:
       "measure it, validate it, and write down what the system is allowed to do.",
   },
+  method: [
+    {
+      ordinal: "01",
+      key: "uncertain",
+      label: "Uncertain",
+      gloss: "What the system could not guarantee on its own.",
+    },
+    {
+      ordinal: "02",
+      key: "checkable",
+      label: "Made checkable",
+      gloss: "The mechanism built so something deterministic could decide.",
+    },
+    {
+      ordinal: "03",
+      key: "contract",
+      label: "Contract",
+      gloss: "What the system is now allowed to claim.",
+    },
+    {
+      ordinal: "04",
+      key: "evidence",
+      label: "Qualified evidence",
+      gloss: "One number, inseparable from the scope it was measured in.",
+    },
+  ],
   channels: [
     {
       id: "ch-01",
       channelLabel: "CH 01",
       title: "Codenames AI",
-      anchorLabel: "Codenames AI — live",
+      meta: "Independent · 2026 – present · live product",
       href: "/projects/codenames-ai",
-      dateRange: "2026 – present",
-      thesis: "A production AI product where valid JSON is not a legal move.",
+      caseStudyLabel: "Codenames AI case study →",
       spine: {
         uncertain:
           "A model proposes a clue. Nothing in the reply guarantees it is legal on this board.",
@@ -31,38 +59,25 @@ export const homepage: Homepage = {
           "Schema-first structured outputs plus board-aware domain validators separate valid JSON from a legal move. Model migrations are treated as controlled experiments, with evaluation built into product behavior.",
         contract: "Valid JSON is not a legal move — the validator decides.",
       },
-      figures: [
-        {
-          value: "175+",
-          name: "monthly active players",
-          scope:
-            "Live-product telemetry · resume phrasing uses 175+ as durable floor, not the rolling monthly-active-players snapshot",
-          source: {
-            inventory: "resumes/facts/codenames-ai-telemetry.yml",
-            factId: "telemetry-model-experiments",
-          },
+      figure: {
+        value: "175+",
+        name: "monthly active players",
+        scope:
+          "Live-product telemetry · resume phrasing uses 175+ as durable floor, not the rolling monthly-active-players snapshot",
+        source: {
+          inventory: "resumes/facts/codenames-ai-telemetry.yml",
+          factId: "telemetry-model-experiments",
+          metricId: "monthly-active-players",
         },
-        {
-          value: "#1",
-          name: "average position, branded search",
-          scope: "Branded Google Search average position (last 28 days)",
-          source: {
-            inventory: "resumes/facts/codenames-ai-telemetry.yml",
-            factId: "branded-search-discovery",
-            metricId: "branded-search-position",
-          },
-        },
-      ],
+      },
     },
     {
       id: "ch-02",
       channelLabel: "CH 02",
       title: "Experiment measurement",
-      anchorLabel: "Experiment measurement — Atlassian",
-      href: "#experiment-measurement",
-      dateRange: "2020 – 2025",
-      thesis:
-        "Refuse a reported experiment number until attribution is checkable.",
+      meta: "Atlassian · Growth · 2020 – 2025",
+      href: "/projects/experiment-measurement",
+      caseStudyLabel: "Experiment measurement case study →",
       spine: {
         uncertain:
           "Attribution windows and pipeline gaps silently change what an in-flight experiment appears to say.",
@@ -71,126 +86,65 @@ export const homepage: Homepage = {
         contract:
           "Preserved statistical validity without restarting experiments.",
       },
-      figures: [
-        {
-          value: ">10%",
-          name: "prior-approach over-attribution exposed",
-          scope:
-            "Cross Flow funnel audit · formula subsequently adopted for Growth Experiment Impact Estimation",
-          source: {
-            inventory: "resumes/facts/cross-flow-experiment-measurement.yml",
-            factId: "attribution-uplift",
-            metricId: "attribution-uplift",
-          },
+      figure: {
+        value: "9%–41%",
+        name: "uplift variance across StatSig attribution windows",
+        scope: "In-flight experiments · Statsig · the range is the finding",
+        source: {
+          inventory: "resumes/facts/statsig-reliability.yml",
+          factId: "attribution-window-variance",
+          metricId: "attribution-window-variance",
         },
-        {
-          value: "9%–41%",
-          name: "uplift variance across StatSig attribution windows",
-          scope: "In-flight experiments · Statsig · the range is the finding",
-          source: {
-            inventory: "resumes/facts/statsig-reliability.yml",
-            factId: "attribution-window-variance",
-            metricId: "attribution-window-variance",
-          },
-        },
-      ],
+      },
     },
   ],
-  ledger: [
+  continuity: {
+    label: "One practice",
+    gloss: "Not a pivot — the same method, two decades.",
+    claim:
+      "Atlassian, 2014–2025 — Software Developer, Engineering Manager, Senior Software Engineer. Independent since 2026.",
+    body: "Four of those years were spent managing, and the work was recognisably the same. The mechanisms each era left behind — attribution formulas, experiment-operations rules, checks that run at the point of change — are the ones running in the independent work now.",
+    figure: {
+      value: "8–10",
+      name: "engineers directly managed",
+      scope:
+        "Atlassian Growth organization · through significant organizational and product change",
+      source: {
+        inventory: "resumes/facts/em-growth-delivery.yml",
+        factId: "direct-reports",
+        metricId: "direct-reports",
+      },
+    },
+    link: { label: "Practice record, era by era →", href: "/about" },
+  },
+  routes: [
     {
-      id: "independent-2026",
-      dateRange: "2026 —",
-      role: "Independent AI product engineer",
-      detail:
-        "Codenames AI in production; agent-native engineering systems with explicit workflow contracts.",
-      current: true,
+      id: "projects",
+      role: "Evidence index",
+      name: "Projects →",
+      href: "/projects",
+      summary: "Every system, and what it is allowed to claim.",
     },
     {
-      id: "atlassian-sse-2024",
-      dateRange: "2024 – 2025",
-      role: "Senior Software Engineer, Growth",
-      org: "Atlassian",
-      detail:
-        "Led cross-functional work to onboard Atlassian’s largest acquisition onto experimentation and growth infrastructure; exceeded associated business OKR targets by 10×.",
+      id: "articles",
+      role: "Field reports",
+      name: "Articles →",
+      href: "/articles",
+      summary: "15 weekly reports in five named lines of reasoning.",
     },
     {
-      id: "aim-program-lead",
-      dateRange: "2022 – 2025",
-      role: "Program Lead, Atlassians in Mentoring",
-      org: "Atlassian · concurrent",
-      detail:
-        "Designed and built the engineering platform powering the program; scaled participation to 3,552 matched mentors and mentees, representing approximately 20% of Atlassians.",
+      id: "about",
+      role: "Practice record",
+      name: "About →",
+      href: "/about",
+      summary: "One engineering practice, 2014 to now.",
     },
     {
-      id: "atlassian-em-2020",
-      dateRange: "2020 – 2024",
-      role: "Engineering Manager, Growth",
-      org: "Atlassian",
-      detail:
-        "Managed teams of 8–10 engineers through significant organizational and product change; established experiment-operations practices for Growth teams running cross-product experimentation.",
-    },
-    {
-      id: "atlassian-sse-2019",
-      dateRange: "2019 – 2020",
-      role: "Senior Software Engineer, Growth",
-      org: "Atlassian",
-      detail:
-        "Built Informed Pull Requests to surface security vulnerabilities in pull requests and automatically run accessibility and performance audits on SPAs.",
-    },
-    {
-      id: "atlassian-swe-2015",
-      dateRange: "2015 – 2019",
-      role: "Software Developer",
-      org: "Atlassian",
-      detail:
-        "Frontend and full-stack work across growth, billing, purchasing, onboarding, and experimentation-related systems, including cross-product initiatives involving Jira, Bitbucket, and Confluence.",
-    },
-    {
-      id: "atlassian-graduate-2014",
-      dateRange: "2014 – 2015",
-      role: "Graduate Developer",
-      org: "Atlassian",
-      detail: "UNSW Co-op Program Scholar, Software Engineering (2009–2013).",
-    },
-  ],
-  supporting: [
-    {
-      id: "renovate-governance",
-      title: "Renovate governance ladder",
-      href: "/projects/renovate-governance",
-      summary:
-        "Classifier, investigator and maintainer agents with distinct write boundaries, stop causes, and merge authority held away from the proposer.",
-    },
-    {
-      id: "editorial-workflow",
-      title: "AI-assisted editorial workflow",
-      href: "/projects/editorial-workflow",
-      summary:
-        "Retrieval, drafting, critique, verification and a human-gated publish, operated at a weekly cadence.",
-    },
-    {
-      id: "agent-native",
-      title: "Agent-native engineering systems",
+      id: "ecosystem",
+      role: "Walkthrough",
+      name: "Ecosystem →",
       href: "/ecosystem",
-      summary:
-        "Reusable workflows with explicit contracts, authority constraints, verification and evaluation, integrated with MCP-backed PostHog, GitHub and Notion.",
-    },
-  ],
-  writing: [
-    {
-      slug: "active-players-which-sessions-counted",
-      argument:
-        "A healthy-looking Active players tile forced a sharper question about which sessions belonged in the metric.",
-    },
-    {
-      slug: "agent-plans-authority-handoffs",
-      argument:
-        "Multi-slice agent plans need explicit authority handoffs and stop lines — not only implementation checklists.",
-    },
-    {
-      slug: "ai-reviewer-kinds-of-reasoning",
-      argument:
-        "After fixing score-first critique, further reviewer gains came from separating kinds of reasoning rather than expanding the rubric.",
+      summary: "Four unrelated systems, the same five gates.",
     },
   ],
 };

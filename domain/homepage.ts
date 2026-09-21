@@ -1,7 +1,23 @@
 /**
- * Homepage presentation model — not a fifth project, not career inventory.
- * Copy is transcribed from sibling `resumes/` facts and roles; figures keep
- * value, name, and scope together. Source ids are for review, not rendered.
+ * Homepage 2 presentation model — one information model, two responsive
+ * projections. Not a fifth project, not the career inventory. Copy is
+ * transcribed from the sibling `resumes/` facts and roles.
+ *
+ * The model is four method dimensions read across two channels. Wide renders it
+ * as a matrix (comparison across); narrow renders the same schema declared once
+ * and instantiated per channel (comparison through recognition). Both
+ * projections read from this single model — the redundancy lives in the markup,
+ * never in the data.
+ *
+ * Home owns identity, the thesis, the two-channel framing, the contracts, one
+ * qualified figure per channel, compressed career continuity, and the routes to
+ * the deeper surfaces. It no longer reproduces the full career ledger, the
+ * supporting-project summaries, or the article catalogue — those live on their
+ * dedicated surfaces.
+ *
+ * Figures keep value + name + scope together and are never separated; `source`
+ * is a review aid for verifying figures against the inventory and is never
+ * rendered.
  */
 
 export interface HomepageFigureSource {
@@ -18,6 +34,25 @@ export interface HomepageFigure {
   source: HomepageFigureSource;
 }
 
+/**
+ * The shared method schema — the four questions asked of every channel, in
+ * order. `key` binds a dimension to the channel content that answers it:
+ * `uncertain` / `checkable` / `contract` read the matching `HomepageSpine`
+ * field; `evidence` renders the channel's qualified figure.
+ */
+export type HomepageMethodKey =
+  "uncertain" | "checkable" | "contract" | "evidence";
+
+export interface HomepageMethodDimension {
+  /** Two-digit ordinal, e.g. "01". */
+  ordinal: string;
+  key: HomepageMethodKey;
+  /** Short dimension name, e.g. "Made checkable". */
+  label: string;
+  /** One-clause gloss naming what the dimension asks. */
+  gloss: string;
+}
+
 export interface HomepageSpine {
   uncertain: string;
   checkable: string;
@@ -26,37 +61,45 @@ export interface HomepageSpine {
 
 export interface HomepageChannel {
   id: string;
+  /** Channel identifier, e.g. "CH 01" — muted, never a signal colour. */
   channelLabel: string;
   title: string;
-  /** Hero anchor label (may include a live/org qualifier). */
-  anchorLabel: string;
+  /** Single head meta line: org · dates · qualifier. */
+  meta: string;
+  /** Route to this channel's deeper surface (a case study). */
   href: string;
-  dateRange: string;
-  thesis: string;
+  /** Named per-channel route label, e.g. "Codenames AI case study →". */
+  caseStudyLabel: string;
   spine: HomepageSpine;
-  figures: HomepageFigure[];
+  /** The one qualified figure Home carries for this channel. */
+  figure: HomepageFigure;
 }
 
-export interface HomepageLedgerRow {
+/**
+ * Compressed career-continuity band ("One practice"). The `figure` is
+ * supporting continuity evidence, subordinate to the two channel figures — its
+ * hierarchy reflects that. The full record lives on About.
+ */
+export interface HomepageContinuity {
+  /** Band label, e.g. "One practice". */
+  label: string;
+  gloss: string;
+  /** The strong continuity claim (roles across the two decades). */
+  claim: string;
+  body: string;
+  figure: HomepageFigure;
+  link: { label: string; href: string };
+}
+
+/** One destination in the closing route grid. */
+export interface HomepageRoute {
   id: string;
-  dateRange: string;
+  /** Mono role kicker, e.g. "Evidence index". */
   role: string;
-  org?: string;
-  detail: string;
-  current?: boolean;
-}
-
-export interface HomepageSupportingItem {
-  id: string;
-  title: string;
-  summary: string;
+  /** Destination name with trailing glyph, e.g. "Projects →". */
+  name: string;
   href: string;
-}
-
-/** Points at `content/articles.ts` by slug; `argument` is homepage-only compression. */
-export interface HomepageWritingRef {
-  slug: string;
-  argument: string;
+  summary: string;
 }
 
 export interface HomepageHero {
@@ -68,8 +111,11 @@ export interface HomepageHero {
 
 export interface Homepage {
   hero: HomepageHero;
+  /** The four method dimensions, in reading order. */
+  method: HomepageMethodDimension[];
+  /** The two channels, read across (wide) or in sequence (narrow). */
   channels: HomepageChannel[];
-  ledger: HomepageLedgerRow[];
-  supporting: HomepageSupportingItem[];
-  writing: HomepageWritingRef[];
+  continuity: HomepageContinuity;
+  /** Routes into the deeper destination surfaces. */
+  routes: HomepageRoute[];
 }

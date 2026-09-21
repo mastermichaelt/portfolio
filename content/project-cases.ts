@@ -211,10 +211,10 @@ const experimentMeasurement: ProjectCase = {
         label: "Homepage channel CH 02",
         description: [
           {
-            text: "The same thesis and two of these figures, stated as part of the home-page argument.",
+            text: "The same contract and qualified figure, stated as part of the home-page argument.",
           },
         ],
-        href: "/#experiment-measurement",
+        href: "/",
       },
       {
         id: "no-public-artifact",

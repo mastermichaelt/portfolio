@@ -39,11 +39,15 @@ export interface AboutEra {
   current?: boolean;
 }
 
-/** The §02 evidence gutter: the measurement-era figure and the ledger cross-link. */
+/**
+ * The §02 evidence gutter: the measurement-era figure and an optional
+ * cross-link. `ledgerNote` is omitted now that the role-by-role record lives on
+ * this page's own practice arc rather than a homepage career ledger.
+ */
 export interface AboutArcEvidence {
   label: string;
   figure: CaseFigure;
-  ledgerNote: { lead: string; link: AboutLink };
+  ledgerNote?: { lead: string; link: AboutLink };
 }
 
 /** The §03 management band: a declarative statement, prose, and two figures. */

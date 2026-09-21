@@ -57,8 +57,7 @@ p {
 
 /* Numerals never shift width between figures. */
 .tabular,
-.figure-value,
-.ledger-date {
+.figure-value {
   font-variant-numeric: tabular-nums;
 }
 

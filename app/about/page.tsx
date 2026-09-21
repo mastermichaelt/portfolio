@@ -173,12 +173,14 @@ export default async function AboutPage() {
                     {about.arcEvidence.label}
                   </p>
                   <QualifiedFigure figure={about.arcEvidence.figure} />
-                  <p className="about-ledger-note">
-                    {about.arcEvidence.ledgerNote.lead}
-                    <Link href={about.arcEvidence.ledgerNote.link.href}>
-                      {about.arcEvidence.ledgerNote.link.label}
-                    </Link>
-                  </p>
+                  {about.arcEvidence.ledgerNote ? (
+                    <p className="about-ledger-note">
+                      {about.arcEvidence.ledgerNote.lead}
+                      <Link href={about.arcEvidence.ledgerNote.link.href}>
+                        {about.arcEvidence.ledgerNote.link.label}
+                      </Link>
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </section>

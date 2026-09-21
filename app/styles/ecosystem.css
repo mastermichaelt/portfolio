@@ -375,3 +375,36 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Onward navigation — the ecosystem walkthrough is a destination the homepage
+   routes into, so it must offer its own routes back out rather than stranding
+   the reader at the end of the line. */
+.eco-onward-head {
+  margin-bottom: var(--gap-sm);
+}
+
+.eco-onward {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono-stack);
+  font-size: 13px;
+}
+
+.eco-onward a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
+  border-bottom: 1px solid transparent;
+  padding-bottom: 2px;
+}
+
+.eco-onward a:hover,
+.eco-onward a:focus-visible {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}

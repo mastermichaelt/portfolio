@@ -115,11 +115,9 @@ describe("content-foundation inventory", () => {
       }
     }
 
+    // The `featured` flag is now independent of the homepage: Homepage 2 routes
+    // to the Articles surface rather than reproducing a selected-writing list.
     const featured = listed.filter((article) => article.featured);
-    const homepageWritingSlugs = homepage.writing.map((item) => item.slug);
-    expect(new Set(featured.map((article) => article.slug))).toEqual(
-      new Set(homepageWritingSlugs),
-    );
     expect(featured.length).toBe(3);
     expect(featured.length).toBeLessThan(listed.length);
     expect(
@@ -221,82 +219,92 @@ describe("content-foundation inventory", () => {
     expect(copyText).not.toContain(".yml");
   });
 
-  it("loads an evidence-backed homepage presentation without a fifth project", async () => {
+  it("loads the Homepage 2 method model as two projections of one system", async () => {
     const loaded = await repository.getHomepage();
     expect(loaded).toEqual(homepage);
 
+    // Two channels, read across (wide) or in sequence (narrow).
     expect(homepage.channels.map((channel) => channel.id)).toEqual([
       "ch-01",
       "ch-02",
     ]);
     expect(homepage.channels[0]?.href).toBe("/projects/codenames-ai");
     expect(homepage.channels[1]?.title).toBe("Experiment measurement");
-    expect(homepage.channels[1]?.href).toBe("#experiment-measurement");
-    expect(homepage.channels[1]?.dateRange).toBe("2020 – 2025");
+    // CH 02 routes to its case study, not a homepage anchor.
+    expect(homepage.channels[1]?.href).toBe("/projects/experiment-measurement");
+    for (const channel of homepage.channels) {
+      expect(channel.caseStudyLabel).toMatch(/case study →$/);
+      expect(channel.spine.uncertain.trim().length).toBeGreaterThan(0);
+      expect(channel.spine.checkable.trim().length).toBeGreaterThan(0);
+      expect(channel.spine.contract.trim().length).toBeGreaterThan(0);
+    }
 
-    const figures = homepage.channels.flatMap((channel) => channel.figures);
-    expect(figures).toHaveLength(4);
+    // The shared method schema: four dimensions, in order, each binding to the
+    // channel content that answers it.
+    expect(homepage.method.map((dimension) => dimension.ordinal)).toEqual([
+      "01",
+      "02",
+      "03",
+      "04",
+    ]);
+    expect(homepage.method.map((dimension) => dimension.key)).toEqual([
+      "uncertain",
+      "checkable",
+      "contract",
+      "evidence",
+    ]);
+    for (const dimension of homepage.method) {
+      expect(dimension.label.trim().length).toBeGreaterThan(0);
+      expect(dimension.gloss.trim().length).toBeGreaterThan(0);
+    }
+
+    // Home carries exactly one qualified figure per channel — value + name +
+    // scope, each traceable to the inventory.
+    const figures = homepage.channels.map((channel) => channel.figure);
+    expect(figures.map((figure) => figure.value)).toEqual(["175+", "9%–41%"]);
     for (const figure of figures) {
-      expect(figure.value.trim().length).toBeGreaterThan(0);
       expect(figure.name.trim().length).toBeGreaterThan(0);
       expect(figure.scope.trim().length).toBeGreaterThan(0);
       expect(figure.source.inventory).toMatch(/^resumes\/facts\/.+\.yml$/);
       expect(figure.source.factId.trim().length).toBeGreaterThan(0);
     }
-
-    expect(figures.map((figure) => figure.value)).toEqual([
-      "175+",
-      "#1",
-      ">10%",
-      "9%–41%",
-    ]);
     expect(figures[0]?.scope).toMatch(/durable floor/i);
-    expect(figures[1]?.scope).toMatch(/last 28 days/i);
-    expect(figures[2]?.scope).toMatch(/Cross Flow/i);
-    expect(figures[3]?.scope).toMatch(/Statsig/i);
+    // 9%–41% keeps its source meaning: the range across attribution windows is
+    // the measurement-reliability finding, not a delivery/run-time outcome.
+    expect(figures[1]?.scope).toMatch(/Statsig/i);
+    expect(figures[1]?.scope).toMatch(/the range is the finding/i);
 
-    expect(homepage.ledger).toHaveLength(7);
-    expect(homepage.ledger[0]?.current).toBe(true);
-    expect(homepage.ledger.map((row) => row.id)).toEqual([
-      "independent-2026",
-      "atlassian-sse-2024",
-      "aim-program-lead",
-      "atlassian-em-2020",
-      "atlassian-sse-2019",
-      "atlassian-swe-2015",
-      "atlassian-graduate-2014",
-    ]);
-    expect(homepage.ledger[1]?.detail).toMatch(/10×/);
-    expect(homepage.ledger[1]?.detail).toMatch(/associated business OKR/i);
-    expect(homepage.ledger[2]?.detail).toMatch(/3,552/);
-    expect(homepage.ledger[2]?.detail).toMatch(/approximately 20%/i);
-    expect(homepage.ledger[3]?.detail).toMatch(/8–10/);
-
-    expect(homepage.supporting.map((item) => item.id)).toEqual([
-      "renovate-governance",
-      "editorial-workflow",
-      "agent-native",
-    ]);
-    expect(homepage.supporting.map((item) => item.id)).not.toContain(
-      "resume-generator",
+    // Compressed continuity — one supporting figure (8–10) routing to the full
+    // record on About, not a career ledger reproduced on Home.
+    expect(homepage.continuity.figure.value).toBe("8–10");
+    expect(homepage.continuity.figure.source.inventory).toMatch(
+      /^resumes\/facts\/.+\.yml$/,
     );
+    expect(homepage.continuity.link.href).toBe("/about");
+    expect(homepage.continuity.claim).toMatch(/2014–2025/);
 
-    const articleSlugs = new Set(articles.map((article) => article.slug));
-    expect(homepage.writing.map((item) => item.slug)).toEqual([
-      "active-players-which-sessions-counted",
-      "agent-plans-authority-handoffs",
-      "ai-reviewer-kinds-of-reasoning",
+    // Routes into the four deeper destination surfaces.
+    expect(homepage.routes.map((route) => route.href)).toEqual([
+      "/projects",
+      "/articles",
+      "/about",
+      "/ecosystem",
     ]);
-    for (const item of homepage.writing) {
-      expect(articleSlugs.has(item.slug)).toBe(true);
-      expect(item.argument.trim().length).toBeGreaterThan(0);
+    for (const route of homepage.routes) {
+      expect(route.role.trim().length).toBeGreaterThan(0);
+      expect(route.name.trim().length).toBeGreaterThan(0);
+      expect(route.summary.trim().length).toBeGreaterThan(0);
     }
 
+    // Home no longer reproduces the ledger, supporting summaries or the article
+    // catalogue — those belong to their dedicated surfaces.
+    expect("ledger" in homepage).toBe(false);
+    expect("supporting" in homepage).toBe(false);
+    expect("writing" in homepage).toBe(false);
+
     expect(homepageText()).not.toMatch(/game_started/i);
-    expect(
-      homepage.channels.some((channel) =>
-        channel.href.includes("editorial-workflow"),
-      ),
-    ).toBe(false);
+    expect(homepageText()).not.toMatch(
+      /editorial-workflow|renovate-governance|resume-generator/,
+    );
   });
 });
