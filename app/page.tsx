@@ -61,18 +61,23 @@ export default async function HomePage() {
       <section className="home2-hero" aria-labelledby="home2-thesis">
         <div className="container">
           <p className="label home2-kicker">
-            {profile.headline}
-            <span className="home2-kicker-sep" aria-hidden="true">
-              {" · "}
+            {profile.headline}{" "}
+            <span className="home2-kicker-part">
+              <span className="home2-kicker-sep" aria-hidden="true">
+                ·
+              </span>{" "}
+              {profile.location}
             </span>
-            {profile.location}
             {availability ? (
-              <span className="home2-kicker-avail">
-                <span className="home2-kicker-sep" aria-hidden="true">
-                  {" · "}
+              <>
+                {" "}
+                <span className="home2-kicker-part home2-kicker-avail">
+                  <span className="home2-kicker-sep" aria-hidden="true">
+                    ·
+                  </span>{" "}
+                  {availability}
                 </span>
-                {availability}
-              </span>
+              </>
             ) : null}
           </p>
           <div className="home2-hero-grid">

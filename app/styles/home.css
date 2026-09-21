@@ -55,6 +55,13 @@
   letter-spacing: 0.18em;
 }
 
+/* Bind each " · phrase" into one unbreakable unit with a breakable space before
+   it, so a wrap moves the whole unit to the next line (never stranding the
+   separator at a line end). Location stays "Sydney, Australia" in full. */
+.home2-kicker-part {
+  white-space: nowrap;
+}
+
 .home2-hero-grid {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
@@ -198,7 +205,10 @@
   display: grid;
   grid-template-columns: 230px 1fr 1fr;
   gap: 0 44px;
-  align-items: start;
+  /* Each row is one grid row: stretch the three cells to the tallest of them so
+     their bottom rules land on one shared horizontal band. Content still flows
+     from the top of each cell (block flow), so it stays top-aligned. */
+  align-items: stretch;
 }
 
 .home2-matrix-channel {
