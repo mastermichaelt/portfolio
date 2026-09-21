@@ -152,6 +152,26 @@ test.describe("portfolio happy path", () => {
     }
   });
 
+  test("home introduces no horizontal overflow at 320px", async ({ page }) => {
+    // The kicker binds its separators (nbsp) rather than nowrapping whole
+    // phrases, so the identity/availability lines must wrap instead of pushing
+    // the page wider than a small phone. Guards the regression the whole-phrase
+    // nowrap could have introduced; 390px reference coverage stays above.
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.goto("/");
+
+    const overflowX = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
+    expect(overflowX).toBe(false);
+
+    // The identity kicker itself never overflows its own line box.
+    const kickerFits = await page
+      .locator(".home2-kicker")
+      .evaluate((el) => el.scrollWidth <= Math.ceil(el.clientWidth) + 1);
+    expect(kickerFits).toBe(true);
+  });
+
   test("projects index tiers co-primary, supporting and infrastructure rows", async ({
     page,
   }) => {

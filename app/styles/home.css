@@ -55,13 +55,6 @@
   letter-spacing: 0.18em;
 }
 
-/* Bind each " · phrase" into one unbreakable unit with a breakable space before
-   it, so a wrap moves the whole unit to the next line (never stranding the
-   separator at a line end). Location stays "Sydney, Australia" in full. */
-.home2-kicker-part {
-  white-space: nowrap;
-}
-
 .home2-hero-grid {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
