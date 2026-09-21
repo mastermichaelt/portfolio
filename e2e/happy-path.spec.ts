@@ -15,7 +15,7 @@ async function expectPrimaryNav(page: Page) {
 }
 
 test.describe("portfolio happy path", () => {
-  test("home is live with first-class systems, ledger, and selected writing", async ({
+  test("home renders the wide method matrix, continuity and routes", async ({
     page,
   }) => {
     await page.goto("/");
@@ -33,110 +33,123 @@ test.describe("portfolio happy path", () => {
     ).toHaveCount(0);
     await expect(page.getByText("under construction")).toHaveCount(0);
     await expectPrimaryNav(page);
-    await expect(
-      page.getByRole("link", { name: "Explore the systems ecosystem" }),
-    ).toHaveCount(0);
 
-    const anchors = page.locator("a.anchor");
-    await expect(anchors).toHaveCount(2);
-    await expect(
-      page.locator('a.anchor[href="/projects/codenames-ai"]'),
-    ).toBeVisible();
-    await expect(
-      page.locator('a.anchor[href="#experiment-measurement"]'),
-    ).toBeVisible();
-    await expect(
-      page.locator('a.anchor[href="/projects/editorial-workflow"]'),
-    ).toHaveCount(0);
-
-    await expect(page.locator("article.case-panel")).toHaveCount(2);
-    await expect(page.locator("#experiment-measurement")).toBeVisible();
-    await expect(
-      page.getByRole("heading", {
-        name: /valid JSON is not a legal move/i,
-      }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", {
-        name: /attribution is checkable/i,
-      }),
-    ).toBeVisible();
-
+    // The retired homepage furniture is gone.
+    await expect(page.locator("a.anchor")).toHaveCount(0);
+    await expect(page.locator(".ledger-row")).toHaveCount(0);
     await expect(
       page.getByRole("heading", { name: "Career ledger" }),
-    ).toBeVisible();
-    await expect(page.locator(".ledger-row")).toHaveCount(7);
-
-    const featuredWriting = page.locator("a.list-row[href*='dev.to']");
-    await expect(featuredWriting).toHaveCount(3);
-    await expect(featuredWriting.first()).toHaveAttribute(
-      "href",
-      /dev\.to\/michaeltruong/,
-    );
-    await expect(
-      page.getByRole("link", {
-        name: /Active players looked real until we asked which sessions counted/i,
-      }),
-    ).toBeVisible();
-
-    await expect(
-      page.locator('a.list-row[href="/projects/editorial-workflow"]'),
-    ).toBeVisible();
-    await expect(
-      page.locator('a.list-row[href="/projects/resume-generator"]'),
     ).toHaveCount(0);
 
+    // The wide projection (matrix) is shown at desktop; the narrow one is hidden.
+    const wide = page.locator(".home2-only-wide");
+    await expect(wide).toBeVisible();
+    await expect(page.locator(".home2-only-narrow")).toBeHidden();
+    await expect(page.getByText("Two systems, one method")).toBeVisible();
+
     await expect(
-      page.getByRole("link", { name: /ecosystem walkthrough/i }),
-    ).toHaveAttribute("href", "/ecosystem");
+      wide.getByRole("heading", { name: "Codenames AI" }),
+    ).toBeVisible();
+    await expect(
+      wide.getByRole("heading", { name: "Experiment measurement" }),
+    ).toBeVisible();
+    // The contract is the heaviest line in each channel column.
+    await expect(
+      wide.getByText(/valid JSON is not a legal move/i),
+    ).toBeVisible();
+    await expect(
+      wide.getByText(/Preserved statistical validity/i),
+    ).toBeVisible();
+
+    // One qualified figure per channel; 9%–41% keeps its finding scope.
+    await expect(wide.getByText("175+", { exact: true })).toBeVisible();
+    await expect(wide.getByText("9%–41%", { exact: true })).toBeVisible();
+    await expect(wide.getByText(/durable floor/i)).toBeVisible();
+    await expect(wide.getByText(/the range is the finding/i)).toBeVisible();
+
+    // Named per-channel routes to the case studies (CH 02 → its own case study).
+    await expect(
+      wide.locator('a[href="/projects/codenames-ai"]'),
+    ).toBeVisible();
+    await expect(
+      wide.locator('a[href="/projects/experiment-measurement"]'),
+    ).toBeVisible();
+
+    // Continuity: 8–10 is present, subordinate, routing to About not a ledger.
+    await expect(page.getByText("8–10", { exact: true })).toBeVisible();
+    await expect(page.getByText("One practice")).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /Practice record, era by era/i }),
+    ).toHaveAttribute("href", "/about");
+
+    // Routes into the four deeper surfaces.
+    await expect(page.locator("a.home2-route")).toHaveCount(4);
+    for (const href of ["/projects", "/articles", "/about", "/ecosystem"]) {
+      await expect(page.locator(`a.home2-route[href="${href}"]`)).toBeVisible();
+    }
+
+    // Availability is stated on Home now (it was absent on the previous layout).
+    await expect(
+      page.getByText(/Open to senior engineering roles/i).first(),
+    ).toBeVisible();
   });
 
-  test("home 1b layout stacks at 375px with qualified figures", async ({
+  test("home projects into the repeated schema at 390px with qualified figures", async ({
     page,
   }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
 
-    await expect(page.getByText("175+", { exact: true })).toBeVisible();
-    await expect(page.getByText(/durable floor/i)).toBeVisible();
+    const overflowX = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
+    expect(overflowX).toBe(false);
+
+    // At narrow the repeated schema shows; the desktop matrix is hidden.
+    const narrow = page.locator(".home2-only-narrow");
+    await expect(narrow).toBeVisible();
+    await expect(page.locator(".home2-only-wide")).toBeHidden();
+
+    // The set is counted so the first channel is never mistaken for the only one.
+    await expect(narrow.locator(".home2-system")).toHaveCount(2);
+    await expect(narrow.getByText("System 01 of 02")).toBeVisible();
+    await expect(narrow.getByText("System 02 of 02")).toBeVisible();
+
+    // Each channel repeats the schema and carries its own 04 evidence figure.
+    await expect(narrow.getByText("175+", { exact: true })).toBeVisible();
+    await expect(narrow.getByText(/durable floor/i)).toBeVisible();
+    await expect(narrow.getByText("9%–41%", { exact: true })).toBeVisible();
+    await expect(narrow.getByText(/the range is the finding/i)).toBeVisible();
     await expect(page.getByText("game_started")).toHaveCount(0);
+
+    // A figure scope never truncates — it renders wider than a desktop gutter.
+    const scopeWidth = await narrow
+      .locator(".qfigure .figure-scope")
+      .first()
+      .evaluate((node) => node.getBoundingClientRect().width);
+    expect(scopeWidth).toBeGreaterThan(300);
+
+    // The narrow hero states availability on its own line.
     await expect(
-      page.getByRole("heading", { name: "Career ledger" }),
+      page.getByText(/Open to senior engineering roles/i).first(),
+    ).toBeVisible();
+
+    // Per-channel case-study routes survive and meet the 44px tap target.
+    await expect(
+      narrow.locator('a[href="/projects/codenames-ai"]'),
     ).toBeVisible();
     await expect(
-      page.getByText("open to senior engineering roles"),
-    ).toHaveCount(0);
-
-    const desktopAnchors = page.locator("a.anchor");
-    for (const box of await desktopAnchors.evaluateAll((nodes) =>
-      nodes.map((node) => node.getBoundingClientRect().height),
-    )) {
-      expect(box).toBeGreaterThanOrEqual(44);
-    }
-
-    const desktopPanels = page.locator("article.case-panel");
-    const desktopTops = await desktopPanels.evaluateAll((nodes) =>
-      nodes.map((node) => node.getBoundingClientRect().top),
-    );
-    expect(desktopTops).toHaveLength(2);
-    expect(Math.abs(desktopTops[0]! - desktopTops[1]!)).toBeLessThan(48);
-
-    await page.setViewportSize({ width: 375, height: 812 });
-
-    const mobileAnchors = page.locator("a.anchor");
-    const mobileHeights = await mobileAnchors.evaluateAll((nodes) =>
-      nodes.map((node) => node.getBoundingClientRect().height),
-    );
-    for (const height of mobileHeights) {
+      narrow.locator('a[href="/projects/experiment-measurement"]'),
+    ).toBeVisible();
+    const linkHeights = await narrow
+      .locator("a.home2-morelink")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => node.getBoundingClientRect().height),
+      );
+    expect(linkHeights.length).toBeGreaterThan(0);
+    for (const height of linkHeights) {
       expect(height).toBeGreaterThanOrEqual(44);
     }
-
-    const mobileBoxes = await desktopPanels.evaluateAll((nodes) =>
-      nodes.map((node) => {
-        const box = node.getBoundingClientRect();
-        return { top: box.top, bottom: box.bottom };
-      }),
-    );
-    expect(mobileBoxes[1]!.top).toBeGreaterThan(mobileBoxes[0]!.bottom - 1);
   });
 
   test("projects index tiers co-primary, supporting and infrastructure rows", async ({

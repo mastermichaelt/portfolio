@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ProductionLine } from "@/components/ecosystem/ProductionLine";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
@@ -70,6 +71,23 @@ export default async function EcosystemPage() {
           </div>
         </div>
       </section>
+
+      <nav className="section" aria-label="Where to next">
+        <div className="container fade-in delay-2">
+          <p className="label eco-onward-head">Where to next</p>
+          <ul className="eco-onward">
+            <li>
+              <Link href="/projects">Projects — evidence index →</Link>
+            </li>
+            <li>
+              <Link href="/about">About — practice record →</Link>
+            </li>
+            <li>
+              <Link href="/">Home →</Link>
+            </li>
+          </ul>
+        </div>
+      </nav>
     </main>
   );
 }

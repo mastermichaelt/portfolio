@@ -385,20 +385,6 @@
   color: var(--accent);
 }
 
-.case-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-top: none;
-}
-
-.case-panel {
-  background: var(--surface);
-  padding: var(--gap-lg);
-}
-
 .case-head {
   display: flex;
   justify-content: space-between;
@@ -407,46 +393,8 @@
   margin-bottom: var(--gap-md);
 }
 
-.case-id {
-  font-family: var(--font-mono-stack);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-.case-panel h3 {
-  margin-bottom: var(--gap-md);
-}
-
-.spine {
-  display: grid;
-  gap: 16px;
-  padding-bottom: var(--gap-md);
-  border-bottom: 1px solid var(--border);
-}
-
-.spine-term {
-  margin-bottom: 6px;
-  color: var(--muted);
-}
-
-.spine p {
-  color: var(--fg-2);
-}
-
-.spine .contract {
-  color: var(--fg);
-}
-
 /* Evidence: a figure and its scope are one block. Never separate them,
    never put them in a scroller, never show a figure whose scope won't fit. */
-.figures {
-  display: grid;
-  gap: 20px;
-  padding-top: var(--gap-md);
-}
-
 .figure-value {
   font-family: var(--font-mono-stack);
   font-size: var(--fs-figure);
@@ -475,94 +423,6 @@
   background: var(--surface-2);
   padding: 1px 5px;
   font-size: inherit;
-}
-
-.case-panel[id] {
-  scroll-margin-top: 88px;
-}
-
-.ledger {
-  border-bottom: 1px solid var(--border);
-}
-
-.ledger-row {
-  display: grid;
-  grid-template-columns: 120px 320px 1fr;
-  gap: var(--gap-md);
-  padding-block: 16px;
-  border-top: 1px solid var(--border);
-}
-
-.ledger-row:first-child {
-  border-top: none;
-}
-
-.ledger-date {
-  font-family: var(--font-mono-stack);
-  font-size: var(--fs-meta);
-  color: var(--muted);
-}
-
-.ledger-row.is-current .ledger-date {
-  color: var(--accent);
-}
-
-.ledger-role {
-  font-weight: 600;
-}
-
-.ledger-org {
-  display: block;
-  font-weight: 400;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.ledger-detail {
-  color: var(--fg-2);
-}
-
-.list-head {
-  font-size: 17px;
-  margin-bottom: 4px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--rule);
-}
-
-.list-row {
-  display: block;
-  padding-block: 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.list-row-title {
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: var(--fg);
-}
-
-.list-row p {
-  color: var(--fg-2);
-  font-size: 14px;
-}
-
-.list-row .list-row-title {
-  color: var(--fg);
-}
-
-.list-row:hover .list-row-title {
-  color: var(--accent);
-}
-
-.list-note {
-  margin-top: 16px;
-  font-family: var(--font-mono-stack);
-  font-size: 11.5px;
-  color: var(--muted);
-}
-
-.list-note a {
-  color: var(--accent);
 }
 
 .log-row {
@@ -782,20 +642,6 @@
   }
 }
 
-@media (max-width: 1100px) {
-  .case-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .ledger-row {
-    grid-template-columns: 110px 1fr;
-  }
-
-  .ledger-detail {
-    grid-column: 2;
-  }
-}
-
 @media (max-width: 920px) {
   .grid-2,
   .grid-1-2 {
@@ -850,24 +696,10 @@
     padding: 18px 20px;
   }
 
-  .case-panel {
-    padding: var(--gap-md);
-  }
-
   .case-head {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
-  }
-
-  .ledger-row {
-    grid-template-columns: 1fr;
-    gap: 6px;
-    padding-block: 18px;
-  }
-
-  .ledger-detail {
-    grid-column: 1;
   }
 
   .hero-home h1 {

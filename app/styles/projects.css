@@ -68,7 +68,7 @@
   gap: var(--gap-lg);
 }
 
-/* The strong section rule beneath the column labels — matches .list-head. */
+/* The strong section rule beneath the column labels — the shared --rule. */
 .pindex-head {
   padding-bottom: 12px;
   border-bottom: 1px solid var(--rule);

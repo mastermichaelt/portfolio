@@ -91,13 +91,6 @@ export const about: AboutPage = {
         metricId: "attribution-uplift",
       },
     },
-    ledgerNote: {
-      lead: "Role-by-role detail — ",
-      link: {
-        label: "career ledger on the homepage →",
-        href: "/#career-ledger",
-      },
-    },
   },
   management: {
     statement: "Management was this practice at team scale.",
@@ -175,7 +168,7 @@ export const about: AboutPage = {
       name: "Home",
       href: "/",
       description:
-        "Positioning — the thesis, the two first-class systems, and the career ledger row by row.",
+        "Positioning — the thesis, the two-channel method read across both systems, and the routes into every deeper surface.",
     },
     {
       name: "Projects",
