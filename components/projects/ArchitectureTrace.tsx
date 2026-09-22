@@ -101,20 +101,15 @@ function NodeRow({
             {row.showKind ? (
               <span className="pcase-arch-trace-chip">{row.kind}</span>
             ) : null}
-            {row.tag ? (
-              <span className="pcase-arch-trace-tag">{row.tag}</span>
-            ) : null}
             {expanded ? (
               <span className="pcase-arch-trace-close">Close</span>
             ) : null}
           </span>
-          {expanded ? (
+          {/* The node card explains only what the node is: its summary. Topology
+              (branch, rejoin, loop, conditions) is owned by the connector rows. */}
+          {expanded && summary ? (
             <span id={panelId} className="pcase-arch-trace-panel">
-              <span className="pcase-arch-trace-kindline">{row.kindLine}</span>
-              {summary ? (
-                <span className="pcase-arch-trace-summary">{summary}</span>
-              ) : null}
-              <span className="pcase-arch-trace-edgeline">{row.edgeLine}</span>
+              <span className="pcase-arch-trace-summary">{summary}</span>
             </span>
           ) : null}
         </button>

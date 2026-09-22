@@ -1292,24 +1292,28 @@ test.describe("portfolio happy path", () => {
     await expect(trace).toBeVisible();
     await expect(page.getByTestId("architecture-detail-strip")).toHaveCount(0);
 
-    // All nine nodes render, and branch/loop topology survives as derived text.
+    // All nine nodes render, and branch/loop topology survives as derived
+    // connector text — the connector rows own the topology, not the nodes.
     await expect(trace.locator("[data-node]")).toHaveCount(9);
     await expect(trace).toContainText("↑ Revise — returns to 06 Draft");
     await expect(trace).toContainText(
       "↓ Skip bypasses 04 · rejoins at 05 Context",
     );
 
-    // Tapping a node expands it in place: kind line, summary and edge line.
+    // A collapsed node card carries only its ordinal and title — no partner
+    // tags restating topology (e.g. Critique's old "↑ 06 revise").
     const critique = trace.locator('[data-node="node-critique"]');
+    await expect(critique).toContainText("Critique");
+    await expect(critique).not.toContainText("revise");
+
+    // Tapping a node expands it to only its explanatory summary and Close — no
+    // kind line, no edge serialization.
     await critique.click();
     await expect(critique).toHaveAttribute("aria-expanded", "true");
-    await expect(critique).toContainText(
-      "skill · node 07 · Analyze before score",
-    );
     await expect(critique).toContainText("Adversarial draft critique");
-    await expect(critique).toContainText(
-      "in: 06  ·  out: 06 Revise  ·  out: 08 Ready",
-    );
+    await expect(critique).toContainText("Close");
+    await expect(critique).not.toContainText("node 07");
+    await expect(critique).not.toContainText("in: 06");
 
     // A second press closes it; only one is open at a time.
     await critique.click();
@@ -1529,6 +1533,58 @@ test.describe("portfolio happy path", () => {
         )
         .toBe(true);
     }
+  });
+
+  // Acceptance — one selection state is shared by both presentations and must
+  // survive a resize that crosses the threshold (no remount drops it).
+  test("architecture selection survives crossing the presentation threshold", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/projects/editorial-workflow");
+    await expect
+      .poll(async () => (await figureState(page)).isArtboard, {
+        timeout: 5000,
+        message: "settle to artboard",
+      })
+      .toBe(true);
+
+    // Select a node on the artboard; the strip resolves it.
+    await page
+      .locator('.pcase-arch-canvas [data-node="node-critique"]')
+      .click();
+    const strip = page.getByTestId("architecture-detail-strip");
+    await expect(strip).toContainText("skill · node 07");
+
+    // Shrink below the editorial threshold: the trace takes over and the same
+    // node is still the open one (selection preserved across the switch).
+    await page.setViewportSize({ width: 390, height: 900 });
+    await expect
+      .poll(async () => (await figureState(page)).isTrace, {
+        timeout: 5000,
+        message: "settle to trace",
+      })
+      .toBe(true);
+    const critique = page.locator(
+      '.pcase-arch-trace [data-node="node-critique"]',
+    );
+    await expect(critique).toHaveAttribute("aria-expanded", "true");
+    await expect(critique).toContainText("Adversarial draft critique");
+    // The strip is not rendered in the trace presentation.
+    await expect(strip).toHaveCount(0);
+
+    // Grow back above the threshold: the artboard returns with the selection
+    // still driving the strip.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect
+      .poll(async () => (await figureState(page)).isArtboard, {
+        timeout: 5000,
+        message: "settle back to artboard",
+      })
+      .toBe(true);
+    await expect(page.getByTestId("architecture-detail-strip")).toContainText(
+      "skill · node 07",
+    );
   });
 
   test("mobile nav opens About and navigates", async ({ page }) => {

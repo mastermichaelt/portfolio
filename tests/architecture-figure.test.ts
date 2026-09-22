@@ -307,8 +307,6 @@ describe("architecture narrow trace", () => {
     );
   const rowFor = (view: typeof editorial, edgeId: string) =>
     connectorRows(view).find((row) => row.edgeIds.includes(edgeId));
-  const tagFor = (view: typeof editorial, nodeId: string) =>
-    nodeRows(view).find((row) => row.nodeId === nodeId)?.tag;
 
   it("lists every node once, in workflow reading order", () => {
     for (const view of views) {
@@ -391,34 +389,23 @@ describe("architecture narrow trace", () => {
     expect(rowFor(editorial, "e-edit-1")?.text).toBe("");
   });
 
-  it("derives partner tags for conditional, loop-pair and convergence nodes", () => {
-    // Conditional out-edge → → {targetOrd} {label|lc}
-    expect(tagFor(editorial, "node-schedule")).toBe("→ 04 optional");
-    expect(tagFor(renovate, "node-route")).toBe("→ 03 investigate");
-    // Loop pair: later ordinal ↑, earlier ordinal ←.
-    expect(tagFor(editorial, "node-critique")).toBe("↑ 06 revise");
-    expect(tagFor(editorial, "node-draft")).toBe("← 07 revise");
-    // Convergence (>1 in-edge) → ← {ordA} / {ordB} rejoin, sorted ascending.
-    expect(tagFor(editorial, "node-context")).toBe("← 03 / 04 rejoin");
-    expect(tagFor(renovate, "node-maintainer")).toBe("← 02 / 03 rejoin");
-    // Branch-lane nodes carry no tag — the lane states the relationship.
-    expect(tagFor(editorial, "node-refresh")).toBe("");
-    expect(tagFor(renovate, "node-investigate")).toBe("");
-  });
-
-  it("builds the expansion edge line from every edge in source labels", () => {
-    // 07 Critique: an in-edge, a labelled out-edge, and another labelled out.
-    const critique = nodeRows(editorial).find(
-      (row) => row.nodeId === "node-critique",
-    );
-    expect(critique?.edgeLine).toBe(
-      "in: 06  ·  out: 06 Revise  ·  out: 08 Ready",
-    );
-    expect(critique?.kindLine).toBe("skill · node 07 · Analyze before score");
-
-    // A conditional edge is marked · conditional (02 Route's Investigate out).
-    const route = nodeRows(renovate).find((row) => row.nodeId === "node-route");
-    expect(route?.edgeLine).toContain("out: 03 Investigate · conditional");
+  it("carries only identity on the node card — no topology metadata", () => {
+    // The node row exposes what the node is; relationship/topology fields that
+    // once restated the geometry (partner tag, kind line, edge line) are gone,
+    // owned solely by the connector rows and the rail.
+    for (const view of views) {
+      for (const row of nodeRows(view)) {
+        expect(Object.keys(row).sort()).toEqual([
+          "kind",
+          "label",
+          "nodeId",
+          "onLane",
+          "ordinal",
+          "showKind",
+          "type",
+        ]);
+      }
+    }
   });
 
   it("chips only non-dominant kinds", () => {

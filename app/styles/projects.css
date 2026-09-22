@@ -992,9 +992,13 @@
 /* Narrow trace — replaces the artboard below the figure's viability threshold
    (frameWidth < intrinsic × 0.80), chosen in JS from the measured frame, not a
    media query. The frame keeps its border/background; only its overflow and
-   padding change, so the ResizeObserver measures the same box either way. */
+   padding change, so the ResizeObserver measures the same box either way. Both
+   axes are set visible: the trace never scrolls or clips, and setting only
+   overflow-x would compute back to auto while overflow-y stays hidden (a
+   clipping scroll container) — so a focus ring or expanded panel at the frame
+   edge would be cut. The wide artboard's own overflow rule is left untouched. */
 .pcase-arch-canvas.is-trace {
-  overflow-x: visible;
+  overflow: visible;
   padding: 12px 12px 14px;
 }
 
@@ -1167,13 +1171,6 @@
   padding: 1px 5px;
 }
 
-.pcase-arch-trace-tag {
-  flex: none;
-  font-family: var(--font-mono-stack);
-  font-size: 11px;
-  color: var(--muted);
-}
-
 .pcase-arch-trace-close {
   flex: none;
   font-family: var(--font-mono-stack);
@@ -1183,7 +1180,8 @@
   color: var(--accent);
 }
 
-/* Expansion: kind line, entity summary, then the edge line behind a left rule. */
+/* Expansion: the node's explanatory summary, behind a divider. The node card
+   explains what the node is; topology stays with the connector rows. */
 .pcase-arch-trace-panel {
   display: block;
   margin-top: 8px;
@@ -1191,32 +1189,12 @@
   border-top: 1px solid var(--border);
 }
 
-.pcase-arch-trace-kindline {
-  display: block;
-  font-family: var(--font-mono-stack);
-  font-size: 11px;
-  line-height: 1.6;
-  color: var(--muted);
-}
-
 .pcase-arch-trace-summary {
   display: block;
-  margin-top: 7px;
   font-size: 15px;
   line-height: 1.62;
   color: var(--fg-2);
   max-width: 62ch;
-}
-
-.pcase-arch-trace-edgeline {
-  display: block;
-  margin-top: 7px;
-  padding-left: 10px;
-  border-left: 2px solid var(--border-strong);
-  font-family: var(--font-mono-stack);
-  font-size: 11px;
-  line-height: 1.6;
-  color: var(--muted-strong);
 }
 
 /* Evidence link — a sibling of the button (never nested), >=44px target. */

@@ -438,67 +438,6 @@ function chipKinds(view: WorkflowView): Set<string> {
   return new Set(counts.keys());
 }
 
-const ordNum = (ordinal: string): number => Number.parseInt(ordinal, 10);
-
-/**
- * The compact partner tag on a collapsed node row (§4.3): a conditional out-edge,
- * a loop partner (both directions), or a convergence node's rejoining edges.
- * Composed only from ordinals and existing edge labels; empty when none applies.
- * Branch-lane nodes carry no tag — the lane already states the relationship.
- */
-function partnerTagFor(view: WorkflowView, nodeId: string): string {
-  const ord = (id: string) => ordinalFor(view, id);
-  const self = ordNum(ord(nodeId));
-  let tag = "";
-
-  for (const edge of view.edges) {
-    if (edge.source !== nodeId) continue;
-    if (isConditionalEdge(edge.id)) {
-      tag = `→ ${ord(edge.target)} ${(edge.label ?? "optional").toLowerCase()}`;
-    }
-    const reverse = view.edges.find(
-      (other) => other.source === edge.target && other.target === edge.source,
-    );
-    if (reverse) {
-      const word = (edge.label ?? reverse.label ?? "loop").toLowerCase();
-      const arrow = ordNum(ord(edge.target)) > self ? "←" : "↑";
-      tag = `${arrow} ${ord(edge.target)} ${word}`;
-    }
-  }
-
-  if (!tag) {
-    const incoming = view.edges.filter((edge) => edge.target === nodeId);
-    if (incoming.length > 1) {
-      const ordinals = incoming
-        .map((edge) => ord(edge.source))
-        .sort((a, b) => ordNum(a) - ordNum(b));
-      tag = `← ${ordinals.join(" / ")} rejoin`;
-    }
-  }
-
-  return tag;
-}
-
-/**
- * The expansion's edge line (§6): every edge touching the node in the source's
- * own labels — `in:`/`out:` with the partner ordinal, the edge label when it has
- * one, and ` · conditional` for a dashed edge. States what the row's geometry
- * can only imply.
- */
-function edgeLineFor(view: WorkflowView, nodeId: string): string {
-  const ord = (id: string) => ordinalFor(view, id);
-  const parts: string[] = [];
-  for (const edge of view.edges) {
-    const cond = isConditionalEdge(edge.id) ? " · conditional" : "";
-    const label = edge.label ? ` ${edge.label}` : "";
-    if (edge.target === nodeId)
-      parts.push(`in: ${ord(edge.source)}${label}${cond}`);
-    if (edge.source === nodeId)
-      parts.push(`out: ${ord(edge.target)}${label}${cond}`);
-  }
-  return parts.join("  ·  ");
-}
-
 /** The single labelled edge on a step row, if any (steps are single-purpose). */
 function labelledStepText(view: WorkflowView, edgeIds: string[]): string {
   const labelled = edgeIds
@@ -507,24 +446,22 @@ function labelledStepText(view: WorkflowView, edgeIds: string[]): string {
   return labelled?.label ? `↓ ${labelled.label}` : "";
 }
 
-/** A fully-derived, render-ready node row in the trace. */
+/**
+ * A fully-derived, render-ready node row in the trace. A node card carries only
+ * what the node *is* — ordinal, title, and the exceptional kind chip. All
+ * relationship/topology information (branch, rejoin, loop, conditions) lives in
+ * the connector rows and the rail geometry, never restated on the node.
+ */
 export interface TraceNodeRow {
   type: "node";
   nodeId: string;
   ordinal: string;
   kind: string;
   label: string;
-  subtitle?: string;
-  /** Sits on the dashed branch lane — inset, and never tagged. */
+  /** Sits on the dashed branch lane — inset from the main rail. */
   onLane: boolean;
   /** Show the kind chip (this kind is not the graph's dominant one). */
   showKind: boolean;
-  /** Partner tag, or "" when none applies. */
-  tag: string;
-  /** Expansion: `{kind} · node {ord} · {subtitle}`. */
-  kindLine: string;
-  /** Expansion: every edge touching this node, in source labels. */
-  edgeLine: string;
 }
 
 /** A fully-derived connector row (rail segment) in the trace. */
@@ -552,7 +489,10 @@ export function buildTrace(view: WorkflowView): TraceRow[] {
   const nodesById = new Map(view.nodes.map((node) => [node.id, node] as const));
   const edgesById = new Map(view.edges.map((edge) => [edge.id, edge] as const));
   const chips = chipKinds(view);
-  const ord = (id: string) => ordinalFor(view, id);
+  // Build the ordinal map once and thread it through the derivations, rather
+  // than rebuilding it inside every ordinalFor lookup (O(nodes × edges) calls).
+  const ordinals = nodeOrdinalMap(view);
+  const ord = (id: string) => ordinals.get(id) ?? "—";
   const labelOf = (id: string) => nodesById.get(id)?.label ?? "";
 
   const edge = (id: string): WorkflowEdge => {
@@ -569,22 +509,14 @@ export function buildTrace(view: WorkflowView): TraceRow[] {
   return structure.map((row): TraceRow => {
     if (row.t === "node") {
       const source = node(row.id);
-      const onLane = row.lane === 1;
-      const ordinal = ord(row.id);
       return {
         type: "node",
         nodeId: row.id,
-        ordinal,
+        ordinal: ord(row.id),
         kind: source.kind,
         label: source.label,
-        subtitle: source.subtitle,
-        onLane,
+        onLane: row.lane === 1,
         showKind: chips.has(source.kind),
-        tag: onLane ? "" : partnerTagFor(view, row.id),
-        kindLine: `${source.kind} · node ${ordinal}${
-          source.subtitle ? ` · ${source.subtitle}` : ""
-        }`,
-        edgeLine: edgeLineFor(view, row.id),
       };
     }
 
