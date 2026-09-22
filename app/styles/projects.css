@@ -989,38 +989,307 @@
   color: var(--fg);
 }
 
-/* Narrow stack — replaces the canvas at <=740px, never scales it. */
-.pcase-arch-stack {
+/* Narrow trace — replaces the artboard below the figure's viability threshold
+   (frameWidth < intrinsic × 0.80), chosen in JS from the measured frame, not a
+   media query. The frame keeps its border/background; only its overflow and
+   padding change, so the ResizeObserver measures the same box either way. Both
+   axes are set visible: the trace never scrolls or clips, and setting only
+   overflow-x would compute back to auto while overflow-y stays hidden (a
+   clipping scroll container) — so a focus ring or expanded panel at the frame
+   edge would be cut. The wide artboard's own overflow rule is left untouched. */
+.pcase-arch-canvas.is-trace {
+  overflow: visible;
+  padding: 12px 12px 14px;
+}
+
+/* The strip's census instruction, restated above the rows. */
+.pcase-arch-trace-hint {
+  margin: 0 0 10px;
+  max-width: 56ch;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* The measure is capped so the 640–880px column band never runs long lines. */
+.pcase-arch-trace {
+  max-width: 640px;
+}
+
+/* Two-column row: a 16px rail column, then the content column. */
+.pcase-arch-trace-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  column-gap: 8px;
+}
+
+/* Rail cell: the main spine is continuous from the first node to the last. */
+.pcase-arch-trace-rail {
+  position: relative;
+  display: block;
+}
+
+.pcase-arch-trace-rail-main {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--arch-edge);
+}
+
+/* The dashed branch lane at x=8 — present only on the fork, branch and join
+   rows (given geometry per row type below); inert elsewhere. */
+.pcase-arch-trace-rail-lane {
+  position: absolute;
+  left: 8px;
+  border-left: 1px dashed var(--arch-edge);
+}
+
+.pcase-arch-trace-row.is-lane .pcase-arch-trace-rail-lane {
+  top: 0;
+  bottom: 0;
+}
+
+.pcase-arch-trace-row.is-fork .pcase-arch-trace-rail-lane {
+  top: 11px;
+  bottom: 0;
+}
+
+/* The join lane descends 12px into the row, then the crossbar returns. */
+.pcase-arch-trace-row.is-join .pcase-arch-trace-rail-lane {
+  top: 0;
+  height: 12px;
+}
+
+/* Dashed crossbar between the main rail and the lane, on fork and join rows. */
+.pcase-arch-trace-rail-cross {
+  position: absolute;
+  left: 0;
+  top: 11px;
+  width: 8px;
+  border-top: 1px dashed var(--arch-edge);
+}
+
+.pcase-arch-trace-row.is-fork .pcase-arch-trace-rail-cross,
+.pcase-arch-trace-row.is-join .pcase-arch-trace-rail-cross {
+  display: block;
+}
+
+.pcase-arch-trace-rail-cross {
   display: none;
 }
 
-.pcase-arch-stack-node {
-  width: 100%;
+/* Node tick at y=21: 16px solid from the main rail, 8px dashed from the lane. */
+.pcase-arch-trace-rail-tick {
+  position: absolute;
+  top: 21px;
+  left: 0;
+  width: 16px;
+  border-top: 1px solid var(--arch-edge);
 }
 
-.pcase-arch-stack-connector {
-  margin: 0;
-  padding: 8px 0 8px 14px;
-  border-left: 1px solid var(--arch-edge);
+.pcase-arch-trace-row.is-lane .pcase-arch-trace-rail-tick {
+  left: 8px;
+  width: 8px;
+  border-top-style: dashed;
+}
+
+.pcase-arch-trace-content {
+  display: block;
+  min-width: 0;
+}
+
+/* Node card: one line, >=44px — ordinal, title, optional kind chip. An
+   expandable node is a bordered card wrapping a header <button> (the trigger)
+   and its controlled panel; a node with nothing to expand is a standalone
+   static <div> with the same box. The header layout is shared by both. */
+.pcase-arch-trace-node {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  text-align: left;
+  padding: 9px 11px;
+  background: none;
+  border: 0;
+}
+
+/* The interactive card is the bordered surface box; the trigger inside it is
+   transparent so header and panel share one border. */
+.pcase-arch-trace-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+/* A node with nothing to expand is a standalone bordered box, not a control. */
+.pcase-arch-trace-node.is-static {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: default;
+}
+
+/* The branch-lane node is inset 8px; the indent is reclaimed from width so its
+   right edge stays flush with the main-rail nodes. */
+.pcase-arch-trace-row.is-lane .pcase-arch-trace-card,
+.pcase-arch-trace-row.is-lane .pcase-arch-trace-node.is-static {
+  margin-left: 8px;
+  width: calc(100% - 8px);
+}
+
+/* Hover/press/expanded apply to the interactive card only (never the static
+   node). Hover is scoped away from the expanded state so it keeps the accent. */
+.pcase-arch-trace-card:not(.is-expanded):hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+
+.pcase-arch-trace-card:active {
+  transform: translateY(1px);
+}
+
+.pcase-arch-trace-card.is-expanded {
+  background: var(--surface-2);
+  border-color: var(--accent);
+}
+
+/* Focus ring: the header <button> stays the focus target, but where :has() is
+   supported the ring is lifted to the whole card. Otherwise an expanded,
+   keyboard-focused node shows the trigger's ring doubled against the card's own
+   accent border; on the card it reads as one clean frame concentric with the
+   border. Browsers without :has() keep the button's own ring (base.css global
+   :focus-visible), so focus is never lost. Only the in-card trigger is
+   retargeted — the static node and mouse/touch focus are untouched. */
+@supports selector(:has(*)) {
+  .pcase-arch-trace-card:has(.pcase-arch-trace-node:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .pcase-arch-trace-card .pcase-arch-trace-node:focus-visible {
+    outline: none;
+  }
+}
+
+.pcase-arch-trace-node-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+}
+
+.pcase-arch-trace-ord {
+  flex: none;
   font-family: var(--font-mono-stack);
   font-size: 11px;
   color: var(--muted);
 }
 
-.pcase-arch-stack-connector.is-dashed {
-  border-left-style: dashed;
+.pcase-arch-trace-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--fg);
 }
 
-.pcase-arch-stack-connector.is-indent,
-.pcase-arch-stack-node.is-indent {
-  margin-left: 20px;
+.pcase-arch-trace-chip {
+  flex: none;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
 }
 
-/* The node is width:100%, so the 20px indent above must be reclaimed from its
-   width or its right edge overruns the content column (connectors are auto-width
-   blocks and already align). Keeps the left indent; right edge stays on column. */
-.pcase-arch-stack-node.is-indent {
-  width: calc(100% - 20px);
+.pcase-arch-trace-close {
+  flex: none;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Expansion: the controlled region, a sibling of the trigger inside the card.
+   It is rendered whenever the node is expanded so aria-controls always resolves
+   — even for a node made expandable by evidence alone — and holds the summary
+   and any evidence links. Both are conditional; nothing is fabricated when a
+   node has only one of them. The node card explains what the node is; topology
+   stays with the connector rows. */
+.pcase-arch-trace-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 11px 11px;
+  border-top: 1px solid var(--border);
+}
+
+.pcase-arch-trace-summary {
+  font-size: 15px;
+  line-height: 1.62;
+  color: var(--fg-2);
+  max-width: 62ch;
+}
+
+/* Evidence link — inside the panel (a div, so the anchor is never nested in the
+   trigger button), >=44px target. */
+.pcase-arch-trace-evlink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-mono-stack);
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.pcase-arch-trace-evlink:hover {
+  color: var(--fg);
+}
+
+/* Connector row: composed copy on a mono line; loop rows carry the bracket.
+   The narrow trace makes connectors the sole owner of branch/rejoin/loop
+   topology, so this now-load-bearing text reads one step up from the --muted
+   floor at --muted-strong — still the quiet mono register, but a touch clearer
+   than the node subtitles it sits between. (The wide artboard's edge labels
+   stay --muted; there the routed strokes and arrows carry the topology.) */
+.pcase-arch-trace-connector {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted-strong);
+}
+
+/* An unlabelled step is the rail itself — keep the row short. */
+.pcase-arch-trace-row.is-bare {
+  min-height: 16px;
+}
+
+/* Open return bracket (22 x 14) before the loop text. */
+.pcase-arch-trace-bracket {
+  flex: none;
+  width: 22px;
+  height: 14px;
+  border: 1px solid var(--arch-edge);
+  border-right: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcase-arch-trace-card:active {
+    transform: none;
+  }
 }
 
 /* ======================================================= Responsive ===== */
@@ -1084,21 +1353,5 @@
   .pcase-block-grid {
     grid-template-columns: 1fr;
     gap: var(--gap-md);
-  }
-}
-
-/* The architecture canvas is replaced by the stack — not scaled — at <=740px,
-   so no artboard scrolls sideways. The head, strip, legend and return hold. */
-@media (max-width: 740px) {
-  .pcase-arch-canvas {
-    display: none;
-  }
-
-  .pcase-arch-stack {
-    display: block;
-  }
-
-  .pcase-arch-strip {
-    border-top: 1px solid var(--border);
   }
 }

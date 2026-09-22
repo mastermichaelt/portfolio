@@ -7,13 +7,20 @@ import {
   NODE_H,
   NODE_W,
   buildFigureGeometry,
+  buildTrace,
+  composeForkText,
+  composeJoinText,
+  composeLoopText,
   fitScale,
   isConditionalEdge,
-  narrowLayoutFor,
+  narrowThresholdFor,
   nodeOrdinalMap,
-  type NarrowConnectorRow,
-  type NarrowNodeRow,
+  prefersTrace,
+  traceEdgeIds,
+  type TraceConnectorRow,
+  type TraceNodeRow,
 } from "@/lib/architecture-figure";
+import type { WorkflowEdge } from "@/domain/workflow-view";
 
 /** Every (x, y) coordinate pair in an SVG path `d` (all commands are M/L here). */
 function pathPoints(d: string): Array<[number, number]> {
@@ -65,12 +72,12 @@ describe("architecture figure geometry", () => {
       expect(geometry.nodes.map((box) => box.ordinal)).toEqual(
         view.nodes.map((_, index) => String(index + 1).padStart(2, "0")),
       );
-      // And it matches the narrow stack's node reading order exactly, so both
+      // And it matches the narrow trace's node reading order exactly, so both
       // representations traverse the workflow in the same sequence.
-      const stackNodeIds = narrowLayoutFor(view)
-        .filter((row): row is NarrowNodeRow => row.type === "node")
+      const traceNodeIds = buildTrace(view)
+        .filter((row): row is TraceNodeRow => row.type === "node")
         .map((row) => row.nodeId);
-      expect(geometry.nodes.map((box) => box.id)).toEqual(stackNodeIds);
+      expect(geometry.nodes.map((box) => box.id)).toEqual(traceNodeIds);
     }
   });
 
@@ -132,20 +139,20 @@ describe("architecture figure geometry", () => {
     }
   });
 
-  it("keeps the wide and narrow conditional weights consistent", () => {
+  it("keeps the wide and trace conditional weights consistent", () => {
     for (const view of views) {
       const wideDashed = buildFigureGeometry(view)
         .edges.filter((edge) => edge.dashed)
         .map((edge) => edge.id)
         .sort();
-      const narrowDashed = narrowLayoutFor(view)
+      const traceDashed = buildTrace(view)
         .filter(
-          (row): row is NarrowConnectorRow =>
+          (row): row is TraceConnectorRow =>
             row.type === "connector" && row.dashed === true,
         )
         .flatMap((row) => row.edgeIds)
         .sort();
-      expect(narrowDashed).toEqual(wideDashed);
+      expect(traceDashed).toEqual(wideDashed);
     }
   });
 
@@ -267,15 +274,49 @@ describe("architecture fit scale", () => {
   });
 });
 
-describe("architecture narrow stack", () => {
+describe("architecture narrow threshold", () => {
+  it("derives the per-view threshold from ARTBOARDS × MIN_FIGURE_SCALE", () => {
+    // Per-figure, derived — never a second authored constant.
+    expect(narrowThresholdFor(editorial)).toBe(
+      Math.round(INTRINSIC.editorial * MIN_FIGURE_SCALE),
+    );
+    expect(narrowThresholdFor(renovate)).toBe(
+      Math.round(INTRINSIC.renovate * MIN_FIGURE_SCALE),
+    );
+    expect(narrowThresholdFor(editorial)).toBe(883);
+    expect(narrowThresholdFor(renovate)).toBe(851);
+  });
+
+  it("switches exactly at the boundary, per view", () => {
+    // 883 → artboard, 882.9 → trace (and likewise 851 for renovate).
+    expect(prefersTrace(883, editorial)).toBe(false);
+    expect(prefersTrace(882.9, editorial)).toBe(true);
+    expect(prefersTrace(851, renovate)).toBe(false);
+    expect(prefersTrace(850.9, renovate)).toBe(true);
+    // A zero-width read (a hidden frame) keeps the artboard.
+    expect(prefersTrace(0, editorial)).toBe(false);
+    // The two figures switch at different column widths: 864 (viewport 920 with
+    // the rail unstuck) is trace for editorial but artboard for renovate.
+    expect(prefersTrace(864, editorial)).toBe(true);
+    expect(prefersTrace(864, renovate)).toBe(false);
+  });
+});
+
+describe("architecture narrow trace", () => {
+  const nodeRows = (view = editorial) =>
+    buildTrace(view).filter((row): row is TraceNodeRow => row.type === "node");
+  const connectorRows = (view = editorial) =>
+    buildTrace(view).filter(
+      (row): row is TraceConnectorRow => row.type === "connector",
+    );
+  const rowFor = (view: typeof editorial, edgeId: string) =>
+    connectorRows(view).find((row) => row.edgeIds.includes(edgeId));
+
   it("lists every node once, in workflow reading order", () => {
     for (const view of views) {
-      const nodeRows = narrowLayoutFor(view).filter(
-        (row): row is NarrowNodeRow => row.type === "node",
-      );
       const ordered = [...nodeOrdinalMap(view).keys()];
-      expect(nodeRows.map((row) => row.nodeId)).toEqual(ordered);
-      expect(new Set(nodeRows.map((row) => row.nodeId)).size).toBe(
+      expect(nodeRows(view).map((row) => row.nodeId)).toEqual(ordered);
+      expect(new Set(nodeRows(view).map((row) => row.nodeId)).size).toBe(
         view.nodes.length,
       );
     }
@@ -283,56 +324,218 @@ describe("architecture narrow stack", () => {
 
   it("carries every edge exactly once across connector rows", () => {
     for (const view of views) {
-      const connectorEdges = narrowLayoutFor(view)
-        .filter((row): row is NarrowConnectorRow => row.type === "connector")
-        .flatMap((row) => row.edgeIds);
+      const connectorEdges = connectorRows(view).flatMap((row) => row.edgeIds);
       expect(connectorEdges.sort()).toEqual(
         view.edges.map((edge) => edge.id).sort(),
       );
+      // traceEdgeIds (the shared accessor) agrees with the built rows.
+      expect([...traceEdgeIds(view)].sort()).toEqual(connectorEdges.sort());
     }
   });
 
-  it("keeps source edge labels inside their connector copy", () => {
+  it("trace node ordinals equal nodeOrdinalMap for the view", () => {
     for (const view of views) {
-      const labelById = new Map(
-        view.edges.map((edge) => [edge.id, edge.label] as const),
-      );
-      for (const row of narrowLayoutFor(view)) {
-        if (row.type !== "connector") continue;
-        for (const edgeId of row.edgeIds) {
-          const label = labelById.get(edgeId);
-          if (label) expect(row.text ?? "").toContain(label);
-        }
+      const ordinals = nodeOrdinalMap(view);
+      for (const row of nodeRows(view)) {
+        expect(row.ordinal).toBe(ordinals.get(row.nodeId));
       }
     }
   });
 
-  it("renders the Editorial revise loop as an up-arrow return row", () => {
-    const revise = narrowLayoutFor(editorial).find(
-      (row): row is NarrowConnectorRow =>
-        row.type === "connector" && row.edgeIds.includes("e-edit-8"),
-    );
-    expect(revise?.arrow).toBe("up");
-    expect(revise?.text).toContain("Revise");
-    expect(revise?.text).toContain("06 Draft");
+  it("composes connector text from source edge labels, never authored prose", () => {
+    for (const view of views) {
+      const labelById = new Map(
+        view.edges.map((edge) => [edge.id, edge.label] as const),
+      );
+      for (const row of connectorRows(view)) {
+        for (const edgeId of row.edgeIds) {
+          const label = labelById.get(edgeId);
+          if (label) expect(row.text).toContain(label);
+        }
+        // No connector string is ever malformed (a stray double space betrays an
+        // empty interpolated clause).
+        expect(row.text, `${view.id} ${row.edgeIds.join(",")}`).not.toMatch(
+          /\s{2}/,
+        );
+      }
+    }
+    // The retired hand-written strings must not reappear as derived prose.
+    const allText = views
+      .flatMap((view) => connectorRows(view))
+      .map((row) => row.text)
+      .join("\n");
+    expect(allText).not.toContain("bypassing 04");
+    expect(allText).not.toContain("Auto path rejoins here");
   });
 
-  it("indents the Editorial optional Refresh lane one step", () => {
-    const rows = narrowLayoutFor(editorial);
-    const refresh = rows.find(
-      (row): row is NarrowNodeRow =>
-        row.type === "node" && row.nodeId === "node-refresh",
+  it("derives the fork, join and loop rows exactly (both views)", () => {
+    // Fork: ↓ {edgeLabel} — branch to {targetOrd} {targetLabel}
+    expect(rowFor(editorial, "e-edit-3")?.text).toBe(
+      "↓ Optional — branch to 04 Refresh",
     );
-    expect(refresh?.indent).toBe(1);
+    expect(rowFor(renovate, "e-reno-2")?.text).toBe(
+      "↓ Investigate — branch to 03 Investigate",
+    );
+
+    // Join: one generic formula, phrased by whether the rejoin edge is labelled.
+    // Editorial's rejoin (e-edit-4) is unlabelled; Renovate's (e-reno-4) is not.
+    expect(rowFor(editorial, "e-edit-4")?.text).toBe(
+      "↓ Skip bypasses 04 · rejoins at 05 Context",
+    );
+    expect(rowFor(renovate, "e-reno-4")?.text).toBe(
+      "↓ After audit · Auto path rejoins at 04 Maintainer",
+    );
+    // The rejoin row folds in the bypass/auto edge — no duplicate node.
+    expect(rowFor(renovate, "e-reno-4")?.edgeIds).toContain("e-reno-3");
+
+    // Loop: ↑ {backEdgeLabel} — returns to {targetOrd} {targetLabel}
+    const loop = rowFor(editorial, "e-edit-8");
+    expect(loop?.kind).toBe("loop");
+    expect(loop?.text).toBe("↑ Revise — returns to 06 Draft");
+
+    // A labelled step keeps its label; an unlabelled step is a bare rail.
+    expect(rowFor(editorial, "e-edit-9")?.text).toBe("↓ Ready");
+    expect(rowFor(editorial, "e-edit-1")?.text).toBe("");
   });
 
-  it("folds the Renovate auto path into the rejoin row, not a duplicate node", () => {
-    const rejoin = narrowLayoutFor(renovate).find(
-      (row): row is NarrowConnectorRow =>
-        row.type === "connector" && row.edgeIds.includes("e-reno-3"),
+  it("carries only identity on the node card — no topology metadata", () => {
+    // The node row exposes what the node is; relationship/topology fields that
+    // once restated the geometry (partner tag, kind line, edge line) are gone,
+    // owned solely by the connector rows and the rail.
+    for (const view of views) {
+      for (const row of nodeRows(view)) {
+        expect(Object.keys(row).sort()).toEqual([
+          "kind",
+          "label",
+          "nodeId",
+          "onLane",
+          "ordinal",
+          "showKind",
+          "type",
+        ]);
+      }
+    }
+  });
+
+  it("chips only non-dominant kinds", () => {
+    // Editorial: skill is the strict majority → chip only 09 Publish (output).
+    const editorialChipped = nodeRows(editorial)
+      .filter((row) => row.showKind)
+      .map((row) => row.nodeId);
+    expect(editorialChipped).toEqual(["node-publish"]);
+    // Renovate: agent is the majority → chip 02 Route and 05 Merge gates.
+    const renovateChipped = nodeRows(renovate)
+      .filter((row) => row.showKind)
+      .map((row) => row.nodeId);
+    expect(renovateChipped).toEqual(["node-route", "node-merge-gates"]);
+  });
+
+  it("marks the branch node as on the dashed lane", () => {
+    const refresh = nodeRows(editorial).find(
+      (row) => row.nodeId === "node-refresh",
     );
-    expect(rejoin?.edgeIds).toContain("e-reno-4");
-    expect(rejoin?.text).toContain("Auto path");
-    expect(rejoin?.text).toContain("After audit");
+    expect(refresh?.onLane).toBe(true);
+    const capture = nodeRows(editorial).find(
+      (row) => row.nodeId === "node-capture",
+    );
+    expect(capture?.onLane).toBe(false);
+  });
+});
+
+describe("architecture connector text is robust to unlabelled edges", () => {
+  // A tiny synthetic graph: a (02 Route) · b (03 Investigate) · c (04 Maintainer).
+  const ord = (id: string) => ({ a: "02", b: "03", c: "04" })[id] ?? "—";
+  const labelOf = (id: string) =>
+    ({ a: "Route", b: "Investigate", c: "Maintainer" })[id] ?? "";
+  const edge = (over: Partial<WorkflowEdge>): WorkflowEdge => ({
+    id: "x",
+    source: "a",
+    target: "c",
+    ...over,
+  });
+
+  it("fork drops the label lead when the edge is unlabelled", () => {
+    expect(
+      composeForkText(
+        edge({ label: "Investigate", target: "b" }),
+        ord,
+        labelOf,
+      ),
+    ).toBe("↓ Investigate — branch to 03 Investigate");
+    expect(composeForkText(edge({ target: "b" }), ord, labelOf)).toBe(
+      "↓ branch to 03 Investigate",
+    );
+  });
+
+  it("loop drops the label lead when the back edge is unlabelled", () => {
+    expect(
+      composeLoopText(edge({ label: "Revise", target: "a" }), ord, labelOf),
+    ).toBe("↑ Revise — returns to 02 Route");
+    expect(composeLoopText(edge({ target: "a" }), ord, labelOf)).toBe(
+      "↑ returns to 02 Route",
+    );
+  });
+
+  it("join falls back to a structural path phrase for an unlabelled edge", () => {
+    const rejoin = edge({
+      id: "r",
+      source: "b",
+      target: "c",
+      label: "After audit",
+    });
+    const bypass = edge({
+      id: "y",
+      source: "a",
+      target: "c",
+      label: "Auto path",
+    });
+    // Both labelled — the approved shape.
+    expect(composeJoinText(rejoin, bypass, ord, labelOf)).toBe(
+      "↓ After audit · Auto path rejoins at 04 Maintainer",
+    );
+    // Rejoin labelled, bypass unlabelled — structural bypass clause, no gap.
+    expect(
+      composeJoinText(
+        rejoin,
+        edge({ id: "y", source: "a", target: "c" }),
+        ord,
+        labelOf,
+      ),
+    ).toBe("↓ After audit · path from 02 rejoins at 04 Maintainer");
+    // Rejoin unlabelled — lead with the bypass path and name the bypassed node.
+    expect(
+      composeJoinText(
+        edge({ id: "r", source: "b", target: "c" }),
+        bypass,
+        ord,
+        labelOf,
+      ),
+    ).toBe("↓ Auto path bypasses 03 · rejoins at 04 Maintainer");
+    // Both unlabelled — still a well-formed sentence, no invented labels.
+    expect(
+      composeJoinText(
+        edge({ id: "r", source: "b", target: "c" }),
+        edge({ id: "y", source: "a", target: "c" }),
+        ord,
+        labelOf,
+      ),
+    ).toBe("↓ path from 02 bypasses 03 · rejoins at 04 Maintainer");
+  });
+
+  it("never emits a stray double space or an empty clause", () => {
+    const strings = [
+      composeForkText(edge({ target: "b" }), ord, labelOf),
+      composeLoopText(edge({ target: "a" }), ord, labelOf),
+      composeJoinText(
+        edge({ id: "r", source: "b", target: "c" }),
+        edge({ id: "y", source: "a", target: "c" }),
+        ord,
+        labelOf,
+      ),
+    ];
+    for (const text of strings) {
+      expect(text).not.toMatch(/\s{2}/); // no double whitespace
+      expect(text).not.toMatch(/(↓|↑) (·|—)/); // no empty leading clause
+    }
   });
 });

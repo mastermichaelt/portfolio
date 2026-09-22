@@ -1279,29 +1279,105 @@ test.describe("portfolio happy path", () => {
     expect(pageErrors, pageErrors.join("\n")).toEqual([]);
   });
 
-  test("architecture figure replaces the canvas with the stack at 390px", async ({
+  test("architecture figure replaces the artboard with the trace at 390px", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/projects/editorial-workflow#b04");
 
-    // The wide canvas is hidden; the stack takes over.
-    await expect(page.locator(".pcase-arch-canvas")).toBeHidden();
-    const stack = page.getByTestId("architecture-stack");
-    await expect(stack).toBeVisible();
+    // Below the threshold the artboard is not rendered at all; the trace takes
+    // over inside the same frame, and no detail strip is shown.
+    await expect(page.locator(".pcase-arch-artboard")).toHaveCount(0);
+    const trace = page.locator(".pcase-arch-trace");
+    await expect(trace).toBeVisible();
+    await expect(page.getByTestId("architecture-detail-strip")).toHaveCount(0);
 
-    // All nine nodes and the revise-return connector survive as text.
-    await expect(stack.locator("[data-node]")).toHaveCount(9);
-    await expect(stack).toContainText("↑ Revise — returns to 06 Draft");
-    await expect(stack).toContainText(
-      "↓ Skip — 03 Schedule → 05 Context, bypassing 04",
+    // All nine nodes render, and branch/loop topology survives as derived
+    // connector text — the connector rows own the topology, not the nodes.
+    await expect(trace.locator("[data-node]")).toHaveCount(9);
+    await expect(trace).toContainText("↑ Revise — returns to 06 Draft");
+    await expect(trace).toContainText(
+      "↓ Skip bypasses 04 · rejoins at 05 Context",
     );
 
-    // Selecting a stacked node fills the shared strip.
-    await stack.locator('[data-node="node-critique"]').click();
-    await expect(page.getByTestId("architecture-detail-strip")).toContainText(
-      "Analyze before score",
+    // A collapsed node card carries only its ordinal and title — no partner
+    // tags restating topology (e.g. Critique's old "↑ 06 revise").
+    const critique = trace.locator('[data-node="node-critique"]');
+    await expect(critique).toContainText("Critique");
+    await expect(critique).not.toContainText("revise");
+
+    // The one exceptional kind chip is kept (Publish is an output, not a skill);
+    // ordinary skill nodes carry no kind metadata. (Chip text is uppercased by
+    // CSS; the DOM text is the raw kind.)
+    await expect(
+      trace.locator('[data-node="node-publish"] .pcase-arch-trace-chip'),
+    ).toHaveText("output");
+    await expect(
+      trace.locator('[data-node="node-capture"] .pcase-arch-trace-chip'),
+    ).toHaveCount(0);
+    await expect(
+      trace.locator('[data-node="node-draft"] .pcase-arch-trace-chip'),
+    ).toHaveCount(0);
+
+    // Tapping a node expands it to only its explanatory summary and Close — no
+    // kind line, no edge serialization. The summary lives in the controlled
+    // panel (a sibling of the trigger) so aria-controls always has a target.
+    await critique.click();
+    await expect(critique).toHaveAttribute("aria-expanded", "true");
+    await expect(critique).toContainText("Close");
+    await expect(critique).not.toContainText("node 07");
+    await expect(critique).not.toContainText("in: 06");
+    const critiqueCard = trace.locator(
+      '.pcase-arch-trace-card:has([data-node="node-critique"])',
     );
+    await expect(critiqueCard).toContainText("Adversarial draft critique");
+    // aria-controls resolves to a rendered panel.
+    const panelId = await critique.getAttribute("aria-controls");
+    await expect(trace.locator(`#${panelId}`)).toBeVisible();
+
+    // A second press closes it; only one is open at a time.
+    await critique.click();
+    await expect(critique).toHaveAttribute("aria-expanded", "false");
+
+    // The output node owns evidence; the link is a sibling of the button.
+    const publish = trace.locator('[data-node="node-publish"]');
+    await publish.click();
+    await expect(
+      trace.locator('a[href="https://dev.to/michaeltruong"]'),
+    ).toBeVisible();
+
+    // Escape closes the open node.
+    await page.keyboard.press("Escape");
+    await expect(publish).toHaveAttribute("aria-expanded", "false");
+
+    const overflowX = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
+    expect(overflowX).toBe(false);
+  });
+
+  test("architecture trace holds without horizontal overflow at 320px", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.goto("/projects/renovate-governance#b02");
+
+    await expect(page.locator(".pcase-arch-artboard")).toHaveCount(0);
+    const trace = page.locator(".pcase-arch-trace");
+    await expect(trace).toBeVisible();
+    await expect(trace.locator("[data-node]")).toHaveCount(5);
+
+    // The non-dominant kinds keep their chips (Route is a workflow, Merge gates
+    // governance); the agent nodes — the dominant kind — carry none.
+    await expect(
+      trace.locator('[data-node="node-route"] .pcase-arch-trace-chip'),
+    ).toHaveText("workflow");
+    await expect(
+      trace.locator('[data-node="node-merge-gates"] .pcase-arch-trace-chip'),
+    ).toHaveText("governance");
+    await expect(
+      trace.locator('[data-node="node-classify"] .pcase-arch-trace-chip'),
+    ).toHaveCount(0);
 
     const overflowX = await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth + 1,
@@ -1377,57 +1453,173 @@ test.describe("portfolio happy path", () => {
     }
   });
 
-  // Acceptance 09 — measured scale follows clamp(0.80, column/intrinsic, 1) at
-  // the nine specified widths, and the frame scrolls only below the 0.80 floor.
-  // Assertions are self-consistent against the measured column (robust to the
-  // host's scrollbar width) rather than tied to the table's idealised numbers.
-  test("architecture fit scale follows the locked formula across nine widths", async ({
+  // Presentation-agnostic read: which presentation renders, the measured column
+  // (the frame is present in both), whether the frame scrolls sideways, and the
+  // rendered artboard width when the artboard is showing.
+  async function figureState(page: Page) {
+    return page.evaluate(() => {
+      const frame = document.querySelector<HTMLElement>(".pcase-arch-canvas")!;
+      const art = document.querySelector<HTMLElement>(".pcase-arch-artboard");
+      const trace = document.querySelector<HTMLElement>(".pcase-arch-trace");
+      return {
+        column: frame.clientWidth,
+        isArtboard: art !== null,
+        isTrace: trace !== null,
+        renderedArtboard: art ? art.getBoundingClientRect().width : 0,
+        hScroll: frame.scrollWidth > frame.clientWidth + 1,
+      };
+    });
+  }
+
+  // Derived per-figure thresholds: round(intrinsic × 0.80).
+  const THRESHOLD: Record<string, number> = {
+    "editorial-workflow": Math.round(1104 * 0.8), // 883
+    "renovate-governance": Math.round(1064 * 0.8), // 851
+  };
+
+  // Acceptance 09 — the presentation is chosen by the figure's own container
+  // width (frameWidth < intrinsic × 0.80), not a viewport breakpoint, and above
+  // the threshold the artboard fits by clamp(0.80, column/intrinsic, 1). Widths
+  // span the §09 table; assertions are self-consistent against the measured
+  // column (robust to the host's scrollbar) and never assume presentation is
+  // monotonic in viewport — the 921→920 rail-unstick flips renovate back.
+  test("architecture presentation and fit follow the container rule across widths", async ({
     page,
   }) => {
     const widths = [1440, 1280, 1194, 1152, 1024, 921, 920, 768, 741];
     for (const slug of Object.keys(INTRINSIC)) {
       const intrinsic = INTRINSIC[slug]!;
+      const threshold = THRESHOLD[slug]!;
       for (const width of widths) {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(`/projects/${slug}`);
 
-        // Settle: poll until the rendered scale matches the formula on the
-        // measured column (the ResizeObserver fit converges within a frame).
+        // Settle: poll until the presentation matches the measured column and
+        // the fit has converged (the artboard starts at scale 1 and scrolls for
+        // a frame before the ResizeObserver measures — wait that transient out).
         await expect
           .poll(
             async () => {
-              const fit = await figureFit(page);
-              const expected = Math.min(
-                1,
-                Math.max(0.8, fit.column / intrinsic),
-              );
-              return Math.abs(fit.rendered / intrinsic - expected) < 0.01;
+              const s = await figureState(page);
+              return s.isTrace === s.column < threshold && !s.hScroll;
             },
-            { timeout: 5000, message: `${slug} @ ${width} scale` },
+            { timeout: 5000, message: `${slug} @ ${width} presentation` },
           )
           .toBe(true);
 
-        const fit = await figureFit(page);
-        const scale = fit.rendered / intrinsic;
-        const expected = Math.min(1, Math.max(0.8, fit.column / intrinsic));
-        expect(scale, `${slug} @ ${width}`).toBeCloseTo(expected, 2);
-        expect(scale, `${slug} @ ${width} floor`).toBeGreaterThanOrEqual(
-          0.7999,
+        const s = await figureState(page);
+        // Presentation is the container rule, evaluated on the measured column.
+        expect(s.isTrace, `${slug} @ ${width} trace?`).toBe(
+          s.column < threshold,
         );
-        expect(scale, `${slug} @ ${width} ceil`).toBeLessThanOrEqual(1);
+        expect(s.isArtboard, `${slug} @ ${width} artboard?`).toBe(
+          s.column >= threshold,
+        );
+        // The figure frame never scrolls sideways in either presentation.
+        expect(s.hScroll, `${slug} @ ${width} no scroll`).toBe(false);
 
-        // Overflow only below 0.80 x intrinsic; whole in the frame above it.
-        const floorColumn = 0.8 * intrinsic;
-        if (fit.column < floorColumn - 2) {
-          expect(fit.hScroll, `${slug} @ ${width} scrolls`).toBe(true);
-        } else if (fit.column > floorColumn + 2) {
-          expect(fit.hScroll, `${slug} @ ${width} fits`).toBe(false);
+        // Where the artboard shows, it fits by the locked clamp.
+        if (s.isArtboard) {
+          const scale = s.renderedArtboard / intrinsic;
+          const expected = Math.min(1, Math.max(0.8, s.column / intrinsic));
+          expect(scale, `${slug} @ ${width} scale`).toBeCloseTo(expected, 2);
+          expect(scale, `${slug} @ ${width} floor`).toBeGreaterThanOrEqual(
+            0.7999,
+          );
+          expect(scale, `${slug} @ ${width} ceil`).toBeLessThanOrEqual(1);
         }
-
-        // No text outside the artboard is ever scaled.
-        expect(fit.headPx, `${slug} @ ${width} head`).toBeCloseTo(11, 1);
       }
     }
+  });
+
+  // The non-monotonic boundary (§09): at viewport 921 the rail is sticky and
+  // both figures are trace; at 920 the rail unsticks, handing width back so
+  // renovate's artboard becomes viable again while editorial stays trace.
+  test("architecture 921→920 rail-unstick flips only renovate back to the artboard", async ({
+    page,
+  }) => {
+    for (const [width, editorialTrace, renovateTrace] of [
+      [921, true, true],
+      [920, true, false],
+    ] as const) {
+      await page.setViewportSize({ width, height: 900 });
+
+      await page.goto("/projects/editorial-workflow");
+      await expect
+        .poll(
+          async () => {
+            const s = await figureState(page);
+            return s.isTrace === editorialTrace && !s.hScroll;
+          },
+          { timeout: 5000, message: `editorial @ ${width}` },
+        )
+        .toBe(true);
+
+      await page.goto("/projects/renovate-governance");
+      await expect
+        .poll(
+          async () => {
+            const s = await figureState(page);
+            return s.isTrace === renovateTrace && !s.hScroll;
+          },
+          { timeout: 5000, message: `renovate @ ${width}` },
+        )
+        .toBe(true);
+    }
+  });
+
+  // Acceptance — one selection state is shared by both presentations and must
+  // survive a resize that crosses the threshold (no remount drops it).
+  test("architecture selection survives crossing the presentation threshold", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/projects/editorial-workflow");
+    await expect
+      .poll(async () => (await figureState(page)).isArtboard, {
+        timeout: 5000,
+        message: "settle to artboard",
+      })
+      .toBe(true);
+
+    // Select a node on the artboard; the strip resolves it.
+    await page
+      .locator('.pcase-arch-canvas [data-node="node-critique"]')
+      .click();
+    const strip = page.getByTestId("architecture-detail-strip");
+    await expect(strip).toContainText("skill · node 07");
+
+    // Shrink below the editorial threshold: the trace takes over and the same
+    // node is still the open one (selection preserved across the switch).
+    await page.setViewportSize({ width: 390, height: 900 });
+    await expect
+      .poll(async () => (await figureState(page)).isTrace, {
+        timeout: 5000,
+        message: "settle to trace",
+      })
+      .toBe(true);
+    const critique = page.locator(
+      '.pcase-arch-trace [data-node="node-critique"]',
+    );
+    await expect(critique).toHaveAttribute("aria-expanded", "true");
+    await expect(
+      page.locator('.pcase-arch-trace-card:has([data-node="node-critique"])'),
+    ).toContainText("Adversarial draft critique");
+    // The strip is not rendered in the trace presentation.
+    await expect(strip).toHaveCount(0);
+
+    // Grow back above the threshold: the artboard returns with the selection
+    // still driving the strip.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect
+      .poll(async () => (await figureState(page)).isArtboard, {
+        timeout: 5000,
+        message: "settle back to artboard",
+      })
+      .toBe(true);
+    await expect(page.getByTestId("architecture-detail-strip")).toContainText(
+      "skill · node 07",
+    );
   });
 
   test("mobile nav opens About and navigates", async ({ page }) => {
