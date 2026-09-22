@@ -1155,6 +1155,24 @@
   border-color: var(--accent);
 }
 
+/* Focus ring: the header <button> stays the focus target, but where :has() is
+   supported the ring is lifted to the whole card. Otherwise an expanded,
+   keyboard-focused node shows the trigger's ring doubled against the card's own
+   accent border; on the card it reads as one clean frame concentric with the
+   border. Browsers without :has() keep the button's own ring (base.css global
+   :focus-visible), so focus is never lost. Only the in-card trigger is
+   retargeted — the static node and mouse/touch focus are untouched. */
+@supports selector(:has(*)) {
+  .pcase-arch-trace-card:has(.pcase-arch-trace-node:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .pcase-arch-trace-card .pcase-arch-trace-node:focus-visible {
+    outline: none;
+  }
+}
+
 .pcase-arch-trace-node-head {
   display: flex;
   align-items: center;
