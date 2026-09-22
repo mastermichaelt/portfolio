@@ -989,38 +989,286 @@
   color: var(--fg);
 }
 
-/* Narrow stack — replaces the canvas at <=740px, never scales it. */
-.pcase-arch-stack {
+/* Narrow trace — replaces the artboard below the figure's viability threshold
+   (frameWidth < intrinsic × 0.80), chosen in JS from the measured frame, not a
+   media query. The frame keeps its border/background; only its overflow and
+   padding change, so the ResizeObserver measures the same box either way. */
+.pcase-arch-canvas.is-trace {
+  overflow-x: visible;
+  padding: 12px 12px 14px;
+}
+
+/* The strip's census instruction, restated above the rows. */
+.pcase-arch-trace-hint {
+  margin: 0 0 10px;
+  max-width: 56ch;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* The measure is capped so the 640–880px column band never runs long lines. */
+.pcase-arch-trace {
+  max-width: 640px;
+}
+
+/* Two-column row: a 16px rail column, then the content column. */
+.pcase-arch-trace-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  column-gap: 8px;
+}
+
+/* Rail cell: the main spine is continuous from the first node to the last. */
+.pcase-arch-trace-rail {
+  position: relative;
+  display: block;
+}
+
+.pcase-arch-trace-rail-main {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--arch-edge);
+}
+
+/* The dashed branch lane at x=8 — present only on the fork, branch and join
+   rows (given geometry per row type below); inert elsewhere. */
+.pcase-arch-trace-rail-lane {
+  position: absolute;
+  left: 8px;
+  border-left: 1px dashed var(--arch-edge);
+}
+
+.pcase-arch-trace-row.is-lane .pcase-arch-trace-rail-lane {
+  top: 0;
+  bottom: 0;
+}
+
+.pcase-arch-trace-row.is-fork .pcase-arch-trace-rail-lane {
+  top: 11px;
+  bottom: 0;
+}
+
+/* The join lane descends 12px into the row, then the crossbar returns. */
+.pcase-arch-trace-row.is-join .pcase-arch-trace-rail-lane {
+  top: 0;
+  height: 12px;
+}
+
+/* Dashed crossbar between the main rail and the lane, on fork and join rows. */
+.pcase-arch-trace-rail-cross {
+  position: absolute;
+  left: 0;
+  top: 11px;
+  width: 8px;
+  border-top: 1px dashed var(--arch-edge);
+}
+
+.pcase-arch-trace-row.is-fork .pcase-arch-trace-rail-cross,
+.pcase-arch-trace-row.is-join .pcase-arch-trace-rail-cross {
+  display: block;
+}
+
+.pcase-arch-trace-rail-cross {
   display: none;
 }
 
-.pcase-arch-stack-node {
-  width: 100%;
+/* Node tick at y=21: 16px solid from the main rail, 8px dashed from the lane. */
+.pcase-arch-trace-rail-tick {
+  position: absolute;
+  top: 21px;
+  left: 0;
+  width: 16px;
+  border-top: 1px solid var(--arch-edge);
 }
 
-.pcase-arch-stack-connector {
-  margin: 0;
-  padding: 8px 0 8px 14px;
-  border-left: 1px solid var(--arch-edge);
+.pcase-arch-trace-row.is-lane .pcase-arch-trace-rail-tick {
+  left: 8px;
+  width: 8px;
+  border-top-style: dashed;
+}
+
+.pcase-arch-trace-content {
+  display: block;
+  min-width: 0;
+}
+
+/* Node row: one line, >=44px — ordinal, label, optional chip, optional tag.
+   Rendered as a button with inline expansion; subtitle moves into the panel. */
+.pcase-arch-trace-node {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 9px 11px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+/* The branch-lane node is inset 8px; the indent is reclaimed from width so its
+   right edge stays flush with the main-rail nodes. */
+.pcase-arch-trace-row.is-lane .pcase-arch-trace-node {
+  margin-left: 8px;
+  width: calc(100% - 8px);
+}
+
+.pcase-arch-trace-node:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+
+.pcase-arch-trace-node:active {
+  transform: translateY(1px);
+}
+
+.pcase-arch-trace-node.is-expanded {
+  background: var(--surface-2);
+  border-color: var(--accent);
+}
+
+.pcase-arch-trace-node-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+}
+
+.pcase-arch-trace-ord {
+  flex: none;
   font-family: var(--font-mono-stack);
   font-size: 11px;
   color: var(--muted);
 }
 
-.pcase-arch-stack-connector.is-dashed {
-  border-left-style: dashed;
+.pcase-arch-trace-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--fg);
 }
 
-.pcase-arch-stack-connector.is-indent,
-.pcase-arch-stack-node.is-indent {
-  margin-left: 20px;
+.pcase-arch-trace-chip {
+  flex: none;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
 }
 
-/* The node is width:100%, so the 20px indent above must be reclaimed from its
-   width or its right edge overruns the content column (connectors are auto-width
-   blocks and already align). Keeps the left indent; right edge stays on column. */
-.pcase-arch-stack-node.is-indent {
-  width: calc(100% - 20px);
+.pcase-arch-trace-tag {
+  flex: none;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pcase-arch-trace-close {
+  flex: none;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Expansion: kind line, entity summary, then the edge line behind a left rule. */
+.pcase-arch-trace-panel {
+  display: block;
+  margin-top: 8px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+}
+
+.pcase-arch-trace-kindline {
+  display: block;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.pcase-arch-trace-summary {
+  display: block;
+  margin-top: 7px;
+  font-size: 15px;
+  line-height: 1.62;
+  color: var(--fg-2);
+  max-width: 62ch;
+}
+
+.pcase-arch-trace-edgeline {
+  display: block;
+  margin-top: 7px;
+  padding-left: 10px;
+  border-left: 2px solid var(--border-strong);
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted-strong);
+}
+
+/* Evidence link — a sibling of the button (never nested), >=44px target. */
+.pcase-arch-trace-evlink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-mono-stack);
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.pcase-arch-trace-row.is-lane .pcase-arch-trace-evlink {
+  margin-left: 8px;
+}
+
+.pcase-arch-trace-evlink:hover {
+  color: var(--fg);
+}
+
+/* Connector row: composed copy on a mono line; loop rows carry the bracket. */
+.pcase-arch-trace-connector {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* An unlabelled step is the rail itself — keep the row short. */
+.pcase-arch-trace-row.is-bare {
+  min-height: 16px;
+}
+
+/* Open return bracket (22 x 14) before the loop text. */
+.pcase-arch-trace-bracket {
+  flex: none;
+  width: 22px;
+  height: 14px;
+  border: 1px solid var(--arch-edge);
+  border-right: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcase-arch-trace-node:active {
+    transform: none;
+  }
 }
 
 /* ======================================================= Responsive ===== */
@@ -1084,21 +1332,5 @@
   .pcase-block-grid {
     grid-template-columns: 1fr;
     gap: var(--gap-md);
-  }
-}
-
-/* The architecture canvas is replaced by the stack — not scaled — at <=740px,
-   so no artboard scrolls sideways. The head, strip, legend and return hold. */
-@media (max-width: 740px) {
-  .pcase-arch-canvas {
-    display: none;
-  }
-
-  .pcase-arch-stack {
-    display: block;
-  }
-
-  .pcase-arch-strip {
-    border-top: 1px solid var(--border);
   }
 }

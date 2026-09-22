@@ -1,4 +1,8 @@
-import type { WorkflowEdge, WorkflowView } from "@/domain/workflow-view";
+import type {
+  WorkflowEdge,
+  WorkflowNode,
+  WorkflowView,
+} from "@/domain/workflow-view";
 
 /**
  * Static architecture-figure geometry. The migrated /ecosystem canvases render
@@ -52,6 +56,30 @@ export const MIN_FIGURE_SCALE = 0.8;
 export function fitScale(frameWidth: number, intrinsicWidth: number): number {
   if (!(frameWidth > 0) || !(intrinsicWidth > 0)) return 1;
   return Math.min(1, Math.max(MIN_FIGURE_SCALE, frameWidth / intrinsicWidth));
+}
+
+/**
+ * The column width below which the artboard stops being viable and the figure
+ * switches to the narrow trace: `round(intrinsicWidth × MIN_FIGURE_SCALE)`.
+ * Derived from the locked `ARTBOARDS`, never a second authored constant — so the
+ * two figures switch at different widths (883px editorial, 851px renovate). The
+ * rounding makes the boundary land exactly: `883 → artboard`, `882.9 → trace`.
+ */
+export function narrowThresholdFor(view: WorkflowView): number {
+  const artboard = ARTBOARDS[view.id];
+  return artboard ? Math.round(artboard.width * MIN_FIGURE_SCALE) : 0;
+}
+
+/**
+ * Whether the figure should render the narrow trace instead of the artboard, as
+ * a pure function of the measured frame width. This is a container rule, not a
+ * media query: the architecture column is container-dependent, and the layout
+ * can hand width back to the column at a smaller viewport (the rail unsticks),
+ * so presentation is not monotonic in viewport width. A zero-width read (a
+ * hidden frame) keeps the artboard, matching the ResizeObserver's skip guard.
+ */
+export function prefersTrace(frameWidth: number, view: WorkflowView): boolean {
+  return frameWidth > 0 && frameWidth < narrowThresholdFor(view);
 }
 
 /**
@@ -269,135 +297,110 @@ export function buildFigureGeometry(view: WorkflowView): FigureGeometry {
   return { width, height, nodes, edges };
 }
 
-/* ------------------------------------------------------------------ narrow */
+/* ------------------------------------------------------- narrow trace ----- */
 
 /**
- * The explicitly designed narrow stack. Nodes render in ordinal order; every
- * edge that is not a bare next step becomes a labelled connector row, so
- * branches, bypasses and loops survive as text rather than disappearing with
- * the artboard. Each connector names the source edge(s) it represents, so the
- * "every edge once" invariant is checkable and labels stay source-faithful.
+ * Per-view trace structure: topology and edge *roles* only — never display
+ * prose. It declares the row order (which is the ordinal reading order), which
+ * node sits on the dashed branch lane, and, where a connector carries more than
+ * one edge, each edge's structural role. Every connector string the reader sees
+ * is composed from this structure plus the graph's own node labels, ordinals
+ * and edge labels (see buildTrace) — so no authored copy is duplicated between
+ * the artboard and the trace, and a generic renderer never has to reverse a
+ * concept like "bypass" out of arbitrary topology.
  */
-export interface NarrowNodeRow {
-  type: "node";
-  nodeId: string;
-  /** One 20px indent step when the node sits on an optional/branch lane. */
-  indent?: 1;
-}
+type TraceStructRow =
+  | { t: "node"; id: string; lane?: 1 }
+  /** Plain forward edge(s); the rail alone carries an unlabelled step. */
+  | { t: "step"; edges: string[] }
+  /** The dashed conditional/optional branch leaving the fork node. */
+  | { t: "fork"; edge: string }
+  /**
+   * Where the branch rejoins the main path. `rejoinEdge` is the branch's return
+   * (its source is the lane node); `bypassEdge` is the fork node's default path.
+   * Both share the convergence node as their target.
+   */
+  | { t: "join"; rejoinEdge: string; bypassEdge: string }
+  /** A return (back) edge, drawn with the open loop bracket. */
+  | { t: "loop"; edge: string };
 
-export interface NarrowConnectorRow {
-  type: "connector";
-  /** Source edge id(s) this row carries; the union across rows is every edge, once. */
-  edgeIds: string[];
-  /** Arrow glyph — "down" for a forward step, "up" for a return edge. */
-  arrow: "down" | "up";
-  /** Conditional/optional edges render on a dashed rule. */
-  dashed?: boolean;
-  indent?: 1;
-  /** Connector copy; the source edge label (when any) is always a substring. */
-  text?: string;
-}
-
-export type NarrowRow = NarrowNodeRow | NarrowConnectorRow;
-
-const NARROW_EDITORIAL: NarrowRow[] = [
-  { type: "node", nodeId: "node-capture" },
-  { type: "connector", edgeIds: ["e-edit-1"], arrow: "down" },
-  { type: "node", nodeId: "node-triage" },
-  { type: "connector", edgeIds: ["e-edit-2"], arrow: "down" },
-  { type: "node", nodeId: "node-schedule" },
-  {
-    type: "connector",
-    edgeIds: ["e-edit-3"],
-    arrow: "down",
-    dashed: true,
-    text: "Optional — to 04 Refresh",
-  },
-  { type: "node", nodeId: "node-refresh", indent: 1 },
-  {
-    type: "connector",
-    edgeIds: ["e-edit-4"],
-    arrow: "down",
-    indent: 1,
-    text: "from 04 Refresh",
-  },
-  {
-    type: "connector",
-    edgeIds: ["e-edit-5"],
-    arrow: "down",
-    indent: 1,
-    text: "Skip — 03 Schedule → 05 Context, bypassing 04",
-  },
-  { type: "node", nodeId: "node-context" },
-  { type: "connector", edgeIds: ["e-edit-6"], arrow: "down" },
-  { type: "node", nodeId: "node-draft" },
-  { type: "connector", edgeIds: ["e-edit-7"], arrow: "down" },
-  { type: "node", nodeId: "node-critique" },
-  {
-    type: "connector",
-    edgeIds: ["e-edit-8"],
-    arrow: "up",
-    text: "Revise — returns to 06 Draft",
-  },
-  { type: "connector", edgeIds: ["e-edit-9"], arrow: "down", text: "Ready" },
-  { type: "node", nodeId: "node-sync" },
-  { type: "connector", edgeIds: ["e-edit-10"], arrow: "down", text: "Human" },
-  { type: "node", nodeId: "node-publish" },
+const TRACE_EDITORIAL: TraceStructRow[] = [
+  { t: "node", id: "node-capture" },
+  { t: "step", edges: ["e-edit-1"] },
+  { t: "node", id: "node-triage" },
+  { t: "step", edges: ["e-edit-2"] },
+  { t: "node", id: "node-schedule" },
+  { t: "fork", edge: "e-edit-3" },
+  { t: "node", id: "node-refresh", lane: 1 },
+  { t: "join", rejoinEdge: "e-edit-4", bypassEdge: "e-edit-5" },
+  { t: "node", id: "node-context" },
+  { t: "step", edges: ["e-edit-6"] },
+  { t: "node", id: "node-draft" },
+  { t: "step", edges: ["e-edit-7"] },
+  { t: "node", id: "node-critique" },
+  { t: "loop", edge: "e-edit-8" },
+  { t: "step", edges: ["e-edit-9"] },
+  { t: "node", id: "node-sync" },
+  { t: "step", edges: ["e-edit-10"] },
+  { t: "node", id: "node-publish" },
 ];
 
-const NARROW_RENOVATE: NarrowRow[] = [
-  { type: "node", nodeId: "node-classify" },
-  { type: "connector", edgeIds: ["e-reno-1"], arrow: "down" },
-  { type: "node", nodeId: "node-route" },
-  {
-    type: "connector",
-    edgeIds: ["e-reno-2"],
-    arrow: "down",
-    dashed: true,
-    indent: 1,
-    text: "Investigate — conditional",
-  },
-  { type: "node", nodeId: "node-investigate" },
-  {
-    type: "connector",
-    // The rejoin row carries both the investigate→maintainer edge (After audit)
-    // and the auto path (route→maintainer), rather than duplicating Maintainer.
-    edgeIds: ["e-reno-4", "e-reno-3"],
-    arrow: "down",
-    indent: 1,
-    text: "After audit  ·  Auto path rejoins here",
-  },
-  { type: "node", nodeId: "node-maintainer" },
-  { type: "connector", edgeIds: ["e-reno-5"], arrow: "down" },
-  { type: "node", nodeId: "node-merge-gates" },
+const TRACE_RENOVATE: TraceStructRow[] = [
+  { t: "node", id: "node-classify" },
+  { t: "step", edges: ["e-reno-1"] },
+  { t: "node", id: "node-route" },
+  { t: "fork", edge: "e-reno-2" },
+  { t: "node", id: "node-investigate", lane: 1 },
+  { t: "join", rejoinEdge: "e-reno-4", bypassEdge: "e-reno-3" },
+  { t: "node", id: "node-maintainer" },
+  { t: "step", edges: ["e-reno-5"] },
+  { t: "node", id: "node-merge-gates" },
 ];
 
-const NARROW_LAYOUTS: Record<string, NarrowRow[]> = {
-  "workflow-editorial": NARROW_EDITORIAL,
-  "workflow-renovate": NARROW_RENOVATE,
+const TRACE_STRUCTURES: Record<string, TraceStructRow[]> = {
+  "workflow-editorial": TRACE_EDITORIAL,
+  "workflow-renovate": TRACE_RENOVATE,
 };
 
-export function narrowLayoutFor(view: WorkflowView): NarrowRow[] {
-  const layout = NARROW_LAYOUTS[view.id];
-  if (!layout) {
-    throw new Error(`architecture figure: no narrow layout for ${view.id}`);
+function traceStructureFor(view: WorkflowView): TraceStructRow[] {
+  const structure = TRACE_STRUCTURES[view.id];
+  if (!structure) {
+    throw new Error(`architecture figure: no trace structure for ${view.id}`);
   }
-  return layout;
+  return structure;
 }
 
 /**
- * Node ordinal (reading order) per node id. The narrow layout lists nodes in
- * their workflow reading order — which is the numbering the wide figure, the
- * stack and the detail strip all share — so a data array whose order differs
+ * Every edge id a trace's connector rows carry, in row order. The union is the
+ * "every edge exactly once" invariant; buildTrace and the tests read it here so
+ * they agree on where an edge lives.
+ */
+export function traceEdgeIds(view: WorkflowView): string[] {
+  const ids: string[] = [];
+  for (const row of traceStructureFor(view)) {
+    if (row.t === "step") ids.push(...row.edges);
+    else if (row.t === "fork") ids.push(row.edge);
+    else if (row.t === "join") ids.push(row.rejoinEdge, row.bypassEdge);
+    else if (row.t === "loop") ids.push(row.edge);
+  }
+  return ids;
+}
+
+/**
+ * Node ordinal (reading order) per node id. The trace structure lists nodes in
+ * their workflow reading order — which is the numbering the artboard, the trace
+ * and the detail strip all share — so a data array whose order differs
  * (Editorial's Refresh is authored first) still numbers by the workflow, not by
- * array position. Falls back to array order for a view with no narrow layout.
+ * array position. Falls back to array order for a view with no trace structure.
  */
 export function nodeOrdinalMap(view: WorkflowView): Map<string, string> {
-  const layout = NARROW_LAYOUTS[view.id];
-  const order = layout
-    ? layout
-        .filter((row): row is NarrowNodeRow => row.type === "node")
-        .map((row) => row.nodeId)
+  const structure = TRACE_STRUCTURES[view.id];
+  const order = structure
+    ? structure
+        .filter((row): row is Extract<TraceStructRow, { t: "node" }> => {
+          return row.t === "node";
+        })
+        .map((row) => row.id)
     : view.nodes.map((node) => node.id);
   return new Map(
     order.map((id, index) => [id, String(index + 1).padStart(2, "0")]),
@@ -407,4 +410,240 @@ export function nodeOrdinalMap(view: WorkflowView): Map<string, string> {
 /** The reading-order ordinal for a single node (e.g. the detail strip). */
 export function ordinalFor(view: WorkflowView, nodeId: string): string {
   return nodeOrdinalMap(view).get(nodeId) ?? "—";
+}
+
+/* ------------------------------------------------- trace derivation ------- */
+
+/**
+ * The kinds that carry a chip in the collapsed trace row: every kind except the
+ * graph's dominant one (a strict majority of nodes). When no kind holds a
+ * majority, all kinds carry a chip. The un-chipped kind is named in the legend.
+ */
+function chipKinds(view: WorkflowView): Set<string> {
+  const counts = new Map<string, number>();
+  for (const node of view.nodes) {
+    counts.set(node.kind, (counts.get(node.kind) ?? 0) + 1);
+  }
+  let dominant: string | null = null;
+  let best = 0;
+  for (const [kind, count] of counts) {
+    if (count > best) {
+      best = count;
+      dominant = kind;
+    }
+  }
+  if (dominant && best > view.nodes.length / 2) {
+    return new Set([...counts.keys()].filter((kind) => kind !== dominant));
+  }
+  return new Set(counts.keys());
+}
+
+const ordNum = (ordinal: string): number => Number.parseInt(ordinal, 10);
+
+/**
+ * The compact partner tag on a collapsed node row (§4.3): a conditional out-edge,
+ * a loop partner (both directions), or a convergence node's rejoining edges.
+ * Composed only from ordinals and existing edge labels; empty when none applies.
+ * Branch-lane nodes carry no tag — the lane already states the relationship.
+ */
+function partnerTagFor(view: WorkflowView, nodeId: string): string {
+  const ord = (id: string) => ordinalFor(view, id);
+  const self = ordNum(ord(nodeId));
+  let tag = "";
+
+  for (const edge of view.edges) {
+    if (edge.source !== nodeId) continue;
+    if (isConditionalEdge(edge.id)) {
+      tag = `→ ${ord(edge.target)} ${(edge.label ?? "optional").toLowerCase()}`;
+    }
+    const reverse = view.edges.find(
+      (other) => other.source === edge.target && other.target === edge.source,
+    );
+    if (reverse) {
+      const word = (edge.label ?? reverse.label ?? "loop").toLowerCase();
+      const arrow = ordNum(ord(edge.target)) > self ? "←" : "↑";
+      tag = `${arrow} ${ord(edge.target)} ${word}`;
+    }
+  }
+
+  if (!tag) {
+    const incoming = view.edges.filter((edge) => edge.target === nodeId);
+    if (incoming.length > 1) {
+      const ordinals = incoming
+        .map((edge) => ord(edge.source))
+        .sort((a, b) => ordNum(a) - ordNum(b));
+      tag = `← ${ordinals.join(" / ")} rejoin`;
+    }
+  }
+
+  return tag;
+}
+
+/**
+ * The expansion's edge line (§6): every edge touching the node in the source's
+ * own labels — `in:`/`out:` with the partner ordinal, the edge label when it has
+ * one, and ` · conditional` for a dashed edge. States what the row's geometry
+ * can only imply.
+ */
+function edgeLineFor(view: WorkflowView, nodeId: string): string {
+  const ord = (id: string) => ordinalFor(view, id);
+  const parts: string[] = [];
+  for (const edge of view.edges) {
+    const cond = isConditionalEdge(edge.id) ? " · conditional" : "";
+    const label = edge.label ? ` ${edge.label}` : "";
+    if (edge.target === nodeId)
+      parts.push(`in: ${ord(edge.source)}${label}${cond}`);
+    if (edge.source === nodeId)
+      parts.push(`out: ${ord(edge.target)}${label}${cond}`);
+  }
+  return parts.join("  ·  ");
+}
+
+/** The single labelled edge on a step row, if any (steps are single-purpose). */
+function labelledStepText(view: WorkflowView, edgeIds: string[]): string {
+  const labelled = edgeIds
+    .map((id) => view.edges.find((edge) => edge.id === id))
+    .find((edge) => edge && edge.label);
+  return labelled?.label ? `↓ ${labelled.label}` : "";
+}
+
+/** A fully-derived, render-ready node row in the trace. */
+export interface TraceNodeRow {
+  type: "node";
+  nodeId: string;
+  ordinal: string;
+  kind: string;
+  label: string;
+  subtitle?: string;
+  /** Sits on the dashed branch lane — inset, and never tagged. */
+  onLane: boolean;
+  /** Show the kind chip (this kind is not the graph's dominant one). */
+  showKind: boolean;
+  /** Partner tag, or "" when none applies. */
+  tag: string;
+  /** Expansion: `{kind} · node {ord} · {subtitle}`. */
+  kindLine: string;
+  /** Expansion: every edge touching this node, in source labels. */
+  edgeLine: string;
+}
+
+/** A fully-derived connector row (rail segment) in the trace. */
+export interface TraceConnectorRow {
+  type: "connector";
+  kind: "step" | "fork" | "join" | "loop";
+  /** Source edge id(s); the union across rows is every edge, once. */
+  edgeIds: string[];
+  /** Conditional/optional edges render on the dashed lane. */
+  dashed: boolean;
+  /** Composed copy — always contains its source edge label(s) verbatim. */
+  text: string;
+}
+
+export type TraceRow = TraceNodeRow | TraceConnectorRow;
+
+/**
+ * Build the narrow trace for a view: nodes in ordinal order, every edge once as
+ * a connector row, all copy composed from the graph model (node labels,
+ * ordinals, edge labels) rather than authored per view. The single source of
+ * truth is the same WorkflowView the artboard reads.
+ */
+export function buildTrace(view: WorkflowView): TraceRow[] {
+  const structure = traceStructureFor(view);
+  const nodesById = new Map(view.nodes.map((node) => [node.id, node] as const));
+  const edgesById = new Map(view.edges.map((edge) => [edge.id, edge] as const));
+  const chips = chipKinds(view);
+  const ord = (id: string) => ordinalFor(view, id);
+  const labelOf = (id: string) => nodesById.get(id)?.label ?? "";
+
+  const edge = (id: string): WorkflowEdge => {
+    const found = edgesById.get(id);
+    if (!found) throw new Error(`architecture figure: unknown edge ${id}`);
+    return found;
+  };
+  const node = (id: string): WorkflowNode => {
+    const found = nodesById.get(id);
+    if (!found) throw new Error(`architecture figure: unknown node ${id}`);
+    return found;
+  };
+
+  return structure.map((row): TraceRow => {
+    if (row.t === "node") {
+      const source = node(row.id);
+      const onLane = row.lane === 1;
+      const ordinal = ord(row.id);
+      return {
+        type: "node",
+        nodeId: row.id,
+        ordinal,
+        kind: source.kind,
+        label: source.label,
+        subtitle: source.subtitle,
+        onLane,
+        showKind: chips.has(source.kind),
+        tag: onLane ? "" : partnerTagFor(view, row.id),
+        kindLine: `${source.kind} · node ${ordinal}${
+          source.subtitle ? ` · ${source.subtitle}` : ""
+        }`,
+        edgeLine: edgeLineFor(view, row.id),
+      };
+    }
+
+    if (row.t === "fork") {
+      const forkEdge = edge(row.edge);
+      const targetOrd = ord(forkEdge.target);
+      return {
+        type: "connector",
+        kind: "fork",
+        edgeIds: [row.edge],
+        dashed: isConditionalEdge(row.edge),
+        text: `↓ ${forkEdge.label ?? ""} — branch to ${targetOrd} ${labelOf(
+          forkEdge.target,
+        )}`,
+      };
+    }
+
+    if (row.t === "join") {
+      const rejoin = edge(row.rejoinEdge);
+      const bypass = edge(row.bypassEdge);
+      // Both edges converge on the same node; the branch node is the rejoin's
+      // source. One data-driven condition — whether the branch return carries a
+      // label — selects the phrasing; no per-graph branching.
+      const convOrd = ord(rejoin.target);
+      const convLabel = labelOf(rejoin.target);
+      const branchOrd = ord(rejoin.source);
+      const text = rejoin.label
+        ? `↓ ${rejoin.label} · ${bypass.label ?? ""} rejoins at ${convOrd} ${convLabel}`
+        : `↓ ${bypass.label ?? ""} bypasses ${branchOrd} · rejoins at ${convOrd} ${convLabel}`;
+      return {
+        type: "connector",
+        kind: "join",
+        edgeIds: [row.rejoinEdge, row.bypassEdge],
+        dashed:
+          isConditionalEdge(row.rejoinEdge) ||
+          isConditionalEdge(row.bypassEdge),
+        text,
+      };
+    }
+
+    if (row.t === "loop") {
+      const backEdge = edge(row.edge);
+      return {
+        type: "connector",
+        kind: "loop",
+        edgeIds: [row.edge],
+        dashed: isConditionalEdge(row.edge),
+        text: `↑ ${backEdge.label ?? ""} — returns to ${ord(
+          backEdge.target,
+        )} ${labelOf(backEdge.target)}`,
+      };
+    }
+
+    return {
+      type: "connector",
+      kind: "step",
+      edgeIds: row.edges,
+      dashed: row.edges.some((id) => isConditionalEdge(id)),
+      text: labelledStepText(view, row.edges),
+    };
+  });
 }

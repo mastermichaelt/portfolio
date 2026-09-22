@@ -13,14 +13,15 @@ import {
   ArchitectureDetailStrip,
   type StripSelection,
 } from "@/components/projects/ArchitectureDetailStrip";
-import { ArchitectureStack } from "@/components/projects/ArchitectureStack";
+import { ArchitectureTrace } from "@/components/projects/ArchitectureTrace";
 import type { Entity } from "@/domain/entities";
 import type { WorkflowView } from "@/domain/workflow-view";
 import {
   buildFigureGeometry,
+  buildTrace,
   fitScale,
-  narrowLayoutFor,
   ordinalFor,
+  prefersTrace,
 } from "@/lib/architecture-figure";
 import { resolveEcosystemDetail } from "@/lib/ecosystem-canvas";
 
@@ -60,41 +61,46 @@ export function ArchitectureFigure({
 }: ArchitectureFigureProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
-  // Geometry, narrow layout and entity index are pure functions of the
-  // immutable view/entities. Memoize so selection toggles and ResizeObserver
-  // fit-scale updates re-render without rebuilding edge routing or the index.
+  // Geometry, trace and entity index are pure functions of the immutable
+  // view/entities. Memoize so selection toggles and ResizeObserver width updates
+  // re-render without rebuilding edge routing, the derived trace or the index.
   const geometry = useMemo(() => buildFigureGeometry(view), [view]);
-  const narrowRows = useMemo(() => narrowLayoutFor(view), [view]);
+  const traceRows = useMemo(() => buildTrace(view), [view]);
   const entitiesById = useMemo(
     () => new Map(entities.map((entity) => [entity.id, entity] as const)),
     [entities],
   );
   const markerId = `arch-arrow-${view.id}`;
 
-  // Fit the wide artboard to the real architecture column: measure the canvas
-  // frame with a ResizeObserver (the column is container-dependent, not a media
-  // query) and scale the whole artboard uniformly. Only a horizontal scrollbar
-  // can appear on the frame, so the measured content width is stable.
+  // One measured source of width drives both derived presentation values. The
+  // architecture column is container-dependent (not a media query), so the
+  // figure measures its own frame with a ResizeObserver. `frameWidth` starts at
+  // the intrinsic width so SSR and the client's first render both compute the
+  // artboard (isWide, scale 1) — no hydration mismatch — and the pre-paint
+  // layout effect then corrects to the trace on a narrow column with no flash.
   const frameRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
+  const [frameWidth, setFrameWidth] = useState(geometry.width);
 
   useIsomorphicLayoutEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
     const measure = () => {
-      const frameWidth = frame.clientWidth;
-      // Skip while the frame is display:none (the <=740px stack is showing) so
-      // the last wide scale is retained rather than collapsing to the floor.
-      if (frameWidth === 0) return;
-      const next = fitScale(frameWidth, geometry.width);
-      setScale((prev) => (Math.abs(prev - next) > 0.0005 ? next : prev));
+      const next = frame.clientWidth;
+      // Skip a zero-width read (a hidden frame) so the last real width is kept.
+      if (next === 0) return;
+      setFrameWidth((prev) => (Math.abs(prev - next) > 0.5 ? next : prev));
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(frame);
     return () => observer.disconnect();
-  }, [geometry.width]);
+  }, []);
 
+  const isWide = !prefersTrace(frameWidth, view);
+  const scale = useMemo(
+    () => fitScale(frameWidth, geometry.width),
+    [frameWidth, geometry.width],
+  );
   const renderedWidth = geometry.width * scale;
   const renderedHeight = geometry.height * scale;
 
@@ -146,6 +152,9 @@ export function ArchitectureFigure({
         }
       : null;
 
+  // The strip's census instruction, shortened into the trace's single hint line.
+  const traceHint = `${defaultSub}. Select one to read its summary and evidence; press it again, or Escape, to close.`;
+
   return (
     <div
       className="pcase-arch"
@@ -161,116 +170,132 @@ export function ArchitectureFigure({
         </span>
       </div>
 
-      {/* Wide figure — the intrinsic artboard fitted to the frame by a uniform
-          scale (never > 1, floored at 0.80). The sizing box carries the rendered
-          dimensions so block height and the frame's scroll width follow the
-          figure, not its intrinsic size. Replaced by the stack at <=740px. */}
+      {/* One figure, two presentations. The frame is measured in both so the
+          ResizeObserver can detect the column growing back above the threshold.
+          Above the threshold: the intrinsic artboard fitted by a uniform scale
+          (never > 1, floored at 0.80), with the persistent detail strip below.
+          Below it: the same nodes and edges as the vertical spine trace, and no
+          strip — the artboard is not rendered at all, so nothing scrolls
+          sideways. The switch is frameWidth < intrinsic × MIN_FIGURE_SCALE. */}
       <div
-        className="pcase-arch-canvas"
+        className={"pcase-arch-canvas" + (isWide ? "" : " is-trace")}
         ref={frameRef}
-        onClick={clearOnGround}
+        onClick={isWide ? clearOnGround : undefined}
         role="presentation"
       >
-        <div
-          className="pcase-arch-sizer"
-          style={{ width: renderedWidth, height: renderedHeight }}
-        >
+        {isWide ? (
           <div
-            className="pcase-arch-artboard"
-            style={{
-              width: geometry.width,
-              height: geometry.height,
-              transform: `scale(${scale})`,
-            }}
+            className="pcase-arch-sizer"
+            style={{ width: renderedWidth, height: renderedHeight }}
           >
-            <svg
-              width={geometry.width}
-              height={geometry.height}
-              viewBox={`0 0 ${geometry.width} ${geometry.height}`}
-              className="pcase-arch-svg"
-              aria-hidden="true"
+            <div
+              className="pcase-arch-artboard"
+              style={{
+                width: geometry.width,
+                height: geometry.height,
+                transform: `scale(${scale})`,
+              }}
             >
-              <defs>
-                <marker
-                  id={markerId}
-                  viewBox="0 0 10 10"
-                  refX="8"
-                  refY="5"
-                  markerWidth="7"
-                  markerHeight="7"
-                  orient="auto-start-reverse"
-                >
-                  <path d="M0,1 L9,5 L0,9 z" className="pcase-arch-arrowhead" />
-                </marker>
-              </defs>
-              {geometry.edges.map((edge) => (
-                <path
-                  key={edge.id}
-                  d={edge.d}
-                  className={
-                    "pcase-arch-edge" + (edge.dashed ? " is-dashed" : "")
-                  }
-                  markerEnd={`url(#${markerId})`}
-                />
-              ))}
-            </svg>
+              <svg
+                width={geometry.width}
+                height={geometry.height}
+                viewBox={`0 0 ${geometry.width} ${geometry.height}`}
+                className="pcase-arch-svg"
+                aria-hidden="true"
+              >
+                <defs>
+                  <marker
+                    id={markerId}
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="7"
+                    markerHeight="7"
+                    orient="auto-start-reverse"
+                  >
+                    <path
+                      d="M0,1 L9,5 L0,9 z"
+                      className="pcase-arch-arrowhead"
+                    />
+                  </marker>
+                </defs>
+                {geometry.edges.map((edge) => (
+                  <path
+                    key={edge.id}
+                    d={edge.d}
+                    className={
+                      "pcase-arch-edge" + (edge.dashed ? " is-dashed" : "")
+                    }
+                    markerEnd={`url(#${markerId})`}
+                  />
+                ))}
+              </svg>
 
-            {geometry.edges.map((edge) =>
-              edge.label && edge.labelX != null && edge.labelY != null ? (
-                <span
-                  key={`l-${edge.id}`}
-                  className="pcase-arch-edge-label"
-                  style={{ left: edge.labelX, top: edge.labelY }}
-                  aria-hidden="true"
-                >
-                  {edge.label}
-                </span>
-              ) : null,
-            )}
-
-            {geometry.nodes.map((node) => {
-              const selected = node.id === selectedNodeId;
-              return (
-                <button
-                  key={node.id}
-                  type="button"
-                  data-node={node.id}
-                  aria-pressed={selected}
-                  className={
-                    "pcase-arch-node pcase-arch-canvas-node" +
-                    (selected ? " is-selected" : "")
-                  }
-                  style={{ left: node.left, top: node.top }}
-                  onClick={() => toggle(node.id)}
-                >
-                  <span className="pcase-arch-node-head">
-                    <span className="pcase-arch-node-kind">{node.kind}</span>
-                    <span className="pcase-arch-node-ord">{node.ordinal}</span>
+              {geometry.edges.map((edge) =>
+                edge.label && edge.labelX != null && edge.labelY != null ? (
+                  <span
+                    key={`l-${edge.id}`}
+                    className="pcase-arch-edge-label"
+                    style={{ left: edge.labelX, top: edge.labelY }}
+                    aria-hidden="true"
+                  >
+                    {edge.label}
                   </span>
-                  <span className="pcase-arch-node-label">{node.label}</span>
-                  {node.subtitle ? (
-                    <span className="pcase-arch-node-sub">{node.subtitle}</span>
-                  ) : null}
-                </button>
-              );
-            })}
+                ) : null,
+              )}
+
+              {geometry.nodes.map((node) => {
+                const selected = node.id === selectedNodeId;
+                return (
+                  <button
+                    key={node.id}
+                    type="button"
+                    data-node={node.id}
+                    aria-pressed={selected}
+                    className={
+                      "pcase-arch-node pcase-arch-canvas-node" +
+                      (selected ? " is-selected" : "")
+                    }
+                    style={{ left: node.left, top: node.top }}
+                    onClick={() => toggle(node.id)}
+                  >
+                    <span className="pcase-arch-node-head">
+                      <span className="pcase-arch-node-kind">{node.kind}</span>
+                      <span className="pcase-arch-node-ord">
+                        {node.ordinal}
+                      </span>
+                    </span>
+                    <span className="pcase-arch-node-label">{node.label}</span>
+                    {node.subtitle ? (
+                      <span className="pcase-arch-node-sub">
+                        {node.subtitle}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        ) : (
+          <ArchitectureTrace
+            rows={traceRows}
+            viewId={view.id}
+            hint={traceHint}
+            selectedNodeId={selectedNodeId}
+            selectedSummary={detail?.summary}
+            selectedEvidence={detail?.evidence ?? []}
+            onSelect={toggle}
+          />
+        )}
       </div>
 
-      {/* Narrow stack — the same nodes and edges, replacing the canvas below 740px. */}
-      <ArchitectureStack
-        rows={narrowRows}
-        nodes={geometry.nodes}
-        selectedNodeId={selectedNodeId}
-        onSelect={toggle}
-      />
-
-      <ArchitectureDetailStrip
-        selection={selection}
-        defaultSub={defaultSub}
-        defaultSummary={defaultSummary}
-      />
+      {isWide ? (
+        <ArchitectureDetailStrip
+          selection={selection}
+          defaultSub={defaultSub}
+          defaultSummary={defaultSummary}
+        />
+      ) : null}
 
       <div className="pcase-arch-legend">
         <span>
