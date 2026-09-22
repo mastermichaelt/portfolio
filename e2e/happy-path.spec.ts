@@ -1320,13 +1320,20 @@ test.describe("portfolio happy path", () => {
     ).toHaveCount(0);
 
     // Tapping a node expands it to only its explanatory summary and Close — no
-    // kind line, no edge serialization.
+    // kind line, no edge serialization. The summary lives in the controlled
+    // panel (a sibling of the trigger) so aria-controls always has a target.
     await critique.click();
     await expect(critique).toHaveAttribute("aria-expanded", "true");
-    await expect(critique).toContainText("Adversarial draft critique");
     await expect(critique).toContainText("Close");
     await expect(critique).not.toContainText("node 07");
     await expect(critique).not.toContainText("in: 06");
+    const critiqueCard = trace.locator(
+      '.pcase-arch-trace-card:has([data-node="node-critique"])',
+    );
+    await expect(critiqueCard).toContainText("Adversarial draft critique");
+    // aria-controls resolves to a rendered panel.
+    const panelId = await critique.getAttribute("aria-controls");
+    await expect(trace.locator(`#${panelId}`)).toBeVisible();
 
     // A second press closes it; only one is open at a time.
     await critique.click();
@@ -1595,7 +1602,9 @@ test.describe("portfolio happy path", () => {
       '.pcase-arch-trace [data-node="node-critique"]',
     );
     await expect(critique).toHaveAttribute("aria-expanded", "true");
-    await expect(critique).toContainText("Adversarial draft critique");
+    await expect(
+      page.locator('.pcase-arch-trace-card:has([data-node="node-critique"])'),
+    ).toContainText("Adversarial draft critique");
     // The strip is not rendered in the trace presentation.
     await expect(strip).toHaveCount(0);
 

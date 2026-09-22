@@ -1101,44 +1101,56 @@
 }
 
 /* Node card: one line, >=44px — ordinal, title, optional kind chip. An
-   expandable node is a <button> with inline expansion; a node with nothing to
-   expand is a static <div> with the same look but no interactive affordance. */
+   expandable node is a bordered card wrapping a header <button> (the trigger)
+   and its controlled panel; a node with nothing to expand is a standalone
+   static <div> with the same box. The header layout is shared by both. */
 .pcase-arch-trace-node {
   display: block;
   width: 100%;
   min-height: 44px;
   text-align: left;
-  background: var(--surface);
-  border: 1px solid var(--border);
   padding: 9px 11px;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+  background: none;
+  border: 0;
 }
 
+/* The interactive card is the bordered surface box; the trigger inside it is
+   transparent so header and panel share one border. */
+.pcase-arch-trace-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+/* A node with nothing to expand is a standalone bordered box, not a control. */
 .pcase-arch-trace-node.is-static {
+  background: var(--surface);
+  border: 1px solid var(--border);
   cursor: default;
 }
 
 /* The branch-lane node is inset 8px; the indent is reclaimed from width so its
    right edge stays flush with the main-rail nodes. */
-.pcase-arch-trace-row.is-lane .pcase-arch-trace-node {
+.pcase-arch-trace-row.is-lane .pcase-arch-trace-card,
+.pcase-arch-trace-row.is-lane .pcase-arch-trace-node.is-static {
   margin-left: 8px;
   width: calc(100% - 8px);
 }
 
-/* Hover/press affordances apply only to the interactive (button) variant. */
-button.pcase-arch-trace-node:hover {
+/* Hover/press/expanded apply to the interactive card only (never the static
+   node). Hover is scoped away from the expanded state so it keeps the accent. */
+.pcase-arch-trace-card:not(.is-expanded):hover {
   background: var(--surface-2);
   border-color: var(--border-strong);
 }
 
-button.pcase-arch-trace-node:active {
+.pcase-arch-trace-card:active {
   transform: translateY(1px);
 }
 
-.pcase-arch-trace-node.is-expanded {
+.pcase-arch-trace-card.is-expanded {
   background: var(--surface-2);
   border-color: var(--accent);
 }
@@ -1186,24 +1198,30 @@ button.pcase-arch-trace-node:active {
   color: var(--accent);
 }
 
-/* Expansion: the node's explanatory summary, behind a divider. The node card
-   explains what the node is; topology stays with the connector rows. */
+/* Expansion: the controlled region, a sibling of the trigger inside the card.
+   It is rendered whenever the node is expanded so aria-controls always resolves
+   — even for a node made expandable by evidence alone — and holds the summary
+   and any evidence links. Both are conditional; nothing is fabricated when a
+   node has only one of them. The node card explains what the node is; topology
+   stays with the connector rows. */
 .pcase-arch-trace-panel {
-  display: block;
-  margin-top: 8px;
-  padding-top: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 11px 11px;
   border-top: 1px solid var(--border);
 }
 
 .pcase-arch-trace-summary {
-  display: block;
   font-size: 15px;
   line-height: 1.62;
   color: var(--fg-2);
   max-width: 62ch;
 }
 
-/* Evidence link — a sibling of the button (never nested), >=44px target. */
+/* Evidence link — inside the panel (a div, so the anchor is never nested in the
+   trigger button), >=44px target. */
 .pcase-arch-trace-evlink {
   display: inline-flex;
   align-items: center;
@@ -1215,15 +1233,16 @@ button.pcase-arch-trace-node:active {
   text-underline-offset: 0.18em;
 }
 
-.pcase-arch-trace-row.is-lane .pcase-arch-trace-evlink {
-  margin-left: 8px;
-}
-
 .pcase-arch-trace-evlink:hover {
   color: var(--fg);
 }
 
-/* Connector row: composed copy on a mono line; loop rows carry the bracket. */
+/* Connector row: composed copy on a mono line; loop rows carry the bracket.
+   The narrow trace makes connectors the sole owner of branch/rejoin/loop
+   topology, so this now-load-bearing text reads one step up from the --muted
+   floor at --muted-strong — still the quiet mono register, but a touch clearer
+   than the node subtitles it sits between. (The wide artboard's edge labels
+   stay --muted; there the routed strokes and arrows carry the topology.) */
 .pcase-arch-trace-connector {
   display: flex;
   align-items: center;
@@ -1232,7 +1251,7 @@ button.pcase-arch-trace-node:active {
   font-family: var(--font-mono-stack);
   font-size: 11px;
   line-height: 1.5;
-  color: var(--muted);
+  color: var(--muted-strong);
 }
 
 /* An unlabelled step is the rail itself — keep the row short. */
@@ -1250,7 +1269,7 @@ button.pcase-arch-trace-node:active {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  button.pcase-arch-trace-node:active {
+  .pcase-arch-trace-card:active {
     transform: none;
   }
 }

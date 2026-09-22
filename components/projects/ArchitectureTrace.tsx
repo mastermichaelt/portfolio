@@ -90,6 +90,10 @@ function NodeRow({
     </span>
   );
 
+  const evidenceLinks = evidence.filter(
+    (item): item is Evidence & { url: string } => !!item.url,
+  );
+
   return (
     <div
       className={
@@ -103,27 +107,44 @@ function NodeRow({
       </span>
       <span className="pcase-arch-trace-content">
         {expandable ? (
-          <button
-            type="button"
-            data-node={row.nodeId}
-            aria-expanded={expanded}
-            aria-controls={panelId}
+          <div
             className={
-              "pcase-arch-trace-node" + (expanded ? " is-expanded" : "")
+              "pcase-arch-trace-card" + (expanded ? " is-expanded" : "")
             }
-            onClick={() => onSelect(row.nodeId)}
           >
-            {head}
-            {/* The node card explains only what the node is: its summary.
-                Topology (branch, rejoin, loop) is owned by the connector rows.
-                A node with no summary or evidence is not expandable (rendered
-                as a static card below), so the panel always has content. */}
-            {expanded && summary ? (
-              <span id={panelId} className="pcase-arch-trace-panel">
-                <span className="pcase-arch-trace-summary">{summary}</span>
-              </span>
+            <button
+              type="button"
+              data-node={row.nodeId}
+              aria-expanded={expanded}
+              aria-controls={panelId}
+              className="pcase-arch-trace-node"
+              onClick={() => onSelect(row.nodeId)}
+            >
+              {head}
+            </button>
+            {/* The controlled panel renders whenever the node is expanded, so
+                aria-controls always resolves — even for a node made expandable
+                by evidence alone. Summary and evidence are conditional within
+                it; the node is expandable only when it has at least one, so the
+                panel is never empty and nothing is fabricated. Topology
+                (branch, rejoin, loop) stays with the connector rows. */}
+            {expanded ? (
+              <div id={panelId} className="pcase-arch-trace-panel">
+                {summary ? (
+                  <span className="pcase-arch-trace-summary">{summary}</span>
+                ) : null}
+                {evidenceLinks.map((item) => (
+                  <ExternalLink
+                    key={item.id}
+                    className="pcase-arch-trace-evlink"
+                    href={item.url}
+                  >
+                    {item.label}
+                  </ExternalLink>
+                ))}
+              </div>
             ) : null}
-          </button>
+          </div>
         ) : (
           // No summary and no evidence — nothing to expand, so the card is a
           // plain identity row, not an interactive control.
@@ -134,20 +155,6 @@ function NodeRow({
             {head}
           </div>
         )}
-        {/* Evidence is a link, so it sits beside the button, never inside it. */}
-        {expanded
-          ? evidence
-              .filter((item): item is Evidence & { url: string } => !!item.url)
-              .map((item) => (
-                <ExternalLink
-                  key={item.id}
-                  className="pcase-arch-trace-evlink"
-                  href={item.url}
-                >
-                  {item.label}
-                </ExternalLink>
-              ))
-          : null}
       </span>
     </div>
   );
