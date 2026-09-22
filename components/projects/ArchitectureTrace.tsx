@@ -21,6 +21,7 @@ export function ArchitectureTrace({
   selectedNodeId,
   selectedSummary,
   selectedEvidence,
+  expandableIds,
   onSelect,
 }: {
   rows: TraceRow[];
@@ -29,6 +30,8 @@ export function ArchitectureTrace({
   selectedNodeId: string | null;
   selectedSummary?: string;
   selectedEvidence: Evidence[];
+  /** Node ids that have expandable content (a summary or evidence). */
+  expandableIds: Set<string>;
   onSelect: (nodeId: string) => void;
 }) {
   return (
@@ -41,7 +44,10 @@ export function ArchitectureTrace({
               key={row.nodeId}
               row={row}
               viewId={viewId}
-              expanded={row.nodeId === selectedNodeId}
+              expandable={expandableIds.has(row.nodeId)}
+              expanded={
+                expandableIds.has(row.nodeId) && row.nodeId === selectedNodeId
+              }
               summary={selectedSummary}
               evidence={selectedEvidence}
               onSelect={onSelect}
@@ -58,6 +64,7 @@ export function ArchitectureTrace({
 function NodeRow({
   row,
   viewId,
+  expandable,
   expanded,
   summary,
   evidence,
@@ -65,15 +72,23 @@ function NodeRow({
 }: {
   row: TraceNodeRow;
   viewId: string;
+  expandable: boolean;
   expanded: boolean;
   summary?: string;
   evidence: Evidence[];
   onSelect: (nodeId: string) => void;
 }) {
   const panelId = `arch-${viewId}-${row.nodeId}`;
-  const evidenceLinks = expanded
-    ? evidence.filter((item): item is Evidence & { url: string } => !!item.url)
-    : [];
+  const head = (
+    <span className="pcase-arch-trace-node-head">
+      <span className="pcase-arch-trace-ord">{row.ordinal}</span>
+      <span className="pcase-arch-trace-label">{row.label}</span>
+      {row.showKind ? (
+        <span className="pcase-arch-trace-chip">{row.kind}</span>
+      ) : null}
+      {expanded ? <span className="pcase-arch-trace-close">Close</span> : null}
+    </span>
+  );
 
   return (
     <div
@@ -87,42 +102,52 @@ function NodeRow({
         <span className="pcase-arch-trace-rail-tick" />
       </span>
       <span className="pcase-arch-trace-content">
-        <button
-          type="button"
-          data-node={row.nodeId}
-          aria-expanded={expanded}
-          aria-controls={panelId}
-          className={"pcase-arch-trace-node" + (expanded ? " is-expanded" : "")}
-          onClick={() => onSelect(row.nodeId)}
-        >
-          <span className="pcase-arch-trace-node-head">
-            <span className="pcase-arch-trace-ord">{row.ordinal}</span>
-            <span className="pcase-arch-trace-label">{row.label}</span>
-            {row.showKind ? (
-              <span className="pcase-arch-trace-chip">{row.kind}</span>
-            ) : null}
-            {expanded ? (
-              <span className="pcase-arch-trace-close">Close</span>
-            ) : null}
-          </span>
-          {/* The node card explains only what the node is: its summary. Topology
-              (branch, rejoin, loop, conditions) is owned by the connector rows. */}
-          {expanded && summary ? (
-            <span id={panelId} className="pcase-arch-trace-panel">
-              <span className="pcase-arch-trace-summary">{summary}</span>
-            </span>
-          ) : null}
-        </button>
-        {/* Evidence is a link, so it sits beside the button, never inside it. */}
-        {evidenceLinks.map((item) => (
-          <ExternalLink
-            key={item.id}
-            className="pcase-arch-trace-evlink"
-            href={item.url}
+        {expandable ? (
+          <button
+            type="button"
+            data-node={row.nodeId}
+            aria-expanded={expanded}
+            aria-controls={panelId}
+            className={
+              "pcase-arch-trace-node" + (expanded ? " is-expanded" : "")
+            }
+            onClick={() => onSelect(row.nodeId)}
           >
-            {item.label}
-          </ExternalLink>
-        ))}
+            {head}
+            {/* The node card explains only what the node is: its summary.
+                Topology (branch, rejoin, loop) is owned by the connector rows.
+                A node with no summary or evidence is not expandable (rendered
+                as a static card below), so the panel always has content. */}
+            {expanded && summary ? (
+              <span id={panelId} className="pcase-arch-trace-panel">
+                <span className="pcase-arch-trace-summary">{summary}</span>
+              </span>
+            ) : null}
+          </button>
+        ) : (
+          // No summary and no evidence — nothing to expand, so the card is a
+          // plain identity row, not an interactive control.
+          <div
+            data-node={row.nodeId}
+            className="pcase-arch-trace-node is-static"
+          >
+            {head}
+          </div>
+        )}
+        {/* Evidence is a link, so it sits beside the button, never inside it. */}
+        {expanded
+          ? evidence
+              .filter((item): item is Evidence & { url: string } => !!item.url)
+              .map((item) => (
+                <ExternalLink
+                  key={item.id}
+                  className="pcase-arch-trace-evlink"
+                  href={item.url}
+                >
+                  {item.label}
+                </ExternalLink>
+              ))
+          : null}
       </span>
     </div>
   );
@@ -132,10 +157,7 @@ function ConnectorRow({ row }: { row: TraceConnectorRow }) {
   return (
     <div
       className={
-        "pcase-arch-trace-row is-connector is-" +
-        row.kind +
-        (row.dashed ? " is-dashed" : "") +
-        (row.text ? "" : " is-bare")
+        "pcase-arch-trace-row is-" + row.kind + (row.text ? "" : " is-bare")
       }
     >
       <span className="pcase-arch-trace-rail" aria-hidden="true">

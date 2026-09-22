@@ -8,6 +8,9 @@ import {
   NODE_W,
   buildFigureGeometry,
   buildTrace,
+  composeForkText,
+  composeJoinText,
+  composeLoopText,
   fitScale,
   isConditionalEdge,
   narrowThresholdFor,
@@ -17,6 +20,7 @@ import {
   type TraceConnectorRow,
   type TraceNodeRow,
 } from "@/lib/architecture-figure";
+import type { WorkflowEdge } from "@/domain/workflow-view";
 
 /** Every (x, y) coordinate pair in an SVG path `d` (all commands are M/L here). */
 function pathPoints(d: string): Array<[number, number]> {
@@ -348,6 +352,11 @@ describe("architecture narrow trace", () => {
           const label = labelById.get(edgeId);
           if (label) expect(row.text).toContain(label);
         }
+        // No connector string is ever malformed (a stray double space betrays an
+        // empty interpolated clause).
+        expect(row.text, `${view.id} ${row.edgeIds.join(",")}`).not.toMatch(
+          /\s{2}/,
+        );
       }
     }
     // The retired hand-written strings must not reappear as derived prose.
@@ -430,5 +439,103 @@ describe("architecture narrow trace", () => {
       (row) => row.nodeId === "node-capture",
     );
     expect(capture?.onLane).toBe(false);
+  });
+});
+
+describe("architecture connector text is robust to unlabelled edges", () => {
+  // A tiny synthetic graph: a (02 Route) · b (03 Investigate) · c (04 Maintainer).
+  const ord = (id: string) => ({ a: "02", b: "03", c: "04" })[id] ?? "—";
+  const labelOf = (id: string) =>
+    ({ a: "Route", b: "Investigate", c: "Maintainer" })[id] ?? "";
+  const edge = (over: Partial<WorkflowEdge>): WorkflowEdge => ({
+    id: "x",
+    source: "a",
+    target: "c",
+    ...over,
+  });
+
+  it("fork drops the label lead when the edge is unlabelled", () => {
+    expect(
+      composeForkText(
+        edge({ label: "Investigate", target: "b" }),
+        ord,
+        labelOf,
+      ),
+    ).toBe("↓ Investigate — branch to 03 Investigate");
+    expect(composeForkText(edge({ target: "b" }), ord, labelOf)).toBe(
+      "↓ branch to 03 Investigate",
+    );
+  });
+
+  it("loop drops the label lead when the back edge is unlabelled", () => {
+    expect(
+      composeLoopText(edge({ label: "Revise", target: "a" }), ord, labelOf),
+    ).toBe("↑ Revise — returns to 02 Route");
+    expect(composeLoopText(edge({ target: "a" }), ord, labelOf)).toBe(
+      "↑ returns to 02 Route",
+    );
+  });
+
+  it("join falls back to a structural path phrase for an unlabelled edge", () => {
+    const rejoin = edge({
+      id: "r",
+      source: "b",
+      target: "c",
+      label: "After audit",
+    });
+    const bypass = edge({
+      id: "y",
+      source: "a",
+      target: "c",
+      label: "Auto path",
+    });
+    // Both labelled — the approved shape.
+    expect(composeJoinText(rejoin, bypass, ord, labelOf)).toBe(
+      "↓ After audit · Auto path rejoins at 04 Maintainer",
+    );
+    // Rejoin labelled, bypass unlabelled — structural bypass clause, no gap.
+    expect(
+      composeJoinText(
+        rejoin,
+        edge({ id: "y", source: "a", target: "c" }),
+        ord,
+        labelOf,
+      ),
+    ).toBe("↓ After audit · path from 02 rejoins at 04 Maintainer");
+    // Rejoin unlabelled — lead with the bypass path and name the bypassed node.
+    expect(
+      composeJoinText(
+        edge({ id: "r", source: "b", target: "c" }),
+        bypass,
+        ord,
+        labelOf,
+      ),
+    ).toBe("↓ Auto path bypasses 03 · rejoins at 04 Maintainer");
+    // Both unlabelled — still a well-formed sentence, no invented labels.
+    expect(
+      composeJoinText(
+        edge({ id: "r", source: "b", target: "c" }),
+        edge({ id: "y", source: "a", target: "c" }),
+        ord,
+        labelOf,
+      ),
+    ).toBe("↓ path from 02 bypasses 03 · rejoins at 04 Maintainer");
+  });
+
+  it("never emits a stray double space or an empty clause", () => {
+    const strings = [
+      composeForkText(edge({ target: "b" }), ord, labelOf),
+      composeLoopText(edge({ target: "a" }), ord, labelOf),
+      composeJoinText(
+        edge({ id: "r", source: "b", target: "c" }),
+        edge({ id: "y", source: "a", target: "c" }),
+        ord,
+        labelOf,
+      ),
+    ];
+    for (const text of strings) {
+      expect(text).not.toMatch(/\s{2}/); // no double whitespace
+      expect(text).not.toMatch(/(↓|↑) (·|—)/); // no empty leading clause
+    }
   });
 });

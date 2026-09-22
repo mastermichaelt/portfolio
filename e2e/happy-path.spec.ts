@@ -1306,6 +1306,19 @@ test.describe("portfolio happy path", () => {
     await expect(critique).toContainText("Critique");
     await expect(critique).not.toContainText("revise");
 
+    // The one exceptional kind chip is kept (Publish is an output, not a skill);
+    // ordinary skill nodes carry no kind metadata. (Chip text is uppercased by
+    // CSS; the DOM text is the raw kind.)
+    await expect(
+      trace.locator('[data-node="node-publish"] .pcase-arch-trace-chip'),
+    ).toHaveText("output");
+    await expect(
+      trace.locator('[data-node="node-capture"] .pcase-arch-trace-chip'),
+    ).toHaveCount(0);
+    await expect(
+      trace.locator('[data-node="node-draft"] .pcase-arch-trace-chip'),
+    ).toHaveCount(0);
+
     // Tapping a node expands it to only its explanatory summary and Close — no
     // kind line, no edge serialization.
     await critique.click();
@@ -1343,8 +1356,21 @@ test.describe("portfolio happy path", () => {
     await page.goto("/projects/renovate-governance#b02");
 
     await expect(page.locator(".pcase-arch-artboard")).toHaveCount(0);
-    await expect(page.locator(".pcase-arch-trace")).toBeVisible();
-    await expect(page.locator(".pcase-arch-trace [data-node]")).toHaveCount(5);
+    const trace = page.locator(".pcase-arch-trace");
+    await expect(trace).toBeVisible();
+    await expect(trace.locator("[data-node]")).toHaveCount(5);
+
+    // The non-dominant kinds keep their chips (Route is a workflow, Merge gates
+    // governance); the agent nodes — the dominant kind — carry none.
+    await expect(
+      trace.locator('[data-node="node-route"] .pcase-arch-trace-chip'),
+    ).toHaveText("workflow");
+    await expect(
+      trace.locator('[data-node="node-merge-gates"] .pcase-arch-trace-chip'),
+    ).toHaveText("governance");
+    await expect(
+      trace.locator('[data-node="node-classify"] .pcase-arch-trace-chip'),
+    ).toHaveCount(0);
 
     const overflowX = await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth + 1,

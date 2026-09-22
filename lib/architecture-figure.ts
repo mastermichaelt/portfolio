@@ -447,6 +447,49 @@ function labelledStepText(view: WorkflowView, edgeIds: string[]): string {
 }
 
 /**
+ * Connector-row copy, composed from the graph. Each helper leads with the edge's
+ * own label when it has one and otherwise falls back to a generic *structural*
+ * phrase built from ordinals — never a synthetic label and never a graph-specific
+ * case — so an unlabelled edge yields a clean sentence, not a stray-space
+ * fragment. `ord`/`labelOf` resolve a node id to its ordinal and title.
+ */
+type OrdFn = (id: string) => string;
+
+export function composeForkText(
+  edge: WorkflowEdge,
+  ord: OrdFn,
+  labelOf: OrdFn,
+): string {
+  const lead = edge.label ? `${edge.label} — ` : "";
+  return `↓ ${lead}branch to ${ord(edge.target)} ${labelOf(edge.target)}`;
+}
+
+export function composeLoopText(
+  edge: WorkflowEdge,
+  ord: OrdFn,
+  labelOf: OrdFn,
+): string {
+  const lead = edge.label ? `${edge.label} — ` : "";
+  return `↑ ${lead}returns to ${ord(edge.target)} ${labelOf(edge.target)}`;
+}
+
+export function composeJoinText(
+  rejoin: WorkflowEdge,
+  bypass: WorkflowEdge,
+  ord: OrdFn,
+  labelOf: OrdFn,
+): string {
+  // The two edges converge on a shared target; the branch node is the rejoin's
+  // source. Each path is named by its own label, or by "path from {sourceOrd}"
+  // when unlabelled — a structural fallback drawn from the graph, not invented.
+  const convergence = `rejoins at ${ord(rejoin.target)} ${labelOf(rejoin.target)}`;
+  const bypassClause = bypass.label ?? `path from ${ord(bypass.source)}`;
+  return rejoin.label
+    ? `↓ ${rejoin.label} · ${bypassClause} ${convergence}`
+    : `↓ ${bypassClause} bypasses ${ord(rejoin.source)} · ${convergence}`;
+}
+
+/**
  * A fully-derived, render-ready node row in the trace. A node card carries only
  * what the node *is* — ordinal, title, and the exceptional kind chip. All
  * relationship/topology information (branch, rejoin, loop, conditions) lives in
@@ -521,31 +564,16 @@ export function buildTrace(view: WorkflowView): TraceRow[] {
     }
 
     if (row.t === "fork") {
-      const forkEdge = edge(row.edge);
-      const targetOrd = ord(forkEdge.target);
       return {
         type: "connector",
         kind: "fork",
         edgeIds: [row.edge],
         dashed: isConditionalEdge(row.edge),
-        text: `↓ ${forkEdge.label ?? ""} — branch to ${targetOrd} ${labelOf(
-          forkEdge.target,
-        )}`,
+        text: composeForkText(edge(row.edge), ord, labelOf),
       };
     }
 
     if (row.t === "join") {
-      const rejoin = edge(row.rejoinEdge);
-      const bypass = edge(row.bypassEdge);
-      // Both edges converge on the same node; the branch node is the rejoin's
-      // source. One data-driven condition — whether the branch return carries a
-      // label — selects the phrasing; no per-graph branching.
-      const convOrd = ord(rejoin.target);
-      const convLabel = labelOf(rejoin.target);
-      const branchOrd = ord(rejoin.source);
-      const text = rejoin.label
-        ? `↓ ${rejoin.label} · ${bypass.label ?? ""} rejoins at ${convOrd} ${convLabel}`
-        : `↓ ${bypass.label ?? ""} bypasses ${branchOrd} · rejoins at ${convOrd} ${convLabel}`;
       return {
         type: "connector",
         kind: "join",
@@ -553,20 +581,22 @@ export function buildTrace(view: WorkflowView): TraceRow[] {
         dashed:
           isConditionalEdge(row.rejoinEdge) ||
           isConditionalEdge(row.bypassEdge),
-        text,
+        text: composeJoinText(
+          edge(row.rejoinEdge),
+          edge(row.bypassEdge),
+          ord,
+          labelOf,
+        ),
       };
     }
 
     if (row.t === "loop") {
-      const backEdge = edge(row.edge);
       return {
         type: "connector",
         kind: "loop",
         edgeIds: [row.edge],
         dashed: isConditionalEdge(row.edge),
-        text: `↑ ${backEdge.label ?? ""} — returns to ${ord(
-          backEdge.target,
-        )} ${labelOf(backEdge.target)}`,
+        text: composeLoopText(edge(row.edge), ord, labelOf),
       };
     }
 

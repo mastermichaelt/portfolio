@@ -23,7 +23,10 @@ import {
   ordinalFor,
   prefersTrace,
 } from "@/lib/architecture-figure";
-import { resolveEcosystemDetail } from "@/lib/ecosystem-canvas";
+import {
+  resolveEcosystemDetail,
+  type EcosystemDetailModel,
+} from "@/lib/ecosystem-canvas";
 
 // useLayoutEffect measures before paint on the client; fall back to useEffect on
 // the server (where it is a no-op) to avoid the SSR warning.
@@ -131,13 +134,34 @@ export function ArchitectureFigure({
     if (!el.closest("[data-node]")) setSelectedNodeId(null);
   };
 
-  const detail = selectedNodeId
-    ? resolveEcosystemDetail({
+  // Resolve every node's detail once, so the trace knows which nodes actually
+  // have expandable content (a summary or evidence) and the strip reads the
+  // selected node from the same source. A node with neither is not an expandable
+  // control in the trace — we never fabricate copy just to keep expansion open.
+  const detailById = useMemo(() => {
+    const map = new Map<string, EcosystemDetailModel>();
+    for (const node of view.nodes) {
+      const resolved = resolveEcosystemDetail({
         views: [view],
         entitiesById,
         viewId: view.id,
-        nodeId: selectedNodeId,
-      })
+        nodeId: node.id,
+      });
+      if (resolved) map.set(node.id, resolved);
+    }
+    return map;
+  }, [view, entitiesById]);
+
+  const traceExpandableIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const [id, resolved] of detailById) {
+      if (resolved.summary || resolved.evidence.length > 0) ids.add(id);
+    }
+    return ids;
+  }, [detailById]);
+
+  const detail = selectedNodeId
+    ? (detailById.get(selectedNodeId) ?? null)
     : null;
 
   const selection: StripSelection | null =
@@ -284,6 +308,7 @@ export function ArchitectureFigure({
             selectedNodeId={selectedNodeId}
             selectedSummary={detail?.summary}
             selectedEvidence={detail?.evidence ?? []}
+            expandableIds={traceExpandableIds}
             onSelect={toggle}
           />
         )}

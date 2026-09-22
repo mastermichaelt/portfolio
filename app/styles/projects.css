@@ -1100,8 +1100,9 @@
   min-width: 0;
 }
 
-/* Node row: one line, >=44px — ordinal, label, optional chip, optional tag.
-   Rendered as a button with inline expansion; subtitle moves into the panel. */
+/* Node card: one line, >=44px — ordinal, title, optional kind chip. An
+   expandable node is a <button> with inline expansion; a node with nothing to
+   expand is a static <div> with the same look but no interactive affordance. */
 .pcase-arch-trace-node {
   display: block;
   width: 100%;
@@ -1116,6 +1117,10 @@
     color 0.15s ease;
 }
 
+.pcase-arch-trace-node.is-static {
+  cursor: default;
+}
+
 /* The branch-lane node is inset 8px; the indent is reclaimed from width so its
    right edge stays flush with the main-rail nodes. */
 .pcase-arch-trace-row.is-lane .pcase-arch-trace-node {
@@ -1123,12 +1128,13 @@
   width: calc(100% - 8px);
 }
 
-.pcase-arch-trace-node:hover {
+/* Hover/press affordances apply only to the interactive (button) variant. */
+button.pcase-arch-trace-node:hover {
   background: var(--surface-2);
   border-color: var(--border-strong);
 }
 
-.pcase-arch-trace-node:active {
+button.pcase-arch-trace-node:active {
   transform: translateY(1px);
 }
 
@@ -1244,7 +1250,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pcase-arch-trace-node:active {
+  button.pcase-arch-trace-node:active {
     transform: none;
   }
 }
