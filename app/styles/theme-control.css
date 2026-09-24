@@ -37,33 +37,40 @@
   }
 }
 
-/* Both destination states are rendered; CSS keyed on html[data-theme] shows the
-   right one, so the correct label paints on the first frame (the attribute is
-   set pre-paint) with no hydration reconciliation. The hidden state is
-   display:none, so it is absent from the button's accessible name. Default
-   (unthemed / no JS) shows the dark-state label, matching the :root baseline. */
+/* Both destination states are rendered and stacked in one grid cell (the switch
+   is a grid; see below), so the control always reserves the width of the wider
+   label ("Light mode") and the visible label can change on toggle without
+   resizing the control or shifting the header. CSS keyed on html[data-theme]
+   shows the right one, so the correct label paints on the first frame (the
+   attribute is set pre-paint) with no hydration reconciliation. The hidden state
+   is visibility:hidden — it still reserves the cell's width but is removed from
+   paint and from the button's accessible name. Default (unthemed / no JS) shows
+   the dark-state label, matching the :root baseline. */
 .theme-state {
+  grid-area: 1 / 1;
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
 .theme-when-light {
-  display: none;
+  visibility: hidden;
 }
 
 [data-theme="light"] .theme-when-dark {
-  display: none;
+  visibility: hidden;
 }
 
 [data-theme="light"] .theme-when-light {
-  display: inline-flex;
+  visibility: visible;
 }
 
 /* ── Desktop switch ──────────────────────────────────────────────────────── */
 .theme-switch {
   position: relative;
-  display: inline-flex;
+  /* Grid so both destination states share one cell and the control reserves the
+     wider label's width (no nav shift when the label changes on toggle). */
+  display: inline-grid;
   align-items: center;
   line-height: 21px;
   font-family: var(--font-mono-stack);
@@ -126,8 +133,11 @@
    idle --muted ink. It reads as a nav row with a leading glyph, not a new
    pattern. */
 .mobile-nav .theme-switch-row {
-  display: flex;
+  /* Grid to match the desktop switch's stacked states; the row is full-width so
+     this does not change the mobile layout. */
+  display: grid;
   align-items: center;
+  justify-items: start;
   min-height: 44px;
   width: 100%;
   padding: 16px var(--gutter);

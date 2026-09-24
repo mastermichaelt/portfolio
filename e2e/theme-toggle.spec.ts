@@ -70,6 +70,26 @@ test.describe("theme toggle", () => {
     expect(await themeAttr(page)).toBe("light");
   });
 
+  test("toggling does not shift the desktop nav", async ({ page }) => {
+    // The destination label changes width between "Light mode" and "Dark mode";
+    // the control reserves the wider label's width so the space-between header
+    // does not reflow. Assert the primary nav stays put across a toggle.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.goto("/");
+
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    const before = await nav.boundingBox();
+    await page.getByRole("button", { name: "Light mode" }).click();
+    expect(await themeAttr(page)).toBe("light");
+    const after = await nav.boundingBox();
+
+    expect(before).not.toBeNull();
+    expect(after).not.toBeNull();
+    expect(after!.x).toBeCloseTo(before!.x, 1);
+    expect(after!.width).toBeCloseTo(before!.width, 1);
+  });
+
   test("the switch appears as a sheet row on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.emulateMedia({ colorScheme: "dark" });
