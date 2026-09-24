@@ -192,3 +192,25 @@ describe("shared theme constants", () => {
     expect(THEME_ATTRIBUTE).toBe("data-theme");
   });
 });
+
+describe("instant theme switching guard", () => {
+  // The swap is kept instant by disabling transitions for one frame: theme.css
+  // suppresses transitions under [data-theme-switching], and the provider toggles
+  // that same attribute. Both sides must reference the same attribute name — this
+  // guards against removing either half or desynchronizing the name.
+  const themeCss = css("theme.css");
+  const provider = readFileSync(
+    resolve(root, "components/ThemeProvider.tsx"),
+    "utf8",
+  );
+
+  it("theme.css disables transitions under the switching attribute", () => {
+    expect(themeCss).toMatch(
+      /\[data-theme-switching\][^{]*\{[^}]*transition:\s*none/,
+    );
+  });
+
+  it("the provider drives the same data-theme-switching attribute", () => {
+    expect(provider).toContain("data-theme-switching");
+  });
+});
