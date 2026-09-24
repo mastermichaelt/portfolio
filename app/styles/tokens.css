@@ -19,11 +19,20 @@
   --border-strong: #3f3c37;
   --rule: var(--fg);
 
-  /* Single signal. Section marks, current nav, figures, the address. */
+  /* Single signal, split into semantic roles (see app/styles/theme.css and
+     docs/design-system.md § Theme system):
+       --accent      INK — text, links, and every mark thinner than a surface.
+       --accent-fill FILL — strong filled/selected surfaces (.btn-primary,
+                     selected line chip), with --accent-ink on top.
+       --accent-soft SOFT — subtle tint derived from the fill role (.pill wash).
+     On :root all three resolve from the brand amber, so an unthemed document
+     paints the dark baseline. Light re-lights --accent to ochre; --accent-fill
+     stays brand amber in both themes. */
   --accent: #d9a441;
+  --accent-fill: var(--accent);
   --accent-ink: #121110;
 
-  --accent-soft: color-mix(in oklch, var(--accent) 16%, transparent);
+  --accent-soft: color-mix(in oklch, var(--accent-fill) 16%, transparent);
   --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
 
   /* No elevation. Panels are separated by 1px gaps over --border. */

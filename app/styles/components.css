@@ -178,13 +178,14 @@
 }
 
 .btn-primary {
-  background: var(--accent);
+  /* Fill role: brand amber in both themes, with --accent-ink on top. */
+  background: var(--accent-fill);
   color: var(--accent-ink);
-  border-color: var(--accent);
+  border-color: var(--accent-fill);
 }
 
 .btn-primary:hover {
-  background: color-mix(in oklch, var(--accent) 82%, black);
+  background: color-mix(in oklch, var(--accent-fill) 82%, black);
   color: var(--accent-ink);
 }
 
@@ -665,8 +666,7 @@
     text-align: left;
   }
 
-  .topnav nav,
-  .topnav-address {
+  .topnav nav {
     display: none;
   }
 

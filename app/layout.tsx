@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeScript } from "@/components/ThemeScript";
 import { getPortfolioRepository } from "@/lib/portfolio";
 import "./globals.css";
 
@@ -51,15 +53,23 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      // The pre-paint ThemeScript sets data-theme before hydration, so the
+      // server markup (no attribute) and client markup differ by design.
+      suppressHydrationWarning
       className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
+      <head>
+        <ThemeScript />
+      </head>
       <body className="min-h-full flex flex-col">
         <a className="skip-link" href="#content">
           Skip to content
         </a>
-        <SiteHeader email={profile.email} />
-        {children}
-        <SiteFooter profile={profile} />
+        <ThemeProvider>
+          <SiteHeader email={profile.email} />
+          {children}
+          <SiteFooter profile={profile} />
+        </ThemeProvider>
       </body>
     </html>
   );

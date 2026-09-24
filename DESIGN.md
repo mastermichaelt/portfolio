@@ -13,11 +13,17 @@ The system exists to serve one thesis: this engineer makes uncertain systems dep
 
 ## Colors
 
-Dark by default, and only dark — there is no light mode. Use semantic variables (`--bg`, `--surface`, `--fg`, `--fg-2`, `--muted`, `--border`, `--border-strong`, `--accent`) by role, never raw values.
+Two themes, one system. Dark is the baseline and the visual-regression reference; light is the same semantic token system resolved to a warm-paper palette — not a separate design and not a fork. Use semantic variables (`--bg`, `--surface`, `--fg`, `--fg-2`, `--muted`, `--border`, `--border-strong`, and the accent roles below) by role, never raw values. Both themes are declared in [`app/styles/theme.css`](app/styles/theme.css); `:root` keeps the dark values so an unthemed document renders as dark. See [`docs/design-system.md`](docs/design-system.md) § Theme system for the state model, the no-flash bootstrap, and the control.
 
-One signal colour: amber. It is permitted on section marks, the current nav item, evidence figures, the email address, and outbound arrows. Nowhere else. Aim for no more than four amber elements in a viewport.
+One signal colour: amber, in three semantic roles chosen by **what the accent is doing**, not by which component uses it. No component carries a light-mode rule; only the role tokens diverge.
 
-`--muted` is the contrast floor at 5.26:1 on `--bg`, not a starting point. Any text darker than it fails.
+- **`--accent` (ink)** — all accent text and every mark thinner than a surface: section marks, current-nav underline, evidence figures, the email address, outbound arrows, rail/TOC bars, selected/expanded diagram borders, focus rings. Ochre in light so thin marks clear 3:1 on paper; brand amber in dark.
+- **`--accent-fill` (fill)** — strong filled or selected surfaces with `--accent-ink` on top: the primary CTA, the selected Ecosystem chip. Brand amber in **both** themes.
+- **`--accent-soft` (soft)** — subtle tinted surfaces derived from the fill role (the `.pill` wash); its text stays `--accent`.
+
+Anything that fills with amber must use `--accent-fill`, never `--accent` — a selected surface filled with the light-mode ink accent renders dark brown. Aim for no more than four amber elements in a viewport, in either theme.
+
+`--muted` is the contrast floor (5.26:1 dark, 5.2:1 light) on `--bg`, not a starting point. Any text darker than it fails. Each light ink value is tuned to its dark counterpart's contrast ratio, so emphasis is preserved across themes.
 
 ## Typography
 
@@ -47,6 +53,8 @@ Square. `--radius` and `--radius-lg` are `0`. Existing `.card` / `.pill` / `.tag
 
 Semantic CSS classes under `app/styles/` remain the primary styling API. Case studies are panels in a hairline grid; supporting work and writing are hairline lists. Primary fill text uses `--accent-ink`. There is no boxed chrome in the hero, and no separate signature/identity stylesheet.
 
+**Theme switch (Treatment 04, `app/styles/theme-control.css`):** a binary, icon-led control that names the destination — a thin-line sun + "Light mode" in dark, a moon + "Dark mode" in light. On desktop it sits directly right of the email address inside `.topnav-end` (the only structural header change; `.topnav-inner` stays at its no-switch height); on mobile it is one more row in the existing sheet. The glyph is the site's one drawn mark and follows the architecture figure's stroke discipline (no fill, no radius, `currentColor`) — do not add an icon library. It carries no border, pill, radius or tooltip; idle ink is `--muted`, hover `--fg`, focus is the standard amber ring. Its destination label is its accessible name; the glyph is `aria-hidden`.
+
 **About register (`app/styles/about.css`):** a document with a persistent identity rail — a numbered chronological practice record beside a sticky portrait/contact rail, type and hairlines only, with the mailto CTA the single filled element. The rail is why About needs no separate Contact route. `.about-carry` (the per-era carry-forward clause) reuses the `.figure-scope` treatment — mono, `--muted-strong`, a 2px `--border-strong` left rule — but is a separate class, **not** a figure: the figure/scope invariant below is not weakened by the visual borrow.
 
 ## Evidence qualification
@@ -73,9 +81,10 @@ Do not extend it: no gauges, dials, sparklines, charts, tick rulers, status LEDs
 
 **Don't**
 
-- Do not introduce a light theme, a second accent, or accent-coloured body text
+- Do not introduce a second accent hue, a third theme, or accent-coloured body text (the two approved themes share one amber signal in three roles)
+- Do not fork stylesheets or write `[data-theme="light"] .component {…}` rules — themes diverge only in the role tokens
 - Do not add radii, shadows, gradients or glow
-- Do not reintroduce the warm-paper canvas, sage accent, serif display stack, or the graph/systems-map signature motif — all superseded
+- Do not reintroduce the retired sage accent, serif display stack, or the graph/systems-map signature motif — all superseded (the approved light theme is a warm-paper _ground_ in the same square, hairline, no-elevation system, not a return to that direction)
 - Do not put the ecosystem map in the first viewport or the primary nav
 - Do not show a number without its scope
 - Do not expand Tailwind `@theme` into a utility surface without an explicit plan

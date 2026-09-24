@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { isNavCurrent, primaryNav } from "@/lib/nav";
 
 const DESKTOP_MIN = "(min-width: 921px)";
@@ -48,9 +49,12 @@ export function SiteHeader({ email }: { email: string }) {
             </Link>
           ))}
         </nav>
-        <a className="topnav-address" href={`mailto:${email}`}>
-          {email}
-        </a>
+        <div className="topnav-end">
+          <a className="topnav-address" href={`mailto:${email}`}>
+            {email}
+          </a>
+          <ThemeSwitch />
+        </div>
         <button
           className="nav-toggle"
           type="button"
@@ -82,6 +86,10 @@ export function SiteHeader({ email }: { email: string }) {
         <a className="address" href={`mailto:${email}`} onClick={closeMenu}>
           {email}
         </a>
+        {/* Intentionally does not close the sheet: toggling the theme does not
+            navigate away, and keeping the sheet open shows the switch flip to
+            its new destination state immediately. */}
+        <ThemeSwitch variant="mobile" />
       </div>
     </header>
   );
