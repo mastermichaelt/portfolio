@@ -1,0 +1,160 @@
+/* Theme control — Treatment D (binary, icon-led).
+
+   Names the destination, not the current state — so it needs no selected/
+   unselected vocabulary and no persistent third option. System preference is
+   the default and stays implicit until the visitor picks a side.
+
+   Constraints:
+   · mono, uppercase, --fs-meta / --tracking-nav — the nav's own type
+   · idle ink is --muted, hover is --fg: the same emphasis contract as
+     `.topnav nav a` and `.topnav nav a[aria-current="page"]`
+   · the visual box stays at the height of the nav's 23px type line, so
+     `.topnav-inner` remains exactly 67px and the header does not grow; the
+     44px hit target is reached with a transparent ::after, not min-height
+   · focus ring is the global 2px --accent at 3px offset, never removed
+
+   The glyph is the one place the portfolio draws rather than types. It follows
+   the architecture figure's stroke discipline exactly: no fill, no radius,
+   currentColor — so it inherits the nav's --muted idle ink and its --fg hover,
+   and reads as a hairline mark rather than an app icon. Do not add an icon
+   library. */
+
+/* The one structural change to the header: the address and the control travel
+   as a single right-hand group, so `.topnav-inner`'s space-between keeps the
+   address exactly where it is today and the control lands beside it. */
+.topnav-end {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+}
+
+/* At 920px the bar collapses: the address and the desktop switch both follow
+   the nav into the sheet. Declared here (after the base rule, and after
+   components.css in the barrel) so it wins the cascade over `display: flex`. */
+@media (max-width: 920px) {
+  .topnav-end {
+    display: none;
+  }
+}
+
+/* Both destination states are rendered; CSS keyed on html[data-theme] shows the
+   right one, so the correct label paints on the first frame (the attribute is
+   set pre-paint) with no hydration reconciliation. The hidden state is
+   display:none, so it is absent from the button's accessible name. Default
+   (unthemed / no JS) shows the dark-state label, matching the :root baseline. */
+.theme-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-when-light {
+  display: none;
+}
+
+[data-theme="light"] .theme-when-dark {
+  display: none;
+}
+
+[data-theme="light"] .theme-when-light {
+  display: inline-flex;
+}
+
+/* ── Desktop switch ──────────────────────────────────────────────────────── */
+.theme-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  line-height: 21px;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  transition: color 0.15s ease;
+}
+
+.theme-switch:hover {
+  color: var(--fg);
+}
+
+.theme-switch svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  overflow: visible;
+}
+
+/* The hover underline is a pseudo-element, not a bottom border, so its 2px gap
+   and 1px line do not add to the switch's box height — that keeps the switch
+   within the nav's type line and holds `.topnav-inner` at its no-switch height
+   (the 67px header invariant). The visual is identical: a 1px --accent line 2px
+   below the label on hover. */
+.theme-switch-label {
+  position: relative;
+}
+
+.theme-switch-label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1px;
+  background: var(--accent);
+  opacity: 0;
+}
+
+.theme-switch:hover .theme-switch-label::after {
+  opacity: 1;
+}
+
+/* Hit-target expander — 44px tall without changing the header's height. */
+.theme-hit::after {
+  content: "";
+  position: absolute;
+  inset: -9px -6px;
+  min-height: 44px;
+}
+
+/* ── Mobile sheet row ────────────────────────────────────────────────────
+   The bar hides `nav` and `.topnav-address` at 920px, so the control follows
+   them into the sheet as one more row — same 44px row, same hairline, same
+   idle --muted ink. It reads as a nav row with a leading glyph, not a new
+   pattern. */
+.mobile-nav .theme-switch-row {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  width: 100%;
+  padding: 16px var(--gutter);
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono-stack);
+  font-size: 13px;
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  text-align: left;
+}
+
+.mobile-nav .theme-switch-row:hover {
+  color: var(--fg);
+}
+
+.mobile-nav .theme-switch-row .theme-state {
+  gap: 10px;
+}
+
+.mobile-nav .theme-switch-row svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  overflow: visible;
+}
+
+:is(.theme-switch, .theme-switch-row):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

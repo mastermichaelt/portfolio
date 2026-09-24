@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { isNavCurrent, primaryNav } from "@/lib/nav";
 
 const DESKTOP_MIN = "(min-width: 921px)";
@@ -48,9 +49,12 @@ export function SiteHeader({ email }: { email: string }) {
             </Link>
           ))}
         </nav>
-        <a className="topnav-address" href={`mailto:${email}`}>
-          {email}
-        </a>
+        <div className="topnav-end">
+          <a className="topnav-address" href={`mailto:${email}`}>
+            {email}
+          </a>
+          <ThemeSwitch />
+        </div>
         <button
           className="nav-toggle"
           type="button"
@@ -82,6 +86,7 @@ export function SiteHeader({ email }: { email: string }) {
         <a className="address" href={`mailto:${email}`} onClick={closeMenu}>
           {email}
         </a>
+        <ThemeSwitch variant="mobile" />
       </div>
     </header>
   );

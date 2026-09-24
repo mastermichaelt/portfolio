@@ -1,0 +1,91 @@
+/* Theming layer.
+   Sits directly after tokens.css. Adds ONE thing to the system: the same
+   semantic token names, resolved twice. No component gets a light-mode rule.
+
+   Dark is re-declared verbatim from tokens.css so that `[data-theme]` works as
+   a scoped override anywhere in the tree (and so the two blocks can be diffed
+   side by side). :root keeps the dark values, so a document with no theme
+   attribute renders exactly as it does today.
+
+   Contrast is stated per line, measured against that theme's --bg.
+   Roles and rationale: docs/design-system.md § Theme system. */
+
+/* ── Dark (baseline, unchanged) ───────────────────────────────────────────── */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #121110;
+  --surface: #1a1917;
+  --surface-2: #1e1d1a;
+  --fg: #ece9e2; /* 15.6:1 */
+  --fg-2: #bdb7ac; /*  8.4:1 */
+  --muted-strong: #9d968b; /*  6.1:1 */
+  --muted: #8d877c; /*  5.26:1 — floor */
+  --border: #2e2c28;
+  --border-strong: #3f3c37;
+  --rule: var(--fg);
+
+  --accent: #d9a441; /*  8.3:1 — inked signal */
+  --accent-fill: #d9a441; /*  filled signal */
+  --accent-ink: #121110;
+
+  --accent-soft: color-mix(in oklch, var(--accent-fill) 16%, transparent);
+  --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+}
+
+/* ── Light ────────────────────────────────────────────────────────────────
+   Warm paper, not white. The ladder is the dark ladder reflected: --surface
+   still steps AWAY from --bg (toward paper-white instead of toward grey), so
+   "panel lifts off the page" and "hover steps to --surface-2" keep their
+   direction. Every ink value is tuned to land on its dark counterpart's
+   contrast ratio, so nothing gains or loses emphasis in translation. */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f2efe8;
+  --surface: #f8f6f1;
+  --surface-2: #fcfbf7;
+  --fg: #1b1a18; /* 15.1:1 */
+  --fg-2: #464340; /*  8.6:1 */
+  --muted-strong: #5b5750; /*  6.3:1 */
+  --muted: #67635b; /*  5.2:1 — floor */
+  --border: #dedbd3;
+  --border-strong: #cbc7bd;
+  --rule: var(--fg);
+
+  /* The signal, split into its two real roles. --accent is the INK: eyebrows,
+     figure values, the address, the current-nav rule, focus. On paper the
+     brand amber reads at 1.9:1, so the ink role relights to the same hue
+     family (H≈78) at a lower lightness — 5.2:1, the way #d9a441 carries ink at
+     8.3:1 on near-black. --accent-fill is the FILL, and the brand amber needs
+     no translation there: near-black ink sits on it at 7.7:1. */
+  --accent: #865d0d; /*  5.2:1 */
+  --accent-fill: #d9a441; /*  unchanged from dark */
+  --accent-ink: #1b1a18;
+
+  --accent-soft: color-mix(in oklch, var(--accent-fill) 16%, transparent);
+  --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+}
+
+/* ── Accent roles ─────────────────────────────────────────────────────────
+   Every accent consumer reads exactly one of three roles. No component carries
+   a light-mode rule; the role token is what diverges.
+
+   INK  --accent       text, links, hover ink, eyebrows, figure values, the
+                        address, and every mark thinner than a surface: nav
+                        underline, rail bar, TOC bar, selected/expanded node
+                        borders, focus rings. Must clear 4.5:1 (text) or 3:1
+                        (marks) against --bg, so it relights to ochre on paper.
+   FILL --accent-fill  strong filled emphasis with --accent-ink on top:
+                        .btn-primary (+ hover mix), .line-chip.is-selected.
+                        Brand amber in both themes.
+   SOFT --accent-soft  subtle tinted surface, derived from FILL: .pill wash.
+                        Carries --accent ink.
+
+   In dark all three resolve from #d9a441, so dark is unchanged. */
+
+/* Both themes paint their own ground wherever an artboard is scoped. */
+[data-theme] {
+  background: var(--bg);
+  color: var(--fg);
+}

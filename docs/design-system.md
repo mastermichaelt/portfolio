@@ -16,8 +16,8 @@ Do **not** copy every token hex into this document — tables that duplicate CSS
 
 ## Visual principles
 
-1. **Dark only** — near-black ground (`--bg`), one-step `--surface` / `--surface-2`. There is no light theme.
-2. **Single amber signal** — `--accent` for primary signals only. Aim for no more than four amber elements in a viewport.
+1. **Two themes, one system** — dark is the baseline (near-black ground `--bg`, one-step `--surface` / `--surface-2`); light is the same token system resolved to a warm-paper palette. Both are declared in [`theme.css`](../app/styles/theme.css); `:root` holds the dark values so an unthemed document is dark. Components never carry a light-mode rule — only the role tokens diverge. See § Theme system.
+2. **Single amber signal in three roles** — `--accent` (ink), `--accent-fill` (fill), `--accent-soft` (soft), chosen by what the accent does, not which component uses it. Aim for no more than four amber elements in a viewport, in either theme.
 3. **No elevation** — hairline `--border` only. `--shadow` / `--shadow-sm` are `none`. No glow, gradient, or blur.
 4. **Square** — `--radius` and `--radius-lg` are `0`. Existing card/pill/tag classes keep their names and become square.
 5. **Hairline rhythm** — full-width 1px rules and 1px gaps over `--border` carry structure, not cards or shadows.
@@ -25,37 +25,49 @@ Do **not** copy every token hex into this document — tables that duplicate CSS
 7. **Restrained instrument vocabulary** — channel ids, section-head technical labels, mono dates. Do not extend into gauges, terminals, or scanlines.
 8. **Predominantly 4px/8px-derived spacing** — `--gap-xs` … `--gap-2xl` are the shared scale; `--gutter` tightens at 920px and 600px.
 
-The sage-on-paper canvas, serif display stack, and systems-map signature motif (ambient brand light, live spine animation, section connector nodes) are retired.
+The retired **sage** accent, serif display stack, and systems-map signature motif (ambient brand light, live spine animation, section connector nodes) stay retired. The approved light theme is a warm-paper _ground_ within this same square, hairline, no-elevation system — not a return to that direction.
 
 ## Color token roles
 
-| Token             | Role                                                                 |
-| ----------------- | -------------------------------------------------------------------- |
-| `--bg`            | Page canvas                                                          |
-| `--surface`       | Panels (cards, canvases, secondary button fill)                      |
-| `--surface-2`     | Hover wash and inline-code fill, one step above `--surface`          |
-| `--fg`            | Primary text and interactive ink                                     |
-| `--fg-2`          | Body copy inside panels, leads, supporting sentences                 |
-| `--muted`         | Meta, labels, idle nav — **contrast floor** (5.26:1 on `--bg`)       |
-| `--muted-strong`  | Scope / qualifier lines (above the floor)                            |
-| `--border`        | Hairline rules and 1px panel gaps                                    |
-| `--border-strong` | Stronger rules (scope bar, control outlines)                         |
-| `--rule`          | Section-head rule (aliases `--fg`)                                   |
-| `--accent`        | Primary brand signal (eyebrow, current nav, figures, address)        |
-| `--accent-ink`    | Ink on primary fill (buttons) — not `--surface`                      |
-| `--accent-soft`   | Soft accent wash (pills)                                             |
-| `--fg-soft`       | Soft ink wash (hover fills)                                          |
-| `--shadow*`       | Always `none` — kept so existing `box-shadow` declarations are inert |
+| Token             | Role                                                                                                                                                                                                              |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bg`            | Page canvas                                                                                                                                                                                                       |
+| `--surface`       | Panels (cards, canvases, secondary button fill)                                                                                                                                                                   |
+| `--surface-2`     | Hover wash and inline-code fill, one step above `--surface`                                                                                                                                                       |
+| `--fg`            | Primary text and interactive ink                                                                                                                                                                                  |
+| `--fg-2`          | Body copy inside panels, leads, supporting sentences                                                                                                                                                              |
+| `--muted`         | Meta, labels, idle nav — **contrast floor** (5.26:1 on `--bg`)                                                                                                                                                    |
+| `--muted-strong`  | Scope / qualifier lines (above the floor)                                                                                                                                                                         |
+| `--border`        | Hairline rules and 1px panel gaps                                                                                                                                                                                 |
+| `--border-strong` | Stronger rules (scope bar, control outlines)                                                                                                                                                                      |
+| `--rule`          | Section-head rule (aliases `--fg`)                                                                                                                                                                                |
+| `--accent`        | **Ink role** — accent text and every mark thinner than a surface (eyebrow, current-nav underline, figures, address, rail/TOC bars, selected/expanded diagram borders, focus). Ochre in light, brand amber in dark |
+| `--accent-fill`   | **Fill role** — strong filled/selected surfaces (`.btn-primary`, selected line chip), with `--accent-ink` on top. Brand amber in both themes                                                                      |
+| `--accent-ink`    | Ink on the fill role (buttons, selected chip) — not `--surface`                                                                                                                                                   |
+| `--accent-soft`   | **Soft role** — subtle wash derived from `--accent-fill` (pills); its text stays `--accent`                                                                                                                       |
+| `--fg-soft`       | Soft ink wash (hover fills)                                                                                                                                                                                       |
+| `--shadow*`       | Always `none` — kept so existing `box-shadow` declarations are inert                                                                                                                                              |
 
-Do not darken `--muted`; it is the floor, not a starting point. Derived hover amber uses `color-mix` with `--accent` in component CSS — keep that pattern rather than inventing a second accent token.
+Do not darken `--muted`; it is the floor, not a starting point. Anything that _fills_ with amber uses `--accent-fill`, not `--accent` — a surface filled with the light-mode ink accent renders dark brown. Derived hover amber uses `color-mix` with `--accent-fill` in component CSS — keep that pattern rather than inventing a new accent token.
 
 ### Accent vs muted
 
-- **Accent:** eyebrow, current-nav underline, primary CTA fill, TOC active border, contact links, outbound arrows.
+- **Accent ink (`--accent`):** eyebrow, current-nav underline, TOC active border, contact links, outbound arrows, figures, address, and every thin mark. Ochre in light.
+- **Accent fill (`--accent-fill`):** primary CTA fill and the selected Ecosystem chip, with `--accent-ink` on top. Brand amber in both themes.
 - **Muted:** meta, idle nav, labels, dates.
 - **`--fg-2`:** leads and panel body copy — not `--muted`, so reading text stays above the floor with room to spare.
 - Do not tint large text blocks with accent. Do not use accent for decorative chrome that is not a primary signal.
 - Primary fill text uses `--accent-ink` so amber buttons stay readable on dark ground.
+
+## Theme system
+
+Dark and light are the same semantic tokens resolved twice, in [`app/styles/theme.css`](../app/styles/theme.css) (imported immediately after `tokens.css`). `[data-theme="dark"]` and `[data-theme="light"]` each redeclare the full token set; `:root` keeps the dark values so an unthemed document renders as dark. Light is a **reflected** ladder — `--surface` still steps _away_ from `--bg` (toward paper-white), so panels lift and hover deepens in the same direction. Each light ink value is tuned to its dark counterpart's contrast ratio, so emphasis is preserved. `color-scheme` is set per theme so native controls, scrollbars and form widgets match.
+
+**State model** (`lib/theme.ts`): the theme lives as `data-theme` on `<html>`. `localStorage["theme"]` holds an explicit `"light"` / `"dark"` choice; **absence means follow the system** (`prefers-color-scheme`) — System is the implicit default and is never stored, so the UI needs no third state. `resolveTheme()` lets an explicit choice win, else follows the system; the provider follows live OS-theme changes only while no choice is stored.
+
+**No-flash bootstrap** (`components/ThemeScript.tsx`): a tiny inline `<head>` script resolves and sets `data-theme` before first paint, so the correct theme paints on the first frame even when a stored choice conflicts with the system. There is **no CSP** on this app today, so the inline script needs no nonce; if a CSP is ever added, this is the one script to allow (nonce or hash). `<html suppressHydrationWarning>` absorbs the attribute the script adds.
+
+**Switching is instant** — no crossfade and no transition on theme-token properties. The switch display (glyph + destination label) is CSS-driven from `html[data-theme]` rather than React state, so it is correct on the first frame with no hydration reconciliation and works without JS.
 
 ## Typography roles
 
@@ -137,8 +149,9 @@ Identity is a small borrowed set: channel identifiers (`CH 01` / `CH 02`), techn
 
 ## Accessibility expectations
 
-- Preserve contrast between `--fg` / `--fg-2` / `--muted` and `--bg` / `--surface`; `--muted` is the floor — recheck after any token edit.
-- Focus rings and keyboard reachability for nav toggle, links, and buttons must remain usable (do not remove outline without an equivalent).
+- Preserve contrast between `--fg` / `--fg-2` / `--muted` and `--bg` / `--surface` **in both themes**; `--muted` is the floor (5.26:1 dark, 5.2:1 light) — recheck after any token edit.
+- Focus rings and keyboard reachability for nav toggle, links, buttons, and the theme switch must remain usable (do not remove outline without an equivalent). The theme switch is a native `<button>`; its destination label is its accessible name, its glyph is `aria-hidden`, and the change is announced via a polite `role="status"` region.
+- Keep `color-scheme` aligned with the active theme so native UI (form controls, scrollbars, caret) matches.
 - Prefer `text-wrap: pretty` / `balance` (already on body copy and headings) over manual line breaks.
 - Interactive cards and rows should remain full-hit targets (link wraps the card / log row).
 - `prefers-reduced-motion: reduce` is a global duration floor in `base.css`.
@@ -153,6 +166,8 @@ Semantic CSS classes under `app/styles/` are the primary styling API.
 
 - Entry barrel: [`app/globals.css`](../app/globals.css)
 - Tokens: [`app/styles/tokens.css`](../app/styles/tokens.css)
+- Themes (dark + light palettes, accent roles): [`app/styles/theme.css`](../app/styles/theme.css)
+- Theme switch (Treatment 04): [`app/styles/theme-control.css`](../app/styles/theme-control.css), [`components/ThemeSwitch.tsx`](../components/ThemeSwitch.tsx), [`components/ThemeProvider.tsx`](../components/ThemeProvider.tsx), [`components/ThemeScript.tsx`](../components/ThemeScript.tsx), [`lib/theme.ts`](../lib/theme.ts)
 - Base / reset: [`app/styles/base.css`](../app/styles/base.css)
 - Layout + type roles: [`app/styles/layout.css`](../app/styles/layout.css)
 - Chrome, surfaces, page patterns: [`app/styles/components.css`](../app/styles/components.css)

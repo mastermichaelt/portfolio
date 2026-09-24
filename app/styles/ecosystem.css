@@ -169,8 +169,11 @@
 }
 
 .line-chip.is-selected {
-  background: var(--accent);
-  border-color: var(--accent);
+  /* Fill role: a filled selected surface, so it uses --accent-fill (brand
+     amber) with --accent-ink on top — not the light-theme --accent ink, which
+     would render dark brown on paper. */
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
   color: var(--accent-ink);
 }
 
