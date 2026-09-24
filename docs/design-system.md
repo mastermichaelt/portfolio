@@ -67,7 +67,7 @@ Dark and light are the same semantic tokens resolved twice, in [`app/styles/them
 
 **No-flash bootstrap** (`components/ThemeScript.tsx`): a tiny inline `<head>` script resolves and sets `data-theme` before first paint, so the correct theme paints on the first frame even when a stored choice conflicts with the system. There is **no CSP** on this app today, so the inline script needs no nonce; if a CSP is ever added, this is the one script to allow (nonce or hash). `<html suppressHydrationWarning>` absorbs the attribute the script adds.
 
-**Switching is instant** — no crossfade and no transition on theme-token properties. The switch display (glyph + destination label) is CSS-driven from `html[data-theme]` rather than React state, so it is correct on the first frame with no hydration reconciliation and works without JS.
+**Switching is instant** — no crossfade. Several components carry 0.15s hover transitions on colour/border properties that resolve to theme tokens, so the provider sets `data-theme-switching` on `<html>` for one frame around the swap (a global `transition: none` guard in `theme.css`), then removes it — the swap paints at once while hover transitions resume immediately after. The switch display (glyph + destination label) is CSS-driven from `html[data-theme]` rather than React state, so it is correct on the first frame with no hydration reconciliation and works without JS.
 
 ## Typography roles
 

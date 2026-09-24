@@ -72,7 +72,9 @@
   text-transform: uppercase;
   color: var(--muted);
   background: none;
-  transition: color 0.15s ease;
+  /* No colour transition: the switch snaps between --muted and --fg on hover,
+     matching the nav links it sits among (`.topnav nav a`, which has no
+     transition) rather than fading against them. */
 }
 
 .theme-switch:hover {

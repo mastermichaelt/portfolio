@@ -89,3 +89,18 @@
   background: var(--bg);
   color: var(--fg);
 }
+
+/* Instant theme switching. Several components carry 0.15s colour/border
+   transitions for their hover states (.line-chip, .pcase-arch-trace-card,
+   .btn, .card-interactive …). Those same properties resolve to theme tokens,
+   so without this a theme swap would cross-fade them over 150ms while the rest
+   of the page snaps. The provider sets data-theme-switching on <html> for one
+   frame around the swap, disabling every transition so the change is instant;
+   hover transitions resume immediately after. See docs/design-system.md
+   § Theme system. */
+[data-theme-switching],
+[data-theme-switching] *,
+[data-theme-switching] *::before,
+[data-theme-switching] *::after {
+  transition: none !important;
+}

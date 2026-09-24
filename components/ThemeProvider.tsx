@@ -32,8 +32,19 @@ function currentTheme(): Theme {
     : "dark";
 }
 
+const SWITCHING_ATTRIBUTE = "data-theme-switching";
+
+/** Apply the theme instantly. Component hover transitions (color/border) resolve
+ *  to theme tokens, so a bare attribute swap would cross-fade them over ~150ms.
+ *  Disabling transitions for one frame around the swap keeps it instant while
+ *  leaving those hover transitions intact afterwards. See app/styles/theme.css. */
 function apply(theme: Theme) {
-  document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
+  const root = document.documentElement;
+  root.setAttribute(SWITCHING_ATTRIBUTE, "");
+  root.setAttribute(THEME_ATTRIBUTE, theme);
+  // Force a style flush so the new tokens commit with transitions disabled.
+  void root.offsetHeight;
+  requestAnimationFrame(() => root.removeAttribute(SWITCHING_ATTRIBUTE));
 }
 
 function readStored(): string | null {
