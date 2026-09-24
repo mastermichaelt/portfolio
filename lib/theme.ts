@@ -34,3 +34,18 @@ export function resolveTheme(
   if (isTheme(stored)) return stored;
   return systemPrefersDark ? "dark" : "light";
 }
+
+/**
+ * The theme to apply when the OS colour-scheme changes while the page is open,
+ * or `null` when the change must be ignored. An explicit stored choice pins the
+ * theme (returns `null`); with no stored choice the page follows the system.
+ * This is the decision the provider's matchMedia listener makes, extracted so
+ * both sides of the contract are unit-testable.
+ */
+export function themeOnSystemChange(
+  stored: string | null | undefined,
+  systemPrefersDark: boolean,
+): Theme | null {
+  if (isTheme(stored)) return null;
+  return resolveTheme(null, systemPrefersDark);
+}

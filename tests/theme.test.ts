@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   isTheme,
   resolveTheme,
+  themeOnSystemChange,
   THEME_ATTRIBUTE,
   THEME_STORAGE_KEY,
 } from "@/lib/theme";
@@ -42,6 +43,28 @@ describe("resolveTheme", () => {
     expect(resolveTheme("system", true)).toBe("dark");
     expect(resolveTheme("", false)).toBe("light");
     expect(resolveTheme("LIGHT", false)).toBe("light");
+  });
+});
+
+describe("themeOnSystemChange (live OS-theme change while the page is open)", () => {
+  it("follows the system when no explicit choice is stored", () => {
+    // No stored preference → the change is applied, tracking the new system value.
+    expect(themeOnSystemChange(null, true)).toBe("dark");
+    expect(themeOnSystemChange(null, false)).toBe("light");
+    expect(themeOnSystemChange(undefined, false)).toBe("light");
+  });
+
+  it("does not override an explicit Light or Dark choice", () => {
+    // Explicit choice pins the theme → the system change is ignored (null).
+    expect(themeOnSystemChange("light", true)).toBeNull();
+    expect(themeOnSystemChange("light", false)).toBeNull();
+    expect(themeOnSystemChange("dark", true)).toBeNull();
+    expect(themeOnSystemChange("dark", false)).toBeNull();
+  });
+
+  it("treats an invalid stored value as no preference and follows the system", () => {
+    expect(themeOnSystemChange("system", true)).toBe("dark");
+    expect(themeOnSystemChange("", false)).toBe("light");
   });
 });
 

@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import {
-  resolveTheme,
+  themeOnSystemChange,
   THEME_ATTRIBUTE,
   THEME_STORAGE_KEY,
   type Theme,
@@ -67,8 +67,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const media = window.matchMedia(DARK_QUERY);
     const onChange = () => {
-      if (readStored() === "light" || readStored() === "dark") return;
-      apply(resolveTheme(null, media.matches));
+      const next = themeOnSystemChange(readStored(), media.matches);
+      if (next) apply(next);
     };
     media.addEventListener("change", onChange);
     return () => media.removeEventListener("change", onChange);

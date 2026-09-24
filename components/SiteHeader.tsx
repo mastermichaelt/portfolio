@@ -86,6 +86,9 @@ export function SiteHeader({ email }: { email: string }) {
         <a className="address" href={`mailto:${email}`} onClick={closeMenu}>
           {email}
         </a>
+        {/* Intentionally does not close the sheet: toggling the theme does not
+            navigate away, and keeping the sheet open shows the switch flip to
+            its new destination state immediately. */}
         <ThemeSwitch variant="mobile" />
       </div>
     </header>
