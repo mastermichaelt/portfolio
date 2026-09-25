@@ -46,6 +46,17 @@ describe("projects 1C — co-primary cases", () => {
     }
   });
 
+  it("numbers each case's blocks sequentially from 01 in array order", () => {
+    // Guards the manual ordinal renumbering the co-primary block reorders rely
+    // on — mirrors the supporting-tier invariant in supporting-cases.test.ts.
+    for (const entry of projectCases) {
+      const ordinals = entry.blocks.map((block) => block.ordinal);
+      expect(ordinals).toEqual(
+        entry.blocks.map((_, index) => String(index + 1).padStart(2, "0")),
+      );
+    }
+  });
+
   it("keeps every figure as value + name + scope with an inventory source", () => {
     for (const figure of projectCases.flatMap(allFigures)) {
       expect(figure.value.trim().length).toBeGreaterThan(0);
@@ -63,7 +74,7 @@ describe("projects 1C — co-primary cases", () => {
     }
   });
 
-  it("renders Codenames blocks 01 and 02 as the figure-absent state", () => {
+  it("renders the Validation and Migrations blocks as the figure-absent state", () => {
     const codenames = caseBySlug("codenames-ai");
     for (const id of ["b01", "b02"]) {
       const block = codenames.blocks.find((b) => b.id === id);
