@@ -33,7 +33,7 @@ export const projectsIndex: ProjectsIndex = {
   hero: {
     eyebrow: "Projects / evidence index",
     title: "Every system, and what it is allowed to claim.",
-    lead: "Two case studies carry the argument: experiment measurement and attribution at Atlassian, and a production AI product operated since 2026. Four more systems show the method holding without a product attached. Each row states its contract and the evidence behind it.",
+    lead: "Two case studies carry the argument: a production AI product operated since 2026, and experiment measurement and attribution at Atlassian. Four more systems are where a requirement led further down — workflow, governance, lifecycle and generation. Each row states its contract and the evidence behind it.",
   },
   key: {
     label: "Index key",
@@ -49,6 +49,29 @@ export const projectsIndex: ProjectsIndex = {
     evidence: "Qualified evidence",
   },
   coPrimary: [
+    {
+      channelLabel: codenames.channelLabel,
+      title: codenames.name,
+      org: codenames.metaLines[0]!,
+      dateRange: codenames.metaLines[1]!,
+      href: `/projects/${codenames.slug}`,
+      contract: codenames.title,
+      summary:
+        "A public AI-assisted Codenames, designed and operated end to end since 2026. A model proposes a clue and nothing in the reply guarantees it is legal on this board. Schema-first structured outputs plus board-aware domain validators separate valid JSON from a legal move; model migrations run as controlled experiments with evaluation built into product behavior rather than left as an offline afterthought.",
+      chips: [
+        "Structured outputs",
+        "Domain validators",
+        "Model migrations",
+        "Telemetry quality",
+      ],
+      roleSpine:
+        "Operated end to end — React/TypeScript, Node.js/Express, OpenAI, deterministic validation, analytics instrumentation, CI/CD, multi-environment deployment",
+      figures: indexFigures(codenames.slug),
+      deferral: [
+        { text: "codenames-ai.com →", href: "https://codenames-ai.com/" },
+        { text: "  ·  3 field reports on the case study" },
+      ],
+    },
     {
       channelLabel: atlassian.channelLabel,
       title: atlassian.name,
@@ -72,29 +95,6 @@ export const projectsIndex: ProjectsIndex = {
         {
           text: "Five additional qualified figures on the case study (pipeline recovery, OKR attainment, Admin Hub activation). No field report is tagged to this work.",
         },
-      ],
-    },
-    {
-      channelLabel: codenames.channelLabel,
-      title: codenames.name,
-      org: codenames.metaLines[0]!,
-      dateRange: codenames.metaLines[1]!,
-      href: `/projects/${codenames.slug}`,
-      contract: codenames.title,
-      summary:
-        "A model proposes a clue and nothing in the reply guarantees it is legal on this board. Schema-first structured outputs plus board-aware domain validators separate valid JSON from a legal move; model migrations run as controlled experiments with evaluation built into product behavior rather than left as an offline afterthought.",
-      chips: [
-        "Structured outputs",
-        "Domain validators",
-        "Model migrations",
-        "Telemetry quality",
-      ],
-      roleSpine:
-        "Operated end to end — React/TypeScript, Node.js/Express, OpenAI, deterministic validation, analytics instrumentation, CI/CD, multi-environment deployment",
-      figures: indexFigures(codenames.slug),
-      deferral: [
-        { text: "codenames-ai.com →", href: "https://codenames-ai.com/" },
-        { text: "  ·  3 field reports on the case study" },
       ],
     },
   ],

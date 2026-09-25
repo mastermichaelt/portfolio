@@ -19,9 +19,9 @@ export const profile: Profile = {
   },
   // Revised About focus areas (handoff §4.I proposal), stacked one per line.
   skillClusters: [
-    "Experimentation & measurement",
-    "Platforms & growth infrastructure",
     "AI-enabled products & agent workflows",
     "Frontend & developer experience",
+    "Experimentation & measurement",
+    "Platforms & growth infrastructure",
   ],
 };

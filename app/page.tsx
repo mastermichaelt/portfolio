@@ -81,7 +81,13 @@ export default async function HomePage() {
           <div className="home2-hero-grid">
             <h1 id="home2-thesis">{hero.title}</h1>
             <p className="lead home2-hero-lead">
-              {hero.lead} <strong>{hero.leadEmphasis}</strong>
+              {hero.leadEmphasis ? (
+                <>
+                  {hero.lead} <strong>{hero.leadEmphasis}</strong>
+                </>
+              ) : (
+                hero.lead
+              )}
             </p>
           </div>
         </div>

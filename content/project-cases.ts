@@ -41,8 +41,9 @@ const experimentMeasurement: ProjectCase = {
   name: "Experiment measurement",
   channelLabel: "CH 02",
   metaLines: ["Atlassian", "2020 – 2025", "Growth"],
-  title: "Refuse a reported experiment number until attribution is checkable.",
-  lead: "Attribution windows and pipeline gaps silently change what an in-flight experiment appears to say. Five blocks of evidence, each one an instance of the same move: name the uncertainty, build the check, write down the contract.",
+  title:
+    "Nobody could defend the number until the system behind it was repaired.",
+  lead: "Growth teams needed to know whether a shipped change worked. Answering that crossed acquisition onboarding, attribution, event pipelines and launch operations, and no one of them owned the answer. Five blocks: put the product on the platform, find where the meaning changed, repair it without discarding the run, then ship on it — and refuse a reported number until attribution is checkable.",
   aside: {
     label: "Role spine",
     lines: [
@@ -54,8 +55,32 @@ const experimentMeasurement: ProjectCase = {
   },
   blocks: [
     {
-      id: "b01",
+      id: "b04",
       ordinal: "01",
+      category: "Onboarding",
+      navLabel: "Acquisition onboarding",
+      heading:
+        "An acquired product had to join the experimentation platform before it could be measured at all.",
+      body: [
+        "I led cross-functional work to onboard Atlassian’s largest acquisition onto experimentation and growth infrastructure — the prerequisite for any of the measurement work above applying to it.",
+      ],
+      contract:
+        "a product is not part of the growth system until its events and attribution are on experimentation infrastructure.",
+      figures: [
+        {
+          value: "10×",
+          name: "exceeded associated business OKR targets",
+          scope: "Acquisition onboarding scope · associated business OKR",
+          source: {
+            inventory: "resumes/facts/loom-acquisition.yml",
+            factId: "okr-attainment",
+          },
+        },
+      ],
+    },
+    {
+      id: "b01",
+      ordinal: "02",
       category: "Attribution",
       navLabel: "Attribution audit",
       heading:
@@ -82,7 +107,7 @@ const experimentMeasurement: ProjectCase = {
     },
     {
       id: "b02",
-      ordinal: "02",
+      ordinal: "03",
       category: "Reliability",
       navLabel: "Window reliability",
       heading:
@@ -108,7 +133,7 @@ const experimentMeasurement: ProjectCase = {
     },
     {
       id: "b03",
-      ordinal: "03",
+      ordinal: "04",
       category: "Pipeline",
       navLabel: "Event pipeline",
       heading:
@@ -144,30 +169,6 @@ const experimentMeasurement: ProjectCase = {
           source: {
             inventory: "resumes/facts/loom-event-pipeline.yml",
             factId: "experiments-unblocked",
-          },
-        },
-      ],
-    },
-    {
-      id: "b04",
-      ordinal: "04",
-      category: "Onboarding",
-      navLabel: "Acquisition onboarding",
-      heading:
-        "An acquired product had to join the experimentation platform before it could be measured at all.",
-      body: [
-        "I led cross-functional work to onboard Atlassian’s largest acquisition onto experimentation and growth infrastructure — the prerequisite for any of the measurement work above applying to it.",
-      ],
-      contract:
-        "a product is not part of the growth system until its events and attribution are on experimentation infrastructure.",
-      figures: [
-        {
-          value: "10×",
-          name: "exceeded associated business OKR targets",
-          scope: "Acquisition onboarding scope · associated business OKR",
-          source: {
-            inventory: "resumes/facts/loom-acquisition.yml",
-            factId: "okr-attainment",
           },
         },
       ],
@@ -257,7 +258,8 @@ const codenamesAi: ProjectCase = {
   name: "Codenames AI",
   channelLabel: "CH 01",
   metaLines: ["Independent", "2026 – present", "Live product"],
-  title: "Valid JSON is not a legal move — the validator decides.",
+  title:
+    "A live game people play, where the AI’s move is legal before a player ever sees it.",
   lead: "A production AI-assisted Codenames experience with structured LLM outputs, deterministic validation, model evaluation and product analytics. Four blocks of evidence, each one an instance of the same move: name the uncertainty, build the check, write down the contract.",
   aside: {
     label: "Scope",
@@ -296,8 +298,34 @@ const codenamesAi: ProjectCase = {
       },
     },
     {
-      id: "b02",
+      id: "b04",
       ordinal: "02",
+      category: "Coverage",
+      navLabel: "Domain coverage",
+      heading:
+        "Validation only holds if the domain it validates against is enumerated.",
+      body: [
+        "Supporting Chinese gameplay — not translated interface chrome — needed language-specific playable word sets while the game’s concepts and validation semantics stayed stable, which is a model and runtime localisation problem rather than a UI one. A language-aware projection pipeline backs the board with a canonical concept set, separating canonical concept identity from language-specific projections so each language projects an appropriate playable pool: classic English and Simplified Chinese both project to 350 playable tokens over shared concept identity. Gameplay integration, validator compatibility, provenance, telemetry and the cleanup of earlier representation assumptions followed from that decision.",
+      ],
+      contract:
+        "the validator can only rule on a domain that has been written down.",
+      figures: [
+        {
+          value: "350",
+          name: "canonical English concepts",
+          scope:
+            "Language-aware projection pipeline · end-to-end domain coverage",
+          onIndex: true,
+          source: {
+            inventory: "resumes/facts/codenames-ai-e2e.yml",
+            factId: "canonical-concept-count",
+          },
+        },
+      ],
+    },
+    {
+      id: "b02",
+      ordinal: "03",
       category: "Migrations",
       navLabel: "Model migrations",
       heading: "A model swap is an experiment, not an upgrade.",
@@ -317,7 +345,7 @@ const codenamesAi: ProjectCase = {
     },
     {
       id: "b03",
-      ordinal: "03",
+      ordinal: "04",
       category: "Telemetry",
       navLabel: "Telemetry quality",
       heading:
@@ -346,32 +374,6 @@ const codenamesAi: ProjectCase = {
           source: {
             inventory: "resumes/facts/codenames-ai-telemetry.yml",
             factId: "branded-search-position",
-          },
-        },
-      ],
-    },
-    {
-      id: "b04",
-      ordinal: "04",
-      category: "Coverage",
-      navLabel: "Domain coverage",
-      heading:
-        "Validation only holds if the domain it validates against is enumerated.",
-      body: [
-        "A language-aware projection pipeline backs the board with a canonical concept set, which is what makes board-membership checks decidable end to end rather than approximate.",
-      ],
-      contract:
-        "the validator can only rule on a domain that has been written down.",
-      figures: [
-        {
-          value: "350",
-          name: "canonical English concepts",
-          scope:
-            "Language-aware projection pipeline · end-to-end domain coverage",
-          onIndex: true,
-          source: {
-            inventory: "resumes/facts/codenames-ai-e2e.yml",
-            factId: "canonical-concept-count",
           },
         },
       ],
@@ -423,5 +425,8 @@ const codenamesAi: ProjectCase = {
   },
 };
 
-/** Index order is co-primary Atlassian first, then Codenames. */
+/**
+ * Case array order; the projects index (content/projects-index.ts) owns display
+ * order independently.
+ */
 export const projectCases: ProjectCase[] = [experimentMeasurement, codenamesAi];

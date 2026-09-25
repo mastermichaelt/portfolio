@@ -25,9 +25,15 @@ test.describe("portfolio happy path", () => {
     ).toHaveAttribute("href", "/");
     await expect(
       page.getByRole("heading", {
-        name: "Making uncertain systems dependable.",
+        name: "I follow the product requirement as deep as it needs to go.",
       }),
     ).toBeVisible();
+    // The hero lead renders on its own when content omits the optional
+    // `leadEmphasis`: no empty <strong> is emitted (guards the render branch).
+    const heroLead = page.locator(".home2-hero-lead");
+    await expect(heroLead).toBeVisible();
+    await expect(heroLead).toContainText("Senior product engineer.");
+    await expect(heroLead.locator("strong")).toHaveCount(0);
     await expect(
       page.getByRole("heading", { name: "Michael Truong" }),
     ).toHaveCount(0);
@@ -231,7 +237,7 @@ test.describe("portfolio happy path", () => {
 
     await expect(
       page.getByRole("heading", {
-        name: /Valid JSON is not a legal move/i,
+        name: /A live game people play/i,
         level: 1,
       }),
     ).toBeVisible();
@@ -390,7 +396,7 @@ test.describe("portfolio happy path", () => {
 
     await expect(
       page.getByRole("heading", {
-        name: /attribution is checkable/i,
+        name: /Nobody could defend the number/i,
         level: 1,
       }),
     ).toBeVisible();
