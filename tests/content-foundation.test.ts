@@ -234,8 +234,8 @@ describe("content-foundation inventory", () => {
     expect(homepage.channels[1]?.href).toBe("/projects/experiment-measurement");
     for (const channel of homepage.channels) {
       expect(channel.caseStudyLabel).toMatch(/case study →$/);
-      expect(channel.spine.uncertain.trim().length).toBeGreaterThan(0);
-      expect(channel.spine.checkable.trim().length).toBeGreaterThan(0);
+      expect(channel.spine.requirement.trim().length).toBeGreaterThan(0);
+      expect(channel.spine.depth.trim().length).toBeGreaterThan(0);
       expect(channel.spine.contract.trim().length).toBeGreaterThan(0);
     }
 
@@ -248,8 +248,8 @@ describe("content-foundation inventory", () => {
       "04",
     ]);
     expect(homepage.method.map((dimension) => dimension.key)).toEqual([
-      "uncertain",
-      "checkable",
+      "requirement",
+      "depth",
       "contract",
       "evidence",
     ]);

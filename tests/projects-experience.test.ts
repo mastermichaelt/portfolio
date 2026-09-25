@@ -136,8 +136,8 @@ describe("projects 1C — index composition", () => {
     const index = await repository.getProjectsIndex();
 
     expect(index.coPrimary.map((row) => row.title)).toEqual([
-      "Experiment measurement",
       "Codenames AI",
+      "Experiment measurement",
     ]);
     expect(index.supporting.map((row) => row.title)).toEqual([
       "Editorial workflow",
@@ -153,7 +153,7 @@ describe("projects 1C — index composition", () => {
     const figureValues = projectsIndex.coPrimary.flatMap((row) =>
       row.figures.map((figure) => figure.value),
     );
-    expect(figureValues).toEqual([">10%", "9%–41%", "175+", "350"]);
+    expect(figureValues).toEqual(["350", "175+", ">10%", "9%–41%"]);
 
     for (const row of projectsIndex.coPrimary) {
       expect(row.figures).toHaveLength(2);
@@ -172,8 +172,8 @@ describe("projects 1C — index composition", () => {
   });
 
   it("previews depth with one chip per detail block", () => {
-    const atlassian = projectsIndex.coPrimary[0];
-    const codenames = projectsIndex.coPrimary[1];
+    const codenames = projectsIndex.coPrimary[0];
+    const atlassian = projectsIndex.coPrimary[1];
     expect(atlassian?.chips).toHaveLength(5);
     expect(codenames?.chips).toHaveLength(4);
   });

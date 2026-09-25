@@ -25,7 +25,7 @@ test.describe("portfolio happy path", () => {
     ).toHaveAttribute("href", "/");
     await expect(
       page.getByRole("heading", {
-        name: "Making uncertain systems dependable.",
+        name: "I follow the product requirement as deep as it needs to go.",
       }),
     ).toBeVisible();
     await expect(
@@ -231,7 +231,7 @@ test.describe("portfolio happy path", () => {
 
     await expect(
       page.getByRole("heading", {
-        name: /Valid JSON is not a legal move/i,
+        name: /A live game people play/i,
         level: 1,
       }),
     ).toBeVisible();
@@ -390,7 +390,7 @@ test.describe("portfolio happy path", () => {
 
     await expect(
       page.getByRole("heading", {
-        name: /attribution is checkable/i,
+        name: /Nobody could defend the number/i,
         level: 1,
       }),
     ).toBeVisible();

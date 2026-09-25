@@ -37,11 +37,11 @@ export interface HomepageFigure {
 /**
  * The shared method schema — the four questions asked of every channel, in
  * order. `key` binds a dimension to the channel content that answers it:
- * `uncertain` / `checkable` / `contract` read the matching `HomepageSpine`
+ * `requirement` / `depth` / `contract` read the matching `HomepageSpine`
  * field; `evidence` renders the channel's qualified figure.
  */
 export type HomepageMethodKey =
-  "uncertain" | "checkable" | "contract" | "evidence";
+  "requirement" | "depth" | "contract" | "evidence";
 
 export interface HomepageMethodDimension {
   /** Two-digit ordinal, e.g. "01". */
@@ -54,8 +54,8 @@ export interface HomepageMethodDimension {
 }
 
 export interface HomepageSpine {
-  uncertain: string;
-  checkable: string;
+  requirement: string;
+  depth: string;
   contract: string;
 }
 
@@ -105,8 +105,8 @@ export interface HomepageRoute {
 export interface HomepageHero {
   title: string;
   lead: string;
-  /** Visual-contract thesis (like the H1) — not a metric. */
-  leadEmphasis: string;
+  /** Visual-contract thesis (like the H1) — not a metric. Optional. */
+  leadEmphasis?: string;
 }
 
 export interface Homepage {

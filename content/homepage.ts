@@ -13,23 +13,22 @@ import type { Homepage } from "@/domain/homepage";
  */
 export const homepage: Homepage = {
   hero: {
-    title: "Making uncertain systems dependable.",
-    lead: "Growth experimentation, attribution and platform measurement at Atlassian, 2014–2025. Independent AI products and agent-native engineering systems since 2026. The same practice in both:",
-    leadEmphasis:
-      "measure it, validate it, and write down what the system is allowed to do.",
+    title: "I follow the product requirement as deep as it needs to go.",
+    lead: "Senior product engineer. I take ambiguous product problems from requirement to production, across the frontend, backend, data and AI layers needed to make them work. When the straightforward solution stops holding, I trace the problem into the underlying system and build the fix. Previously Atlassian Growth; now building independent AI products.",
   },
   method: [
     {
       ordinal: "01",
-      key: "uncertain",
-      label: "Uncertain",
-      gloss: "What the system could not guarantee on its own.",
+      key: "requirement",
+      label: "Requirement",
+      gloss: "What the product had to do, before any mechanism existed.",
     },
     {
       ordinal: "02",
-      key: "checkable",
-      label: "Made checkable",
-      gloss: "The mechanism built so something deterministic could decide.",
+      key: "depth",
+      label: "Depth required",
+      gloss:
+        "The layer that had to be opened when the assumption underneath stopped holding.",
     },
     {
       ordinal: "03",
@@ -53,10 +52,10 @@ export const homepage: Homepage = {
       href: "/projects/codenames-ai",
       caseStudyLabel: "Codenames AI case study →",
       spine: {
-        uncertain:
-          "A model proposes a clue. Nothing in the reply guarantees it is legal on this board.",
-        checkable:
-          "Schema-first structured outputs plus board-aware domain validators separate valid JSON from a legal move. Model migrations are treated as controlled experiments, with evaluation built into product behavior.",
+        requirement:
+          "Players need an AI teammate whose every move is legal on this board, unsupervised, in a product that is live.",
+        depth:
+          "A model proposes a clue. Nothing in the reply guarantees it is legal on this board. Schema-first structured outputs plus board-aware domain validators separate valid JSON from a legal move. Model migrations are treated as controlled experiments, with evaluation built into product behavior.",
         contract: "Valid JSON is not a legal move — the validator decides.",
       },
       figure: {
@@ -79,10 +78,10 @@ export const homepage: Homepage = {
       href: "/projects/experiment-measurement",
       caseStudyLabel: "Experiment measurement case study →",
       spine: {
-        uncertain:
-          "Attribution windows and pipeline gaps silently change what an in-flight experiment appears to say.",
-        checkable:
-          "A Cross Flow funnel observability audit and an authored attribution formula adopted for Growth Experiment Impact Estimation, plus embedded event-pipeline work that restored attribution for in-flight experiments.",
+        requirement:
+          "Growth teams had to know whether a shipped change actually worked — including for an acquired product that was not on experimentation infrastructure yet.",
+        depth:
+          "Attribution windows and pipeline gaps silently change what an in-flight experiment appears to say. A Cross Flow funnel observability audit and an authored attribution formula adopted for Growth Experiment Impact Estimation, plus embedded event-pipeline work that restored attribution for in-flight experiments.",
         contract:
           "Preserved statistical validity without restarting experiments.",
       },
