@@ -18,13 +18,13 @@ export const about: AboutPage = {
   eyebrow: "About · practice record",
   statement: "One engineering practice, 2014 to now.",
   lead: {
-    text: "Growth experimentation, attribution and platform measurement at Atlassian, 2014–2025 — as an individual contributor, and for four of those years as an engineering manager. Independent AI products and agent-native engineering systems since 2026.",
+    text: "Product engineering in Atlassian Growth, 2014–2025 — experimentation, attribution, onboarding, analytics and cross-team reporting systems; as an individual contributor, and for four of those years as an engineering manager. Independent AI products and agent-native engineering systems since 2026.",
     emphasis:
       "Each era left a specific mechanism behind, and the ones below are still in use.",
   },
   throughLine: [
-    "The job has always been the same one under different names: find the number or the output that decides something, prove it can be reproduced, then write down what the system is allowed to claim. At Atlassian that meant funnel audits, attribution formulas, experiment windows and event pipelines. Independently it means schemas, domain validators and workflow contracts.",
-    "The tools changed. The checks did not.",
+    "The job has always been the same one under different names: own a product requirement, find where the straightforward implementation stops holding, follow the problem into whatever layer it actually lives in, and build the part that was missing. At Atlassian that surfaced through Growth — funnel audits, attribution formulas, experiment windows, event pipelines, onboarding and cross-team reporting. Independently it surfaces through AI product behaviour — schemas, domain validators, model contracts and workflow contracts. The last step is always the same: write down what the system is then allowed to claim.",
+    "The layers changed. The way in did not.",
   ],
   arc: [
     {
@@ -79,7 +79,7 @@ export const about: AboutPage = {
     },
   ],
   arcEvidence: {
-    label: "From the measurement era",
+    label: "From the Atlassian Growth years",
     figure: {
       value: ">10%",
       name: "prior-approach over-attribution exposed",
