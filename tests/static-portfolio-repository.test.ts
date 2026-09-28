@@ -33,7 +33,7 @@ vi.mock("@/content/about", () => ({
       },
     ],
     arcEvidence: {
-      label: "From the measurement era",
+      label: "From the Atlassian Growth years",
       figure: {
         value: ">10%",
         name: "figure",
