@@ -32,16 +32,17 @@ Prefer the **most mature first-class interface** for each problem — use the to
 
 ## Repository layout
 
-| Path            | Role                                        |
-| --------------- | ------------------------------------------- |
-| `app/`          | App Router pages                            |
-| `components/`   | Shared UI                                   |
-| `domain/`       | Lightweight domain interfaces               |
-| `content/`      | Static content modules                      |
-| `repositories/` | Storage abstraction + static implementation |
-| `lib/`          | Shared helpers                              |
-| `docs/`         | Architecture notes and product roadmap      |
-| `.cursor/`      | Agent standards, rules, and staged plans    |
+| Path            | Role                                            |
+| --------------- | ----------------------------------------------- |
+| `app/`          | App Router pages                                |
+| `components/`   | Shared UI                                       |
+| `domain/`       | Lightweight domain interfaces                   |
+| `content/`      | Static content modules                          |
+| `repositories/` | Storage abstraction + static implementation     |
+| `lib/`          | Shared helpers                                  |
+| `docs/`         | Architecture notes and product roadmap          |
+| `vendor/`       | Provenance for third-party code served verbatim |
+| `.cursor/`      | Agent standards, rules, and staged plans        |
 
 Brand and IA live in production routes (`app/`, `components/`, layered CSS under `app/styles/` via `app/globals.css`). Design-system guidance: [docs/design-system.md](docs/design-system.md). Architecture: [docs/architecture/overview.md](docs/architecture/overview.md).
 
@@ -88,6 +89,43 @@ Do not blur hook infrastructure with formatting ergonomics or CI. Each layer ans
 - Analytics is **client-only** (`instrumentation-client.ts` + `ExternalLink` outbound events) and orthogonal to `PortfolioRepository`. Product Health dashboard: [Portfolio — Product Health](https://us.posthog.com/project/423501/dashboard/1976872).
 - Pages and UI should depend on `PortfolioRepository`, not on concrete storage adapters.
 - Staged multi-PR plans live under `.cursor/plans/`. Product roadmap stubs under `docs/plans/` are not execution plans unless promoted.
+
+### scroll-craft (experiment)
+
+A scroll-driven interaction engine from [`nateherkai/scroll-craft`](https://github.com/nateherkai/scroll-craft),
+integrated on the homepage as an **experiment only**, on branch
+`experiment/scroll-craft-integration-baseline`. Boundary, findings and exit
+criteria: [docs/experiments/scroll-craft-baseline.md](docs/experiments/scroll-craft-baseline.md).
+
+- The engine is vendored verbatim to `public/vendor/scrollcraft/` and **served,
+  never imported**, so it stays out of the application module graph. Its sha256
+  is pinned in [`vendor/scrollcraft/PROVENANCE.md`](vendor/scrollcraft/PROVENANCE.md)
+  and asserted by `tests/scrollcraft-engine-integrity.test.ts`.
+- **Never edit the engine** — that is scroll-craft's one hard rule. Bespoke
+  behaviour is authored in this repo's markup and CSS, driven off the `--sc-p`
+  custom property the engine publishes.
+- The engine's own `engine/scrollcraft.css` is **not** vendored: it is a
+  competing design floor that would replace this portfolio's typography and both
+  themes. `app/styles/scrollcraft.css` carries a hand-scoped subset of its device
+  rules and records what was refused.
+- Everything scroll-craft touches is scoped to `[data-scrollcraft-scope]` on the
+  homepage method section. `PortfolioRepository`, `domain/`, `repositories/` and
+  `lib/` are unaware of it.
+- `prefers-reduced-motion` stays governed by the global floor in
+  `app/styles/base.css`, not by scroll-craft's gentler curve.
+- The armed (hidden) state is gated on the scope element's own
+  `data-scrollcraft-mounted`, **never** on the engine's `html.sc-ready`:
+  `sc-ready` survives client-side navigation while the section's DOM does not,
+  so it can outlive the instance it stands for and hide content permanently.
+  The mount guard itself lives at module scope, because an element-held flag is
+  destroyed by App Router navigation and lets engine instances accumulate.
+- Any scroll-craft device that hides content needs a no-JS settled state, a
+  `:focus-within` keyboard rescue, and an `@media print` settle. The engine
+  supplies none of them.
+- Plugin workflow: `claude plugin marketplace add nateherkai/scroll-craft`, then
+  `claude plugin install nateherk-design`. Preflight is
+  `node <skill>/scripts/doctor.mjs`; it exits non-zero without a full ffmpeg
+  build even for builds that generate no assets.
 
 ### Impeccable (design review)
 

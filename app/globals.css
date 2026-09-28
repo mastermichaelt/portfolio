@@ -11,3 +11,6 @@
 @import "./styles/projects.css";
 @import "./styles/about.css";
 @import "./styles/ecosystem.css";
+/* Experiment layer, last: scoped scroll-craft device rules.
+   Boundary and exit criteria in docs/experiments/scroll-craft-baseline.md. */
+@import "./styles/scrollcraft.css";

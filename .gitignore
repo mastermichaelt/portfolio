@@ -28,6 +28,11 @@
 .DS_Store
 *.pem
 
+# scroll-craft workspace: builds + FINGERPRINTS.md registry. Resolved by the
+# skill to <project root>/scrollcraft when no SCROLLCRAFT_HOME or
+# .scrollcraft.json overrides it. Local only: builds carry heavy media.
+/scrollcraft/
+
 # local agent run artifacts (screenshots, reports)
 .agent-runs/
 .tmp-hook-tests/

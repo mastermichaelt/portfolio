@@ -5,3 +5,6 @@ build
 package-lock.json
 .tmp-hook-tests/
 .cursor/skills/impeccable/
+
+# scroll-craft engine: vendored verbatim, hash-pinned (vendor/scrollcraft/PROVENANCE.md)
+public/vendor/scrollcraft/
