@@ -9,12 +9,37 @@ import { useCallback } from "react";
  *  other route. */
 const SCOPE_SELECTOR = "[data-scrollcraft-scope]";
 
-/** Set once a mount has happened, so a client-side navigation back to `/` or a
- *  Fast Refresh cannot bind a second engine instance to the same DOM. The
- *  engine keeps a module-level `instances` array and has no unmount, so a
- *  double mount means two rAF loops and two scroll listeners driving one
- *  section. */
-const MOUNTED_FLAG = "scrollcraftMounted";
+/** Written to the scope element once a live engine instance is driving it, and
+ *  read by `app/styles/scrollcraft.css` as the gate for the armed (hidden)
+ *  state. It is a CSS gate, not the mount guard — see `mountedRoot`. */
+const LIVE_FLAG = "scrollcraftMounted";
+
+/** At most one `ScrollCraft.mount()` per document, enforced at module scope.
+ *
+ *  A flag on the scope element cannot do this. Next.js App Router destroys the
+ *  home tree on client-side navigation and builds fresh DOM on return, so an
+ *  element-held flag is gone by the time `onReady` fires again: Home → About →
+ *  Home three times produced four engine instances. The engine has no unmount,
+ *  so each one permanently leaks a `requestAnimationFrame` loop and eight
+ *  window listeners (`touchstart`, `touchend`, `pointerdown`, `click`, two
+ *  `scroll`, `focusin`, `resize`). Its five `prime` listeners self-remove only
+ *  under `if (playheads.length && primedCount >= playheads.length)`, and
+ *  `playheads.length` is 0 here because this slice loads no video, so that
+ *  branch never runs.
+ *
+ *  Module scope is the right lifetime: it is per-document, so it survives every
+ *  client-side navigation and resets on a real page load, which is exactly when
+ *  a new engine instance is wanted.
+ *
+ *  The cost is deliberate and small: after the first client-side return to `/`
+ *  the reveal does not re-arm, and the method section renders in its resolved
+ *  state with no animation. That is the correct trade. The alternative — mount
+ *  again to re-animate — is the leak, and it is why the armed state is gated on
+ *  the scope element's own attribute rather than on `html.sc-ready`: `sc-ready`
+ *  persists across client-side navigation, so gating on it while refusing to
+ *  re-mount would leave the fresh DOM armed with nothing to reveal it, turning
+ *  a leak into permanently invisible content. */
+let mountedRoot: Element | null = null;
 
 /**
  * Mounts the vendored scroll-craft engine against the homepage method section,
@@ -40,11 +65,16 @@ const MOUNTED_FLAG = "scrollcraftMounted";
  */
 export function ScrollCraftMethodReveal() {
   const mount = useCallback(() => {
-    const root = document.querySelector<HTMLElement>(SCOPE_SELECTOR);
-    if (!root || root.dataset[MOUNTED_FLAG] === "true") return;
+    if (mountedRoot) return;
     if (!window.ScrollCraft) return;
 
-    root.dataset[MOUNTED_FLAG] = "true";
+    const root = document.querySelector<HTMLElement>(SCOPE_SELECTOR);
+    if (!root) return;
+
+    // Arm before mounting, so the hidden state is in place for the same frame
+    // the engine's IntersectionObserver first reports in.
+    mountedRoot = root;
+    root.dataset[LIVE_FLAG] = "true";
     window.ScrollCraft.mount(root);
   }, []);
 

@@ -26,14 +26,25 @@
       the element ScrollCraft.mount() was handed and cannot become a
       site-wide styling surface.
 
-   2. THE HIDDEN STATE IS GATED ON `html.sc-ready`. Upstream sets
-      `opacity: 0` unconditionally; the engine adds `.sc-in` once its
-      IntersectionObserver fires. If the engine never loads — script blocked,
-      JS off, a CDN failure — that content is invisible for the life of the
-      page. The engine adds `sc-ready` to <html> at the end of mount(), so
-      gating on it means the pre-engine state is the *settled* state and the
-      method rows are readable with no JavaScript at all. This is the portfolio's
-      accessibility contract winning over the upstream default, not a taste edit.
+   2. THE HIDDEN STATE IS GATED ON THE SCOPE ELEMENT'S OWN
+      `data-scrollcraft-mounted`. Upstream sets `opacity: 0` unconditionally;
+      the engine adds `.sc-in` once its IntersectionObserver fires. If the
+      engine never loads — script blocked, JS off, a CDN failure — that content
+      is invisible for the life of the page. Gating on an attribute that only
+      appears when a live engine instance is driving *this element* makes the
+      pre-engine state the *settled* state, so the method rows are readable with
+      no JavaScript at all.
+
+      The engine's own `html.sc-ready` is deliberately NOT the gate, even though
+      it looks like the obvious one. It is set on <html> and survives Next.js
+      client-side navigation, while the section's DOM does not: React destroys
+      the home tree on navigation and rebuilds it on return. Gating on
+      `sc-ready` would therefore leave the rebuilt rows armed with no engine
+      instance observing them — permanently invisible content — unless the
+      component re-mounted the engine every time, which is the leak
+      ScrollCraftMethodReveal exists to prevent. An attribute written by the
+      mount, onto the element being mounted, is destroyed and rebuilt with that
+      element, so the gate and the engine instance can never disagree.
 
    3. THE TRANSITION IS DECLARED ON THE SETTLED STATE, NOT THE HIDDEN ONE.
       This falls straight out of divergence 2 and is not optional. Upstream puts
@@ -62,6 +73,14 @@
    is scroll-craft's; the feel stays the portfolio's. The comparison is left for
    the design exploration.
 
+   5. PRINT SETTLES EVERYTHING, UNCONDITIONALLY. The armed state is a scroll
+      affordance, and print has no scroll. Without the `@media print` rule below,
+      printing or saving the homepage to PDF before scrolling past this section
+      renders the whole method comparison blank: the text is in the DOM and in
+      the accessibility tree, at `opacity: 0`, on paper. The `.sc-ready` /
+      `data-scrollcraft-mounted` gate does not help, because the failing case is
+      JavaScript *working* and the reader simply not having scrolled yet.
+
    Reduced motion needs no rule here: the global floor in base.css
    (`transition-duration: 0.01ms !important`) already collapses this to an
    instant, position-free appearance, which is stricter than upstream's 220ms
@@ -69,8 +88,11 @@
    tests/reduced-motion.test.ts asserts. */
 
 /* Armed, instantly: no transition here, so the engine mounting never animates
-   content away. See divergence 3 above. */
-.sc-ready [data-scrollcraft-scope] [data-sc-stagger] > * {
+   content away. See divergence 3 above. The gate is the scope element's own
+   attribute, written by the mount that drives it. See divergence 2. */
+[data-scrollcraft-scope][data-scrollcraft-mounted="true"]
+  [data-sc-stagger]
+  > * {
   opacity: 0;
   transform: translate3d(0, 10px, 0);
 }
@@ -80,8 +102,12 @@
    inline, which is what actually creates the cascade), while the no-observer
    fallback marks only the parent. Without the second selector a browser with
    no IntersectionObserver would leave every row hidden. */
-.sc-ready [data-scrollcraft-scope] [data-sc-stagger] > .sc-in,
-.sc-ready [data-scrollcraft-scope] [data-sc-in].sc-in > * {
+[data-scrollcraft-scope][data-scrollcraft-mounted="true"]
+  [data-sc-stagger]
+  > .sc-in,
+[data-scrollcraft-scope][data-scrollcraft-mounted="true"]
+  [data-sc-in].sc-in
+  > * {
   opacity: 1;
   transform: none;
   transition:
@@ -92,7 +118,22 @@
 /* Keyboard rescue. Higher specificity than the armed rule, and it declares no
    transition of its own, so an armed group settles instantly under focus while
    a group that is already revealing keeps its cascade. See divergence 4. */
-.sc-ready [data-scrollcraft-scope] [data-sc-stagger]:focus-within > * {
+[data-scrollcraft-scope][data-scrollcraft-mounted="true"]
+  [data-sc-stagger]:focus-within
+  > * {
   opacity: 1;
   transform: none;
+}
+
+/* Print has no scroll, so nothing can ever reveal an armed row on paper. Settle
+   the whole group unconditionally. Last in the file, so it outranks the armed
+   rule at equal specificity; a media query adds none of its own. See
+   divergence 5. */
+@media print {
+  [data-scrollcraft-scope][data-scrollcraft-mounted="true"]
+    [data-sc-stagger]
+    > * {
+    opacity: 1;
+    transform: none;
+  }
 }

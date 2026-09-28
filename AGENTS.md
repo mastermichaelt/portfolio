@@ -113,6 +113,15 @@ criteria: [docs/experiments/scroll-craft-baseline.md](docs/experiments/scroll-cr
   `lib/` are unaware of it.
 - `prefers-reduced-motion` stays governed by the global floor in
   `app/styles/base.css`, not by scroll-craft's gentler curve.
+- The armed (hidden) state is gated on the scope element's own
+  `data-scrollcraft-mounted`, **never** on the engine's `html.sc-ready`:
+  `sc-ready` survives client-side navigation while the section's DOM does not,
+  so it can outlive the instance it stands for and hide content permanently.
+  The mount guard itself lives at module scope, because an element-held flag is
+  destroyed by App Router navigation and lets engine instances accumulate.
+- Any scroll-craft device that hides content needs a no-JS settled state, a
+  `:focus-within` keyboard rescue, and an `@media print` settle. The engine
+  supplies none of them.
 - Plugin workflow: `claude plugin marketplace add nateherkai/scroll-craft`, then
   `claude plugin install nateherk-design`. Preflight is
   `node <skill>/scripts/doctor.mjs`; it exits non-zero without a full ffmpeg

@@ -27,6 +27,38 @@ async function opacities(page: Page, selector: string) {
   );
 }
 
+/** The armed state is gated on the scope element's own attribute, written by
+ *  the mount that drives it, not on the document-wide `html.sc-ready`. */
+async function waitForLiveMount(page: Page) {
+  await page.waitForSelector(
+    '[data-scrollcraft-scope][data-scrollcraft-mounted="true"]',
+  );
+}
+
+/** Home → About → Home through the site's own links, i.e. client-side
+ *  navigation, which destroys and rebuilds the home tree's DOM. */
+async function roundTripThroughAbout(page: Page) {
+  await page
+    .getByRole("navigation", { name: "Primary" })
+    .getByRole("link", { name: "About" })
+    .click();
+  await page.waitForURL("**/about");
+  await page.getByRole("link", { name: "Michael Truong" }).click();
+  await page.waitForURL((url) => new URL(url).pathname === "/");
+}
+
+async function engineState(page: Page) {
+  return page.evaluate(() => ({
+    instances: window.ScrollCraft?.instances.length ?? 0,
+    detachedActs: (window.ScrollCraft?.instances ?? []).reduce(
+      (total, instance) =>
+        total +
+        instance.acts.filter((act) => !document.contains(act.el)).length,
+      0,
+    ),
+  }));
+}
+
 test.describe("scroll-craft engine boundary", () => {
   test("mounts once, scoped to the method section and nothing else", async ({
     page,
@@ -58,9 +90,7 @@ test.describe("scroll-craft engine boundary", () => {
     page,
   }) => {
     await page.goto("/");
-    await page.waitForFunction(() =>
-      document.documentElement.classList.contains("sc-ready"),
-    );
+    await waitForLiveMount(page);
 
     const geometry = await page.evaluate(() => {
       const act = document.querySelector<HTMLElement>("[data-sc-act]")!;
@@ -128,9 +158,7 @@ test.describe("the method reveal", () => {
     page,
   }) => {
     await page.goto("/");
-    await page.waitForFunction(() =>
-      document.documentElement.classList.contains("sc-ready"),
-    );
+    await waitForLiveMount(page);
 
     expect(
       await page.evaluate(
@@ -187,9 +215,7 @@ test.describe("the method reveal", () => {
   }) => {
     await page.setViewportSize(NARROW_VIEWPORT);
     await page.goto("/");
-    await page.waitForFunction(() =>
-      document.documentElement.classList.contains("sc-ready"),
-    );
+    await waitForLiveMount(page);
 
     await expect(page.locator(".home2-only-narrow")).toBeVisible();
     await expect(page.locator(".home2-only-wide")).toBeHidden();
@@ -217,9 +243,7 @@ test.describe("the reveal degrades to readable content", () => {
     });
     const page = await context.newPage();
     await page.goto("/");
-    await page.waitForFunction(() =>
-      document.documentElement.classList.contains("sc-ready"),
-    );
+    await waitForLiveMount(page);
 
     await page.evaluate(() =>
       document
@@ -253,11 +277,13 @@ test.describe("the reveal degrades to readable content", () => {
     const page = await context.newPage();
     await page.goto("/");
 
-    // No engine, so no `sc-ready`, so nothing is hidden: the pre-engine state
-    // is the settled state. This is the one thing the upstream stylesheet does
-    // not give you, and the reason its `[data-sc-in] { opacity: 0 }` is not
-    // adopted verbatim.
+    // No engine, so nothing is armed: the pre-engine state is the settled
+    // state. This is the one thing the upstream stylesheet does not give you,
+    // and the reason its `[data-sc-in] { opacity: 0 }` is not adopted verbatim.
     await expect(page.locator("html")).not.toHaveClass(/sc-ready/);
+    await expect(
+      page.locator('[data-scrollcraft-scope][data-scrollcraft-mounted="true"]'),
+    ).toHaveCount(0);
     expect(await opacities(page, WIDE_ROWS)).toEqual([1, 1, 1, 1, 1, 1]);
     await expect(
       page.getByRole("heading", { name: "Two systems, one method" }),
@@ -272,9 +298,7 @@ test.describe("keyboard access into an armed section", () => {
 
   test("focus never lands on an invisible row", async ({ page }) => {
     await page.goto("/");
-    await page.waitForFunction(() =>
-      document.documentElement.classList.contains("sc-ready"),
-    );
+    await waitForLiveMount(page);
     expect(await opacities(page, WIDE_ROWS)).toEqual([0, 0, 0, 0, 0, 0]);
 
     // Tab out of the site chrome and into the method section. Nothing upstream
@@ -300,6 +324,102 @@ test.describe("keyboard access into an armed section", () => {
       landed!.rowOpacity,
       `focus landed on "${landed?.label}" while its row was invisible`,
     ).toBe(1);
+  });
+});
+
+test.describe("engine lifecycle across client-side navigation", () => {
+  test("never accumulates instances, acts, loops or listeners", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await waitForLiveMount(page);
+    expect(await engineState(page)).toEqual({
+      instances: 1,
+      detachedActs: 0,
+    });
+
+    // Client-side navigation, not page.goto: App Router destroys the home tree
+    // and rebuilds its DOM on return, so an element-held mount guard is gone by
+    // the time next/script fires onReady again. Before the module-scoped guard
+    // this produced 1 → 2 → 3 → 4 instances over these three round trips. Every
+    // rAF loop and window listener the engine registers is registered inside
+    // mount(), exactly once per call, so a constant instance count is the
+    // proxy for a constant listener and loop count. Three cycles, because one
+    // cannot tell a fixed guard from one that merely fails on the second pass.
+    //
+    // detachedActs settles at exactly 1 and stays there: the single legitimate
+    // instance is left pointing at the act element React removed on the first
+    // navigation away. The engine exposes no unmount, so that cannot be
+    // released without editing it, which scroll-craft forbids. Bounded and
+    // constant is the fix; growing was the bug. Asserted as exact equality
+    // rather than an upper bound so any regrowth fails here.
+    for (let cycle = 1; cycle <= 3; cycle += 1) {
+      await roundTripThroughAbout(page);
+      expect(
+        await engineState(page),
+        `after ${cycle} client-side round trip(s)`,
+      ).toEqual({ instances: 1, detachedActs: 1 });
+    }
+  });
+
+  test("leaves the method section readable after returning home", async ({
+    page,
+  }) => {
+    // The other half of the guard. `html.sc-ready` survives client-side
+    // navigation while the section's DOM does not, so gating the armed state on
+    // it while refusing to re-mount would render the rebuilt rows invisible for
+    // good. Gating on the scope element's own attribute means the rebuilt
+    // section simply arrives settled: no animation, no hidden content.
+    await page.goto("/");
+    await waitForLiveMount(page);
+    await roundTripThroughAbout(page);
+
+    await expect(page.locator("html")).toHaveClass(/sc-ready/);
+    await expect(
+      page.locator('[data-scrollcraft-scope][data-scrollcraft-mounted="true"]'),
+    ).toHaveCount(0);
+    expect(await opacities(page, WIDE_ROWS)).toEqual([1, 1, 1, 1, 1, 1]);
+    await expect(
+      page.getByRole("heading", { name: "Two systems, one method" }),
+    ).toBeVisible();
+  });
+});
+
+test.describe("print", () => {
+  test.use({ viewport: SHORT_VIEWPORT });
+
+  test("armed rows are fully visible on paper", async ({ page }) => {
+    await page.goto("/");
+    await waitForLiveMount(page);
+
+    // Unscrolled and armed: exactly the state a print or save-to-PDF starts
+    // from, and the one in which the method comparison used to print blank.
+    expect(await opacities(page, WIDE_ROWS)).toEqual([0, 0, 0, 0, 0, 0]);
+
+    await page.emulateMedia({ media: "print" });
+    expect(await opacities(page, WIDE_ROWS)).toEqual([1, 1, 1, 1, 1, 1]);
+    expect(
+      await page.$$eval(WIDE_ROWS, (els) =>
+        els.map(
+          (el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).f,
+        ),
+      ),
+    ).toEqual([0, 0, 0, 0, 0, 0]);
+
+    await page.emulateMedia({ media: "screen" });
+    expect(
+      await opacities(page, WIDE_ROWS),
+      "print must not permanently settle the on-screen reveal",
+    ).toEqual([0, 0, 0, 0, 0, 0]);
+  });
+
+  test("the narrow projection prints too", async ({ page }) => {
+    await page.setViewportSize(NARROW_VIEWPORT);
+    await page.goto("/");
+    await waitForLiveMount(page);
+
+    await page.emulateMedia({ media: "print" });
+    expect(await opacities(page, NARROW_ROWS)).toEqual([1, 1, 1, 1]);
   });
 });
 

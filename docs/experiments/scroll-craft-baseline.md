@@ -111,8 +111,10 @@ accessible. Verified settled-and-unoffset under `reducedMotion: "reduce"`.
 Upstream declares the reveal's `transition` on the **hidden** rule. That is safe
 upstream, because there the hidden state is the element's initial state.
 
-Gating the hidden state on `html.sc-ready` — required so that no-JS renders the
-resolved composition — creates an earlier visible state. With the transition
+Gating the hidden state at all — required so that no-JS renders the resolved
+composition — creates an earlier visible state. (The gate began as
+`html.sc-ready` and moved to the scope element's own `data-scrollcraft-mounted`
+for the reason in §3.9; the transition problem is the same either way.) With the transition
 still on the hidden rule, the rows rendered settled at first paint and then
 visibly **faded out** over 0.55s the moment the engine mounted, before fading
 back in on entry. Worse than either end state, and invisible to the upstream
@@ -142,7 +144,29 @@ because a keyboard reader should never wait on an animation to see where they
 are. `e2e/scrollcraft-method-reveal.spec.ts` asserts the landed row is at exactly
 opacity 1; removing the rule fails that test.
 
-### 3.6 `mount(root)` does not match the root itself (sharp edge)
+### 3.6 Armed content has no print escape (defect found and fixed)
+
+Every scroll-craft reveal hides content until scroll reveals it. Print has no
+scroll, so on paper nothing ever does.
+
+Measured under `emulateMedia({ media: "print" })` at 1280×460 with the engine
+mounted and the page unscrolled: all six `.home2-matrix` rows compute
+`opacity: 0` while their text sits in the DOM and in the accessibility tree. A
+reader printing or saving the homepage to PDF before scrolling to the method
+section gets a heading, an intro line, and a blank block where the entire
+two-system comparison should be. Nothing in the portfolio resets it — there is
+no `@media print` rule anywhere in `app/styles/`.
+
+Note which failure this is: not JavaScript off, which the gate already covers,
+but JavaScript _working_ and the reader simply not having scrolled yet. That is
+the state every print starts from.
+
+Fixed with an `@media print` block in `app/styles/scrollcraft.css` that settles
+every staggered group unconditionally. Asserted at both projections in e2e,
+including that returning to screen media re-arms the reveal rather than leaving
+it permanently settled.
+
+### 3.7 `mount(root)` does not match the root itself (sharp edge)
 
 Devices are collected with `root.querySelectorAll`, which never matches `root`.
 A `data-sc-act` on the mount root is silently ignored: no act is created, no
@@ -151,7 +175,7 @@ and will cost them again. **The act must be a strict descendant of the mount
 root.** That is why `data-sc-act="flow"` sits on the section's `.container`
 rather than on the section carrying `data-scrollcraft-scope`.
 
-### 3.7 The upstream harness cannot see this slice (limitation, not a defect)
+### 3.8 The upstream harness cannot see this slice (limitation, not a defect)
 
 `scripts/shoot.mjs` runs cleanly against a Next.js route — a useful finding in
 itself, since it needs only a URL and `html.sc-ready`, not a scroll-craft-authored
@@ -169,23 +193,60 @@ behaviour is therefore asserted in
 [`e2e/scrollcraft-method-reveal.spec.ts`](../../e2e/scrollcraft-method-reveal.spec.ts)
 instead, including its intermediate cascade state.
 
-### 3.8 The engine has no unmount
+### 3.9 The engine has no unmount, and Next.js navigation destroys its DOM (defect found and fixed)
 
-`mount()` pushes to a module-level `instances` array, registers `scroll`,
-`resize`, `focusin`, `touchstart`, `touchend`, `pointerdown` and `click`
-listeners, and starts a `requestAnimationFrame` loop. None of it can be torn
-down. A second mount on the same DOM means two loops driving one section, so the
-component sets a `data-scrollcraft-mounted` flag on the root and uses `onReady`
-rather than `onLoad`, which covers client-side navigation back to `/` and Fast
-Refresh. The e2e test asserts exactly one instance.
+`mount()` pushes to a module-level `instances` array, registers eight window
+listeners (`touchstart`, `touchend`, `pointerdown`, `click`, two `scroll`,
+`focusin`, `resize`) and starts a `requestAnimationFrame` loop. None of it can
+be torn down, and its five `prime` listeners self-remove only under
+`if (playheads.length && primedCount >= playheads.length)` — `playheads.length`
+is 0 here because this slice loads no video, so that branch never runs.
 
-### 3.9 Things that fit better than expected
+The first version of this integration guarded against a double mount with a flag
+on the scope element. That guard does not hold. App Router destroys the home
+tree on client-side navigation and builds fresh DOM on return, so the flag is
+gone by the time `next/script` fires `onReady` again. Measured: Home → About →
+Home three times produced **four** engine instances, three of them driving
+detached nodes, each with its own permanent rAF loop and listener set. The
+supposedly isolated leaf integration accumulated runtime state during ordinary
+navigation.
+
+The guard now lives at module scope, whose lifetime is the document: it survives
+every client-side navigation and resets on a real page load, which is exactly
+when a new instance is wanted.
+
+That fix alone would have been worse than the bug. `html.sc-ready` survives
+client-side navigation while the section's DOM does not, so refusing to re-mount
+while still gating the armed state on `sc-ready` would leave the rebuilt rows
+hidden with no engine instance observing them — permanently invisible content.
+So the gate moved onto the scope element's own `data-scrollcraft-mounted`, which
+is destroyed and rebuilt with the element it describes. The gate and the engine
+instance can no longer disagree.
+
+**The residual, stated plainly.** One instance survives for the life of the
+document, and after the first navigation away it is left pointing at an act
+element React has removed: `instances: 1, detachedActs: 1`, constant across any
+number of round trips. Releasing that would require an unmount the engine does
+not have, and adding one means editing the engine, which scroll-craft forbids.
+Bounded and constant is the fix; growing was the bug. The e2e test asserts exact
+equality rather than an upper bound so any regrowth fails.
+
+**The behavioural cost.** After the first client-side return to `/` the reveal
+does not re-arm and the method section renders in its resolved state, with no
+animation. A cold visitor — which is every visitor arriving from a link, a
+search result, or a new tab — still gets the reveal. This is the right trade for
+a first-impression device, but the design exploration should know that any act
+it adds will behave the same way, and should not design a beat whose _meaning_
+depends on animating every time the route is revisited.
+
+### 3.10 Things that fit better than expected
 
 - **No global mutation unless you ask for it.** The engine writes `--sc-canvas`
   on `<html>` only for `data-sc-drift`, and drives a progress bar only if
   `[data-sc-progress]` exists. Neither is used.
-- **It adds `sc-ready` to `<html>`**, which is exactly the hook progressive
-  enhancement needs.
+- **It adds `sc-ready` to `<html>`**, a usable "engine is up" signal — though
+  not the right gate for hidden content, because it outlives the DOM it stands
+  for under client-side navigation (§3.9).
 - **It generates no DOM and reorders nothing**, so the method section's ARIA
   table roles, its rowheader/columnheader associations, and the 820px dual
   projection survive untouched.
@@ -202,24 +263,61 @@ via `@playwright/test`), so no extra install was needed. `shoot.mjs` and
 assumption was hit. `encode.sh` is `#!/usr/bin/env bash` with a WinGet glob that
 simply misses on macOS.
 
-Three findings worth recording:
+Findings worth recording, updated after ffmpeg was installed:
 
 1. **`doctor.mjs` exits non-zero without ffmpeg, even for builds that generate
-   nothing.** ffmpeg is `sev: "required"`, but this slice has no video: it is used
-   only by `encode.sh` and by `shoot.mjs`'s contact-sheet tile, which already
-   degrades with a clear message. So a green doctor is not a precondition for an
-   asset-free integration. Treat the ffmpeg row as required for asset work only.
-2. **ffmpeg has no Homebrew bottle on this machine** and compiles from source
-   (still building after ~40 minutes). Anyone reproducing an asset-generating
-   build on macOS should start that install well before they need it, or point
+   nothing.** ffmpeg is `sev: "required"`, but this slice has no video: it is
+   used only by `encode.sh` and by `shoot.mjs`'s contact-sheet tile, which
+   already degrades with a clear message. A green doctor is therefore not a
+   precondition for an asset-free integration. With ffmpeg 9.0.2 installed
+   (`brew install ffmpeg`, 489 filters) **doctor now exits 0**, reporting only
+   three optional warnings: the libwebp encoder, `KIE_AI_API_KEY`, and the
+   not-yet-created registry.
+2. **ffmpeg has no Homebrew bottle on this machine** and compiled from source,
+   taking roughly 40 minutes. Anyone reproducing an asset-generating build on
+   macOS should start that install well before they need it, or point
    `SCROLLCRAFT_FFMPEG` at an existing full build.
-3. **The workspace resolves inside the repository.** With no `SCROLLCRAFT_HOME`
+3. **Homebrew's ffmpeg has no libwebp encoder**, which is new information the
+   first pass could not have surfaced. `ffmpeg -encoders` matches `webp` zero
+   times, though the muxer is present, and `webp` is not pulled in as a formula
+   dependency. `doctor.mjs` grades this `optional` and says posters "fall back
+   to JPEG. Not fatal, just heavier" — but the skill's own README lists a
+   missing WebP muxer as one of the three faults that otherwise surface as a
+   misleading error, and `assets.md` encodes posters as `.webp`. **An
+   asset-generating build on this machine needs an ffmpeg built with
+   `--enable-libwebp` first**, or its posters will be heavier than the skill
+   intends. The integration slice is unaffected: it generates no posters.
+4. **The workspace resolves inside the repository.** With no `SCROLLCRAFT_HOME`
    and no `.scrollcraft.json`, it is `<project root>/scrollcraft` — i.e. builds
    and `FINGERPRINTS.md` would land in this repo. `/scrollcraft/` is gitignored
    rather than relocated, so the default resolution keeps working with no
    machine-specific config committed. A design exploration that wants a durable
    fingerprint registry should either commit `scrollcraft/FINGERPRINTS.md`
    deliberately or set `SCROLLCRAFT_HOME`.
+
+**The native contact sheet now works.** `shoot.mjs` writes `sheet.png` instead
+of skipping it, at all three configurations. Two notes on reading them:
+
+- The desktop and reduced-motion sheets are **byte-identical**, and that is
+  correct rather than a flag being ignored. The harness waits for each sample
+  position to settle before shooting, and the `data-sc-in` reveal has finished
+  by then, so both photograph the same resolved page. Confirmed separately that
+  the flag does reach the page: under `reducedMotion: "reduce"` the rows compute
+  `transition-duration: 1e-05s`, the `base.css` floor, against `0.55s` without
+  it. Reduced motion is asserted properly in e2e, not from these sheets.
+- The mobile sheet is the one that carries new information: at a true 390×844
+  the page is 5.1 viewport-heights rather than 2.5, and the sheet captures the
+  narrow schema mid-reveal.
+
+**A verification mistake worth recording, because it invalidated a round.** The
+second harness round was driven from a shell loop that passed its per-config
+flags as an unquoted `$args`. zsh does not word-split unquoted parameter
+expansions, so `--width 390 --height 844` arrived as a single argument and was
+ignored: all three passes silently ran at 1440×900 with no reduced motion, and
+produced three byte-identical sheets. The tell was that the "mobile" frames were
+2880px wide. Passing the flags literally fixed it. A harness that reports
+`page: 2.5 viewport-heights` for both desktop and mobile is reporting that it
+never changed viewport.
 
 `verify.md` also warns that the harness will photograph whatever is on the port
 if the server failed to bind. This happened here: a stale `next start` held 4500,
@@ -256,22 +354,24 @@ viewport per act — not for the method section in its current form.
 
 ## 6. Verification performed
 
-| Check                                         | Result                                                                                                                                     |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm run lint` / `typecheck` / `format:check` | pass                                                                                                                                       |
-| `npm test` (vitest)                           | pass                                                                                                                                       |
-| `npm run build`                               | pass; `/` still `○ (Static)` — the client Script does not force dynamic rendering                                                          |
-| `npm run test:e2e`                            | pass, including the pre-existing homepage happy path                                                                                       |
-| Desktop behaviour                             | `shoot.mjs` 1440×900, 8 samples/act: no dead scroll. Reveal cascade asserted in e2e                                                        |
-| Mobile behaviour                              | `shoot.mjs` 390×844: no dead scroll. Narrow projection reveal asserted at 390×640                                                          |
-| Reduced motion                                | `shoot.mjs --reduced-motion`, and e2e under `reducedMotion: "reduce"`: rows settle at opacity 1 with zero translation                      |
-| Intermediate scroll states                    | e2e asserts the mid-cascade frame (first row ahead of last) and the engine-written delays `0/90/180/270/360/450ms`, not just the end state |
-| JavaScript disabled                           | e2e under `javaScriptEnabled: false`: no `sc-ready`, every row at opacity 1, heading visible                                               |
-| Once-only reveal                              | e2e scrolls away and back: no re-hide                                                                                                      |
-| Accessibility / reading order                 | ARIA table roles, `aria-labelledby`, six `role="row"` children and the ordinal sequence `01–04` asserted unchanged                         |
-| Keyboard access                               | e2e tabs out of the header into the section and asserts the landed row is at opacity 1 (§3.5); removing the `:focus-within` rule fails it  |
-| Cross-route containment                       | e2e asserts `/projects`, `/articles`, `/about`, `/ecosystem` carry no scope element, no `data-sc-*`, no engine global and no script tag    |
-| Engine integrity                              | `tests/scrollcraft-engine-integrity.test.ts` pins the sha256 and asserts the boundary rules                                                |
+| Check                                         | Result                                                                                                                                                                                   |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run lint` / `typecheck` / `format:check` | pass                                                                                                                                                                                     |
+| `npm test` (vitest)                           | pass                                                                                                                                                                                     |
+| `npm run build`                               | pass; `/` still `○ (Static)` — the client Script does not force dynamic rendering                                                                                                        |
+| `npm run test:e2e`                            | pass, including the pre-existing homepage happy path                                                                                                                                     |
+| Desktop behaviour                             | `shoot.mjs` 1440×900, 8 samples/act: no dead scroll, native contact sheet. Reveal cascade asserted in e2e                                                                                |
+| Mobile behaviour                              | `shoot.mjs` 390×844 (page 5.1 viewport-heights): no dead scroll, native contact sheet capturing the narrow schema mid-reveal. Narrow projection reveal asserted at 390×640               |
+| Reduced motion                                | `shoot.mjs --reduced-motion`, and e2e under `reducedMotion: "reduce"`: rows settle at opacity 1 with zero translation                                                                    |
+| Intermediate scroll states                    | e2e asserts the mid-cascade frame (first row ahead of last) and the engine-written delays `0/90/180/270/360/450ms`, not just the end state                                               |
+| JavaScript disabled                           | e2e under `javaScriptEnabled: false`: no engine, no `data-scrollcraft-mounted`, every row at opacity 1, heading visible                                                                  |
+| Print                                         | e2e asserts both projections settle to opacity 1 under `emulateMedia({ media: "print" })` while unscrolled and armed, and re-arm on return to screen media (§3.6)                        |
+| Client-side navigation                        | e2e drives Home → About → Home three times through the site's own links and asserts `instances: 1, detachedActs: 1` after every cycle, plus that the returned section is readable (§3.9) |
+| Once-only reveal                              | e2e scrolls away and back: no re-hide                                                                                                                                                    |
+| Accessibility / reading order                 | ARIA table roles, `aria-labelledby`, six `role="row"` children and the ordinal sequence `01–04` asserted unchanged                                                                       |
+| Keyboard access                               | e2e tabs out of the header into the section and asserts the landed row is at opacity 1 (§3.5); removing the `:focus-within` rule fails it                                                |
+| Cross-route containment                       | e2e asserts `/projects`, `/articles`, `/about`, `/ecosystem` carry no scope element, no `data-sc-*`, no engine global and no script tag                                                  |
+| Engine integrity                              | `tests/scrollcraft-engine-integrity.test.ts` pins the sha256 and asserts the boundary rules                                                                                              |
 
 Not verified: a real phone. Headless Chrome cannot reproduce iOS touch scrolling
 or its video decoder. This slice loads no video, which removes the failure mode
@@ -288,7 +388,11 @@ untested on device.
   behaviour that must not touch the engine.
 - Pinning works. No ancestor defeats `position: sticky`.
 - `shoot.mjs` works against a Next.js route at any viewport, including
-  `--reduced-motion`.
+  `--reduced-motion`, and now writes native contact sheets (§4). Pass its flags
+  literally; a shell loop that expands them from one variable silently shoots
+  the wrong viewport.
+- `doctor.mjs` exits 0 on this machine. Before generating assets, check
+  `ffmpeg -encoders | grep libwebp` — Homebrew's build has no WebP encoder (§4).
 
 **Constraints**
 
@@ -297,8 +401,17 @@ untested on device.
 - **`data-sc-cue` is off-limits for content**, and `data-sc-kinetic` splits text
   into spans inside a cue, so it inherits the same problem. Reveals must be
   once-on-entry and settle without JavaScript.
+- **Every device that hides content needs three escapes authored alongside it,
+  not one:** a settled state without JavaScript, a `:focus-within` rescue for
+  keyboard readers (§3.5), and an `@media print` settle (§3.6). The engine
+  supplies none of them. Treat "what does this look like with no scroll" as part
+  of designing the act, not as a post-hoc accessibility pass.
+- **Acts only arm once per document.** After a client-side return to `/` the
+  reveal renders settled with no animation, because re-mounting the engine is
+  what leaked (§3.9). Cold visitors always see it. Do not design a beat whose
+  meaning depends on re-animating when a route is revisited.
 - **Any device that hides content needs a keyboard rescue authored alongside it.**
-  The engine only rescues focus inside cues (§3.5). Every armed region added
+  The engine only rescues focus inside cues (§3.5), and nothing upstream settles armed content for print (§3.6). Every armed region added
   later needs its own `:focus-within` settle, or the equivalent.
 - **Reduced motion here is a hard floor, not a gentler curve.** Any act whose
   meaning depends on motion has to carry a static alternative that is genuinely
