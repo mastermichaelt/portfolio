@@ -98,6 +98,23 @@ describe("projects 1C — co-primary cases", () => {
     expect(branded?.scope).toMatch(/28 days/i);
   });
 
+  it("frames the Codenames concept figure as the classic word set, never as canonical English", () => {
+    const codenames = caseBySlug("codenames-ai");
+    const figure = allFigures(codenames).find((entry) => entry.value === "350");
+
+    expect(figure?.name).toBe("concepts in the classic word set");
+    expect(figure?.onIndex).toBe(true);
+
+    // The scope names the configuration the count belongs to, and refuses the
+    // cross-language mapping the earlier copy implied.
+    expect(figure?.scope).toMatch(/classic set/i);
+    expect(figure?.scope).toMatch(/extended set/i);
+    expect(figure?.scope).toContain("word set × language → playable pool");
+
+    // English is one projection, not the canonical representation.
+    expect(JSON.stringify(codenames)).not.toMatch(/canonical English/i);
+  });
+
   it("keeps EM and AIM metrics out of the Atlassian case entirely", () => {
     const atlassian = caseBySlug("experiment-measurement");
     // Role spine mention lives in the aside, in words, with no metrics.

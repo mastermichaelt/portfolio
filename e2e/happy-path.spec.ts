@@ -246,7 +246,7 @@ test.describe("portfolio happy path", () => {
     const rail = page.getByRole("navigation", { name: "Contents" });
     await expect(rail).toBeVisible();
     await expect(rail.getByText("Legal-move validation")).toBeVisible();
-    await expect(rail.getByText("Domain coverage")).toBeVisible();
+    await expect(rail.getByText("Language word sets")).toBeVisible();
 
     // Figure-absent block keeps its stated note rather than a placeholder.
     await expect(

@@ -300,21 +300,22 @@ const codenamesAi: ProjectCase = {
     {
       id: "b04",
       ordinal: "02",
-      category: "Coverage",
-      navLabel: "Domain coverage",
+      category: "Representation",
+      navLabel: "Language word sets",
       heading:
-        "Validation only holds if the domain it validates against is enumerated.",
+        "Supporting a second language meant the board’s words were doing two jobs at once.",
       body: [
-        "Supporting Chinese gameplay — not translated interface chrome — needed language-specific playable word sets while the game’s concepts and validation semantics stayed stable, which is a model and runtime localisation problem rather than a UI one. A language-aware projection pipeline backs the board with a canonical concept set, separating canonical concept identity from language-specific projections so each language projects an appropriate playable pool: classic English and Simplified Chinese both project to 350 playable tokens over shared concept identity. Gameplay integration, validator compatibility, provenance, telemetry and the cleanup of earlier representation assumptions followed from that decision.",
+        "Supporting Chinese gameplay — not translated interface chrome — needed language-specific playable word sets while the game’s concepts and validation semantics stayed stable, which is a model and runtime localisation problem rather than a UI one. A language does not inherit a translated vocabulary; it has its own playable word set. Separating stable concept identity from language-specific playable representations made the runtime relationship explicit: a word set and a language resolve to a playable pool. The classic set is authored as one concept list with an English and a Simplified Chinese projection; the extended set is authored per language, with independent pools. No exact cross-language mapping is required for the model to stay coherent.",
+        "The rest followed from that one requirement: language-specific word sets, deterministic validation of each pool, gameplay integration, provenance and docs, telemetry, and the cleanup of the earlier representation assumptions. The reject classes did not change — structure, cardinality, membership and survivors still decide legality for every language; a language enters through declared similarity and projection policy, not a second validation path.",
       ],
       contract:
-        "the validator can only rule on a domain that has been written down.",
+        "a language is supported when its own playable word set is written down and validated — not when its interface is translated.",
       figures: [
         {
           value: "350",
-          name: "canonical English concepts",
+          name: "concepts in the classic word set",
           scope:
-            "Language-aware projection pipeline · end-to-end domain coverage",
+            "Classic set · word set × language → playable pool · one playable token per concept in English and in Simplified Chinese; the extended set is authored per language with independent pools, so equal pool sizes are a property of the classic set rather than a cross-language invariant",
           onIndex: true,
           source: {
             inventory: "resumes/facts/codenames-ai-e2e.yml",
