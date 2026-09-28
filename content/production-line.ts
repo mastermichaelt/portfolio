@@ -7,6 +7,10 @@ import type { ProductionLine } from "@/domain/production-line";
  * locked `#1b` artboard (`Ecosystem Exploration.dc.html`). Copy is final: do not
  * rewrite, shorten or re-title. The five stages are fixed and identical across
  * every lane; each lane holds exactly five cells, one per stage, in order.
+ *
+ * Copy-lock exception (approved): `stages[0].passCondition` was reframed in the
+ * secondary-route positioning pass to name the product requirement alongside the
+ * stop line. Every other string in this file remains locked to the #1b artboard.
  */
 export const productionLine: ProductionLine = {
   defaultSystemId: "codenames",
@@ -16,7 +20,7 @@ export const productionLine: ProductionLine = {
       order: 1,
       name: "Intent",
       passCondition:
-        "Passes when the work names its own stop line, not only its steps.",
+        "Passes when the work names what the product has to do and where it must stop, not only its steps.",
     },
     {
       id: "agent-execution",

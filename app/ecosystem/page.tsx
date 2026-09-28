@@ -30,10 +30,11 @@ export default async function EcosystemPage() {
           <h1>Everything here ships down the same five stages.</h1>
           <p className="lead lead-follow measure">
             A game move, a dependency upgrade, a published report and this
-            website are unrelated products. They pass the same gates, in the
-            same order, for the same reason: an agent&apos;s output is a
-            proposal until something deterministic has checked it and a person
-            has judged it.
+            website are unrelated products. Each one began as a product
+            requirement that needed a mechanism nobody had built yet. They pass
+            the same gates, in the same order, for the same reason: an
+            agent&apos;s output is a proposal until something deterministic has
+            checked it and a person has judged it.
           </p>
         </div>
       </section>
