@@ -98,6 +98,34 @@ describe("projects 1C — co-primary cases", () => {
     expect(branded?.scope).toMatch(/28 days/i);
   });
 
+  it("frames the Codenames concept figure as the classic word set, never as canonical English", () => {
+    const codenames = caseBySlug("codenames-ai");
+    const figure = allFigures(codenames).find((entry) => entry.value === "350");
+
+    expect(figure?.name).toBe("concepts in the classic word set");
+    expect(figure?.onIndex).toBe(true);
+
+    // The scope names the configuration the count belongs to, and refuses the
+    // cross-language mapping the earlier copy implied.
+    expect(figure?.scope).toMatch(/classic set/i);
+    expect(figure?.scope).toMatch(/extended set/i);
+    expect(figure?.scope).toContain("word set × language → playable pool");
+
+    // English is one projection, not the canonical representation.
+    expect(JSON.stringify(codenames)).not.toMatch(/canonical English/i);
+  });
+
+  it("splits the Codenames representation block body into exactly two paragraphs", () => {
+    const codenames = caseBySlug("codenames-ai");
+    const representation = codenames.blocks.find(
+      (block) => block.navLabel === "Language word sets",
+    );
+
+    // The representation argument is authored as two entries — requirement,
+    // then what followed — which the case renderer maps to two paragraphs.
+    expect(representation?.body).toHaveLength(2);
+  });
+
   it("keeps EM and AIM metrics out of the Atlassian case entirely", () => {
     const atlassian = caseBySlug("experiment-measurement");
     // Role spine mention lives in the aside, in words, with no metrics.
@@ -187,5 +215,20 @@ describe("projects 1C — index composition", () => {
     const atlassian = projectsIndex.coPrimary[1];
     expect(atlassian?.chips).toHaveLength(5);
     expect(codenames?.chips).toHaveLength(4);
+  });
+
+  it("frames the Codenames index row as language word sets, not domain validators", () => {
+    const codenames = projectsIndex.coPrimary[0];
+
+    // The representation chip replaces the earlier completeness framing.
+    expect(codenames?.chips).toContain("Language word sets");
+    expect(codenames?.chips).not.toContain("Domain validators");
+
+    // The summary names the localization work as a model problem, in the
+    // word-set-and-language terms the corrected framing uses.
+    expect(codenames?.summary).toMatch(
+      /a word set and a language resolve to a playable pool/i,
+    );
+    expect(codenames?.summary).not.toMatch(/canonical English/i);
   });
 });

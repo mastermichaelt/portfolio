@@ -57,10 +57,10 @@ export const projectsIndex: ProjectsIndex = {
       href: `/projects/${codenames.slug}`,
       contract: codenames.title,
       summary:
-        "A public AI-assisted Codenames, designed and operated end to end since 2026. A model proposes a clue and nothing in the reply guarantees it is legal on this board. Schema-first structured outputs plus board-aware domain validators separate valid JSON from a legal move; model migrations run as controlled experiments with evaluation built into product behavior rather than left as an offline afterthought.",
+        "A public AI-assisted Codenames, designed and operated end to end since 2026. A model proposes a clue and nothing in the reply guarantees it is legal on this board. Schema-first structured outputs plus board-aware domain validators separate valid JSON from a legal move; model migrations run as controlled experiments with evaluation built into product behavior rather than left as an offline afterthought. Supporting Chinese gameplay turned out to be a model problem rather than a UI one: a word set and a language resolve to a playable pool, so each language has its own playable word set over stable concept identity.",
       chips: [
         "Structured outputs",
-        "Domain validators",
+        "Language word sets",
         "Model migrations",
         "Telemetry quality",
       ],
