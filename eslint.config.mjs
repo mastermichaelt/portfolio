@@ -17,6 +17,9 @@ const eslintConfig = defineConfig([
     "coverage/**",
     // Upstream Impeccable skill payload (vendor; not project source)
     ".cursor/skills/impeccable/**",
+    // Vendored scroll-craft engine, served verbatim and hash-pinned
+    // (vendor/scrollcraft/PROVENANCE.md). Linting it would invite an autofix.
+    "public/vendor/scrollcraft/**",
   ]),
 ]);
 
