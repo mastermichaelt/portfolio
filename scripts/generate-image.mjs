@@ -20,6 +20,7 @@ import { Buffer } from "node:buffer";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { pathToFileURL } from "node:url";
 
 // --- Defaults and supported values (mirror the current Gemini 3 Pro Image API) ---
 
@@ -86,40 +87,89 @@ function loadEnvFiles() {
   }
 }
 
-// --- Output-file validation: confirm we actually wrote a real image ---
+// --- Image validation: confirm the returned bytes really are what was declared ---
 
-function inspectImageFile(filePath) {
-  const bytes = fs.readFileSync(filePath);
-  if (bytes.length === 0) throw new Error("Generated file is empty.");
-
-  const isPng =
+function isPng(bytes) {
+  return (
     bytes.length > 8 &&
     bytes[0] === 0x89 &&
     bytes[1] === 0x50 &&
     bytes[2] === 0x4e &&
-    bytes[3] === 0x47;
-  const isJpeg = bytes.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8;
+    bytes[3] === 0x47
+  );
+}
 
-  if (!isPng && !isJpeg) {
+function isJpeg(bytes) {
+  return bytes.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8;
+}
+
+// The only image formats this tool knows how to name and verify. Each entry
+// maps a MIME type to its canonical extension (plus accepted aliases so a
+// user-supplied path is not needlessly rewritten) and a magic-byte sniffer.
+export const SUPPORTED_IMAGE_TYPES = {
+  "image/png": {
+    label: "PNG",
+    ext: ".png",
+    extAliases: [".png"],
+    sniff: isPng,
+  },
+  "image/jpeg": {
+    label: "JPEG",
+    ext: ".jpg",
+    extAliases: [".jpg", ".jpeg"],
+    sniff: isJpeg,
+  },
+};
+
+// Validate the in-memory bytes BEFORE anything touches the filesystem. Throws on
+// an empty buffer, an unsupported MIME type, or bytes that contradict the
+// declared type, so an unsupported or inconsistent format never leaves a
+// mislabeled (or partial) file behind.
+export function inspectImageBuffer(buffer, mimeType) {
+  if (buffer.length === 0) throw new Error("Model returned an empty image.");
+
+  const type = SUPPORTED_IMAGE_TYPES[mimeType];
+  if (!type) {
     throw new Error(
-      "Generated file is not a recognized PNG or JPEG image (bad magic bytes).",
+      `Unsupported image type "${mimeType}". Supported: ${Object.keys(
+        SUPPORTED_IMAGE_TYPES,
+      ).join(", ")}.`,
+    );
+  }
+  if (!type.sniff(buffer)) {
+    throw new Error(
+      `Model reported ${mimeType}, but the bytes are not a valid ${mimeType} image.`,
     );
   }
 
   const result = {
-    format: isPng ? "PNG" : "JPEG",
-    bytes: bytes.length,
+    format: type.label,
+    ext: type.ext,
+    extAliases: type.extAliases,
+    bytes: buffer.length,
     width: null,
     height: null,
   };
 
   // PNG stores width/height as big-endian uint32 in the IHDR chunk.
-  if (isPng && bytes.length >= 24) {
-    result.width = bytes.readUInt32BE(16);
-    result.height = bytes.readUInt32BE(20);
+  if (mimeType === "image/png" && buffer.length >= 24) {
+    result.width = buffer.readUInt32BE(16);
+    result.height = buffer.readUInt32BE(20);
   }
 
   return result;
+}
+
+// Resolve the path to write to: keep the caller's path when its extension
+// already fits the format, otherwise swap in the canonical extension for the
+// bytes we actually got. Pure (no I/O) so it is easy to test.
+export function resolveOutputPath(outPath, info) {
+  const currentExt = path.extname(outPath).toLowerCase();
+  if (info.extAliases.includes(currentExt)) return outPath;
+  const base = currentExt
+    ? outPath.slice(0, outPath.length - currentExt.length)
+    : outPath;
+  return `${base}${info.ext}`;
 }
 
 // --- The one Google-specific unit: prompt -> image bytes ---
@@ -236,8 +286,6 @@ async function main() {
     return;
   }
 
-  fs.mkdirSync(path.dirname(path.resolve(outPath)), { recursive: true });
-
   process.stdout.write(
     `Generating ${imageSize} ${aspectRatio} image with ${model}...\n`,
   );
@@ -250,28 +298,23 @@ async function main() {
     imageSize,
   });
 
-  // The Gemini API decides the output format (it does not honor a requested
-  // MIME type), so correct the file extension to match the actual bytes rather
-  // than write, say, JPEG bytes into a ".png". Keeps every file honestly named.
-  const actualExt = mimeType === "image/jpeg" ? ".jpg" : ".png";
-  const currentExt = path.extname(outPath).toLowerCase();
-  const matches =
-    currentExt === actualExt ||
-    (actualExt === ".jpg" && currentExt === ".jpeg");
-  if (!matches) {
-    const base = currentExt
-      ? outPath.slice(0, outPath.length - currentExt.length)
-      : outPath;
-    const finalPath = `${base}${actualExt}`;
+  // Validate the returned bytes in memory first; this throws for an empty,
+  // unsupported, or inconsistent response before any file or directory is
+  // created. The Gemini API decides the output format (it does not honor a
+  // requested MIME type), so resolveOutputPath then names the file after the
+  // bytes we actually got rather than the requested extension.
+  const info = inspectImageBuffer(buffer, mimeType);
+  const finalPath = resolveOutputPath(outPath, info);
+  if (finalPath !== outPath) {
     process.stdout.write(
       `Note: model returned ${mimeType}; saving as ${finalPath} instead of ${outPath}.\n`,
     );
     outPath = finalPath;
   }
 
+  fs.mkdirSync(path.dirname(path.resolve(outPath)), { recursive: true });
   fs.writeFileSync(outPath, buffer);
 
-  const info = inspectImageFile(outPath);
   const dims =
     info.width && info.height ? `, ${info.width}x${info.height}px` : "";
   process.stdout.write(
@@ -279,7 +322,12 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  process.stderr.write(`Image generation failed: ${error.message}\n`);
-  process.exitCode = 1;
-});
+// Run only when invoked directly (not when imported by tests).
+const invokedDirectly =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (invokedDirectly) {
+  main().catch((error) => {
+    process.stderr.write(`Image generation failed: ${error.message}\n`);
+    process.exitCode = 1;
+  });
+}
