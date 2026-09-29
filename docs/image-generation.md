@@ -29,13 +29,14 @@ npm run generate:image -- --prompt "A single red circle on a plain white backgro
 
 Options:
 
-| Flag       | Default                     | Notes                                        |
-| ---------- | --------------------------- | -------------------------------------------- |
-| `--prompt` | _(required)_                | What to generate.                            |
-| `--out`    | `generated/<timestamp>.png` | Output file path (dirs created as needed).   |
-| `--aspect` | `1:1`                       | `1:1, 2:3, 3:2, 3:4, 4:3, 9:16, 16:9, 21:9`. |
-| `--size`   | `2K`                        | `1K, 2K, 4K` (largest dimension).            |
-| `--model`  | `gemini-3-pro-image`        | Override only if the model id changes.       |
+| Flag        | Default                     | Notes                                            |
+| ----------- | --------------------------- | ------------------------------------------------ |
+| `--prompt`  | _(required)_                | What to generate.                                |
+| `--out`     | `generated/<timestamp>.png` | Output file path (dirs created as needed).       |
+| `--aspect`  | `1:1`                       | `1:1, 2:3, 3:2, 3:4, 4:3, 9:16, 16:9, 21:9`.     |
+| `--size`    | `2K`                        | `1K, 2K, 4K` (largest dimension).                |
+| `--model`   | `gemini-3-pro-image`        | Override only if the model id changes.           |
+| `--dry-run` | off                         | Print the resolved request; no network, no file. |
 
 Example with controls and a chosen path:
 
@@ -46,6 +47,18 @@ npm run generate:image -- \
 ```
 
 Run `npm run generate:image -- --help` for the full flag list.
+
+### Safe smoke test (`--dry-run`)
+
+This model is **paid**, and the key is loaded automatically from `.env.local`,
+so a normal invocation is billable even when no key is exported in the shell.
+To exercise the CLI — argument parsing, aspect/size validation, output-path and
+key resolution — **without** a billable call, add `--dry-run`. It resolves and
+prints the request, then stops before any generation:
+
+```bash
+npm run generate:image -- --prompt "..." --size 4K --dry-run
+```
 
 ## Disposable output vs. production assets
 

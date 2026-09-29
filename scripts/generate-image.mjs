@@ -214,32 +214,29 @@ async function generateImage({
 
 // --- CLI ---
 
-async function main() {
-  loadEnvFiles();
-  const args = parseArgs(process.argv.slice(2));
+const HELP_TEXT = [
+  "Generate a portfolio image with Nano Banana Pro (Gemini 3 Pro Image).",
+  "",
+  "Usage:",
+  '  npm run generate:image -- --prompt "<text>" [options]',
+  "",
+  "Options:",
+  "  --prompt <text>   Required. What to generate.",
+  `  --out <path>      Output file. Default: ${DEFAULT_OUTPUT_DIR}/<timestamp>.png`,
+  `  --aspect <ratio>  ${SUPPORTED_ASPECT_RATIOS.join(", ")} (default ${DEFAULT_ASPECT})`,
+  `  --size <res>      ${SUPPORTED_SIZES.join(", ")} (default ${DEFAULT_SIZE})`,
+  `  --model <id>      Default ${DEFAULT_MODEL}`,
+  "  --dry-run         Resolve and print the request; no network call, no file.",
+  "",
+  "Auth: GEMINI_API_KEY from the environment or .env.local / .env.",
+  "",
+].join("\n");
 
-  if (args.help || args.h) {
-    process.stdout.write(
-      [
-        "Generate a portfolio image with Nano Banana Pro (Gemini 3 Pro Image).",
-        "",
-        "Usage:",
-        '  npm run generate:image -- --prompt "<text>" [options]',
-        "",
-        "Options:",
-        "  --prompt <text>   Required. What to generate.",
-        `  --out <path>      Output file. Default: ${DEFAULT_OUTPUT_DIR}/<timestamp>.png`,
-        `  --aspect <ratio>  ${SUPPORTED_ASPECT_RATIOS.join(", ")} (default ${DEFAULT_ASPECT})`,
-        `  --size <res>      ${SUPPORTED_SIZES.join(", ")} (default ${DEFAULT_SIZE})`,
-        `  --model <id>      Default ${DEFAULT_MODEL}`,
-        "",
-        "Auth: GEMINI_API_KEY from the environment or .env.local / .env.",
-        "",
-      ].join("\n"),
-    );
-    return;
-  }
-
+// Resolve and validate every CLI input WITHOUT any network or filesystem
+// access. Throws on invalid input. `hasApiKey` and `dryRun` let the caller
+// decide whether to actually generate; this function never itself reaches the
+// billable boundary, which keeps the pre-flight cheap to unit-test.
+export function resolveRequest(args, env) {
   const prompt = typeof args.prompt === "string" ? args.prompt : "";
   if (!prompt) {
     throw new Error('Missing --prompt. Try: --prompt "a red circle".');
@@ -263,39 +260,91 @@ async function main() {
   const model = typeof args.model === "string" ? args.model : DEFAULT_MODEL;
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  let outPath =
+  const outPath =
     typeof args.out === "string"
       ? args.out
       : path.join(DEFAULT_OUTPUT_DIR, `${timestamp}.png`);
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    process.stderr.write(
+  return {
+    prompt,
+    model,
+    aspectRatio,
+    imageSize,
+    outPath,
+    dryRun: Boolean(args["dry-run"]),
+    hasApiKey: Boolean(env.GEMINI_API_KEY),
+  };
+}
+
+const MISSING_KEY_MESSAGE = [
+  "GEMINI_API_KEY is not set, so no image can be generated.",
+  "",
+  "Provide it in one of these ways (never commit it):",
+  "  1. Add a line to .env.local at the repo root:  GEMINI_API_KEY=your-key",
+  "  2. Or export it for one command:  GEMINI_API_KEY=your-key npm run generate:image -- ...",
+  "",
+  "Get a key from Google AI Studio: https://aistudio.google.com/apikey",
+  "",
+].join("\n");
+
+// `deps` exists only for testability: it injects the environment and the
+// generate function so a test can prove --dry-run never reaches generation.
+// Production callers pass nothing and get the real process env + SDK.
+export async function main(argv, deps = {}) {
+  const generate = deps.generate ?? generateImage;
+  const stdout = deps.stdout ?? process.stdout;
+  const stderr = deps.stderr ?? process.stderr;
+  // Only load .env.* into the real process env when no env was injected, so
+  // tests neither read the developer's real .env.local nor mutate globals.
+  if (!deps.env) loadEnvFiles();
+  const env = deps.env ?? process.env;
+
+  const args = parseArgs(argv ?? process.argv.slice(2));
+
+  if (args.help || args.h) {
+    stdout.write(HELP_TEXT);
+    return;
+  }
+
+  const request = resolveRequest(args, env);
+
+  const summary = [
+    "  model:   " + request.model,
+    "  size:    " + request.imageSize,
+    "  aspect:  " + request.aspectRatio,
+    "  output:  " + request.outPath,
+    "  API key: " + (request.hasApiKey ? "found" : "not found"),
+    "  prompt:  " + request.prompt,
+  ];
+
+  // Dry run: stop here, before generateImage() or any file/network work.
+  if (request.dryRun) {
+    stdout.write(
       [
-        "GEMINI_API_KEY is not set, so no image can be generated.",
-        "",
-        "Provide it in one of these ways (never commit it):",
-        "  1. Add a line to .env.local at the repo root:  GEMINI_API_KEY=your-key",
-        "  2. Or export it for one command:  GEMINI_API_KEY=your-key npm run generate:image -- ...",
-        "",
-        "Get a key from Google AI Studio: https://aistudio.google.com/apikey",
+        "Dry run — resolved request (no image generated, no network call):",
+        ...summary,
         "",
       ].join("\n"),
     );
+    return;
+  }
+
+  if (!request.hasApiKey) {
+    stderr.write(MISSING_KEY_MESSAGE);
     process.exitCode = 1;
     return;
   }
 
-  process.stdout.write(
-    `Generating ${imageSize} ${aspectRatio} image with ${model}...\n`,
+  stdout.write(
+    `Generating ${request.imageSize} ${request.aspectRatio} image with ${request.model}...\n`,
   );
 
-  const { buffer, mimeType } = await generateImage({
-    apiKey,
-    model,
-    prompt,
-    aspectRatio,
-    imageSize,
+  const { buffer, mimeType } = await generate({
+    apiKey: env.GEMINI_API_KEY,
+    model: request.model,
+    prompt: request.prompt,
+    aspectRatio: request.aspectRatio,
+    imageSize: request.imageSize,
   });
 
   // Validate the returned bytes in memory first; this throws for an empty,
@@ -304,9 +353,10 @@ async function main() {
   // requested MIME type), so resolveOutputPath then names the file after the
   // bytes we actually got rather than the requested extension.
   const info = inspectImageBuffer(buffer, mimeType);
+  let outPath = request.outPath;
   const finalPath = resolveOutputPath(outPath, info);
   if (finalPath !== outPath) {
-    process.stdout.write(
+    stdout.write(
       `Note: model returned ${mimeType}; saving as ${finalPath} instead of ${outPath}.\n`,
     );
     outPath = finalPath;
@@ -317,7 +367,7 @@ async function main() {
 
   const dims =
     info.width && info.height ? `, ${info.width}x${info.height}px` : "";
-  process.stdout.write(
+  stdout.write(
     `Saved ${outPath} (${info.format}, ${mimeType}, ${info.bytes} bytes${dims})\n`,
   );
 }
