@@ -62,6 +62,7 @@ npm start
 npm run playwright:install   # once: Chromium for e2e
 npm run test:e2e             # happy-path Playwright (build first)
 npm run generate:image -- --prompt "..."   # dev-only Nano Banana Pro image tooling (docs/image-generation.md)
+npm run generate:video -- --prompt "..."   # dev-only Veo text-to-video tooling (docs/video-generation.md)
 npm run verify:git-hooks     # confirm Husky shims are runnable in this checkout
 ```
 
