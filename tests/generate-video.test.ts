@@ -1,5 +1,8 @@
 import { Buffer } from "node:buffer";
-import { describe, expect, it, vi } from "vitest";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   SUPPORTED_VIDEO_TYPES,
@@ -246,5 +249,120 @@ describe("main --dry-run", () => {
     expect(h.output()).toContain("API key:    not found");
 
     process.exitCode = prevExit;
+  });
+});
+
+describe("main happy path (save + verify)", () => {
+  // Exercises the whole post-generation branch of main() WITHOUT any network or
+  // billable call, using the existing `generate` injection seam. The fake
+  // generate returns the same shape the real Google unit does ({ mimeType,
+  // download }) and writes a fixture MP4 to the requested path, so real fs
+  // mkdir/verify run against a temporary directory.
+  const tmpDirs: string[] = [];
+
+  function makeTmpDir(): string {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "veo-test-"));
+    tmpDirs.push(dir);
+    return dir;
+  }
+
+  afterEach(() => {
+    while (tmpDirs.length > 0) {
+      fs.rmSync(tmpDirs.pop()!, { recursive: true, force: true });
+    }
+  });
+
+  function harness() {
+    let out = "";
+    const stdout = { write: (s: string) => void (out += s) };
+    const stderr = { write: (s: string) => void (out += s) };
+    return { stdout, stderr, output: () => out };
+  }
+
+  // A fake generate that records its arguments and, on download, writes the
+  // given fixture bytes to the resolved path — standing in for the SDK's
+  // files.download.
+  function fakeGenerate(mimeType: string | undefined, bytes: Buffer) {
+    return vi.fn(async (params: Record<string, unknown>) => ({
+      _params: params,
+      mimeType,
+      download: async (downloadPath: string) => {
+        fs.writeFileSync(downloadPath, bytes);
+      },
+    }));
+  }
+
+  it("resolves type, creates the file, verifies it, and reports success", async () => {
+    const dir = makeTmpDir();
+    const out = path.join(dir, "clip.mp4");
+    const bytes = makeMp4();
+    const generate = fakeGenerate("video/mp4", bytes);
+    const h = harness();
+
+    await main(["--prompt", "a red circle moving", "--out", out], {
+      env: { GEMINI_API_KEY: "test-key" },
+      generate,
+      ...h,
+    });
+
+    // The resolved request was wired through to generate (cheapest defaults).
+    expect(generate).toHaveBeenCalledTimes(1);
+    expect(generate.mock.calls[0][0]).toMatchObject({
+      apiKey: "test-key",
+      model: "veo-3.1-lite-generate-preview",
+      prompt: "a red circle moving",
+      resolution: "720p",
+      aspectRatio: "16:9",
+      durationSeconds: 4,
+    });
+
+    // The file was actually created at the requested path and its bytes match.
+    expect(fs.existsSync(out)).toBe(true);
+    expect(fs.readFileSync(out).equals(bytes)).toBe(true);
+
+    // Success is reported with the verified container and byte count.
+    const output = h.output();
+    expect(output).toContain(`Saved ${out}`);
+    expect(output).toContain("MP4");
+    expect(output).toContain("video/mp4");
+    expect(output).toContain(`${bytes.length} bytes`);
+  });
+
+  it("renames the output to the container the API returned before saving", async () => {
+    const dir = makeTmpDir();
+    const requested = path.join(dir, "clip.mov"); // mismatched extension
+    const expected = path.join(dir, "clip.mp4"); // corrected from mimeType
+    const bytes = makeMp4();
+    const generate = fakeGenerate("video/mp4", bytes);
+    const h = harness();
+
+    await main(["--prompt", "x", "--out", requested], {
+      env: { GEMINI_API_KEY: "test-key" },
+      generate,
+      ...h,
+    });
+
+    // Written under the corrected extension, not the requested one.
+    expect(fs.existsSync(expected)).toBe(true);
+    expect(fs.existsSync(requested)).toBe(false);
+    const output = h.output();
+    expect(output).toContain("Note: model returned video/mp4");
+    expect(output).toContain(`Saved ${expected}`);
+  });
+
+  it("propagates a verification failure when the downloaded bytes are not the declared container", async () => {
+    const dir = makeTmpDir();
+    const out = path.join(dir, "clip.mp4");
+    // Declares MP4 but writes bytes that are not an MP4 container.
+    const generate = fakeGenerate("video/mp4", Buffer.from([0x00, 0x01, 0x02]));
+    const h = harness();
+
+    await expect(
+      main(["--prompt", "x", "--out", out], {
+        env: { GEMINI_API_KEY: "test-key" },
+        generate,
+        ...h,
+      }),
+    ).rejects.toThrow(/not a valid video\/mp4/i);
   });
 });
