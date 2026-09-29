@@ -8,3 +8,6 @@ package-lock.json
 
 # scroll-craft engine: vendored verbatim, hash-pinned (vendor/scrollcraft/PROVENANCE.md)
 public/vendor/scrollcraft/
+
+# disposable output from the dev image generator (scripts/generate-image.mjs)
+generated/

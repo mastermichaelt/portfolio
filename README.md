@@ -42,7 +42,12 @@ npm run build
 npm start
 npm run playwright:install   # once: Chromium for e2e
 npm run test:e2e             # happy-path Playwright (expects `npm run build` first)
+npm run generate:image -- --prompt "..."   # dev-only image tooling (see below)
 ```
+
+Dev-only image generation (Nano Banana Pro) for portfolio visual experiments is
+documented in [docs/image-generation.md](docs/image-generation.md). It is not
+part of the app runtime or bundle.
 
 Pre-commit (Husky): runs `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Coverage runs in CI (`test:coverage`), not on every commit. Playwright e2e runs in a separate CI job after `verify`. Husky install is skipped when `CI` is set.
 
