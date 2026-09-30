@@ -1207,11 +1207,15 @@
   align-items: center;
 }
 
-/* Tablet — the seam rotates 90° and turns amber; asymmetric 62/38. */
+/* Tablet — the seam rotates 90° and turns amber; asymmetric 62/38. The lower
+   zone is a percentage track driven by a unitless variable (fr units are not
+   allowed inside calc(), percentages are), so the collapse can animate it to 0
+   and let the board's 1fr track expand into the whole frame. */
 [data-cn-armed="tablet"] .cn-split {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: 62fr 1px 38fr;
+  --cn-lower-pct: 38;
+  grid-template-rows: 1fr 1px calc(var(--cn-lower-pct) * 1%);
 }
 
 [data-cn-armed="tablet"] .cn-seam {

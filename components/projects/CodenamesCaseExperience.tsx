@@ -11,6 +11,7 @@ import type {
   BoardTile,
   CodenamesExperience,
   LanguageBeat,
+  TileTeam,
 } from "@/domain/codenames-experience";
 import { armCodenamesStage } from "@/components/projects/codenames-choreography";
 
@@ -33,35 +34,53 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const RING_WORDS = new Set(["BEIJING", "WALL"]);
 
-/** One board tile. The resolved state reveals and rings the turn's targets. */
+/** The tile's team label. `word` is optional so the same tile renders the full
+ *  board and the zh-only language crop (which carries its own team, no word). */
+type TileData = {
+  word?: string;
+  zh: string;
+  team: TileTeam;
+  revealed?: boolean;
+};
+
+function teamLabel(team: TileTeam): string {
+  return team === "assassin"
+    ? "Assassin"
+    : team.charAt(0).toUpperCase() + team.slice(1);
+}
+
+/** One board tile. The resolved state reveals and rings the turn's targets;
+ *  `zhOnly` renders just the Chinese token (the extended-pool language crop). */
 function Tile({
   tile,
   showTeam = true,
+  zhOnly = false,
 }: {
-  tile: BoardTile;
+  tile: TileData;
   showTeam?: boolean;
+  zhOnly?: boolean;
 }) {
-  const revealed = tile.revealed || RING_WORDS.has(tile.word);
-  const ring = RING_WORDS.has(tile.word);
+  const ring = tile.word ? RING_WORDS.has(tile.word) : false;
+  const revealed = tile.revealed || ring;
   return (
     <span
       className="cn-tile"
       data-team={tile.team}
-      data-w={tile.word}
+      {...(tile.word ? { "data-w": tile.word } : {})}
       {...(revealed ? { "data-rv": "" } : {})}
       {...(ring ? { "data-ring": "red" } : {})}
     >
       <span className="cn-tw">
-        <span className="cn-en">{tile.word}</span>
-        <span className="cn-zh">{tile.zh}</span>
+        {zhOnly ? (
+          <span className="cn-zh cn-zh--only">{tile.zh}</span>
+        ) : (
+          <>
+            <span className="cn-en">{tile.word}</span>
+            <span className="cn-zh">{tile.zh}</span>
+          </>
+        )}
       </span>
-      {showTeam ? (
-        <span className="cn-tt">
-          {tile.team === "assassin"
-            ? "Assassin"
-            : tile.team.charAt(0).toUpperCase() + tile.team.slice(1)}
-        </span>
-      ) : null}
+      {showTeam ? <span className="cn-tt">{teamLabel(tile.team)}</span> : null}
     </span>
   );
 }
@@ -370,16 +389,7 @@ function MobileCard({ beat, board }: { beat: Beat; board: BoardTile[] }) {
             columns={2}
             tiles={(beat as LanguageBeat).mobileTiles.map((tile) => ({
               key: tile.zh,
-              node: (
-                <span key={tile.zh} className="cn-tile" data-team={tile.team}>
-                  <span className="cn-tw">
-                    <span className="cn-zh cn-zh--only">{tile.zh}</span>
-                  </span>
-                  <span className="cn-tt">
-                    {tile.team.charAt(0).toUpperCase() + tile.team.slice(1)}
-                  </span>
-                </span>
-              ),
+              node: <Tile key={tile.zh} tile={tile} zhOnly />,
             }))}
           />
         </div>
@@ -406,6 +416,11 @@ function OpeningCard({ experience }: { experience: CodenamesExperience }) {
     <section className="cn-card cn-card--opening" data-cn-open>
       <div className="cn-opening-identity">
         <p className="cn-eyebrow mono">{experience.eyebrow}</p>
+        {/* The page h1 for the mobile composition. Its desktop twin (.cn-h1)
+            and this one are never in the accessibility tree at the same time:
+            the stage and the cards each display:none at the other's breakpoint,
+            leaving exactly one h1 per rendered view. Keep the toggle as
+            display:none — visibility/opacity would expose both. */}
         <h1 className="cn-card-h1">{experience.title}</h1>
         <p className="cn-opening-premise">{premise.mobileSentence}</p>
       </div>
@@ -481,6 +496,10 @@ export function CodenamesCaseExperience({
                 <div className="cn-band-title">
                   <div className="cn-head" data-cn-head>
                     <p className="cn-eyebrow mono">{experience.eyebrow}</p>
+                    {/* The page h1 for the desktop/tablet composition; its
+                        mobile twin (.cn-card-h1) is display:none here, so only
+                        one h1 is ever in the accessibility tree. See the note
+                        on .cn-card-h1. */}
                     <h1 className="cn-h1">{experience.title}</h1>
                   </div>
                   <p

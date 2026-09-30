@@ -32,11 +32,13 @@ const PANEL_CENTERS = [0.22, 0.37, 0.51, 0.65, 0.8];
 const PREMISE_OUT = 0.12;
 const HEAD_OUT = 0.15;
 const TURN_ON = 0.05;
-const TURN_OFF = 0.6;
 const STATUS_EVAL = 0.05;
 const STATUS_VERDICT = 0.12;
 const CALLS_BOTH = 0.085;
 const LANG_START = 0.56;
+// The English turn state (rings + reveals) is fully cleared just before the
+// language crossfade begins, so the fresh zh board never inherits it.
+const TURN_OFF = LANG_START - 0.01;
 const COLLAPSE = 0.9;
 const ACTIVE = "#2563eb";
 const IDLE = "#34363f";
@@ -65,6 +67,7 @@ export function armCodenamesStage(
   const relay = q("[data-cn-relay]");
   const premise = q("[data-cn-premise]");
   const boardwrap = q("[data-cn-boardwrap]");
+  const split = q(".cn-split");
   const right = q("[data-cn-right]");
   const ghosts = q("[data-cn-ghosts]");
   const freeze = q("[data-cn-freeze]");
@@ -261,7 +264,12 @@ export function armCodenamesStage(
           .to(ghosts, { opacity: 0, duration: 0.06 }, COLLAPSE)
           .to(boardwrap, { scale: 1.12, duration: 0.09 }, COLLAPSE);
       } else {
-        tl.to(right, { height: 0, opacity: 0, duration: 0.08 }, COLLAPSE)
+        // Collapse the lower zone by animating its grid track to 0% (the
+        // board's 1fr track then takes the whole frame). Animating the item's
+        // height would not move the track, so the board would never expand.
+        // --cn-lower-pct is declared on .cn-split in the tablet CSS.
+        tl.to(split, { "--cn-lower-pct": 0, duration: 0.09 }, COLLAPSE)
+          .to(right, { opacity: 0, duration: 0.07 }, COLLAPSE)
           .to(ghosts, { opacity: 0, duration: 0.06 }, COLLAPSE)
           .to(boardwrap, { scale: 1.06, duration: 0.09 }, COLLAPSE);
       }
@@ -280,6 +288,9 @@ export function armCodenamesStage(
         setText(bandid, "");
         if (gSm) gSm.style.borderColor = "";
         if (gGu) gGu.style.borderColor = "";
+        // updateDiscrete drives this inline and GSAP does not manage it, so
+        // restore it here alongside the other hand-managed inline styles.
+        if (premise) premise.style.pointerEvents = "";
         delete scope.dataset.cnArmed;
       };
     },

@@ -54,6 +54,22 @@ const doorReports: DoorReport[] = articles
   .filter((article) => article.relatedProjectSlug === RELATED_SLUG)
   .map((article) => ({ title: article.title, url: article.url }));
 
+/** Small-integer to word, so the door heading tracks the resolved report count
+ *  instead of hardcoding "Four" beside a dynamically-filtered list. */
+const COUNT_WORDS = [
+  "No",
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+  "Nine",
+];
+const countWord = (n: number) => COUNT_WORDS[n] ?? String(n);
+
 /** The three qualified figures, pulled from the co-primary case so they don't drift. */
 const caseFigures: CaseFigure[] = (
   projectCases.find((entry) => entry.slug === "codenames-ai")?.blocks ?? []
@@ -226,7 +242,7 @@ export const codenamesExperience: CodenamesExperience = {
     },
     reasoning: {
       label: "Read the reasoning",
-      title: "Four field reports",
+      title: `${countWord(doorReports.length)} field reports`,
       reports: doorReports,
     },
     inspect: {
