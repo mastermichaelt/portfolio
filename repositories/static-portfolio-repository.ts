@@ -1,6 +1,7 @@
 import { about } from "@/content/about";
 import { articleLines } from "@/content/article-lines";
 import { articles } from "@/content/articles";
+import { codenamesExperience } from "@/content/codenames-experience";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { projectWorkflowViewsBySlug } from "@/content/project-workflows";
 import { homepage } from "@/content/homepage";
@@ -37,6 +38,10 @@ export class StaticPortfolioRepository implements PortfolioRepository {
 
   async getProjectCase(slug: string) {
     return projectCases.find((entry) => entry.slug === slug) ?? null;
+  }
+
+  async getCodenamesExperience() {
+    return codenamesExperience;
   }
 
   async listSupportingCases() {
