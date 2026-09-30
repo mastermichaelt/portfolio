@@ -164,15 +164,40 @@ export interface ExperienceDoors {
   };
 }
 
+/**
+ * The at-rest opening state (Addendum 01): identity and premise are present at
+ * `scrollY = 0` and only *yield* on scroll — only the AI turn begins with
+ * interaction. The premise fills the right pane at rest so it is never empty,
+ * and explains the game to a visitor who does not know Codenames.
+ */
+export interface Premise {
+  /** Kicker, e.g. "The premise". */
+  kicker: string;
+  /** What the game is (shown on desktop and tablet). */
+  statement: string;
+  /** The deployed/players claim (desktop only; tablet drops it for depth). */
+  lead: string;
+  /** Scroll-affordance label, e.g. "Scroll". */
+  affordanceLabel: string;
+  /** Scroll-affordance text. */
+  affordanceText: string;
+  /** The premise compressed to one sentence for the mobile identity block. */
+  mobileSentence: string;
+}
+
 /** The fully-assembled Codenames scroll experience. */
 export interface CodenamesExperience {
   slug: string;
   /** Hero eyebrow, e.g. "CH 01 · Independent · 2026 – present · live product". */
   eyebrow: string;
-  /** Hero title that arrives after the AI has moved. */
+  /** Hero title — present at rest, yields to the beat identifier on scroll. */
   title: string;
   externalUrl: string;
   externalLabel: string;
+  /** Mobile opening card identifier, e.g. "01 / the turn". */
+  openingCardId: string;
+  /** The at-rest identity's companion: what this is, before any beat. */
+  premise: Premise;
   relay: Relay;
   board: BoardTile[];
   beats: Beat[];

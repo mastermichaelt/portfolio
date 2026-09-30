@@ -75,6 +75,17 @@ export const codenamesExperience: CodenamesExperience = {
   title: "A real Codenames game, and the AI is a player.",
   externalUrl: "https://codenames-ai.com/",
   externalLabel: "codenames-ai.com ↗",
+  openingCardId: "01 / the turn",
+  premise: {
+    kicker: "The premise",
+    statement:
+      "Codenames is a word game of clues and constrained guesses. Solo mode hands both sides of it to an AI.",
+    lead: "It is deployed, it has players, and the AI is a participant rather than a feature bolted to the side of one.",
+    affordanceLabel: "Scroll",
+    affordanceText: "The AI takes a turn, then what it took to make that work.",
+    mobileSentence:
+      "Codenames is a word game of clues and constrained guesses. Solo hands both sides to an AI.",
+  },
   relay: {
     mode: "Solo vs AI",
     spymaster: "AI Spymaster",
@@ -93,7 +104,7 @@ export const codenamesExperience: CodenamesExperience = {
       kind: "reasoning",
       id: "reasoning",
       bandId: "01 / reasoning",
-      cardId: "01 / the turn",
+      cardId: "02 / reasoning",
       roleChip: "AI Spymaster → AI Guesser",
       kicker: "It plays both sides",
       statement:

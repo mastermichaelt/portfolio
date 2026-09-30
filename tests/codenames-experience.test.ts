@@ -136,4 +136,25 @@ describe("codenames scroll experience content", () => {
       "Private repository · no public URL",
     );
   });
+
+  it("presents identity and premise at rest (Addendum 01)", () => {
+    const { premise } = codenamesExperience;
+    expect(premise.kicker).toBe("The premise");
+    expect(premise.statement).toMatch(/word game of clues/i);
+    // The premise explains the game to a visitor who does not know Codenames.
+    expect(premise.lead).toMatch(/deployed/i);
+    // The mobile identity block folds the premise to one shorter sentence.
+    expect(premise.mobileSentence).toMatch(/Solo hands both sides to an AI/i);
+    expect(premise.mobileSentence.length).toBeLessThan(
+      premise.statement.length,
+    );
+  });
+
+  it("promotes the turn to the opening card and reasoning to card 02", () => {
+    expect(codenamesExperience.openingCardId).toBe("01 / the turn");
+    const reasoning = codenamesExperience.beats.find(
+      (beat) => beat.kind === "reasoning",
+    );
+    expect(reasoning?.cardId).toBe("02 / reasoning");
+  });
 });

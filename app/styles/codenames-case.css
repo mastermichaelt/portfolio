@@ -296,6 +296,9 @@
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--muted);
+  /* The band identifier belongs to the scrubbed state; at rest and in the
+     resolved document the h1 holds the band. Shown only when armed. */
+  display: none;
 }
 
 .cn-band-link {
@@ -365,7 +368,10 @@
 .cn-boardwrap {
   position: relative;
   width: 100%;
-  max-width: 520px;
+  /* 600px (Addendum 01): the board holds one size from rest to collapse — it
+     must never scale up at rest and down when the beats begin, or the "the
+     player's side has not moved" freeze claim becomes a lie. */
+  max-width: 600px;
   transform-origin: top center;
 }
 
@@ -957,6 +963,89 @@
   border-left-color: var(--border-strong);
 }
 
+/* ===================================================== OPENING STATE (rest)
+   The premise panel is visible at rest and is the right pane's first state.
+   In the resolved (unarmed) document it is the first block, above the board:
+   identity → premise → board → beats. */
+.cn-stagebody {
+  display: flex;
+  flex-direction: column;
+}
+
+.cn-premise {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  padding: 34px var(--gutter);
+  border-top: 1px solid var(--border);
+  box-sizing: border-box;
+}
+
+.cn-premise-lead {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--fg-2);
+}
+
+.cn-premise-scroll {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.cn-premise-scroll-label {
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.cn-premise-scroll-text {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted-strong);
+}
+
+/* Mobile opening card — identity + premise fold into card 01, no card 00. */
+.cn-opening-identity {
+  padding: 18px var(--gutter) 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cn-card-h1 {
+  margin: 0;
+  font-size: clamp(22px, 6.4vw, 28px);
+  line-height: 1.15;
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+.cn-opening-premise {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+
+.cn-open-status {
+  margin: 14px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+}
+
+.cn-open-scroll {
+  padding: 14px var(--gutter) 4px;
+}
+
 /* ================================================================ ARMED STATE
    Applied only while the choreography is driving (desktop / tablet, motion
    allowed). Everything here is gated on `[data-cn-armed]`, so with no JS, with
@@ -981,9 +1070,53 @@
   margin: 0;
 }
 
+[data-cn-armed] .cn-bandid {
+  display: block;
+}
+
+/* The stage body holds the split at full size and the premise as an overlay
+   on the right region, so at rest the premise reads as the right pane's first
+   state and yields to 01 / reasoning — the same gesture every later beat uses. */
+[data-cn-armed] .cn-stagebody {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 [data-cn-armed] .cn-split {
   flex: 1;
   min-height: 0;
+}
+
+[data-cn-armed] .cn-premise {
+  position: absolute;
+  z-index: 2;
+  border-top: 0;
+  padding: 24px var(--gutter);
+  gap: 18px;
+}
+
+[data-cn-armed="desktop"] .cn-premise {
+  top: 0;
+  bottom: 0;
+  left: calc(50% + 1px);
+  right: 0;
+}
+
+[data-cn-armed="tablet"] .cn-premise {
+  left: 0;
+  right: 0;
+  top: calc(62% + 1px);
+  bottom: 0;
+}
+
+/* The tablet engineering zone is shallow (~38%); drop the second premise line
+   so the statement and affordance are not crowded. Recovered later by the
+   operation beat and the 175+ figure. */
+[data-cn-armed="tablet"] .cn-premise-lead {
+  display: none;
 }
 
 [data-cn-armed] .cn-left {
@@ -1149,5 +1282,13 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+  }
+
+  /* The opening card carries identity + premise + a full board, so it is the
+     one card allowed to run past a single screen (it shares that with the
+     final collapse card). The board must not shrink to make the identity fit. */
+  .cn-card--opening {
+    justify-content: flex-start;
+    min-height: auto;
   }
 }

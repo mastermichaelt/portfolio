@@ -29,6 +29,7 @@ export interface CodenamesChoreoData {
 /** Progress landmarks (0..1), shared by the timeline and the label mapper so
  *  the two never drift. Panels sit at these centres with a plateau of dwell. */
 const PANEL_CENTERS = [0.22, 0.37, 0.51, 0.65, 0.8];
+const PREMISE_OUT = 0.12;
 const HEAD_OUT = 0.15;
 const TURN_ON = 0.05;
 const TURN_OFF = 0.6;
@@ -62,6 +63,7 @@ export function armCodenamesStage(
   const head = q("[data-cn-head]");
   const bandid = q("[data-cn-bandid]");
   const relay = q("[data-cn-relay]");
+  const premise = q("[data-cn-premise]");
   const boardwrap = q("[data-cn-boardwrap]");
   const right = q("[data-cn-right]");
   const ghosts = q("[data-cn-ghosts]");
@@ -129,6 +131,11 @@ export function armCodenamesStage(
     if (gSm) gSm.style.borderColor = p < 0.06 ? ACTIVE : IDLE;
     if (gGu) gGu.style.borderColor = p > 0.06 && p < HEAD_OUT ? ACTIVE : IDLE;
 
+    // Once the premise has yielded, it must not block clicks to the reasoning
+    // panel beneath it (it stays in the DOM at opacity 0, above the pane).
+    if (premise)
+      premise.style.pointerEvents = p > PREMISE_OUT ? "none" : "auto";
+
     if (bandid) setText(bandid, data.bandIds[nearestPanel(p)] ?? "");
   };
 
@@ -149,9 +156,12 @@ export function armCodenamesStage(
       const mode = conditions.desktop ? "desktop" : "tablet";
       scope.dataset.cnArmed = mode;
 
-      // Armed initial state (all reverted by matchMedia on exit).
-      gsap.set(head, { opacity: 0 });
-      gsap.set(relay, { opacity: 0 });
+      // Armed initial state (all reverted by matchMedia on exit). Identity,
+      // the pre-turn relay and the premise are present at rest (opacity 1) and
+      // only yield on scroll — nothing fades in at the top.
+      gsap.set(head, { opacity: 1 });
+      gsap.set(relay, { opacity: 1 });
+      gsap.set(premise, { opacity: 1, yPercent: 0 });
       gsap.set(bandid, { opacity: 0 });
       gsap.set(panels, { opacity: 0, yPercent: 3 });
       gsap.set(ghosts, { opacity: 0 });
@@ -163,13 +173,17 @@ export function armCodenamesStage(
       gsap.set(boardwrap, { scale: 1, transformOrigin: "top center" });
       updateDiscrete(0);
 
-      const span = (mode === "desktop" ? 6.6 : 6.2) * window.innerHeight;
+      // Scroll length of the pinned scrub, in viewport-heights. Computed inside
+      // the end callback (not captured once) so ScrollTrigger.refresh recomputes
+      // it against the current viewport — otherwise a build that runs before the
+      // viewport has settled locks in a too-short pin.
+      const spanVh = mode === "desktop" ? 6.6 : 6.2;
       const tl = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
           trigger: stage,
           start: () => `top top+=${navH}`,
-          end: () => `+=${span}`,
+          end: () => `+=${spanVh * window.innerHeight}`,
           pin: frame,
           scrub: 0.5,
           anticipatePin: 1,
@@ -178,16 +192,22 @@ export function armCodenamesStage(
         },
       });
 
-      // Intro — the AI takes its turn while the hero title still holds.
-      tl.to(head, { opacity: 1, duration: 0.04 }, 0.01)
-        .to(relay, { opacity: 1, duration: 0.04 }, 0.02)
-        .to(gClue, { opacity: 1, duration: 0.03 }, 0.05)
+      // The turn is the one thing that begins with interaction: the clue
+      // arrives, the relay builds, the guesser lights and the calls land.
+      // There is an opening dwell before this so the premise can be read.
+      tl.to(gClue, { opacity: 1, duration: 0.03 }, 0.05)
         .to(gArrows[0] ?? {}, { opacity: 1, duration: 0.02 }, 0.045)
         .to(gGu, { opacity: 1, duration: 0.03 }, 0.07)
         .to(gArrows[1] ?? {}, { opacity: 1, duration: 0.02 }, 0.07)
         .to([gArrows[2] ?? {}, calls], { opacity: 1, duration: 0.02 }, 0.1);
 
-      // Hero out, band identifier in.
+      // The premise yields to 01 / reasoning and the hero yields to the beat
+      // identifier — both were present at rest, so they animate OUT.
+      tl.to(
+        premise,
+        { opacity: 0, yPercent: -3, duration: 0.065 },
+        PREMISE_OUT,
+      );
       tl.to(head, { opacity: 0, duration: 0.04 }, HEAD_OUT - 0.02).to(
         bandid,
         { opacity: 1, duration: 0.04 },
@@ -261,6 +281,84 @@ export function armCodenamesStage(
         if (gSm) gSm.style.borderColor = "";
         if (gGu) gGu.style.borderColor = "";
         delete scope.dataset.cnArmed;
+      };
+    },
+  );
+
+  // Mobile: no pin. The opening card (card 01) plays the turn as it is scrolled
+  // — pre-turn at rest, resolved with no JS / reduced motion. This is a light,
+  // non-pinned scrub tied to the card's own travel, which touch handles well.
+  mm.add(
+    "(max-width: 699px) and (prefers-reduced-motion: no-preference)",
+    () => {
+      const card = scope.querySelector<HTMLElement>(".cn-card--opening");
+      if (!card) return;
+      const cq = (sel: string) => card.querySelector<HTMLElement>(sel);
+      const bj = cq('[data-w="BEIJING"]');
+      const wl = cq('[data-w="WALL"]');
+      const st = cq("[data-cn-open-status]");
+      const clue = cq("[data-cn-open-clue]");
+      const arrow = cq("[data-cn-open-arrow]");
+
+      // Reset to pre-turn — at rest the board is Planning, no rings, no clue.
+      setAttr(bj, "data-ring", false);
+      setAttr(bj, "data-rv", false);
+      setAttr(wl, "data-ring", false);
+      setAttr(wl, "data-rv", false);
+      setText(st, data.statusPlanning);
+
+      // The turn is one scrubbed GSAP timeline (the same primitive the desktop
+      // stage uses), so GSAP does the driving. The clue arrives as a real tween;
+      // the board's discrete flips/rings/status advance in the timeline's own
+      // onUpdate via the shared setAttr/setText helpers (data-rv is presence-
+      // based in CSS, so it is toggled cleanly rather than left at a stale
+      // attribute value). The opening card is the first content, so at rest its
+      // top sits at the viewport top: progress 0 (pre-turn) holds until the
+      // first scroll gesture, then the turn plays.
+      const openTurn = (p: number) => {
+        setAttr(bj, "data-ring", p > 0.12);
+        setAttr(wl, "data-ring", p > 0.12);
+        setAttr(bj, "data-rv", p > 0.45);
+        setAttr(wl, "data-rv", p > 0.68);
+        setText(
+          st,
+          p < 0.2
+            ? data.statusPlanning
+            : p < 0.62
+              ? data.statusEvaluating
+              : data.statusVerdict,
+        );
+      };
+
+      const tl = gsap.timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: {
+          trigger: card,
+          start: "top top",
+          end: "+=85%",
+          scrub: 0.4,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => openTurn(self.progress),
+        },
+      });
+      tl.fromTo(
+        [arrow, clue],
+        { opacity: 0 },
+        { opacity: 1, duration: 0.22 },
+        0.06,
+      );
+      // Hold the timeline open across the whole scrubbed range so the onUpdate
+      // resolution follows the full turn, not just the clue's fade.
+      tl.to({}, { duration: 1 });
+      openTurn(0);
+
+      return () => {
+        // Restore the resolved turn (the no-JS / reduced-motion state).
+        setAttr(bj, "data-ring", true);
+        setAttr(bj, "data-rv", true);
+        setAttr(wl, "data-ring", true);
+        setAttr(wl, "data-rv", true);
+        setText(st, data.statusVerdict);
       };
     },
   );

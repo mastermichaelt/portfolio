@@ -330,7 +330,7 @@ function MobileCard({ beat, board }: { beat: Beat; board: BoardTile[] }) {
         </div>
       </div>
 
-      {beat.kind === "reasoning" || beat.kind === "operation" ? (
+      {beat.kind === "operation" ? (
         <div className="cn-card-product">
           <Board board={board} className="cn-board cn-board--mobile" />
         </div>
@@ -392,6 +392,62 @@ function MobileCard({ beat, board }: { beat: Beat; board: BoardTile[] }) {
   );
 }
 
+/**
+ * The mobile opening card (Addendum 01). There is one surface at rest on mobile,
+ * so identity and the premise (compressed to one sentence) fold into card 01's
+ * portfolio block rather than becoming a card 00 before the product. The board
+ * is pre-turn at rest; the turn plays as the card is scrolled (the choreography
+ * resets and drives it). With no JS / reduced motion this renders the turn
+ * resolved, which is the specified fallback.
+ */
+function OpeningCard({ experience }: { experience: CodenamesExperience }) {
+  const { relay, premise } = experience;
+  return (
+    <section className="cn-card cn-card--opening" data-cn-open>
+      <div className="cn-opening-identity">
+        <p className="cn-eyebrow mono">{experience.eyebrow}</p>
+        <h1 className="cn-card-h1">{experience.title}</h1>
+        <p className="cn-opening-premise">{premise.mobileSentence}</p>
+      </div>
+      <div className="cn-card-head cn-open-head">
+        <div className="cn-card-idline">
+          <span className="cn-relay-mode">
+            <span aria-hidden="true" className="cn-relay-glyph">
+              ◈
+            </span>
+            {relay.mode}
+          </span>
+          <span className="cn-relay-div" aria-hidden="true" />
+          <span className="cn-card-id mono">{experience.openingCardId}</span>
+        </div>
+        <div className="cn-card-chips">
+          <span className="cn-gchip cn-gchip--act">{relay.spymaster}</span>
+          <span className="cn-garrow" data-cn-open-arrow aria-hidden="true">
+            →
+          </span>
+          <span className="cn-clue" data-cn-open-clue>
+            {relay.clue}
+          </span>
+        </div>
+      </div>
+      <div className="cn-card-product">
+        <Board board={experience.board} className="cn-board cn-board--mobile" />
+        <p className="cn-open-status mono" data-cn-open-status>
+          {relay.statusVerdict}
+        </p>
+      </div>
+      <div className="cn-premise-scroll cn-open-scroll">
+        <span className="cn-premise-scroll-label mono">
+          {premise.affordanceLabel}
+        </span>
+        <span className="cn-premise-scroll-text mono">
+          {premise.affordanceText}
+        </span>
+      </div>
+    </section>
+  );
+}
+
 export function CodenamesCaseExperience({
   experience,
 }: {
@@ -445,38 +501,59 @@ export function CodenamesCaseExperience({
               <Relay experience={experience} />
             </div>
 
-            <div className="cn-split">
-              <div className="cn-left" data-cn-left>
-                <div className="cn-ghosts" data-cn-ghosts aria-hidden="true">
-                  <span className="cn-ghost" />
-                  <span className="cn-ghost" />
-                  <span className="cn-ghost" />
-                  <span className="cn-ghost" />
-                  <span className="cn-ghost" />
-                </div>
-                <div className="cn-boardwrap" data-cn-boardwrap>
-                  <Board board={experience.board} />
-                  <p
-                    className="cn-freeze mono"
-                    data-cn-freeze
-                    aria-hidden="true"
-                  >
-                    The player&apos;s side has not moved.
-                  </p>
+            <div className="cn-stagebody">
+              {/* Identity's companion: the premise fills the right pane at
+                  rest so it is never empty, then yields to 01 / reasoning. In
+                  the resolved (unarmed) document it is the first block, above
+                  the board. */}
+              <div className="cn-premise" data-cn-premise>
+                <p className="cn-pkick">{experience.premise.kicker}</p>
+                <p className="cn-pstat">{experience.premise.statement}</p>
+                <p className="cn-premise-lead">{experience.premise.lead}</p>
+                <div className="cn-premise-scroll">
+                  <span className="cn-premise-scroll-label mono">
+                    {experience.premise.affordanceLabel}
+                  </span>
+                  <span className="cn-premise-scroll-text mono">
+                    {experience.premise.affordanceText}
+                  </span>
                 </div>
               </div>
-              <div className="cn-seam" aria-hidden="true" />
-              <div className="cn-right" data-cn-right>
-                {experience.beats.map((beat) => (
-                  <BeatPanel key={beat.id} beat={beat} />
-                ))}
+
+              <div className="cn-split">
+                <div className="cn-left" data-cn-left>
+                  <div className="cn-ghosts" data-cn-ghosts aria-hidden="true">
+                    <span className="cn-ghost" />
+                    <span className="cn-ghost" />
+                    <span className="cn-ghost" />
+                    <span className="cn-ghost" />
+                    <span className="cn-ghost" />
+                  </div>
+                  <div className="cn-boardwrap" data-cn-boardwrap>
+                    <Board board={experience.board} />
+                    <p
+                      className="cn-freeze mono"
+                      data-cn-freeze
+                      aria-hidden="true"
+                    >
+                      The player&apos;s side has not moved.
+                    </p>
+                  </div>
+                </div>
+                <div className="cn-seam" aria-hidden="true" />
+                <div className="cn-right" data-cn-right>
+                  {experience.beats.map((beat) => (
+                    <BeatPanel key={beat.id} beat={beat} />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Mobile: one scroll-snap card per beat. */}
+        {/* Mobile: the opening card, then one scroll-snap card per beat. */}
         <section className="cn-cards" aria-hidden="true">
+          <OpeningCard experience={experience} />
           {experience.beats.map((beat) => (
             <MobileCard key={beat.id} beat={beat} board={experience.board} />
           ))}
