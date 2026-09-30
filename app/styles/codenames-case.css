@@ -652,8 +652,8 @@
 /* Migration cells. */
 .cn-cells {
   display: grid;
-  grid-template-columns: 1fr 1px 1fr;
-  gap: 0;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
   background: var(--border);
   max-width: 440px;
 }
@@ -661,11 +661,6 @@
 .cn-cell {
   background: var(--surface);
   padding: 18px 20px;
-}
-
-.cn-cell:nth-child(2) {
-  background: var(--border);
-  padding: 0;
 }
 
 .cn-cell-body {
@@ -1231,6 +1226,13 @@
   max-width: none;
 }
 
+/* The 38% lower zone is shallow, so tighten each beat's vertical rhythm to fit
+   without clipping the contract line or its report link. */
+[data-cn-armed="tablet"] .cn-panel {
+  gap: 12px;
+  padding-block: 14px;
+}
+
 /* Tablet legality re-columns to two cells so the lower zone stays shallow. */
 [data-cn-armed="tablet"] .cn-panel[data-beat="legality"] .cn-rows {
   display: grid;
@@ -1282,6 +1284,11 @@
 
   .cn-card {
     scroll-snap-align: start;
+    /* Offset the snap by the sticky header height so a snapped card's top
+       (card id, then the board / identity) lands below the header instead of
+       behind it. --cn-nav-h is the measured header height (set on .cn-scope by
+       the choreography and inherited here); 4rem is a close no-JS fallback. */
+    scroll-margin-top: var(--cn-nav-h, 4rem);
     min-height: calc(100vh - var(--cn-nav-h, 63px));
     display: flex;
     flex-direction: column;
