@@ -551,8 +551,11 @@ export function CodenamesCaseExperience({
           </div>
         </section>
 
-        {/* Mobile: the opening card, then one scroll-snap card per beat. */}
-        <section className="cn-cards" aria-hidden="true">
+        {/* Mobile: the opening card, then one scroll-snap card per beat. Only
+            one composition is ever in the a11y tree — the stage and the cards
+            each display:none at the other's breakpoint — so this must NOT be
+            aria-hidden, or the whole mobile experience is hidden from readers. */}
+        <section className="cn-cards">
           <OpeningCard experience={experience} />
           {experience.beats.map((beat) => (
             <MobileCard key={beat.id} beat={beat} board={experience.board} />

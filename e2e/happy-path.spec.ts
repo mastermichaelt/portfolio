@@ -230,27 +230,23 @@ test.describe("portfolio happy path", () => {
     await expect(page.locator("body")).not.toContainText(".yml");
   });
 
-  test("co-primary case study renders blocks, figures, rail and artifacts", async ({
+  test("codenames-ai scroll experience states identity, premise, figures and doors", async ({
     page,
   }) => {
     await page.goto("/projects/codenames-ai");
 
+    // Addendum 01: identity is present at rest — the h1 states what it is.
     await expect(
       page.getByRole("heading", {
-        name: /A live game people play/i,
+        name: /A real Codenames game, and the AI is a player/i,
         level: 1,
       }),
     ).toBeVisible();
 
-    // Sticky contents rail with per-block items.
-    const rail = page.getByRole("navigation", { name: "Contents" });
-    await expect(rail).toBeVisible();
-    await expect(rail.getByText("Legal-move validation")).toBeVisible();
-    await expect(rail.getByText("Language word sets")).toBeVisible();
-
-    // Figure-absent block keeps its stated note rather than a placeholder.
+    // The premise fills the right pane at rest rather than an empty surface.
+    await expect(page.getByText("The premise")).toBeVisible();
     await expect(
-      page.getByText(/No figure is claimed for this block/i),
+      page.getByText(/Codenames is a word game of clues/i).first(),
     ).toBeVisible();
 
     // Qualified figure: value + scope shown together as one block.
@@ -260,13 +256,17 @@ test.describe("portfolio happy path", () => {
       /durable floor/i,
     );
 
-    // Every block ends on a contract line.
-    await expect(page.getByText(/^Contract:/).first()).toBeVisible();
+    // The four field-report doors resolve, including the persistence report.
+    await expect(page.getByText("Four field reports")).toBeVisible();
+    await expect(page.getByText(/The board came back/i)).toBeVisible();
 
-    // Live product opens externally.
+    // Live product opens externally; the technical door states its absence.
     await expect(
-      page.locator('a[href="https://codenames-ai.com/"]'),
+      page.locator('a[href="https://codenames-ai.com/"]').first(),
     ).toHaveAttribute("target", "_blank");
+    await expect(
+      page.getByText("Private repository · no public URL"),
+    ).toBeVisible();
 
     // Provenance / fact-id review aids must not ship.
     await expect(page.locator("body")).not.toContainText(".yml");
@@ -318,26 +318,25 @@ test.describe("portfolio happy path", () => {
       ).toBeVisible();
     });
 
-    test("codenames-ai rail wraps, scroll-spy and figure states hold", async ({
+    test("codenames-ai mobile opening card folds in identity and premise", async ({
       page,
     }) => {
       await page.goto("/projects/codenames-ai");
 
-      await expect(page.locator(".pcase-rail")).toHaveCSS("position", "static");
-
-      const railHeights = await page
-        .locator(".pcase-rail-item")
-        .evaluateAll((nodes) =>
-          nodes.map((node) => node.getBoundingClientRect().height),
-        );
-      for (const height of railHeights) {
-        expect(height).toBeGreaterThanOrEqual(44);
-      }
-
+      // No card 00: card 01 is the opening card carrying identity + the premise
+      // compressed to one sentence, above a full board.
       await expect(
-        page.getByText(/No figure is claimed for this block/i),
+        page.getByRole("heading", {
+          name: /A real Codenames game, and the AI is a player/i,
+          level: 1,
+        }),
       ).toBeVisible();
+      await expect(
+        page.getByText(/Solo hands both sides to an AI/i),
+      ).toBeVisible();
+      await expect(page.locator(".cn-card--opening .cn-board")).toBeVisible();
 
+      // Figure scope stays readable (not truncated) and the doors resolve.
       const playersFigure = page
         .locator(".qfigure")
         .filter({ hasText: "175+" });
@@ -347,23 +346,14 @@ test.describe("portfolio happy path", () => {
       const scopeWidth = await playersFigure
         .locator(".figure-scope")
         .evaluate((node) => node.getBoundingClientRect().width);
-      expect(scopeWidth).toBeGreaterThan(300);
+      expect(scopeWidth).toBeGreaterThan(240);
+      await expect(page.getByText("Four field reports")).toBeVisible();
 
-      await page.locator("#b03").scrollIntoViewIfNeeded();
-      await expect(page.locator(".pcase-rail-item.is-active")).toContainText(
-        "Telemetry quality",
+      // No horizontal overflow at mobile width.
+      const overflowX = await page.evaluate(
+        () => document.documentElement.scrollWidth > window.innerWidth + 1,
       );
-
-      await page.locator('a.pcase-rail-item[href="#artifacts"]').click();
-      await expect(page).toHaveURL(/#artifacts$/);
-      const artifactsTop = await page
-        .locator("#artifacts")
-        .evaluate((node) => node.getBoundingClientRect().top);
-      expect(artifactsTop).toBeGreaterThanOrEqual(90);
-      expect(artifactsTop).toBeLessThanOrEqual(102);
-      await expect(page.locator(".pcase-rail-item.is-active")).toContainText(
-        "Artifacts",
-      );
+      expect(overflowX).toBe(false);
     });
 
     test("experiment-measurement keeps qualified figures readable", async ({
