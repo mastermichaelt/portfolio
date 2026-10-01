@@ -1109,11 +1109,12 @@
 }
 
 [data-cn-armed] .cn-split {
-  /* A 1px --border on the stage's left and right edges closes the figure, so the
-     product canvas reads as a bounded panel in the hairline grid rather than a
-     bleed that happens to stop (Addendum 02 §1). border-box keeps the grid
-     tracks inside the frame's content width. */
+  /* A 1px --border on the stage's left, right and bottom edges closes the figure
+     (the band's own border-bottom closes the top), so the bounded panel reads as
+     a complete frame rather than a bleed that happens to stop (Addendum 02 §1).
+     border-box keeps the grid tracks inside the frame's content width. */
   border-inline: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   box-sizing: border-box;
 }
 

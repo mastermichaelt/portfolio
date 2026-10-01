@@ -201,13 +201,17 @@ export function armCodenamesStage(
       setText(status, phase);
     }
 
-    // Panels: settled hold, short squared crossfade at the slot boundary.
+    // Panels: settled hold, short squared crossfade at the slot boundary. The
+    // final beat (operation) has no successor to hand to, so once it has arrived
+    // it stays settled past its centre and yields only as the collapse removes
+    // the whole right pane — never leaving an empty pane between it and collapse.
     let active = -1;
     panels.forEach((el, i) => {
       const d = (p - CENTERS[i]) / SLOT;
-      const o = panelOpacity(d);
+      const lastHeld = i === panels.length - 1 && d > 0;
+      const o = lastHeld ? 1 : panelOpacity(d);
       el.style.opacity = String(o);
-      el.style.transform = `translateY(${drift(d)}px)`;
+      el.style.transform = `translateY(${lastHeld ? 0 : drift(d)}px)`;
       el.style.pointerEvents = o > 0.5 ? "auto" : "none";
       if (o > 0.5) active = i;
     });
@@ -279,7 +283,14 @@ export function armCodenamesStage(
       // authored in render(), not as tweens, so the hold/replacement model
       // (ADDENDUM-03) is one deterministic mapping. The dummy tween gives the
       // scrub a linear 0..1 progress; onUpdate maps it to the stage.
-      const spanVh = mode === "desktop" ? 6.6 : 6.2;
+      //
+      // spanVh is the physical scroll runway (in viewport-heights) the whole
+      // progress mapping is stretched across. It is deliberately dense: the beat
+      // structure, holds and quick transitions are unchanged, but the scroll
+      // distance per beat is tightened so a deliberate scroll moves through the
+      // five beats at a comfortable pace without long unchanged stretches. Each
+      // beat still holds ~0.3 viewport-heights at full opacity — easy to stop on.
+      const spanVh = mode === "desktop" ? 4.2 : 4.0;
       const tl = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
