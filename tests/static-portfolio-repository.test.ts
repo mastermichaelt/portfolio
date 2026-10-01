@@ -205,9 +205,14 @@ vi.mock("@/content/homepage", () => ({
   },
 }));
 
+vi.mock("@/content/codenames-experience", () => ({
+  codenamesExperience: { slug: "codenames-ai", beats: [], figures: [] },
+}));
+
 import { about } from "@/content/about";
 import { articleLines } from "@/content/article-lines";
 import { articles } from "@/content/articles";
+import { codenamesExperience } from "@/content/codenames-experience";
 import { entities, relationships, workflowViews } from "@/content/ecosystem";
 import { projectWorkflowViewsBySlug } from "@/content/project-workflows";
 import { homepage } from "@/content/homepage";
@@ -269,6 +274,12 @@ describe("StaticPortfolioRepository", () => {
 
   it("returns null for an unknown project case slug", async () => {
     await expect(repository.getProjectCase("missing")).resolves.toBeNull();
+  });
+
+  it("returns the codenames scroll experience", async () => {
+    await expect(repository.getCodenamesExperience()).resolves.toEqual(
+      codenamesExperience,
+    );
   });
 
   it("lists supporting cases from the static content module", async () => {

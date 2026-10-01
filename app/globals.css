@@ -9,6 +9,7 @@
 @import "./styles/home.css";
 @import "./styles/articles.css";
 @import "./styles/projects.css";
+@import "./styles/codenames-case.css";
 @import "./styles/about.css";
 @import "./styles/ecosystem.css";
 /* Experiment layer, last: scoped scroll-craft device rules.

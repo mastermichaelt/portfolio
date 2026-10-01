@@ -396,7 +396,7 @@ const codenamesAi: ProjectCase = {
         label: "Live product — codenames-ai.com",
         description: [
           {
-            text: "Solo mode asks an AI Spymaster for clues; in classic mode the AI guesses from clue and board state only.",
+            text: "Solo runs both AI roles: an AI Spymaster proposes the clue, AI operatives call the board. Two Player keeps the spymaster human.",
           },
         ],
         href: "https://codenames-ai.com/",

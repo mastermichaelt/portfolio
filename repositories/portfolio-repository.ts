@@ -1,5 +1,6 @@
 import type { AboutPage } from "@/domain/about";
 import type { Article, ArticleLineDefinition } from "@/domain/article";
+import type { CodenamesExperience } from "@/domain/codenames-experience";
 import type { Entity } from "@/domain/entities";
 import type { Homepage } from "@/domain/homepage";
 import type { Profile } from "@/domain/profile";
@@ -26,6 +27,8 @@ export interface PortfolioRepository {
   /** Co-primary case studies rendered with the 1C detail template. */
   listProjectCases(): Promise<ProjectCase[]>;
   getProjectCase(slug: string): Promise<ProjectCase | null>;
+  /** The Codenames AI scroll experience that replaces its 1C detail document. */
+  getCodenamesExperience(): Promise<CodenamesExperience>;
   /** Supporting-tier case studies with a static architecture figure. */
   listSupportingCases(): Promise<SupportingCase[]>;
   getSupportingCase(slug: string): Promise<SupportingCase | null>;

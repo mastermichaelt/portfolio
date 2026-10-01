@@ -1,0 +1,1331 @@
+/* Codenames AI case study — "1c, two screens, one game".
+   ------------------------------------------------------------------------
+   TWO REGISTERS, deliberately not harmonised (this is the one page that admits
+   rounded, shadowed chrome, and only inside the product surface):
+
+   - PRODUCT register  → the shipped game's own look, scoped to `.cn-left` and
+     the mobile card product zones. Colours/radii/shadows are the game's own
+     (frontend/src/theme.css, legacy-board.css), transcribed literally.
+   - PORTFOLIO register → everything else: DESIGN.md as written, using the
+     tokens in app/styles/tokens.css. No new tokens, no radii, no shadows.
+
+   The markup renders the RESOLVED document (board revealed, relay resolved,
+   every beat panel in normal flow). That is the no-JS / reduced-motion / short-
+   viewport floor. The scroll choreography arms the stage by setting
+   `data-cn-armed` on `.cn-scope`; every pinned/hidden rule below is gated on
+   that attribute, so nothing hides without a live, motion-allowed engine. */
+
+.cn-scope {
+  --cn-nav-h: 63px;
+}
+
+/* ============================================================ PRODUCT REGISTER
+   Board tiles. Values are the game's, not the portfolio's. */
+.cn-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.cn-board--crop {
+  grid-template-columns: repeat(var(--cn-cols, 3), minmax(0, 1fr));
+}
+
+.cn-tile {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  min-height: 2.95rem;
+  padding: 0.45rem 0.35rem;
+  background: #1a1b22;
+  border: 1px solid #363941;
+  border-radius: 10px;
+  text-align: center;
+  font:
+    600 0.7rem/1.2 system-ui,
+    -apple-system,
+    sans-serif;
+  letter-spacing: 0.025em;
+  color: #e8eaef;
+  position: relative;
+  transition:
+    background 0.3s,
+    border-color 0.3s,
+    box-shadow 0.3s,
+    color 0.3s;
+}
+
+.cn-tw {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.2em;
+  width: 100%;
+}
+
+.cn-tt {
+  font-size: 0.9em;
+  font-weight: 600;
+  line-height: 1.1;
+  text-transform: capitalize;
+  opacity: 0.8;
+}
+
+.cn-en,
+.cn-zh {
+  transition: opacity 0.5s;
+}
+
+.cn-zh {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.cn-zh--only {
+  position: static;
+  opacity: 1;
+}
+
+.cn-board[data-lang="zh"] .cn-en {
+  opacity: 0;
+}
+
+.cn-board[data-lang="zh"] .cn-zh {
+  opacity: 1;
+}
+
+.cn-tile[data-team="red"] {
+  background: #2a1216;
+  border-color: #8f3048;
+  color: #fecdd3;
+}
+
+.cn-tile[data-team="blue"] {
+  background: #101b32;
+  border-color: #2a5088;
+  color: #b6d4ff;
+}
+
+.cn-tile[data-team="neutral"] {
+  background: #2f281f;
+  border-color: #6b5c47;
+  color: #ebe2d4;
+}
+
+.cn-tile[data-team="red"][data-rv] {
+  background: #4a2028;
+  border-color: #e85d6f;
+  color: #fecaca;
+}
+
+.cn-tile[data-team="blue"][data-rv] {
+  background: #1a3560;
+  border-color: #3b82f6;
+  color: #dbeafe;
+}
+
+.cn-tile[data-team="neutral"][data-rv] {
+  background: #3d3429;
+  border-color: #8f7c63;
+  color: #f7efe3;
+}
+
+.cn-tile[data-rv] .cn-tw {
+  text-decoration: line-through;
+}
+
+.cn-tile[data-ring="red"] {
+  border-color: #f87171;
+  box-shadow:
+    0 0 0 2px rgba(248, 113, 113, 0.55),
+    0 0 20px rgba(248, 113, 113, 0.35);
+}
+
+.cn-tile[data-team="assassin"] {
+  grid-column: 1 / -1;
+  min-height: 2.8rem;
+  background: repeating-linear-gradient(
+    -42deg,
+    #1c1917 0 5px,
+    #292524 5px 10px
+  );
+  border: 3px solid #eab308;
+  color: #fef9c3;
+  box-shadow:
+    inset 0 0 0 1px rgba(250, 204, 21, 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.cn-tile[data-team="assassin"] .cn-tt {
+  color: #fde047;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.72em;
+  opacity: 1;
+}
+
+/* Product-register chips shared by the relay and the reasoning card. */
+.cn-gchip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono-stack);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid #34363f;
+  border-radius: 6px;
+  background: #10131a;
+  color: #9ca3af;
+  padding: 5px 9px;
+  white-space: nowrap;
+}
+
+.cn-gchip--muted {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.cn-gchip--act {
+  border-color: #2563eb;
+  color: #e8eaef;
+}
+
+.cn-garrow {
+  font-family: var(--font-mono-stack);
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.cn-clue {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono-stack);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  background: #2563eb;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.cn-calls {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono-stack);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  background: #4a2028;
+  border: 1px solid #e85d6f;
+  color: #fecaca;
+  padding: 4px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* =========================================================== PORTFOLIO REGISTER
+   The stage frame, band and panels. */
+.cn-stage {
+  position: relative;
+  border-top: 1px solid var(--border);
+}
+
+.cn-frame {
+  display: flex;
+  flex-direction: column;
+  /* The stage IS the site container (Addendum 02 §1): the whole experience sits
+     in the same 1336px / 52·28·20px gutter frame as every other page instead of
+     bleeding to the viewport edge. Band, seam and both panes live inside it and
+     inherit these gutters; `position: sticky` on a container-width element pins
+     exactly as it did full-bleed. */
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.cn-band {
+  flex: none;
+  border-bottom: 1px solid var(--border);
+  /* No horizontal padding — the band inherits the frame's container gutter
+     (§1). min-height, never a fixed height (§3): the relay is a flex-wrap row
+     whose chip count grows as the turn progresses, so on a narrow frame it must
+     wrap and grow the band rather than overflow a hard box. measure() reads the
+     band's live height for the pinned fit, so a taller band is handled. */
+  padding-block: 14px;
+  min-height: 112px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+.cn-band-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-lg);
+}
+
+.cn-band-title {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.cn-eyebrow {
+  margin: 0 0 4px;
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.cn-h1 {
+  margin: 0;
+  font-size: clamp(18px, 2vw, 26px);
+  line-height: 1.15;
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+.cn-bandid {
+  margin: 0;
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+  /* The band identifier belongs to the scrubbed state; at rest and in the
+     resolved document the h1 holds the band. Shown only when armed. */
+  display: none;
+}
+
+.cn-band-link {
+  flex: none;
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+}
+
+/* The relay. */
+.cn-relay {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cn-relay-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.cn-relay-glyph {
+  color: #2563eb;
+}
+
+.cn-relay-div {
+  width: 1px;
+  height: 14px;
+  background: var(--border-strong);
+}
+
+.cn-status {
+  font-size: var(--fs-label);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+/* Split: RESOLVED default is a single stacked column. Board first, then each
+   engineering panel in normal flow. The armed grid layouts come later. */
+.cn-split {
+  display: flex;
+  flex-direction: column;
+}
+
+.cn-seam {
+  display: none;
+}
+
+.cn-left {
+  background: #0b0e14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Interior padding, not the site gutter: the frame already owns the gutter
+     (§1), and a tighter 28px interior preserves the 540px board inside the
+     narrower (~559px) product budget the framing leaves. */
+  padding: 32px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cn-boardwrap {
+  position: relative;
+  width: 100%;
+  /* 540px (Addendum 02 §1 — the new constant, replacing 600): the board holds
+     one size from rest through to collapse across every composition. It must
+     never scale up at rest and down when the beats begin, or the "the player's
+     side has not moved" freeze claim becomes a lie. */
+  max-width: 540px;
+  transform-origin: top center;
+}
+
+.cn-ghosts {
+  display: none;
+}
+
+.cn-freeze {
+  margin: 14px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+}
+
+.cn-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.cn-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  padding: 34px var(--gutter);
+  border-top: 1px solid var(--border);
+  box-sizing: border-box;
+}
+
+.cn-pkick {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.cn-rchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--fg-2);
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.cn-pstat {
+  margin: 0;
+  max-width: 30ch;
+  font-family: var(--font-display-stack);
+  font-weight: 600;
+  font-size: clamp(19px, 2vw, 25px);
+  line-height: 1.25;
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg);
+  text-wrap: balance;
+}
+
+.cn-pcon {
+  margin: 0;
+  max-width: 48ch;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--fg);
+}
+
+.cn-panel-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cn-panel-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cn-report {
+  font-size: var(--fs-meta);
+  letter-spacing: 0.06em;
+  align-self: flex-start;
+}
+
+.cn-label {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cn-label--accent {
+  color: var(--accent);
+}
+
+/* Reasoning card (product register — it lives on the seam). */
+.cn-relaycard {
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cn-relaycard .cn-label {
+  color: #9ca3af;
+}
+
+.cn-relaycard-head {
+  background: #10131a;
+  border: 1px solid #34363f;
+  border-radius: 12px 12px 0 0;
+  border-bottom: 0;
+  padding: 13px 18px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.cn-intent {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #e8eaef;
+}
+
+.cn-relaycard-clue {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 11px 18px;
+  background: #0b0e14;
+  border-left: 1px solid #34363f;
+  border-right: 1px solid #34363f;
+}
+
+.cn-relaycard-calls {
+  background: #10131a;
+  border: 1px solid #34363f;
+  border-radius: 0 0 12px 12px;
+  border-top: 0;
+  padding: 13px 18px;
+}
+
+.cn-calls-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 11px;
+}
+
+.cn-call-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cn-call-word {
+  flex: none;
+  width: 80px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #e8eaef;
+}
+
+.cn-call-bar {
+  flex: 1;
+  height: 6px;
+  background: #22232b;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.cn-call-fill {
+  display: block;
+  height: 100%;
+  background: #2563eb;
+}
+
+.cn-call-tier {
+  flex: none;
+  width: 56px;
+  text-align: right;
+  font-size: 11px;
+  color: #b4bcc8;
+}
+
+.cn-call-note {
+  margin: 11px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #b4bcc8;
+}
+
+.cn-call-note .cn-call-word {
+  display: inline;
+  width: auto;
+}
+
+/* Legality rows. */
+.cn-rows {
+  display: flex;
+  flex-direction: column;
+  max-width: 460px;
+  border-top: 1px solid var(--border);
+}
+
+.cn-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.cn-row-role {
+  flex: none;
+  width: 96px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cn-row-token {
+  flex: none;
+  width: 88px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.cn-row-note {
+  flex: 1;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.cn-row--accepted {
+  border-bottom: 1px solid var(--accent);
+}
+
+.cn-row--accepted .cn-row-role {
+  color: var(--accent);
+}
+
+.cn-row-accepted {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--fg);
+}
+
+/* Migration cells. */
+.cn-cells {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  max-width: 440px;
+}
+
+.cn-cell {
+  background: var(--surface);
+  padding: 18px 20px;
+}
+
+.cn-cell-body {
+  margin: 14px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+
+.cn-cell .cn-label {
+  margin-bottom: 0;
+}
+
+/* Language. */
+.cn-formula {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 14px;
+  font-family: var(--font-mono-stack);
+  font-size: clamp(15px, 1.6vw, 19px);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--fg-2);
+}
+
+.cn-formula-part {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px 14px;
+}
+
+.cn-formula-op {
+  color: var(--border-strong);
+  padding-right: 6px;
+}
+
+.cn-formula-op--accent {
+  color: var(--accent);
+}
+
+.cn-formula-term--strong {
+  color: var(--fg);
+}
+
+.cn-langlines {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  max-width: 52ch;
+}
+
+.cn-langline {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--fg-2);
+}
+
+.cn-note {
+  margin: 0;
+  max-width: 56ch;
+  font-size: var(--fs-label);
+  line-height: 1.6;
+  color: var(--muted-strong);
+}
+
+/* Operation event stream. */
+.cn-events {
+  max-width: 440px;
+  border-top: 1px solid var(--border);
+}
+
+.cn-event {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.cn-op-note {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--fg-2);
+}
+
+/* ================================================================ MOBILE CARDS
+   Hidden above the mobile breakpoint; the pinned stage takes over there. */
+.cn-cards {
+  display: none;
+}
+
+.cn-card {
+  border-top: 1px solid var(--border);
+}
+
+.cn-card-head {
+  background: var(--bg);
+  /* No horizontal padding — the card column is the site container (§1), so each
+     card's content aligns to the gutter and the product canvas fills the card. */
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.cn-card-idline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cn-card-id {
+  font-size: var(--fs-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+
+.cn-card-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cn-card-product {
+  background: #0b0e14;
+  /* The canvas fills its card; the board inside it then lands at ~350px on a
+     390px device, holding ~80px tiles (§1). */
+  padding: 16px 0;
+}
+
+.cn-card-product--ruled {
+  border-bottom: 1px solid var(--accent);
+}
+
+.cn-langswap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cn-card-body .cn-panel {
+  border-top: 0;
+  padding: 18px 0;
+}
+
+/* ============================================================ SHARED ENDING */
+.cn-statement {
+  border-top: 1px solid var(--border);
+}
+
+/* The statement opens the evidence as one continuous idea, not two stacked
+   sections (Addendum 04): one major gap to open the statement on its full-width
+   rule, then a lighter gap down to the figures — no compounding of two gaps. */
+.cn-statement .container {
+  padding-top: var(--gap-xl);
+}
+
+.cn-statement-text {
+  margin: 0;
+  max-width: 24ch;
+  font-size: var(--fs-statement);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+.cn-evidence .container {
+  padding-top: var(--gap-lg);
+}
+
+.cn-doors .container {
+  padding-top: var(--gap-xl);
+  padding-bottom: var(--gap-xl);
+}
+
+.sechead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-md);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 12px;
+}
+
+.cn-sechead-label {
+  margin: 0;
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.cn-sechead-tech {
+  margin: 0;
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tracking-nav);
+  color: var(--muted);
+}
+
+.hgrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+  margin-top: var(--gap-lg);
+}
+
+.cn-figcell {
+  background: var(--bg);
+  padding: 26px 28px 28px;
+}
+
+.cn-figcell .qfigure {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cn-door {
+  background: var(--surface);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cn-door-label {
+  margin: 0;
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cn-door-title {
+  margin: 0;
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: var(--tracking-tight);
+}
+
+.cn-door-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--fg-2);
+}
+
+.cn-door-modes {
+  margin: 0;
+  flex: 1;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted-strong);
+}
+
+.cn-door-cta {
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  background: var(--accent-fill);
+  color: var(--accent-ink);
+  padding: 12px 18px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.cn-door-reports {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.cn-door-report {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cn-door-absence {
+  flex: 1;
+  border-left-color: var(--border-strong);
+}
+
+/* ===================================================== OPENING STATE (rest)
+   The premise panel is visible at rest and is the right pane's first state.
+   In the resolved (unarmed) document it is the first block, above the board:
+   identity → premise → board → beats. */
+.cn-stagebody {
+  display: flex;
+  flex-direction: column;
+}
+
+.cn-premise {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  padding: 34px var(--gutter);
+  border-top: 1px solid var(--border);
+  box-sizing: border-box;
+}
+
+.cn-premise-lead {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--fg-2);
+}
+
+.cn-premise-scroll {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.cn-premise-scroll-label {
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.cn-premise-scroll-text {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted-strong);
+}
+
+/* Mobile opening card — identity + premise fold into card 01, no card 00. */
+.cn-opening-identity {
+  padding: 18px 0 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cn-card-h1 {
+  margin: 0;
+  font-size: clamp(22px, 6.4vw, 28px);
+  line-height: 1.15;
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+.cn-opening-premise {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+
+.cn-open-status {
+  margin: 14px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+  /* Reserve the tallest (resolved, two-line) state from the start so the status
+     does not grow when it advances Planning → evaluating → resolved. On the
+     pinned mobile opening that would move the scroll affordance and the content
+     after the opening; the geometry must stay fixed across all three states. */
+  min-height: 3em;
+}
+
+.cn-open-scroll {
+  padding: 14px 0 4px;
+}
+
+/* ================================================================ ARMED STATE
+   Applied only while the choreography is driving (desktop / tablet, motion
+   allowed). Everything here is gated on `[data-cn-armed]`, so with no JS, with
+   reduced motion, on mobile, or on a client-side revisit that does not re-arm,
+   the resolved document above is what renders. GSAP pins `.cn-frame`. */
+[data-cn-armed] .cn-frame {
+  height: calc(100vh - var(--cn-nav-h));
+  overflow: hidden;
+  /* The stage is content-sized and centred (Addendum 04): the band and the
+     split size to their content, and the frame centres the resulting figure so a
+     settled composition reads as a bounded panel placed in the page rather than
+     a block hung from the nav with dead space beneath it. The viewport is the
+     cap (height above); the content is the target. */
+  justify-content: center;
+}
+
+[data-cn-armed] .cn-band-title {
+  position: relative;
+  height: 48px;
+}
+
+[data-cn-armed] .cn-head,
+[data-cn-armed] .cn-bandid {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+}
+
+[data-cn-armed] .cn-bandid {
+  display: block;
+}
+
+/* The stage body and split are content-sized (not flex:1), so the figure is as
+   tall as its tallest settled state and the frame centres it (Addendum 04). */
+[data-cn-armed] .cn-stagebody {
+  display: flex;
+  flex-direction: column;
+}
+
+[data-cn-armed] .cn-split {
+  /* A 1px --border on the stage's left, right and bottom edges closes the figure
+     (the band's own border-bottom closes the top), so the bounded panel reads as
+     a complete frame rather than a bleed that happens to stop (Addendum 02 §1).
+     border-box keeps the grid tracks inside the frame's content width. */
+  border-inline: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  box-sizing: border-box;
+}
+
+/* The engineering pane grid-stacks the premise and the five beats in one cell,
+   so the pane is exactly as tall as its tallest state — which is what sizes the
+   figure (Addendum 04). The choreography moves the premise in here while armed
+   so it overlays the beats and is sized with them (Addendum 01); at rest it is
+   the pane's first state and yields to 01 / reasoning like any later beat. */
+[data-cn-armed] .cn-right {
+  display: grid;
+  overflow: hidden;
+}
+
+[data-cn-armed] .cn-right > .cn-premise,
+[data-cn-armed] .cn-right > .cn-panel {
+  grid-area: 1 / 1;
+}
+
+[data-cn-armed] .cn-premise {
+  border-top: 0;
+  padding: 24px var(--gutter);
+  gap: 18px;
+}
+
+/* The tablet engineering zone is shallow; drop the second premise line so the
+   statement and affordance are not crowded. Recovered later by the operation
+   beat and the 175+ figure. */
+[data-cn-armed="tablet"] .cn-premise-lead {
+  display: none;
+}
+
+[data-cn-armed] .cn-left {
+  overflow: hidden;
+  padding: 24px 28px;
+}
+
+[data-cn-armed] .cn-panel {
+  border-top: 0;
+  padding: 24px var(--gutter);
+}
+
+[data-cn-armed] .cn-ghosts {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cn-ghost {
+  position: absolute;
+  background-color: #1a1b22;
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0 26px, #0b0e14 26px 32px),
+    repeating-linear-gradient(0deg, transparent 0 12px, #0b0e14 12px 18px);
+  border-radius: 8px;
+}
+
+.cn-ghost:nth-child(1) {
+  left: -6%;
+  top: 6%;
+  width: 30%;
+  height: 26%;
+  opacity: 0.45;
+}
+
+.cn-ghost:nth-child(2) {
+  right: -4%;
+  top: 12%;
+  width: 26%;
+  height: 22%;
+  opacity: 0.35;
+}
+
+.cn-ghost:nth-child(3) {
+  left: 4%;
+  bottom: 8%;
+  width: 26%;
+  height: 24%;
+  opacity: 0.4;
+}
+
+.cn-ghost:nth-child(4) {
+  right: 2%;
+  bottom: 5%;
+  width: 32%;
+  height: 27%;
+  opacity: 0.3;
+}
+
+.cn-ghost:nth-child(5) {
+  left: 36%;
+  top: -8%;
+  width: 24%;
+  height: 20%;
+  opacity: 0.25;
+}
+
+/* Desktop — vertical seam, 1fr · 1px · 1fr. */
+[data-cn-armed="desktop"] .cn-split {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+}
+
+[data-cn-armed="desktop"] .cn-seam {
+  display: block;
+  background: var(--border);
+}
+
+[data-cn-armed="desktop"] .cn-left {
+  align-items: center;
+}
+
+/* Tablet — the seam rotates 90° and turns amber. The split is board-driven
+   (Addendum 02 §2), not a fixed percentage: the product zone takes the board's
+   intrinsic height and no more, and the engineering zone takes the remainder
+   with a 320px floor. This responds to board and viewport height together, so
+   the taller beats (reasoning, operation) stop clipping at the heights where a
+   fixed 38% fell short. The collapse switches this to a tweenable percentage
+   track (fr is invalid in calc(); % is valid) — see the choreography. */
+[data-cn-armed="tablet"] .cn-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1px minmax(320px, 1fr);
+}
+
+[data-cn-armed="tablet"] .cn-seam {
+  display: block;
+  background: var(--accent);
+}
+
+[data-cn-armed="tablet"] .cn-left {
+  align-items: center;
+}
+
+/* The board holds its 540px constant on tablet too (Addendum 02 §1): one size
+   across every composition, so it inherits .cn-boardwrap's max-width. */
+
+/* Board-driven split (above) gives the engineering zone its height; the two
+   tallest beats still need a little compaction to clear it without trimming the
+   role chip or the report link. This is the only tablet compaction (§2) — the
+   board-driven split does the rest, so no blanket panel tightening is applied. */
+[data-cn-armed="tablet"] .cn-panel[data-beat="reasoning"] .cn-relaycard-head,
+[data-cn-armed="tablet"] .cn-panel[data-beat="reasoning"] .cn-relaycard-clue,
+[data-cn-armed="tablet"] .cn-panel[data-beat="reasoning"] .cn-relaycard-calls {
+  padding: 10px 16px;
+}
+
+[data-cn-armed="tablet"] .cn-panel[data-beat="operation"] .cn-event {
+  padding-block: 6px;
+}
+
+/* Tablet legality re-columns to two cells so the lower zone stays shallow. */
+[data-cn-armed="tablet"] .cn-panel[data-beat="legality"] .cn-rows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-top: 0;
+}
+
+[data-cn-armed="tablet"] .cn-panel[data-beat="legality"] .cn-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border-bottom: 0;
+  background: var(--bg);
+}
+
+[data-cn-armed="tablet"] .cn-panel[data-beat="legality"] .cn-row-token,
+[data-cn-armed="tablet"] .cn-panel[data-beat="legality"] .cn-row-role {
+  width: auto;
+}
+
+[data-cn-armed="tablet"] .cn-panel[data-beat="legality"] .cn-row--accepted {
+  grid-column: 1 / -1;
+  border-bottom: 1px solid var(--accent);
+}
+
+/* Mobile composition. */
+@media (max-width: 699px) {
+  .cn-stage {
+    display: none;
+  }
+
+  .cn-cards {
+    display: block;
+    /* The cards sit inside the site container (Addendum 02 §1): the gutter
+       bounds the card column, and each card's product canvas fills its card
+       instead of bleeding to the viewport edge. */
+    max-width: var(--container);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .hgrid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Mobile owns no scroll (Addendum 05): ordinary native document scrolling, no
+     snap of any kind. The gesture owns the viewport position — motion only reads
+     it. Cards are content-sized, so each is a tight product-state / amber-rule /
+     engineering-idea pair that sits in a phone viewport on its own; a reader who
+     stops anywhere sees a product state together with the idea that explains it,
+     and stopping between cards is an ordinary document boundary. Card 01 and the
+     collapse card simply run past one screen (Addendum 01) — no longer a special
+     case to excuse, just how the document flows. */
+}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CaseStudyToc } from "@/components/CaseStudyToc";
+import { CodenamesCaseExperience } from "@/components/projects/CodenamesCaseExperience";
 import { ExternalLink } from "@/components/ExternalLink";
 import { ProjectCaseDetail } from "@/components/ProjectCaseDetail";
 import { SupportingCaseDetail } from "@/components/SupportingCaseDetail";
@@ -86,6 +87,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   const projectCase = await repository.getProjectCase(slug);
   if (projectCase) {
+    if (slug === "codenames-ai") {
+      const experience = await repository.getCodenamesExperience();
+      return <CodenamesCaseExperience experience={experience} />;
+    }
     return <ProjectCaseDetail projectCase={projectCase} />;
   }
 
