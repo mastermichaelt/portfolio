@@ -4,16 +4,26 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * The Codenames stage choreography. GSAP owns scroll → progress (pin + scrub);
- * this module authors progress → beat states as one timeline, so dwell/holds
- * are empty segments, the language transform is a stagger, and everything
- * reverts cleanly on unmount and rebuilds on remount (via `useGSAP` +
- * `gsap.matchMedia`). No bespoke scroll-progress engine.
+ * The Codenames stage choreography.
  *
- * The pinned scrub runs only on desktop and tablet, and only when motion is
- * allowed. Mobile and reduced-motion never arm the stage: the component's
- * server-rendered resolved document (and the mobile snap cards) is the floor
- * this degrades to, so no content depends on the timeline running.
+ * Desktop and tablet pin the stage and map scroll → beat states directly
+ * (ADDENDUM-03): each beat owns a slot that is settled at full opacity for the
+ * great majority of its distance, with a short squared crossfade at the slot
+ * boundary, so stopping at an arbitrary scroll position almost always lands on a
+ * single coherent composition rather than a prolonged overlap. Product
+ * progression (clue arrival, relay build, rings, status, language flip, ghost
+ * boards, collapse) stays scrubbed, because the progression is itself the
+ * information. The stage is content-sized and centred in the viewport by CSS
+ * (ADDENDUM-04): the engineering pane grid-stacks its panels so it is as tall as
+ * its tallest beat, and the frame centres the resulting figure.
+ *
+ * Mobile owns nothing (ADDENDUM-05): it is an ordinary native document of beat
+ * cards. The only motion reads native scroll to play the opening turn as card 01
+ * is scrolled; nothing writes the viewport position (no snap, no scrollTo).
+ *
+ * Everything reverts cleanly on unmount and rebuilds on remount via `useGSAP` +
+ * `gsap.matchMedia`. Reduced motion and no-JS never arm: the server-rendered
+ * resolved document is the floor this degrades to.
  */
 
 export interface CodenamesChoreoData {
@@ -26,22 +36,47 @@ export interface CodenamesChoreoData {
   bandIds: string[];
 }
 
-/** Progress landmarks (0..1), shared by the timeline and the label mapper so
- *  the two never drift. Panels sit at these centres with a plateau of dwell. */
-const PANEL_CENTERS = [0.22, 0.37, 0.51, 0.65, 0.8];
-const PREMISE_OUT = 0.12;
-const HEAD_OUT = 0.15;
-const TURN_ON = 0.05;
-const STATUS_EVAL = 0.05;
-const STATUS_VERDICT = 0.12;
-const CALLS_BOTH = 0.085;
-const LANG_START = 0.56;
-// The English turn state (rings + reveals) is fully cleared just before the
-// language crossfade begins, so the fresh zh board never inherits it.
-const TURN_OFF = LANG_START - 0.01;
-const COLLAPSE = 0.9;
+/**
+ * ADDENDUM-03 timing. A beat is settled across `SETTLED` of its slot on each
+ * side of centre and replaced in the `XFADE` window at the boundary; squaring
+ * the opacity moves the crossover near 0.25/0.25 so a mid-window stop never
+ * shows two competing panels. The centres are spread so a board-only moment sits
+ * between beats — the product is what persists while the engineering idea
+ * changes. The premise is the slot before beat 01, so identity holds at rest and
+ * hands over in the same window that brings reasoning in.
+ */
+const SLOT = 0.085;
+const XFADE = 0.12;
+const SETTLED = 0.5 - XFADE / 2; // 0.44
+const CENTERS = [0.25, 0.42, 0.58, 0.74, 0.89];
+const PREMISE_C = CENTERS[0] - SLOT; // 0.165
+// Switching language resolves a different playable pool, so the zh board is a
+// fresh board — the English turn's rings and reveals must clear before it.
+const ZH_AT = 0.72;
+const FREEZE_C = 0.47; // product-frozen window spanning plays-legally / model-change
 const ACTIVE = "#2563eb";
 const IDLE = "#34363f";
+const ACTIVE_INK = "#e8eaef";
+const IDLE_INK = "#9ca3af";
+
+const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
+const seg = (p: number, a: number, b: number) => clamp((p - a) / (b - a), 0, 1);
+
+/** Settled at full opacity within SETTLED of centre; a short squared crossfade
+ *  to 0 across the XFADE window; invisible beyond it. */
+const panelOpacity = (d: number) => {
+  const a = Math.abs(d);
+  if (a <= SETTLED) return 1;
+  const f = 1 - clamp((a - SETTLED) / XFADE, 0, 1);
+  return f * f;
+};
+/** Drift exists only inside the transition window; a settled panel sits at 0. */
+const drift = (d: number) => {
+  const a = Math.abs(d);
+  if (a <= SETTLED) return 0;
+  const u = clamp((a - SETTLED) / XFADE, 0, 1);
+  return (d < 0 ? -1 : 1) * u * 14;
+};
 
 export function armCodenamesStage(
   scope: HTMLElement | null,
@@ -62,11 +97,12 @@ export function armCodenamesStage(
   const qa = (sel: string) =>
     Array.from(stage.querySelectorAll<HTMLElement>(sel));
 
+  const stagebody = q(".cn-stagebody");
   const head = q("[data-cn-head]");
   const bandid = q("[data-cn-bandid]");
-  const relay = q("[data-cn-relay]");
   const premise = q("[data-cn-premise]");
   const boardwrap = q("[data-cn-boardwrap]");
+  const boardEl = q("[data-cn-board]");
   const split = q(".cn-split");
   const right = q("[data-cn-right]");
   const ghosts = q("[data-cn-ghosts]");
@@ -84,8 +120,6 @@ export function armCodenamesStage(
     q('[data-relay="a2"]'),
     q('[data-relay="a3"]'),
   ].filter(Boolean) as HTMLElement[];
-  const ens = qa(".cn-board .cn-en");
-  const zhs = qa(".cn-board .cn-zh");
 
   const setAttr = (el: HTMLElement | null, name: string, on: boolean) => {
     if (!el) return;
@@ -99,56 +133,125 @@ export function armCodenamesStage(
   const setText = (el: HTMLElement | null, text: string) => {
     if (el && el.textContent !== text) el.textContent = text;
   };
-  const nearestPanel = (p: number) => {
-    let best = 0;
-    let bestD = Infinity;
-    PANEL_CENTERS.forEach((c, i) => {
-      const d = Math.abs(p - c);
-      if (d < bestD) {
-        bestD = d;
-        best = i;
-      }
-    });
-    return best;
-  };
 
-  /** Discrete labels + board reveal, mapped from the timeline's own progress. */
-  const updateDiscrete = (p: number) => {
-    const zh = p > TURN_OFF;
-    const turnOn = p > TURN_ON && !zh;
-    setAttr(beijing, "data-ring", turnOn);
-    setAttr(wall, "data-ring", turnOn);
-    setAttr(beijing, "data-rv", p > 0.08 && !zh);
-    setAttr(wall, "data-rv", p > 0.1 && !zh);
+  let lastPhase = "";
+  let lastId = "";
+  // Set per matched branch; the collapse scales the board a touch more on the
+  // wider desktop surface than on the tablet.
+  let collapseScale = 0.12;
 
-    setText(
-      status,
-      p < STATUS_EVAL
+  /**
+   * progress → every beat state. Narrative panels hold-then-replace (ADDENDUM-03);
+   * the product story (relay, rings, status, language, ghosts, collapse) scrubs.
+   */
+  const render = (p: number) => {
+    // Identity + premise are present at rest and YIELD on scroll; nothing fades
+    // in at the top. The premise holds its whole slot, then hands over in the
+    // same window that brings beat 01 in, so the pane is never blank between.
+    const pd = (p - PREMISE_C) / SLOT;
+    const po = p < PREMISE_C ? 1 : panelOpacity(pd);
+    if (premise) {
+      premise.style.opacity = String(po);
+      premise.style.transform = `translateY(${p < PREMISE_C ? 0 : drift(pd)}px)`;
+      premise.style.pointerEvents = po > 0.5 ? "auto" : "none";
+    }
+    if (head) head.style.opacity = String(po);
+    if (bandid) bandid.style.opacity = String(1 - po);
+
+    // The relay is the product story: which role acts, and what it hands on. The
+    // acting role carries the blue border. All of this is scrubbed.
+    const acting = p < 0.085 ? "sm" : p < 0.175 ? "gu" : "";
+    if (gSm) {
+      gSm.style.borderColor = acting === "sm" ? ACTIVE : IDLE;
+      gSm.style.color = acting === "sm" ? ACTIVE_INK : IDLE_INK;
+    }
+    if (gGu) {
+      gGu.style.opacity = String(0.3 + 0.7 * seg(p, 0.08, 0.1));
+      gGu.style.borderColor = acting === "gu" ? ACTIVE : IDLE;
+      gGu.style.color = acting === "gu" ? ACTIVE_INK : IDLE_INK;
+    }
+    if (gClue) gClue.style.opacity = String(seg(p, 0.055, 0.08));
+    if (gArrows[0]) gArrows[0].style.opacity = String(seg(p, 0.05, 0.07));
+    if (gArrows[1]) gArrows[1].style.opacity = String(seg(p, 0.078, 0.095));
+    if (gArrows[2]) gArrows[2].style.opacity = String(seg(p, 0.1, 0.12));
+    if (calls) {
+      calls.style.opacity = String(seg(p, 0.105, 0.125));
+      setText(calls, p > 0.155 ? data.callBoth : data.callFirst);
+    }
+
+    // Rings are the spymaster's intended targets, held while the turn stands;
+    // they and the reveals clear before the language flip (fresh board).
+    const zh = p > ZH_AT;
+    const intent = !zh && p > 0.065;
+    setAttr(beijing, "data-ring", intent);
+    setAttr(wall, "data-ring", intent);
+    setAttr(beijing, "data-rv", !zh && p > 0.105);
+    setAttr(wall, "data-rv", !zh && p > 0.155);
+
+    // The narrated role must agree with the lit role: the Guesser chip takes the
+    // acting border at 0.085, so the status cannot hand over before then.
+    const phase =
+      p < 0.085
         ? data.statusPlanning
-        : p < STATUS_VERDICT
+        : p < 0.175
           ? data.statusEvaluating
-          : data.statusVerdict,
-    );
-    setText(calls, p < CALLS_BOTH ? data.callFirst : data.callBoth);
+          : data.statusVerdict;
+    if (phase !== lastPhase) {
+      lastPhase = phase;
+      setText(status, phase);
+    }
 
-    if (gSm) gSm.style.borderColor = p < 0.06 ? ACTIVE : IDLE;
-    if (gGu) gGu.style.borderColor = p > 0.06 && p < HEAD_OUT ? ACTIVE : IDLE;
+    // Panels: settled hold, short squared crossfade at the slot boundary.
+    let active = -1;
+    panels.forEach((el, i) => {
+      const d = (p - CENTERS[i]) / SLOT;
+      const o = panelOpacity(d);
+      el.style.opacity = String(o);
+      el.style.transform = `translateY(${drift(d)}px)`;
+      el.style.pointerEvents = o > 0.5 ? "auto" : "none";
+      if (o > 0.5) active = i;
+    });
+    const id = active >= 0 ? (data.bandIds[active] ?? "") : "";
+    if (id && id !== lastId) {
+      lastId = id;
+      setText(bandid, id);
+    }
 
-    // Once the premise has yielded, it must not block clicks to the reasoning
-    // panel beneath it (it stays in the DOM at opacity 0, above the pane).
-    if (premise)
-      premise.style.pointerEvents = p > PREMISE_OUT ? "none" : "auto";
+    // The product surface is frozen across plays-legally and model-change.
+    if (freeze)
+      freeze.style.opacity = String(
+        clamp(1 - Math.abs((p - FREEZE_C) / 0.09), 0, 1) * 0.9,
+      );
 
-    if (bandid) setText(bandid, data.bandIds[nearestPanel(p)] ?? "");
+    // Language — a fresh zh board. The EN → 中文 tile crossfade is the CSS
+    // opacity transition keyed on the board's data-lang (app/styles/codenames-case.css).
+    if (boardEl) boardEl.setAttribute("data-lang", zh ? "zh" : "en");
+
+    // Operation volume, then the final collapse — both scrubbed.
+    if (ghosts)
+      ghosts.style.opacity = String(seg(p, 0.83, 0.92) * (1 - seg(p, 0.96, 1)));
+    const col = seg(p, 0.95, 1);
+    if (right) right.style.opacity = String(1 - col);
+    if (boardwrap)
+      boardwrap.style.transform = `scale(${1 + col * collapseScale})`;
   };
 
   const mm = gsap.matchMedia();
   mm.add(
     {
+      // The min-height gate is ADDENDUM-04's stack fallback / ADDENDUM-05's
+      // native model: below it the content-sized figure cannot be held in the
+      // viewport, so the stage never arms and the resolved document flows
+      // natively instead of clipping a pinned pane — no snapping, no scroll
+      // control. Desktop's figure (band + two-pane row) is short, so it clears a
+      // low bar; the tablet composition stacks band, board and engineering
+      // vertically, so its figure is ~1000px and it only pins on a tall tablet
+      // (measured at the 768px boundary). Shorter tablets — the base iPad in
+      // portrait among them — get the native resolved document instead.
       desktop:
-        "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
+        "(min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference)",
       tablet:
-        "(min-width: 700px) and (max-width: 1023px) and (prefers-reduced-motion: no-preference)",
+        "(min-width: 700px) and (max-width: 1023px) and (min-height: 1100px) and (prefers-reduced-motion: no-preference)",
     },
     (ctx) => {
       const conditions = ctx.conditions as {
@@ -158,158 +261,45 @@ export function armCodenamesStage(
       if (!conditions.desktop && !conditions.tablet) return;
       const mode = conditions.desktop ? "desktop" : "tablet";
       scope.dataset.cnArmed = mode;
+      collapseScale = mode === "desktop" ? 0.12 : 0.06;
+      lastPhase = "";
+      lastId = "";
 
-      // Armed initial state (all reverted by matchMedia on exit). Identity,
-      // the pre-turn relay and the premise are present at rest (opacity 1) and
-      // only yield on scroll — nothing fades in at the top.
-      gsap.set(head, { opacity: 1 });
-      gsap.set(relay, { opacity: 1 });
-      gsap.set(premise, { opacity: 1, yPercent: 0 });
-      gsap.set(bandid, { opacity: 0 });
-      gsap.set(panels, { opacity: 0, yPercent: 3 });
-      gsap.set(ghosts, { opacity: 0 });
-      gsap.set(freeze, { opacity: 0 });
-      gsap.set([gClue, ...gArrows, calls], { opacity: 0 });
-      gsap.set(gGu, { opacity: 0.3 });
-      gsap.set(zhs, { opacity: 0 });
-      gsap.set(ens, { opacity: 1 });
-      gsap.set(boardwrap, { scale: 1, transformOrigin: "top center" });
-      updateDiscrete(0);
+      // Move the premise into the engineering pane so it overlays the beats and
+      // is sized with them (ADDENDUM-01). It returns to its in-flow position
+      // before the board on cleanup — the no-JS / reduced-motion order.
+      if (premise && right && premise.parentElement !== right) {
+        right.insertBefore(premise, right.firstChild);
+      }
+      if (boardwrap) boardwrap.style.transformOrigin = "top center";
 
-      // Scroll length of the pinned scrub, in viewport-heights. Computed inside
-      // the end callback (not captured once) so ScrollTrigger.refresh recomputes
-      // it against the current viewport — otherwise a build that runs before the
-      // viewport has settled locks in a too-short pin.
+      render(0);
+
+      // A scrubbed timeline is the scroll → progress source; every beat state is
+      // authored in render(), not as tweens, so the hold/replacement model
+      // (ADDENDUM-03) is one deterministic mapping. The dummy tween gives the
+      // scrub a linear 0..1 progress; onUpdate maps it to the stage.
       const spanVh = mode === "desktop" ? 6.6 : 6.2;
       const tl = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
           trigger: stage,
-          start: () => `top top+=${navH}`,
+          start: () => `top top+=${header ? header.offsetHeight : navH}`,
           end: () => `+=${spanVh * window.innerHeight}`,
           pin: frame,
           scrub: 0.5,
           anticipatePin: 1,
           invalidateOnRefresh: true,
-          onUpdate: (self) => updateDiscrete(self.progress),
+          onUpdate: (self) => render(self.progress),
+          onRefresh: (self) => render(self.progress),
         },
       });
-
-      // The turn is the one thing that begins with interaction: the clue
-      // arrives, the relay builds, the guesser lights and the calls land.
-      // There is an opening dwell before this so the premise can be read.
-      tl.to(gClue, { opacity: 1, duration: 0.03 }, 0.05)
-        .to(gArrows[0] ?? {}, { opacity: 1, duration: 0.02 }, 0.045)
-        .to(gGu, { opacity: 1, duration: 0.03 }, 0.07)
-        .to(gArrows[1] ?? {}, { opacity: 1, duration: 0.02 }, 0.07)
-        .to([gArrows[2] ?? {}, calls], { opacity: 1, duration: 0.02 }, 0.1);
-
-      // The premise yields to 01 / reasoning and the hero yields to the beat
-      // identifier — both were present at rest, so they animate OUT.
-      tl.to(
-        premise,
-        { opacity: 0, yPercent: -3, duration: 0.065 },
-        PREMISE_OUT,
-      );
-      tl.to(head, { opacity: 0, duration: 0.04 }, HEAD_OUT - 0.02).to(
-        bandid,
-        { opacity: 1, duration: 0.04 },
-        HEAD_OUT,
-      );
-
-      // Beats crossfade with a plateau of dwell in the middle of each.
-      panels.forEach((panel, i) => {
-        const c = PANEL_CENTERS[i];
-        tl.fromTo(
-          panel,
-          { opacity: 0, yPercent: 3 },
-          { opacity: 1, yPercent: 0, duration: 0.05, ease: "power1.out" },
-          c - 0.08,
-        );
-        if (i < panels.length - 1) {
-          tl.to(
-            panel,
-            { opacity: 0, yPercent: -3, duration: 0.05, ease: "power1.in" },
-            c + 0.05,
-          );
-        }
-      });
-
-      // Frozen model-change beat states it plainly.
-      tl.fromTo(
-        freeze,
-        { opacity: 0 },
-        { opacity: 0.9, duration: 0.03 },
-        PANEL_CENTERS[2] - 0.05,
-      ).to(freeze, { opacity: 0, duration: 0.03 }, PANEL_CENTERS[2] + 0.05);
-
-      // Language — the one beat that transforms the calm surface. Stagger the
-      // tiles rather than flipping all twenty-five at once.
-      tl.to(
-        ens,
-        { opacity: 0, duration: 0.06, stagger: { each: 0.003, from: "start" } },
-        LANG_START,
-      ).to(
-        zhs,
-        { opacity: 1, duration: 0.06, stagger: { each: 0.003, from: "start" } },
-        LANG_START + 0.01,
-      );
-
-      // Operation — many real games fade in behind the board.
-      tl.to(ghosts, { opacity: 1, duration: 0.05 }, PANEL_CENTERS[4] - 0.04);
-
-      // Collapse — the ending resolves.
-      if (mode === "desktop") {
-        tl.to(right, { opacity: 0, duration: 0.08 }, COLLAPSE)
-          .to(ghosts, { opacity: 0, duration: 0.06 }, COLLAPSE)
-          .to(boardwrap, { scale: 1.12, duration: 0.09 }, COLLAPSE);
-      } else {
-        // The resting tablet split is board-driven (auto / 1px / minmax(320px,
-        // 1fr)), which has no tweenable track — fr is invalid in calc(), so it
-        // can't be animated to 0. For the collapse, overlay a percentage track
-        // (% is valid in calc()) seeded to the current proportion — so there is
-        // no jump — and drive it to 0 so the board's row takes the whole frame
-        // as the engineering zone clears. The override is applied as an inline
-        // style via onUpdate and CLEARED whenever the collapse is at rest, so
-        // the board-driven CSS track is what governs every state but the
-        // collapse itself (and a scrub back up reverts cleanly). Animating the
-        // item's height would not move the track, so the board would never
-        // expand.
-        const collapse = { k: 0 };
-        let seedPct = 0;
-        const applyCollapse = () => {
-          const k = collapse.k;
-          if (k <= 0.001) {
-            split?.style.removeProperty("grid-template-rows");
-            split?.style.removeProperty("--cn-lower-pct");
-            seedPct = 0;
-            return;
-          }
-          if (seedPct === 0 && split && right) {
-            const total = split.getBoundingClientRect().height || 1;
-            const lower = right.getBoundingClientRect().height;
-            seedPct = (lower / total) * 100;
-            split.style.gridTemplateRows =
-              "1fr 1px calc(var(--cn-lower-pct) * 1%)";
-          }
-          split?.style.setProperty("--cn-lower-pct", String(seedPct * (1 - k)));
-        };
-        applyCollapse();
-        tl.to(
-          collapse,
-          { k: 1, duration: 0.09, onUpdate: applyCollapse },
-          COLLAPSE,
-        )
-          .to(right, { opacity: 0, duration: 0.07 }, COLLAPSE)
-          .to(ghosts, { opacity: 0, duration: 0.06 }, COLLAPSE)
-          .to(boardwrap, { scale: 1.06, duration: 0.09 }, COLLAPSE);
-      }
-      // Settle the timeline's total near 1 so progress ≈ the landmark space.
-      tl.to({}, { duration: 0.01 }, 1);
+      tl.to({}, { duration: 1 });
 
       return () => {
-        // gsap reverts inline styles; the attributes and text below are ours,
-        // so restore the resolved document by hand.
+        tl.scrollTrigger?.kill();
+        tl.kill();
+        // Restore the resolved turn (the no-JS floor).
         setAttr(beijing, "data-ring", true);
         setAttr(beijing, "data-rv", true);
         setAttr(wall, "data-ring", true);
@@ -317,23 +307,46 @@ export function armCodenamesStage(
         setText(status, data.statusVerdict);
         setText(calls, data.callBoth);
         setText(bandid, "");
-        if (gSm) gSm.style.borderColor = "";
-        if (gGu) gGu.style.borderColor = "";
-        // updateDiscrete drives this inline and GSAP does not manage it, so
-        // restore it here alongside the other hand-managed inline styles.
-        if (premise) premise.style.pointerEvents = "";
-        // The tablet collapse sets these inline directly (not via GSAP), so
-        // clear them by hand in case the stage is torn down mid-collapse.
-        split?.style.removeProperty("grid-template-rows");
-        split?.style.removeProperty("--cn-lower-pct");
+        if (boardEl) boardEl.setAttribute("data-lang", "en");
+
+        // Clear every inline style the mapping set.
+        const clearStyle = (el: HTMLElement | null, ...props: string[]) => {
+          if (!el) return;
+          for (const prop of props) el.style.removeProperty(prop);
+        };
+        clearStyle(head, "opacity");
+        clearStyle(bandid, "opacity");
+        clearStyle(premise, "opacity", "transform", "pointer-events");
+        clearStyle(gSm, "border-color", "color");
+        clearStyle(gGu, "opacity", "border-color", "color");
+        clearStyle(gClue, "opacity");
+        for (const a of gArrows) clearStyle(a, "opacity");
+        clearStyle(calls, "opacity");
+        clearStyle(freeze, "opacity");
+        clearStyle(ghosts, "opacity");
+        clearStyle(right, "opacity");
+        clearStyle(boardwrap, "transform", "transform-origin");
+        for (const el of panels)
+          clearStyle(el, "opacity", "transform", "pointer-events");
+
+        // Return the premise to its in-flow position before the board.
+        if (
+          premise &&
+          stagebody &&
+          split &&
+          premise.parentElement !== stagebody
+        )
+          stagebody.insertBefore(premise, split);
+
         delete scope.dataset.cnArmed;
       };
     },
   );
 
-  // Mobile: no pin. The opening card (card 01) plays the turn as it is scrolled
-  // — pre-turn at rest, resolved with no JS / reduced motion. This is a light,
-  // non-pinned scrub tied to the card's own travel, which touch handles well.
+  // Mobile (ADDENDUM-05): no pin, no snap, no scroll ownership. The opening card
+  // plays the turn as it is scrolled — the timeline only READS native scroll via
+  // ScrollTrigger and writes nothing to the viewport. Pre-turn at rest; resolved
+  // with no JS / reduced motion.
   mm.add(
     "(max-width: 699px) and (prefers-reduced-motion: no-preference)",
     () => {
@@ -353,14 +366,10 @@ export function armCodenamesStage(
       setAttr(wl, "data-rv", false);
       setText(st, data.statusPlanning);
 
-      // The turn is one scrubbed GSAP timeline (the same primitive the desktop
-      // stage uses), so GSAP does the driving. The clue arrives as a real tween;
-      // the board's discrete flips/rings/status advance in the timeline's own
-      // onUpdate via the shared setAttr/setText helpers (data-rv is presence-
-      // based in CSS, so it is toggled cleanly rather than left at a stale
-      // attribute value). The opening card is the first content, so at rest its
-      // top sits at the viewport top: progress 0 (pre-turn) holds until the
-      // first scroll gesture, then the turn plays.
+      // The board's discrete flips/rings/status advance in the timeline's own
+      // onUpdate; the clue arrives as a real tween. The card is the first
+      // content, so at rest its top sits at the viewport top: progress 0
+      // (pre-turn) holds until the first scroll gesture, then the turn plays.
       const openTurn = (p: number) => {
         setAttr(bj, "data-ring", p > 0.12);
         setAttr(wl, "data-ring", p > 0.12);

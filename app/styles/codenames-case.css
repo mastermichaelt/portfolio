@@ -844,8 +844,11 @@
   border-top: 1px solid var(--border);
 }
 
+/* The statement opens the evidence as one continuous idea, not two stacked
+   sections (Addendum 04): one major gap to open the statement on its full-width
+   rule, then a lighter gap down to the figures — no compounding of two gaps. */
 .cn-statement .container {
-  padding-top: var(--gap-2xl);
+  padding-top: var(--gap-xl);
 }
 
 .cn-statement-text {
@@ -858,14 +861,13 @@
   text-wrap: balance;
 }
 
-.cn-evidence .container,
-.cn-doors .container {
-  padding-top: var(--gap-xl);
+.cn-evidence .container {
+  padding-top: var(--gap-lg);
 }
 
 .cn-doors .container {
-  padding-top: var(--gap-2xl);
-  padding-bottom: var(--gap-2xl);
+  padding-top: var(--gap-xl);
+  padding-bottom: var(--gap-xl);
 }
 
 .sechead {
@@ -1073,6 +1075,12 @@
 [data-cn-armed] .cn-frame {
   height: calc(100vh - var(--cn-nav-h));
   overflow: hidden;
+  /* The stage is content-sized and centred (Addendum 04): the band and the
+     split size to their content, and the frame centres the resulting figure so a
+     settled composition reads as a bounded panel placed in the page rather than
+     a block hung from the nav with dead space beneath it. The viewport is the
+     cap (height above); the content is the target. */
+  justify-content: center;
 }
 
 [data-cn-armed] .cn-band-title {
@@ -1093,20 +1101,14 @@
   display: block;
 }
 
-/* The stage body holds the split at full size and the premise as an overlay
-   on the right region, so at rest the premise reads as the right pane's first
-   state and yields to 01 / reasoning — the same gesture every later beat uses. */
+/* The stage body and split are content-sized (not flex:1), so the figure is as
+   tall as its tallest settled state and the frame centres it (Addendum 04). */
 [data-cn-armed] .cn-stagebody {
-  position: relative;
-  flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
 [data-cn-armed] .cn-split {
-  flex: 1;
-  min-height: 0;
   /* A 1px --border on the stage's left and right edges closes the figure, so the
      product canvas reads as a bounded panel in the hairline grid rather than a
      bleed that happens to stop (Addendum 02 §1). border-box keeps the grid
@@ -1115,31 +1117,30 @@
   box-sizing: border-box;
 }
 
+/* The engineering pane grid-stacks the premise and the five beats in one cell,
+   so the pane is exactly as tall as its tallest state — which is what sizes the
+   figure (Addendum 04). The choreography moves the premise in here while armed
+   so it overlays the beats and is sized with them (Addendum 01); at rest it is
+   the pane's first state and yields to 01 / reasoning like any later beat. */
+[data-cn-armed] .cn-right {
+  display: grid;
+  overflow: hidden;
+}
+
+[data-cn-armed] .cn-right > .cn-premise,
+[data-cn-armed] .cn-right > .cn-panel {
+  grid-area: 1 / 1;
+}
+
 [data-cn-armed] .cn-premise {
-  position: absolute;
-  z-index: 2;
   border-top: 0;
   padding: 24px var(--gutter);
   gap: 18px;
 }
 
-[data-cn-armed="desktop"] .cn-premise {
-  top: 0;
-  bottom: 0;
-  left: calc(50% + 1px);
-  right: 0;
-}
-
-[data-cn-armed="tablet"] .cn-premise {
-  left: 0;
-  right: 0;
-  top: calc(62% + 1px);
-  bottom: 0;
-}
-
-/* The tablet engineering zone is shallow (~38%); drop the second premise line
-   so the statement and affordance are not crowded. Recovered later by the
-   operation beat and the 175+ figure. */
+/* The tablet engineering zone is shallow; drop the second premise line so the
+   statement and affordance are not crowded. Recovered later by the operation
+   beat and the 175+ figure. */
 [data-cn-armed="tablet"] .cn-premise-lead {
   display: none;
 }
@@ -1149,14 +1150,7 @@
   padding: 24px 28px;
 }
 
-[data-cn-armed] .cn-right {
-  position: relative;
-  overflow: hidden;
-}
-
 [data-cn-armed] .cn-panel {
-  position: absolute;
-  inset: 0;
   border-top: 0;
   padding: 24px var(--gutter);
 }
@@ -1307,7 +1301,7 @@
 
   .cn-cards {
     display: block;
-    /* The snap cards sit inside the site container (Addendum 02 §1): the gutter
+    /* The cards sit inside the site container (Addendum 02 §1): the gutter
        bounds the card column, and each card's product canvas fills its card
        instead of bleeding to the viewport edge. */
     max-width: var(--container);
@@ -1319,31 +1313,12 @@
     grid-template-columns: 1fr;
   }
 
-  /* Snap the beat cards, scoped to this route via :has so the rest of the
-     site keeps normal scrolling. The shared ending has no snap-align, so it
-     scrolls free past the last card. */
-  html:has(.cn-scope) {
-    scroll-snap-type: y proximity;
-  }
-
-  .cn-card {
-    scroll-snap-align: start;
-    /* Offset the snap by the sticky header height so a snapped card's top
-       (card id, then the board / identity) lands below the header instead of
-       behind it. --cn-nav-h is the measured header height (set on .cn-scope by
-       the choreography and inherited here); 4rem is a close no-JS fallback. */
-    scroll-margin-top: var(--cn-nav-h, 4rem);
-    min-height: calc(100vh - var(--cn-nav-h, 63px));
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  /* The opening card carries identity + premise + a full board, so it is the
-     one card allowed to run past a single screen (it shares that with the
-     final collapse card). The board must not shrink to make the identity fit. */
-  .cn-card--opening {
-    justify-content: flex-start;
-    min-height: auto;
-  }
+  /* Mobile owns no scroll (Addendum 05): ordinary native document scrolling, no
+     snap of any kind. The gesture owns the viewport position — motion only reads
+     it. Cards are content-sized, so each is a tight product-state / amber-rule /
+     engineering-idea pair that sits in a phone viewport on its own; a reader who
+     stops anywhere sees a product state together with the idea that explains it,
+     and stopping between cards is an ordinary document boundary. Card 01 and the
+     collapse card simply run past one screen (Addendum 01) — no longer a special
+     case to excuse, just how the document flows. */
 }
