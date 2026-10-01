@@ -54,6 +54,7 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 - **Person JSON-LD:** include public email (`michael@multipliers.dev`) and `Sydney, Australia` from [`content/profile.ts`](../../content/profile.ts); `sameAs` = LinkedIn, GitHub, DEV only.
 - **`.cursor/` footprint:** keep and document as agent-native development setup.
 - **License:** MIT for implementation code; explicit carve-out for portfolio copy, branding, portraits, and project media ([`CONTENT_LICENSE.md`](../../CONTENT_LICENSE.md) or README section).
+- **Public-release gate (in-repo):** slice D removes hygiene blockers only; **ready to make the repository public** requires slice D **and** slice E merged (README, MIT license, content carve-out, package metadata). Neither slice authorizes the human GitHub visibility change on its own.
 
 ## Current state (audit summary)
 
@@ -127,7 +128,7 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 
 **Recommended authority:** Open PR only
 
-**Goal:** Safe to make repository public.
+**Goal:** Remove public-release hygiene blockers (PII and stale internal audit docs).
 
 **Deliverables:**
 
@@ -135,7 +136,7 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 - Move [`docs/content-evidence-migration.md`](../../docs/content-evidence-migration.md) and [`docs/redesign-baseline.md`](../../docs/redesign-baseline.md) to `docs/archive/` with historical banner; add [`docs/archive/README.md`](../../docs/archive/README.md)
 - Update cross-links in [`docs/plans/portfolio-roadmap.plan.md`](../../docs/plans/portfolio-roadmap.plan.md) and content-module references
 
-**Acceptance:** no phone PII in tracked files; archived docs clearly marked non-visitor-facing.
+**Acceptance:** no phone PII in tracked files; archived docs clearly marked non-visitor-facing. **Does not** satisfy the public-release gate — repository presentation and licensing ship in slice E.
 
 ---
 
@@ -143,7 +144,9 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 
 **Recommended authority:** Open PR only
 
-**Goal:** Recruiter/engineer-friendly README; explicit licensing.
+**Prerequisite:** slice-d-docs-hygiene merged.
+
+**Goal:** Recruiter/engineer-friendly README; explicit licensing; complete in-repo public-release presentation.
 
 **Deliverables:**
 
@@ -152,7 +155,7 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 - Update [`package.json`](../../package.json) metadata (`description`, `homepage`, `repository`, `author`, `license`); keep `"private": true`
 - Minimal wording refresh in [`docs/architecture/overview.md`](../../docs/architecture/overview.md)
 
-**Acceptance:** README suitable for public GitHub; license split documented.
+**Acceptance:** README suitable for public GitHub; license split documented. With slice D merged, in-repo prerequisites for public release are satisfied — the human step to change GitHub visibility remains external and occurs only after D+E.
 
 ---
 
@@ -170,12 +173,12 @@ Add [`vercel.json`](../../vercel.json) in a follow-up PR **only** if dashboard c
 
 ## External steps (not in repo)
 
-| Area                            | Action                                                                                |
-| ------------------------------- | ------------------------------------------------------------------------------------- |
-| Vercel                          | DNS, primary domain, legacy redirects, optional `NEXT_PUBLIC_SITE_URL` production env |
-| GitHub                          | Make repo public (after D+E); set website to `michaeltruong.ai`                       |
-| DEV / LinkedIn / GitHub profile | Update website links to `michaeltruong.ai`                                            |
-| Google Search Console           | Add property; submit `https://michaeltruong.ai/sitemap.xml`                           |
+| Area                            | Action                                                                                       |
+| ------------------------------- | -------------------------------------------------------------------------------------------- |
+| Vercel                          | DNS, primary domain, legacy redirects, optional `NEXT_PUBLIC_SITE_URL` production env        |
+| GitHub                          | Make repo public **only after slices D and E are merged**; set website to `michaeltruong.ai` |
+| DEV / LinkedIn / GitHub profile | Update website links to `michaeltruong.ai`                                                   |
+| Google Search Console           | Add property; submit `https://michaeltruong.ai/sitemap.xml`                                  |
 
 ---
 
@@ -256,13 +259,13 @@ Verification: npm run typecheck && npm test; Person JSON-LD includes email, Sydn
 
 Implement slice slice-d-docs-hygiene only. Do not start slice-e-readme-license or plan-closure. Do not archive the plan.
 
-Authority: Open PR only — implement and open the PR; do not merge.
+Authority: Open PR only — implement and open the PR; do not merge. Do not make the repository public; this slice removes hygiene blockers only.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
 Deliverables: redact phone PII; move audit docs to docs/archive/ with README; update cross-links. Mark slice-d-docs-hygiene completed in plan frontmatter in this PR.
 
-Verification: no phone number in tracked files; archived docs have historical banner.
+Verification: no phone number in tracked files; archived docs have historical banner. Public-release gate is not satisfied until slice E also merges.
 ```
 
 ### slice-e-readme-license
@@ -270,15 +273,15 @@ Verification: no phone number in tracked files; archived docs have historical ba
 ```text
 @.cursor/plans/2026-10-02-michaeltruong-ai-migration.plan.md
 
-Implement slice slice-e-readme-license only. Do not start plan-closure. Do not archive the plan.
+Implement slice slice-e-readme-license only. Prerequisite: slice-d-docs-hygiene merged. Do not start plan-closure. Do not archive the plan.
 
-Authority: Open PR only — implement and open the PR; do not merge.
+Authority: Open PR only — implement and open the PR; do not merge. Do not make the repository public unless the human operator explicitly requests that external step after D+E merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
 Deliverables: README.md, LICENSE, CONTENT_LICENSE.md, package.json metadata, docs/architecture/overview.md tweak. Mark slice-e-readme-license completed in plan frontmatter in this PR.
 
-Verification: README leads with michaeltruong.ai; MIT + content carve-out documented.
+Verification: README leads with michaeltruong.ai; MIT + content carve-out documented. With slice D merged, in-repo public-release prerequisites are complete.
 ```
 
 ### plan-closure
