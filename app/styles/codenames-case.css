@@ -1059,8 +1059,14 @@
 .cn-open-status {
   margin: 14px 0 0;
   font-size: 11px;
+  line-height: 1.5;
   letter-spacing: 0.06em;
   color: #9ca3af;
+  /* Reserve the tallest (resolved, two-line) state from the start so the status
+     does not grow when it advances Planning → evaluating → resolved. On the
+     pinned mobile opening that would move the scroll affordance and the content
+     after the opening; the geometry must stay fixed across all three states. */
+  min-height: 3em;
 }
 
 .cn-open-scroll {

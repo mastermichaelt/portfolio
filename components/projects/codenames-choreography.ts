@@ -354,10 +354,14 @@ export function armCodenamesStage(
     },
   );
 
-  // Mobile (ADDENDUM-05): no pin, no snap, no scroll ownership. The opening card
-  // plays the turn as it is scrolled — the timeline only READS native scroll via
-  // ScrollTrigger and writes nothing to the viewport. Pre-turn at rest; resolved
-  // with no JS / reduced motion.
+  // Mobile: everything after the opening is ordinary content-sized native
+  // document scrolling (ADDENDUM-05). The opening is the one exception: it
+  // demonstrates an event the reader must watch happen on the board, so it gets
+  // a SHORT pin that holds the opening composition in the viewport while native
+  // scroll progress scrubs the turn. The pin only reads scroll and writes
+  // nothing to the viewport — no snap, no scrollTo, no post-gesture correction —
+  // and it releases into 02 / reasoning as ordinary continued scrolling. Pre-turn
+  // at rest; resolved with no JS / reduced motion.
   mm.add(
     "(max-width: 699px) and (prefers-reduced-motion: no-preference)",
     () => {
@@ -377,32 +381,40 @@ export function armCodenamesStage(
       setAttr(wl, "data-rv", false);
       setText(st, data.statusPlanning);
 
-      // The board's discrete flips/rings/status advance in the timeline's own
-      // onUpdate; the clue arrives as a real tween. The card is the first
-      // content, so at rest its top sits at the viewport top: progress 0
-      // (pre-turn) holds until the first scroll gesture, then the turn plays.
+      // Progress → the turn. The board stays pinned in view throughout, so the
+      // result resolves while the board is still clearly visible; the resolved
+      // state then settles and holds (verdict from ~0.55) until the pin releases,
+      // long enough to register before normal reading begins.
       const openTurn = (p: number) => {
-        setAttr(bj, "data-ring", p > 0.12);
-        setAttr(wl, "data-ring", p > 0.12);
-        setAttr(bj, "data-rv", p > 0.45);
-        setAttr(wl, "data-rv", p > 0.68);
+        setAttr(bj, "data-ring", p > 0.1);
+        setAttr(wl, "data-ring", p > 0.1);
+        setAttr(bj, "data-rv", p > 0.35);
+        setAttr(wl, "data-rv", p > 0.5);
         setText(
           st,
-          p < 0.2
+          p < 0.18
             ? data.statusPlanning
-            : p < 0.62
+            : p < 0.55
               ? data.statusEvaluating
               : data.statusVerdict,
         );
       };
 
+      // A short pin: the opening composition is held below the sticky header for
+      // ~1.1 viewport-heights of scroll while the turn plays, then releases. The
+      // pin reserves its own scroll runway (pinSpacing), so 02 / reasoning
+      // follows with no jump and no artificial blank region.
+      const openSpanVh = 1.1;
       const tl = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
           trigger: card,
-          start: "top top",
-          end: "+=85%",
-          scrub: 0.4,
+          start: () => `top top+=${header ? header.offsetHeight : navH}`,
+          end: () => `+=${openSpanVh * window.innerHeight}`,
+          pin: card,
+          pinSpacing: true,
+          anticipatePin: 1,
+          scrub: 0.3,
           invalidateOnRefresh: true,
           onUpdate: (self) => openTurn(self.progress),
         },
@@ -410,8 +422,8 @@ export function armCodenamesStage(
       tl.fromTo(
         [arrow, clue],
         { opacity: 0 },
-        { opacity: 1, duration: 0.22 },
-        0.06,
+        { opacity: 1, duration: 0.15 },
+        0.05,
       );
       // Hold the timeline open across the whole scrubbed range so the onUpdate
       // resolution follows the full turn, not just the clue's fade.
@@ -419,12 +431,16 @@ export function armCodenamesStage(
       openTurn(0);
 
       return () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
         // Restore the resolved turn (the no-JS / reduced-motion state).
         setAttr(bj, "data-ring", true);
         setAttr(bj, "data-rv", true);
         setAttr(wl, "data-ring", true);
         setAttr(wl, "data-rv", true);
         setText(st, data.statusVerdict);
+        clue?.style.removeProperty("opacity");
+        arrow?.style.removeProperty("opacity");
       };
     },
   );
