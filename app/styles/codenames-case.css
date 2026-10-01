@@ -248,14 +248,30 @@
 .cn-frame {
   display: flex;
   flex-direction: column;
+  /* The stage IS the site container (Addendum 02 §1): the whole experience sits
+     in the same 1336px / 52·28·20px gutter frame as every other page instead of
+     bleeding to the viewport edge. Band, seam and both panes live inside it and
+     inherit these gutters; `position: sticky` on a container-width element pins
+     exactly as it did full-bleed. */
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
 }
 
 .cn-band {
   flex: none;
   border-bottom: 1px solid var(--border);
-  padding: 22px var(--gutter);
+  /* No horizontal padding — the band inherits the frame's container gutter
+     (§1). min-height, never a fixed height (§3): the relay is a flex-wrap row
+     whose chip count grows as the turn progresses, so on a narrow frame it must
+     wrap and grow the band rather than overflow a hard box. measure() reads the
+     band's live height for the pinned fit, so a taller band is handled. */
+  padding-block: 14px;
+  min-height: 112px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 12px;
 }
 
@@ -360,7 +376,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px var(--gutter);
+  /* Interior padding, not the site gutter: the frame already owns the gutter
+     (§1), and a tighter 28px interior preserves the 540px board inside the
+     narrower (~559px) product budget the framing leaves. */
+  padding: 32px 28px;
   position: relative;
   overflow: hidden;
 }
@@ -368,10 +387,11 @@
 .cn-boardwrap {
   position: relative;
   width: 100%;
-  /* 600px (Addendum 01): the board holds one size from rest to collapse — it
-     must never scale up at rest and down when the beats begin, or the "the
-     player's side has not moved" freeze claim becomes a lie. */
-  max-width: 600px;
+  /* 540px (Addendum 02 §1 — the new constant, replacing 600): the board holds
+     one size from rest through to collapse across every composition. It must
+     never scale up at rest and down when the beats begin, or the "the player's
+     side has not moved" freeze claim becomes a lie. */
+  max-width: 540px;
   transform-origin: top center;
 }
 
@@ -767,7 +787,9 @@
 
 .cn-card-head {
   background: var(--bg);
-  padding: 12px var(--gutter);
+  /* No horizontal padding — the card column is the site container (§1), so each
+     card's content aligns to the gutter and the product canvas fills the card. */
+  padding: 12px 0;
   border-bottom: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -796,7 +818,9 @@
 
 .cn-card-product {
   background: #0b0e14;
-  padding: 16px var(--gutter);
+  /* The canvas fills its card; the board inside it then lands at ~350px on a
+     390px device, holding ~80px tiles (§1). */
+  padding: 16px 0;
 }
 
 .cn-card-product--ruled {
@@ -812,7 +836,7 @@
 
 .cn-card-body .cn-panel {
   border-top: 0;
-  padding: 18px var(--gutter);
+  padding: 18px 0;
 }
 
 /* ============================================================ SHARED ENDING */
@@ -1009,7 +1033,7 @@
 
 /* Mobile opening card — identity + premise fold into card 01, no card 00. */
 .cn-opening-identity {
-  padding: 18px var(--gutter) 6px;
+  padding: 18px 0 6px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1038,7 +1062,7 @@
 }
 
 .cn-open-scroll {
-  padding: 14px var(--gutter) 4px;
+  padding: 14px 0 4px;
 }
 
 /* ================================================================ ARMED STATE
@@ -1083,6 +1107,12 @@
 [data-cn-armed] .cn-split {
   flex: 1;
   min-height: 0;
+  /* A 1px --border on the stage's left and right edges closes the figure, so the
+     product canvas reads as a bounded panel in the hairline grid rather than a
+     bleed that happens to stop (Addendum 02 §1). border-box keeps the grid
+     tracks inside the frame's content width. */
+  border-inline: 1px solid var(--border);
+  box-sizing: border-box;
 }
 
 [data-cn-armed] .cn-premise {
@@ -1116,7 +1146,7 @@
 
 [data-cn-armed] .cn-left {
   overflow: hidden;
-  padding: 24px var(--gutter);
+  padding: 24px 28px;
 }
 
 [data-cn-armed] .cn-right {
@@ -1202,15 +1232,17 @@
   align-items: center;
 }
 
-/* Tablet — the seam rotates 90° and turns amber; asymmetric 62/38. The lower
-   zone is a percentage track driven by a unitless variable (fr units are not
-   allowed inside calc(), percentages are), so the collapse can animate it to 0
-   and let the board's 1fr track expand into the whole frame. */
+/* Tablet — the seam rotates 90° and turns amber. The split is board-driven
+   (Addendum 02 §2), not a fixed percentage: the product zone takes the board's
+   intrinsic height and no more, and the engineering zone takes the remainder
+   with a 320px floor. This responds to board and viewport height together, so
+   the taller beats (reasoning, operation) stop clipping at the heights where a
+   fixed 38% fell short. The collapse switches this to a tweenable percentage
+   track (fr is invalid in calc(); % is valid) — see the choreography. */
 [data-cn-armed="tablet"] .cn-split {
   display: grid;
   grid-template-columns: 1fr;
-  --cn-lower-pct: 38;
-  grid-template-rows: 1fr 1px calc(var(--cn-lower-pct) * 1%);
+  grid-template-rows: auto 1px minmax(320px, 1fr);
 }
 
 [data-cn-armed="tablet"] .cn-seam {
@@ -1222,15 +1254,21 @@
   align-items: center;
 }
 
-[data-cn-armed="tablet"] .cn-boardwrap {
-  max-width: none;
+/* The board holds its 540px constant on tablet too (Addendum 02 §1): one size
+   across every composition, so it inherits .cn-boardwrap's max-width. */
+
+/* Board-driven split (above) gives the engineering zone its height; the two
+   tallest beats still need a little compaction to clear it without trimming the
+   role chip or the report link. This is the only tablet compaction (§2) — the
+   board-driven split does the rest, so no blanket panel tightening is applied. */
+[data-cn-armed="tablet"] .cn-panel[data-beat="reasoning"] .cn-relaycard-head,
+[data-cn-armed="tablet"] .cn-panel[data-beat="reasoning"] .cn-relaycard-clue,
+[data-cn-armed="tablet"] .cn-panel[data-beat="reasoning"] .cn-relaycard-calls {
+  padding: 10px 16px;
 }
 
-/* The 38% lower zone is shallow, so tighten each beat's vertical rhythm to fit
-   without clipping the contract line or its report link. */
-[data-cn-armed="tablet"] .cn-panel {
-  gap: 12px;
-  padding-block: 14px;
+[data-cn-armed="tablet"] .cn-panel[data-beat="operation"] .cn-event {
+  padding-block: 6px;
 }
 
 /* Tablet legality re-columns to two cells so the lower zone stays shallow. */
@@ -1269,6 +1307,12 @@
 
   .cn-cards {
     display: block;
+    /* The snap cards sit inside the site container (Addendum 02 §1): the gutter
+       bounds the card column, and each card's product canvas fills its card
+       instead of bleeding to the viewport edge. */
+    max-width: var(--container);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
   }
 
   .hgrid {

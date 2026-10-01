@@ -264,11 +264,42 @@ export function armCodenamesStage(
           .to(ghosts, { opacity: 0, duration: 0.06 }, COLLAPSE)
           .to(boardwrap, { scale: 1.12, duration: 0.09 }, COLLAPSE);
       } else {
-        // Collapse the lower zone by animating its grid track to 0% (the
-        // board's 1fr track then takes the whole frame). Animating the item's
-        // height would not move the track, so the board would never expand.
-        // --cn-lower-pct is declared on .cn-split in the tablet CSS.
-        tl.to(split, { "--cn-lower-pct": 0, duration: 0.09 }, COLLAPSE)
+        // The resting tablet split is board-driven (auto / 1px / minmax(320px,
+        // 1fr)), which has no tweenable track — fr is invalid in calc(), so it
+        // can't be animated to 0. For the collapse, overlay a percentage track
+        // (% is valid in calc()) seeded to the current proportion — so there is
+        // no jump — and drive it to 0 so the board's row takes the whole frame
+        // as the engineering zone clears. The override is applied as an inline
+        // style via onUpdate and CLEARED whenever the collapse is at rest, so
+        // the board-driven CSS track is what governs every state but the
+        // collapse itself (and a scrub back up reverts cleanly). Animating the
+        // item's height would not move the track, so the board would never
+        // expand.
+        const collapse = { k: 0 };
+        let seedPct = 0;
+        const applyCollapse = () => {
+          const k = collapse.k;
+          if (k <= 0.001) {
+            split?.style.removeProperty("grid-template-rows");
+            split?.style.removeProperty("--cn-lower-pct");
+            seedPct = 0;
+            return;
+          }
+          if (seedPct === 0 && split && right) {
+            const total = split.getBoundingClientRect().height || 1;
+            const lower = right.getBoundingClientRect().height;
+            seedPct = (lower / total) * 100;
+            split.style.gridTemplateRows =
+              "1fr 1px calc(var(--cn-lower-pct) * 1%)";
+          }
+          split?.style.setProperty("--cn-lower-pct", String(seedPct * (1 - k)));
+        };
+        applyCollapse();
+        tl.to(
+          collapse,
+          { k: 1, duration: 0.09, onUpdate: applyCollapse },
+          COLLAPSE,
+        )
           .to(right, { opacity: 0, duration: 0.07 }, COLLAPSE)
           .to(ghosts, { opacity: 0, duration: 0.06 }, COLLAPSE)
           .to(boardwrap, { scale: 1.06, duration: 0.09 }, COLLAPSE);
@@ -291,6 +322,10 @@ export function armCodenamesStage(
         // updateDiscrete drives this inline and GSAP does not manage it, so
         // restore it here alongside the other hand-managed inline styles.
         if (premise) premise.style.pointerEvents = "";
+        // The tablet collapse sets these inline directly (not via GSAP), so
+        // clear them by hand in case the stage is torn down mid-collapse.
+        split?.style.removeProperty("grid-template-rows");
+        split?.style.removeProperty("--cn-lower-pct");
         delete scope.dataset.cnArmed;
       };
     },

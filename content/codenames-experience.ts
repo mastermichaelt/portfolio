@@ -186,7 +186,7 @@ export const codenamesExperience: CodenamesExperience = {
       cardId: "05 / language",
       roleChip: "Board · both roles",
       kicker: "Another language",
-      statement: "The board on the left just changed. The game did not.",
+      statement: "The board just changed. The game did not.",
       formula: ["word set", "language", "playable pool"],
       classicLine:
         "Classic — one playable token per concept, in English and in Simplified Chinese.",
@@ -194,7 +194,7 @@ export const codenamesExperience: CodenamesExperience = {
         "Extended — authored per language, independent pools. No cross-language concept layer.",
       contract:
         "A language is supported when its own playable word set is written down and validated — not when its interface is translated.",
-      note: "The board on the left is the extended zh-Hans pool. Its words are its own, not translations of the English board.",
+      note: "This board is the extended zh-Hans pool. Its words are its own, not translations of the English board.",
       mobileTiles: [
         { zh: "北极", team: "red" },
         { zh: "显微镜", team: "red" },

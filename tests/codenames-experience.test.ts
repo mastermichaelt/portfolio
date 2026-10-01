@@ -81,6 +81,12 @@ describe("codenames scroll experience content", () => {
     if (language?.kind !== "language") throw new Error("no language beat");
     expect(language.formula).toEqual(["word set", "language", "playable pool"]);
     expect(language.note).toMatch(/not translations of the English board/i);
+    // Narrative copy must not encode a seam direction: the seam rotates on
+    // tablet and disappears on mobile, so "the left"/"above" etc. would be wrong
+    // in at least one approved composition (Addendum 02 §4).
+    expect(`${language.statement} ${language.note}`).not.toMatch(
+      /\b(the left|the right|above|below)\b/i,
+    );
     // The mobile crop is the extended zh-Hans pool with its own teams.
     expect(language.mobileTiles).toHaveLength(4);
     expect(language.mobileTiles.map((tile) => tile.zh)).toEqual([
