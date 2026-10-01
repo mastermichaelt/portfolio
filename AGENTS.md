@@ -92,42 +92,37 @@ Do not blur hook infrastructure with formatting ergonomics or CI. Each layer ans
 - Pages and UI should depend on `PortfolioRepository`, not on concrete storage adapters.
 - Staged multi-PR plans live under `.cursor/plans/`. Product roadmap stubs under `docs/plans/` are not execution plans unless promoted.
 
-### scroll-craft (experiment)
+### Scroll runtime (GSAP ScrollTrigger)
 
-A scroll-driven interaction engine from [`nateherkai/scroll-craft`](https://github.com/nateherkai/scroll-craft),
-integrated on the homepage as an **experiment only**, on branch
-`experiment/scroll-craft-integration-baseline`. Boundary, findings and exit
-criteria: [docs/experiments/scroll-craft-baseline.md](docs/experiments/scroll-craft-baseline.md).
+**GSAP ScrollTrigger is the single production scroll runtime.** The Codenames AI
+case study (`/projects/codenames-ai`) and the homepage "two systems, one method"
+reveal both run on `gsap` + `@gsap/react`'s `useGSAP`, with `gsap.matchMedia()`
+for per-breakpoint and reduced-motion branches. `useGSAP` reverts every tween,
+ScrollTrigger and matchMedia branch on unmount and rebuilds on remount, so a
+client-side revisit gets the full experience with nothing left driving detached
+DOM.
 
-- The engine is vendored verbatim to `public/vendor/scrollcraft/` and **served,
-  never imported**, so it stays out of the application module graph. Its sha256
-  is pinned in [`vendor/scrollcraft/PROVENANCE.md`](vendor/scrollcraft/PROVENANCE.md)
-  and asserted by `tests/scrollcraft-engine-integrity.test.ts`.
-- **Never edit the engine** — that is scroll-craft's one hard rule. Bespoke
-  behaviour is authored in this repo's markup and CSS, driven off the `--sc-p`
-  custom property the engine publishes.
-- The engine's own `engine/scrollcraft.css` is **not** vendored: it is a
-  competing design floor that would replace this portfolio's typography and both
-  themes. `app/styles/scrollcraft.css` carries a hand-scoped subset of its device
-  rules and records what was refused.
-- Everything scroll-craft touches is scoped to `[data-scrollcraft-scope]` on the
-  homepage method section. `PortfolioRepository`, `domain/`, `repositories/` and
-  `lib/` are unaware of it.
+- Scroll choreography is a **client** concern layered over server-rendered,
+  resolved markup. The SSR document is the floor the page degrades to with no JS
+  and under reduced motion; `PortfolioRepository`, `domain/`, `repositories/` and
+  `lib/` are unaware of the runtime.
+- Any device that hides content needs the escapes authored alongside it: a no-JS
+  settled state (do not hide in CSS — let the runtime apply the armed state so a
+  blocked runtime leaves content readable), a reduced-motion branch that never
+  arms, a `:focus-within` keyboard rescue, and an `@media print` settle. GSAP
+  writes the armed state as an inline style, so the focus/print escapes use
+  `!important` in CSS to override it (see `app/styles/home.css`).
 - `prefers-reduced-motion` stays governed by the global floor in
-  `app/styles/base.css`, not by scroll-craft's gentler curve.
-- The armed (hidden) state is gated on the scope element's own
-  `data-scrollcraft-mounted`, **never** on the engine's `html.sc-ready`:
-  `sc-ready` survives client-side navigation while the section's DOM does not,
-  so it can outlive the instance it stands for and hide content permanently.
-  The mount guard itself lives at module scope, because an element-held flag is
-  destroyed by App Router navigation and lets engine instances accumulate.
-- Any scroll-craft device that hides content needs a no-JS settled state, a
-  `:focus-within` keyboard rescue, and an `@media print` settle. The engine
-  supplies none of them.
-- Plugin workflow: `claude plugin marketplace add nateherkai/scroll-craft`, then
-  `claude plugin install nateherk-design`. Preflight is
-  `node <skill>/scripts/doctor.mjs`; it exits non-zero without a full ffmpeg
-  build even for builds that generate no assets.
+  `app/styles/base.css`; matchMedia branches gate on
+  `(prefers-reduced-motion: no-preference)` so they never arm under reduce.
+
+scroll-craft (the vendored `nateherkai/scroll-craft` engine) was an earlier
+homepage experiment, now **retired**: its runtime was migrated to GSAP and the
+engine, its hand-scoped stylesheet, type shim and integrity test were removed.
+The methodology it surfaced — the a11y-escape discipline above, scope
+containment, and the SSR-resolved/arm-on-mount contract — is retained as
+documentation in
+[docs/experiments/scroll-craft-baseline.md](docs/experiments/scroll-craft-baseline.md).
 
 ### Impeccable (design review)
 

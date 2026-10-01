@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ScrollCraftMethodReveal } from "@/components/experiments/ScrollCraftMethodReveal";
+import { MethodReveal } from "@/components/home/MethodReveal";
 import { QualifiedFigure } from "@/components/QualifiedFigure";
 import type {
   HomepageChannel,
@@ -94,26 +94,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* scroll-craft experiment boundary. `data-scrollcraft-scope` is the only
-          element ScrollCraftMethodReveal hands the engine, so no other section
-          or route is reachable from it. Findings, and the boundary's exit
-          criteria: docs/experiments/scroll-craft-baseline.md */}
-      <section
-        className="home2-method"
-        aria-labelledby="home2-method-head"
-        data-scrollcraft-scope
-      >
-        {/* The act sits on the container, not on the scope element above it:
-            the engine collects acts with `root.querySelectorAll`, which never
-            matches the root itself, so an act attribute on the mount root is
-            silently ignored and `--sc-p` is never published.
-
-            `flow` is the engine's unpinned act. It publishes normalized scroll
-            progress as `--sc-p` here, which is scroll-craft's documented hook
-            for bespoke behaviour, and it changes no layout: only the pinned
-            devices (`scrub` / `pin` / `pan`) overwrite the act's height and
-            stick a full-viewport stage, and none of those is used. */}
-        <div className="container" data-sc-act="flow">
+      {/* The method section's once-on-entry reveal runs on GSAP ScrollTrigger
+          (MethodReveal, mounted at the end of this page). The markup here is the
+          resolved composition it degrades to with no JS or reduced motion; the
+          runtime migration and its a11y contract are documented in
+          docs/experiments/scroll-craft-baseline.md. */}
+      <section className="home2-method" aria-labelledby="home2-method-head">
+        <div className="container">
           <div className="section-head">
             <h2 id="home2-method-head">Two systems, one method</h2>
             <p className="label">
@@ -135,17 +122,15 @@ export default async function HomePage() {
               gets spatially, so a screen reader announces each answer's method
               dimension (row header) and channel (column header). */}
           <div className="home2-only-wide">
-            {/* The scroll-craft reveal fires once on entry and never re-hides,
-                and its hidden state is gated on `html.sc-ready` in
-                scrollcraft.css, so the resolved composition is what renders with
-                no JavaScript. Reading order, the ARIA table roles and the
-                projection switch are all untouched. */}
+            {/* The reveal fires once on entry and never re-hides. Its hidden
+                state is applied by GSAP at mount, so the resolved composition is
+                what renders with no JavaScript. Reading order, the ARIA table
+                roles and the projection switch are all untouched. */}
             <div
               className="home2-matrix"
               role="table"
               aria-labelledby="home2-method-head"
-              data-sc-in
-              data-sc-stagger="90"
+              data-method-reveal=""
             >
               <div
                 className="home2-matrix-row home2-matrix-row--head"
@@ -212,10 +197,9 @@ export default async function HomePage() {
           <div className="home2-only-narrow">
             {/* The narrow projection is staggered too: the two projections are
                 mutually exclusive at 820px, so a phone would otherwise get no
-                enhancement at all. A display:none projection never intersects,
-                and the observer does not unobserve until it does, so resizing
-                across the breakpoint reveals the other projection correctly. */}
-            <ol className="home2-schema" data-sc-in data-sc-stagger="90">
+                enhancement at all. MethodReveal arms only the shown projection
+                and re-arms the other across the breakpoint, via matchMedia. */}
+            <ol className="home2-schema" data-method-reveal="">
               {method.map((dimension) => (
                 <li key={dimension.ordinal} className="home2-schema-row">
                   <p className="home2-dim-ord">{dimension.ordinal}</p>
@@ -307,7 +291,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <ScrollCraftMethodReveal />
+      <MethodReveal />
     </main>
   );
 }
