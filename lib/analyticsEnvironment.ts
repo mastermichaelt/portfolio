@@ -1,7 +1,6 @@
-export type AnalyticsEnvironment = "production" | "preview" | "local" | "e2e";
+import { getSiteHostname } from "@/lib/site";
 
-/** Stable production host for runtime fallback when Vercel env is absent. */
-const PRODUCTION_HOSTNAME = "portfolio-multipliers-dev.vercel.app";
+export type AnalyticsEnvironment = "production" | "preview" | "local" | "e2e";
 
 function isE2eHost(hostname: string | undefined): boolean {
   return hostname === "127.0.0.1";
@@ -19,7 +18,7 @@ export function resolveAnalyticsEnvironment(): AnalyticsEnvironment {
   if (vercelEnv === "preview") return "preview";
   if (vercelEnv === "production") return "production";
 
-  if (hostname === PRODUCTION_HOSTNAME) return "production";
+  if (hostname === getSiteHostname()) return "production";
 
   return "preview";
 }

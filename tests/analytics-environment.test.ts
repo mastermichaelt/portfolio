@@ -5,7 +5,7 @@ describe("resolveAnalyticsEnvironment", () => {
     vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "");
     vi.stubEnv("NODE_ENV", "production");
     vi.stubGlobal("window", {
-      location: { hostname: "portfolio-multipliers-dev.vercel.app" },
+      location: { hostname: "michaeltruong.ai" },
     });
   });
 
@@ -57,7 +57,7 @@ describe("resolveAnalyticsEnvironment", () => {
 
   it("returns production for the production hostname at runtime", async () => {
     vi.stubGlobal("window", {
-      location: { hostname: "portfolio-multipliers-dev.vercel.app" },
+      location: { hostname: "michaeltruong.ai" },
     });
     expect(await resolveEnv()).toBe("production");
   });

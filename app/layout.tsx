@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeScript } from "@/components/ThemeScript";
 import { getPortfolioRepository } from "@/lib/portfolio";
+import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -21,10 +22,8 @@ const ibmPlexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-const siteUrl = "https://portfolio-multipliers-dev.vercel.app";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(getSiteUrl()),
   title: {
     default: "Michael Truong · Making uncertain systems dependable",
     template: "%s · Michael Truong",
