@@ -466,3 +466,31 @@
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+
+/* Method reveal — keyboard and print escapes (components/home/MethodReveal.tsx).
+
+   The once-on-entry stagger runs on GSAP, which writes the armed (pre-reveal)
+   state as an inline `opacity: 0` on each row. An inline style can only be
+   overridden with `!important`, so the two cases where an armed row must not
+   stay hidden are forced here rather than in the runtime:
+
+   - A keyboard reader tabbing into the section must never land on an invisible
+     row, so focus entering a projection settles the whole group instantly.
+   - Print has no scroll to fire the reveal, so the comparison would otherwise
+     print blank for a reader who has not scrolled to it.
+
+   Both are harmless when nothing is armed (no JS, reduced motion): the rows are
+   already visible, and these rules only re-assert that. Reduced motion never
+   arms, so there is no motion to suppress and no `prefers-reduced-motion` rule
+   is needed — the global floor in base.css governs everything else. */
+[data-method-reveal]:focus-within > * {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media print {
+  [data-method-reveal] > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

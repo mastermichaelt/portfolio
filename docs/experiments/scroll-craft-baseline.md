@@ -1,5 +1,23 @@
 # scroll-craft integration baseline
 
+> **Status: retired (2026-10-02).** scroll-craft was an integration spike only.
+> The portfolio has since converged on **GSAP ScrollTrigger as its single scroll
+> runtime** (the Codenames case study, then the homepage method reveal), and the
+> vendored engine, its hand-scoped stylesheet (`app/styles/scrollcraft.css`), its
+> type shim and its integrity test were removed. The homepage reveal now lives in
+> [`components/home/MethodReveal.tsx`](../../components/home/MethodReveal.tsx) with
+> its escapes in [`app/styles/home.css`](../../app/styles/home.css); the Codenames
+> choreography in [`components/projects/codenames-choreography.ts`](../../components/projects/codenames-choreography.ts).
+>
+> This document is kept as the **methodology record**: the a11y-escape discipline,
+> scope containment, reduced-motion contract and SSR-resolved/arm-on-mount model
+> below are runtime-agnostic and still govern every scroll device on the site.
+> The engine-specific mechanics (`--sc-p`, `data-sc-*`, `html.sc-ready`,
+> `mount(root)`, the no-unmount leak) describe the retired engine and are retained
+> for context, not as current behaviour. GSAP's `useGSAP` reverts and rebuilds on
+> every mount, which is precisely what removed the mount-once compromise §3.9
+> documents as the engine's sharpest edge.
+
 Integration-only spike. It establishes whether [scroll-craft](https://github.com/nateherkai/scroll-craft)
 can coexist with this portfolio's architecture, and it deliberately does **not**
 redesign the homepage. The homepage's copy, information architecture, visual
