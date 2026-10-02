@@ -37,17 +37,9 @@ Production icons use a **flat, full-bleed dark background** (`~#101011`) extendi
 
 | File                         | Size    | Derivation                                                            |
 | ---------------------------- | ------- | --------------------------------------------------------------------- |
-| `favicon-32x32.png`          | 32×32   | Canonical master → nearest-neighbor 32×32 → manual owl/detail removal |
-| `apple-touch-icon.png`       | 180×180 | Canonical master → nearest-neighbor 180×180                           |
-| `android-chrome-192x192.png` | 192×192 | Canonical master → nearest-neighbor 192×192                           |
-
-### Canonical master (in-memory derivation step)
-
-From `approved-pixel-reference.png`:
-
-1. Replace blue presentation surround pixels with dark interior color
-2. Center on a square canvas with full-bleed dark background
-3. Do **not** upscale the reference image wholesale (that reproduces tile + blue surround)
+| `android-chrome-192x192.png` | 192×192 | Approved production reference (192×192, full-bleed dark) — used as-is |
+| `apple-touch-icon.png`       | 180×180 | Center crop of `android-chrome-192x192.png` (6 px per side)           |
+| `favicon-32x32.png`          | 32×32   | Nearest-neighbor downscale of 192 reference → manual owl removal      |
 
 ### Size-specific rules
 
