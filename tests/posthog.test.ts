@@ -22,7 +22,7 @@ describe("posthog init and capture guards", () => {
     vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "production");
     vi.stubEnv("NODE_ENV", "production");
     vi.stubGlobal("window", {
-      location: { hostname: "portfolio-multipliers-dev.vercel.app" },
+      location: { hostname: "michaeltruong.ai" },
     });
     vi.resetModules();
   });

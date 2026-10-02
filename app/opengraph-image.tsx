@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og";
 
+import { getSiteHostname } from "@/lib/site";
+
 export const alt = "Michael Truong · Making uncertain systems dependable";
 export const size = {
   width: 1200,
@@ -62,7 +64,7 @@ export default function OpenGraphImage() {
           fontFamily: "IBM Plex Mono, ui-monospace, Menlo, monospace",
         }}
       >
-        portfolio-multipliers-dev.vercel.app
+        {getSiteHostname()}
       </div>
     </div>,
     {

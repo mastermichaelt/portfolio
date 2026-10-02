@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: slice-a-site-url
     content: "PR: Add lib/site.ts and replace hard-coded portfolio-multipliers-dev.vercel.app in layout, analytics, OG image, tests, .env.example"
-    status: pending
+    status: completed
   - id: slice-b-robots-sitemap
     content: "PR: Add app/robots.ts (preview disallow) and app/sitemap.ts (5 static + 5 project URLs) with tests"
     status: pending
