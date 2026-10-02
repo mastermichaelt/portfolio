@@ -36,7 +36,7 @@ export default function OpenGraphImage() {
           fontFamily: "IBM Plex Mono, ui-monospace, Menlo, monospace",
         }}
       >
-        Senior software engineer · Sydney
+        Senior Software Engineer · AI Product Engineer · Sydney
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <div
@@ -52,8 +52,8 @@ export default function OpenGraphImage() {
             maxWidth: 820,
           }}
         >
-          Experimentation, measurement, verification, and evidence-backed field
-          reports.
+          Making uncertain systems dependable — experimentation, measurement,
+          verification, and evidence-backed field reports.
         </div>
       </div>
       <div
