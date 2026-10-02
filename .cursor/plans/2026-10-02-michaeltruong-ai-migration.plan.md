@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: slice-d-docs-hygiene
     content: "PR: Redact phone PII; archive stale audit docs; add docs/archive/README.md"
-    status: pending
+    status: completed
   - id: slice-e-readme-license
     content: "PR: Rewrite README, add MIT LICENSE + content carve-out, update package.json metadata, document .cursor/ agent-native story"
     status: pending
@@ -64,7 +64,7 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 
 **SEO missing:** `app/robots.ts`, `app/sitemap.ts`, Person JSON-LD, env-driven site URL, preview `noindex`, metadata positioning for AI Product Engineer.
 
-**Public-release audit:** no credential blockers in git history; redact phone PII in [`docs/content-evidence-migration.md`](../../docs/content-evidence-migration.md); archive or banner stale internal audit docs; external Vercel DNS required before redirect verification.
+**Public-release audit:** no credential blockers in git history; redact phone PII in [`docs/archive/content-evidence-migration.md`](../../docs/archive/content-evidence-migration.md); archive or banner stale internal audit docs; external Vercel DNS required before redirect verification.
 
 **Identity source of truth:** [`content/profile.ts`](../../content/profile.ts) — LinkedIn, GitHub, DEV, `michael@multipliers.dev`. DEV profile externally lists `michaeltruong.dev` (not wired in app).
 
@@ -132,8 +132,8 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 
 **Deliverables:**
 
-- Redact phone number in `docs/content-evidence-migration.md`
-- Move [`docs/content-evidence-migration.md`](../../docs/content-evidence-migration.md) and [`docs/redesign-baseline.md`](../../docs/redesign-baseline.md) to `docs/archive/` with historical banner; add [`docs/archive/README.md`](../../docs/archive/README.md)
+- Redact phone number in `docs/archive/content-evidence-migration.md`
+- Move [`docs/content-evidence-migration.md`](../../docs/archive/content-evidence-migration.md) and [`docs/redesign-baseline.md`](../../docs/archive/redesign-baseline.md) to `docs/archive/` with historical banner; add [`docs/archive/README.md`](../../docs/archive/README.md)
 - Update cross-links in [`docs/plans/portfolio-roadmap.plan.md`](../../docs/plans/portfolio-roadmap.plan.md) and content-module references
 
 **Acceptance:** no phone PII in tracked files; archived docs clearly marked non-visitor-facing. **Does not** satisfy the public-release gate — repository presentation and licensing ship in slice E.

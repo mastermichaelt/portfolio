@@ -10,7 +10,7 @@ import type { ArticleLineDefinition } from "@/domain/article";
  * under portability; skills-should-own-capabilities under evals/judgment.
  *
  * `pairs` is the project-tier pairing shown in each band head, verbatim from
- * `docs/content-evidence-migration.md` §5.I; `note` is the band note for the two
+ * `docs/archive/content-evidence-migration.md` §5.I; `note` is the band note for the two
  * lines whose reports carry no single system (handoff §4). Membership lives on
  * each `Article.line` in `content/articles.ts`; the counts are 3 / 3 / 4 / 3 / 2.
  */

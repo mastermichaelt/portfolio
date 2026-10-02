@@ -1,9 +1,11 @@
 # Content & evidence migration — supporting audit
 
-**Authority:** Executable slices shipped — plan archived at [`.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md`](../.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md). This file is the **supporting audit / migration map** and Claude Design handoff for deferred page redesigns (§3–§5).
+> **Historical — not visitor-facing.** Archived 2026-10-02 for public-release docs hygiene. Retained for internal reference only; do not treat as current product documentation.
+
+**Authority:** Executable slices shipped — plan archived at [`.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md`](../../.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md). This file is the **supporting audit / migration map** and Claude Design handoff for deferred page redesigns (§3–§5).
 
 **Audit date:** 2026-09-11  
-**Prerequisite audits:** [`docs/redesign-baseline.md`](redesign-baseline.md) (merged [#42](https://github.com/mastermichaelt/portfolio/pull/42)); Instrument 1b visual direction (merged [#47](https://github.com/mastermichaelt/portfolio/pull/47)).
+**Prerequisite audits:** [`docs/archive/redesign-baseline.md`](redesign-baseline.md) (merged [#42](https://github.com/mastermichaelt/portfolio/pull/42)); Instrument 1b visual direction (merged [#47](https://github.com/mastermichaelt/portfolio/pull/47)).
 
 ## Purpose
 
@@ -17,13 +19,13 @@ This document is a **migration map** from the pre-redesign portfolio content mod
 
 ## Sources consulted
 
-| Source                                                                                                                                             | Role in this audit                                                                                                                                                                         |
-| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`docs/redesign-baseline.md`](redesign-baseline.md)                                                                                                | Primary evidence index; quantitative facts with inventory paths and fact IDs (re-read 2026-09-11)                                                                                          |
-| [`content/*`](..), [`content/homepage.ts`](../content/homepage.ts)                                                                                 | Current committed portfolio content                                                                                                                                                        |
-| [`DESIGN.md`](../DESIGN.md), [`.cursor/plans/archive/2026-09-11-instrument-1b.plan.md`](../.cursor/plans/archive/2026-09-11-instrument-1b.plan.md) | Presentation constraints (thesis, figure/scope pairs, no fifth project for CH 02)                                                                                                          |
-| `mastermichaelt/resumes` (private)                                                                                                                 | Canonical evidence for fact IDs and metric qualifiers. Re-read live `resumes/facts/*.yml` before publishing copy. Projects handoff below re-verified from sibling checkout **2026-09-11**. |
-| DEV.to profile + API                                                                                                                               | External positioning surface (tagline, pin set, 15-post corpus) — baseline §2                                                                                                              |
+| Source                                                                                                                                                   | Role in this audit                                                                                                                                                                         |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`docs/archive/redesign-baseline.md`](redesign-baseline.md)                                                                                              | Primary evidence index; quantitative facts with inventory paths and fact IDs (re-read 2026-09-11)                                                                                          |
+| [`content/*`](../../content/), [`content/homepage.ts`](../../content/homepage.ts)                                                                        | Current committed portfolio content                                                                                                                                                        |
+| [`DESIGN.md`](../../DESIGN.md), [`.cursor/plans/archive/2026-09-11-instrument-1b.plan.md`](../../.cursor/plans/archive/2026-09-11-instrument-1b.plan.md) | Presentation constraints (thesis, figure/scope pairs, no fifth project for CH 02)                                                                                                          |
+| `mastermichaelt/resumes` (private)                                                                                                                       | Canonical evidence for fact IDs and metric qualifiers. Re-read live `resumes/facts/*.yml` before publishing copy. Projects handoff below re-verified from sibling checkout **2026-09-11**. |
+| DEV.to profile + API                                                                                                                                     | External positioning surface (tagline, pin set, 15-post corpus) — baseline §2                                                                                                              |
 
 ---
 
@@ -33,14 +35,14 @@ Comparison of **current on-site content** against baseline evidence and position
 
 ### 1. Stale positioning / language from the previous portfolio
 
-| Location                                                       | Issue                                                                                                                                                                                                          | Provenance                                |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| Site-wide metadata                                             | Title suffix **“AI engineering systems”** and descriptions lead with “production AI systems, editorial workflows” — reads as AI-product-operator first, not continuity of experimentation/measurement practice | `app/layout.tsx`, `app/page.tsx` metadata |
-| [`content/profile.ts`](../content/profile.ts) `bio`            | Ends on “Building production AI systems and publishing… on DEV” — thin Atlassian clause, no measurement/verification through-line                                                                              | vs homepage hero in `content/homepage.ts` |
-| [`content/projects.ts`](../content/projects.ts) header comment | Still describes section kinds “after evidence audit” from pre-1b inventory; four projects are all 2026-era independent work                                                                                    | On portfolio                              |
-| [`content/articles.ts`](../content/articles.ts) header comment | Points at empty `codenames-ai-guesser/docs/dev.to/published/`; live corpus is `editorial-workflow/docs/dev.to/published/` (15 files)                                                                           | Baseline §2, §6                           |
-| DEV.to profile (external)                                      | Tagline: “documenting my **AI retraining journey**…” — conflicts with portfolio continuity framing                                                                                                             | Baseline §2 `DEV.to public profile`       |
-| [`PRODUCT.md`](../PRODUCT.md) success criterion                | “production AI products, experimentation discipline, agent harness work” — experimentation is third in a list that reads AI-first                                                                              | On portfolio                              |
+| Location                                                          | Issue                                                                                                                                                                                                          | Provenance                                |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Site-wide metadata                                                | Title suffix **“AI engineering systems”** and descriptions lead with “production AI systems, editorial workflows” — reads as AI-product-operator first, not continuity of experimentation/measurement practice | `app/layout.tsx`, `app/page.tsx` metadata |
+| [`content/profile.ts`](../../content/profile.ts) `bio`            | Ends on “Building production AI systems and publishing… on DEV” — thin Atlassian clause, no measurement/verification through-line                                                                              | vs homepage hero in `content/homepage.ts` |
+| [`content/projects.ts`](../../content/projects.ts) header comment | Still describes section kinds “after evidence audit” from pre-1b inventory; four projects are all 2026-era independent work                                                                                    | On portfolio                              |
+| [`content/articles.ts`](../../content/articles.ts) header comment | Points at empty `codenames-ai-guesser/docs/dev.to/published/`; live corpus is `editorial-workflow/docs/dev.to/published/` (15 files)                                                                           | Baseline §2, §6                           |
+| DEV.to profile (external)                                         | Tagline: “documenting my **AI retraining journey**…” — conflicts with portfolio continuity framing                                                                                                             | Baseline §2 `DEV.to public profile`       |
+| [`PRODUCT.md`](../../PRODUCT.md) success criterion                | “production AI products, experimentation discipline, agent harness work” — experimentation is third in a list that reads AI-first                                                                              | On portfolio                              |
 
 ### 2. Strong baseline/resume evidence absent or materially underrepresented
 
@@ -165,22 +167,22 @@ flowchart LR
 
 ## Deliverable buckets
 
-Implementation slices **shipped** — see archived plan [# Shipped](../.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md#shipped). Buckets below are audit findings and Claude Design handoff prep — not an active execution control surface.
+Implementation slices **shipped** — see archived plan [# Shipped](../../.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md#shipped). Buckets below are audit findings and Claude Design handoff prep — not an active execution control surface.
 
 ### 1. Content updates safe to land now (no page redesign)
 
 Small, merge-safe slices — copy/module/metadata only; existing pages consume data as-is.
 
-| Slice ID                    | Change                                                                                                                                                                                                                                                          | Files                                                     | Evidence / notes                                                                                                               |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| **S1-metadata**             | Replace “AI engineering systems” default title/description with continuity framing (thesis-adjacent; Atlassian measurement + dependable-systems method; current AI as extension). Keep `Senior Software Engineer` headline fact from `resumes/meta/profile.yml` | `app/layout.tsx`, `app/page.tsx`, OG/Twitter if copy-only | `profile.yml`; baseline §3                                                                                                     |
-| **S2-profile-bio**          | Rewrite `profile.bio` to align with homepage `hero.lead` + `leadEmphasis` without strengthening claims — subset or shared source                                                                                                                                | `content/profile.ts`                                      | `homepage.ts`; roles summary                                                                                                   |
-| **S3-articles-comment**     | Fix stale corpus path comment; document canonical sync rule (hub `editorial-workflow/docs/dev.to/published/` master, portfolio = curated subset)                                                                                                                | `content/articles.ts` header                              | Baseline §2                                                                                                                    |
-| **S4-articles-sync**        | Add 6 missing posts as non-featured rows **or** explicit “omitted from index” list in plan-only follow-up — titles/URLs from baseline table only                                                                                                                | `content/articles.ts`                                     | Baseline §2 hub file table                                                                                                     |
-| ~~**S5-featured-flags**~~   | **Removed from safe-now** — `featured` belongs to incumbent `/projects` IA; homepage demotion is already in `content/homepage.ts` `supporting[]`. Tier/`featured` intent → `redesign-prep-projects` slice                                                       | —                                                         | [Runtime audit in plan](../.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md#runtime-audit-projectsfeatured) |
-| ~~**S6-projects-comment**~~ | **Deferred with Projects redesign** — fold tier comments into Claude Design prep, not a standalone PR                                                                                                                                                           | —                                                         | `redesign-prep-projects`                                                                                                       |
-| **S7-articles-trusted**     | Optional one-line Trusted Member in `profile` or home `list-note` — only if not crowding hero                                                                                                                                                                   | `content/profile.ts` or `content/homepage.ts`             | `writing-field-reports.yml` `trusted-member`                                                                                   |
-| **S8-cross-links**          | Wire `relatedProjectSlug` on case-study pages from `articles[]` (data already exists; page currently ignores it) — **only if** template already supports an “Related writing” block without layout redesign                                                     | `app/projects/[slug]/page.tsx`                            | Baseline §1 “unused relatedProjectSlug” — **confirm** no IA change                                                             |
+| Slice ID                    | Change                                                                                                                                                                                                                                                          | Files                                                     | Evidence / notes                                                                                                                  |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **S1-metadata**             | Replace “AI engineering systems” default title/description with continuity framing (thesis-adjacent; Atlassian measurement + dependable-systems method; current AI as extension). Keep `Senior Software Engineer` headline fact from `resumes/meta/profile.yml` | `app/layout.tsx`, `app/page.tsx`, OG/Twitter if copy-only | `profile.yml`; baseline §3                                                                                                        |
+| **S2-profile-bio**          | Rewrite `profile.bio` to align with homepage `hero.lead` + `leadEmphasis` without strengthening claims — subset or shared source                                                                                                                                | `content/profile.ts`                                      | `homepage.ts`; roles summary                                                                                                      |
+| **S3-articles-comment**     | Fix stale corpus path comment; document canonical sync rule (hub `editorial-workflow/docs/dev.to/published/` master, portfolio = curated subset)                                                                                                                | `content/articles.ts` header                              | Baseline §2                                                                                                                       |
+| **S4-articles-sync**        | Add 6 missing posts as non-featured rows **or** explicit “omitted from index” list in plan-only follow-up — titles/URLs from baseline table only                                                                                                                | `content/articles.ts`                                     | Baseline §2 hub file table                                                                                                        |
+| ~~**S5-featured-flags**~~   | **Removed from safe-now** — `featured` belongs to incumbent `/projects` IA; homepage demotion is already in `content/homepage.ts` `supporting[]`. Tier/`featured` intent → `redesign-prep-projects` slice                                                       | —                                                         | [Runtime audit in plan](../../.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md#runtime-audit-projectsfeatured) |
+| ~~**S6-projects-comment**~~ | **Deferred with Projects redesign** — fold tier comments into Claude Design prep, not a standalone PR                                                                                                                                                           | —                                                         | `redesign-prep-projects`                                                                                                          |
+| **S7-articles-trusted**     | Optional one-line Trusted Member in `profile` or home `list-note` — only if not crowding hero                                                                                                                                                                   | `content/profile.ts` or `content/homepage.ts`             | `writing-field-reports.yml` `trusted-member`                                                                                      |
+| **S8-cross-links**          | Wire `relatedProjectSlug` on case-study pages from `articles[]` (data already exists; page currently ignores it) — **only if** template already supports an “Related writing” block without layout redesign                                                     | `app/projects/[slug]/page.tsx`                            | Baseline §1 “unused relatedProjectSlug” — **confirm** no IA change                                                                |
 
 **Do not in safe-now slices:** new routes, Projects/About/Articles layout, ecosystem entity graph redesign, `tier` schema (defer to Projects slice).
 
@@ -218,7 +220,7 @@ Prepare curated modules — **do not** force into the incumbent four-card grid. 
 | `tests/content-foundation.test.ts` | Asserts two featured slugs                                              | Update **with** Projects redesign, not standalone                                         |
 | Editorial workflow                 | Homepage `supporting[]` (last of three)                                 | **Supporting**, not co-equal with Codenames or Atlassian                                  |
 
-Runtime audit: [plan § Runtime audit: `projects.featured`](../.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md#runtime-audit-projectsfeatured).
+Runtime audit: [plan § Runtime audit: `projects.featured`](../../.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md#runtime-audit-projectsfeatured).
 
 #### A. Atlassian experiment measurement (co-primary — future first-class case study)
 
@@ -288,14 +290,14 @@ Curate structured inventory facts for the future About Claude Design pass — **
 
 #### A. Identity & contact (facts only)
 
-| Field    | Public value             | Inventory source                                             |
-| -------- | ------------------------ | ------------------------------------------------------------ |
-| Name     | Michael Truong           | `resumes/meta/profile.yml` · `name`                          |
-| Headline | Senior Software Engineer | `profile.yml` · `headline` → `profile.ts`                    |
-| Location | Sydney, Australia        | `profile.yml` · `location`                                   |
-| Email    | michael@multipliers.dev  | `profile.yml` · `email`                                      |
-| Links    | LinkedIn, GitHub, DEV    | `profile.yml` · `links` → `profile.links`                    |
-| Phone    | _(redacted — omit from public surfaces)_          | `profile.yml` · `phone` — **omit** unless contact IA expands |
+| Field    | Public value                             | Inventory source                                             |
+| -------- | ---------------------------------------- | ------------------------------------------------------------ |
+| Name     | Michael Truong                           | `resumes/meta/profile.yml` · `name`                          |
+| Headline | Senior Software Engineer                 | `profile.yml` · `headline` → `profile.ts`                    |
+| Location | Sydney, Australia                        | `profile.yml` · `location`                                   |
+| Email    | michael@multipliers.dev                  | `profile.yml` · `email`                                      |
+| Links    | LinkedIn, GitHub, DEV                    | `profile.yml` · `links` → `profile.links`                    |
+| Phone    | _(redacted — omit from public surfaces)_ | `profile.yml` · `phone` — **omit** unless contact IA expands |
 
 #### B. Through-line (thesis-aligned — no new claims)
 
@@ -307,7 +309,7 @@ Curate structured inventory facts for the future About Claude Design pass — **
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | Thesis          | `content/homepage.ts` · `hero.title` — _Making uncertain systems dependable._                                                       |
 | Method phrase   | `hero.leadEmphasis` — same string as metadata/profile continuity slice ([#49](https://github.com/mastermichaelt/portfolio/pull/49)) |
-| Visual contract | [`DESIGN.md`](../DESIGN.md) — figure/scope pairs; no bare KPIs                                                                      |
+| Visual contract | [`DESIGN.md`](../../DESIGN.md) — figure/scope pairs; no bare KPIs                                                                   |
 
 Current on-site `profile.bio` already aligns — About redesign may **reshape layout**, not reintroduce AI-first or retraining framing.
 
@@ -432,9 +434,9 @@ Use this brief for the next **About page Claude Design** pass. Goal: an About ex
 
 ### Session entry checklist
 
-1. Read [`DESIGN.md`](../DESIGN.md) — figure value + name + scope; no bare numbers.
-2. Read [`PRODUCT.md`](../PRODUCT.md) — continuity framing; thesis _Making uncertain systems dependable._
-3. Read current [`content/profile.ts`](../content/profile.ts) and [`app/about/page.tsx`](../app/about/page.tsx) — **design comp only**; copy changes ship in a follow-up content PR.
+1. Read [`DESIGN.md`](../../DESIGN.md) — figure value + name + scope; no bare numbers.
+2. Read [`PRODUCT.md`](../../PRODUCT.md) — continuity framing; thesis _Making uncertain systems dependable._
+3. Read current [`content/profile.ts`](../../content/profile.ts) and [`app/about/page.tsx`](../../app/about/page.tsx) — **design comp only**; copy changes ship in a follow-up content PR.
 4. Do **not** edit homepage (Instrument 1b shipped [#47](https://github.com/mastermichaelt/portfolio/pull/47)).
 5. Re-read live `resumes/facts/*.yml` before any new quantitative copy ships in a follow-up content PR.
 
@@ -683,9 +685,9 @@ Use this brief for the next **Articles / Writing page Claude Design** pass. Goal
 
 ### Session entry checklist
 
-1. Read [`DESIGN.md`](../DESIGN.md) — calm Instrument 1b system; log-row patterns; no decorative clutter on archive pages.
-2. Read [`PRODUCT.md`](../PRODUCT.md) — continuity framing; thesis _Making uncertain systems dependable._
-3. Read current [`content/articles.ts`](../content/articles.ts), [`content/homepage.ts`](../content/homepage.ts) `writing[]`, and [`app/articles/page.tsx`](../app/articles/page.tsx) — **design comp only**; copy/curation changes ship in follow-up content PRs.
+1. Read [`DESIGN.md`](../../DESIGN.md) — calm Instrument 1b system; log-row patterns; no decorative clutter on archive pages.
+2. Read [`PRODUCT.md`](../../PRODUCT.md) — continuity framing; thesis _Making uncertain systems dependable._
+3. Read current [`content/articles.ts`](../../content/articles.ts), [`content/homepage.ts`](../../content/homepage.ts) `writing[]`, and [`app/articles/page.tsx`](../../app/articles/page.tsx) — **design comp only**; copy/curation changes ship in follow-up content PRs.
 4. Do **not** edit homepage Instrument 1b composition ([#47](https://github.com/mastermichaelt/portfolio/pull/47)).
 5. Do **not** unify featured/homepage writing in the design session — wireframes may show **proposed** post-H3 states as variants; production unification is **`content-writing-curation`**.
 6. Re-read live `resumes/facts/writing-field-reports.yml` before any new quantitative copy in a follow-up PR.
@@ -783,8 +785,8 @@ Use this brief for the next **Projects page Claude Design** pass. Goal: a Projec
 
 ### Session entry checklist
 
-1. Read [`DESIGN.md`](../DESIGN.md) — figure value + name + scope; no bare numbers.
-2. Read [`PRODUCT.md`](../PRODUCT.md) — continuity framing; thesis _Making uncertain systems dependable._
+1. Read [`DESIGN.md`](../../DESIGN.md) — figure value + name + scope; no bare numbers.
+2. Read [`PRODUCT.md`](../../PRODUCT.md) — continuity framing; thesis _Making uncertain systems dependable._
 3. Do **not** edit homepage (Instrument 1b shipped [#47](https://github.com/mastermichaelt/portfolio/pull/47)).
 4. Do **not** flip `content/projects.ts` `featured` flags in prep — redesign owns tier semantics.
 5. Re-read live `resumes/facts/*.yml` before any new quantitative copy ships in a follow-up content PR.
@@ -889,10 +891,10 @@ Projects should feel like **depth**; home remains **thesis + ledger**.
 
 ## Related documents
 
-| Document                                                                                                                                        | Relationship                                                              |
-| ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| [`.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md`](../.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md) | **Archived plan** — shipped slices, authority, agent prompts, human gates |
-| [`docs/redesign-baseline.md`](redesign-baseline.md)                                                                                             | Evidence index and §7 open questions                                      |
-| [`DESIGN.md`](../DESIGN.md)                                                                                                                     | Visual/evidence qualification constraints                                 |
-| [`.cursor/plans/archive/2026-09-11-instrument-1b.plan.md`](../.cursor/plans/archive/2026-09-11-instrument-1b.plan.md)                           | Homepage composition shipped — do not redesign                            |
-| [`PRODUCT.md`](../PRODUCT.md)                                                                                                                   | Product positioning — update in `content-metadata-profile` if needed      |
+| Document                                                                                                                                           | Relationship                                                              |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| [`.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md`](../../.cursor/plans/archive/2026-09-11-content-evidence-migration.plan.md) | **Archived plan** — shipped slices, authority, agent prompts, human gates |
+| [`docs/archive/redesign-baseline.md`](redesign-baseline.md)                                                                                        | Evidence index and §7 open questions                                      |
+| [`DESIGN.md`](../../DESIGN.md)                                                                                                                     | Visual/evidence qualification constraints                                 |
+| [`.cursor/plans/archive/2026-09-11-instrument-1b.plan.md`](../../.cursor/plans/archive/2026-09-11-instrument-1b.plan.md)                           | Homepage composition shipped — do not redesign                            |
+| [`PRODUCT.md`](../../PRODUCT.md)                                                                                                                   | Product positioning — update in `content-metadata-profile` if needed      |

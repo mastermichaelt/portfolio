@@ -1,10 +1,12 @@
 # Portfolio redesign baseline
 
+> **Historical — not visitor-facing.** Archived 2026-10-02 for public-release docs hygiene. Retained for internal reference only; do not treat as current product documentation.
+
 Read-only audit of the live portfolio and sibling-workspace evidence, written
 before any `PRODUCT.md`, `DESIGN.md`, or `content/*` changes.
 
 **Audit date:** 2026-09-11
-**Plan:** [`.cursor/plans/archive/2026-09-10-portfolio-redesign-baseline.plan.md`](../.cursor/plans/archive/2026-09-10-portfolio-redesign-baseline.plan.md)
+**Plan:** [`.cursor/plans/archive/2026-09-10-portfolio-redesign-baseline.plan.md`](../../.cursor/plans/archive/2026-09-10-portfolio-redesign-baseline.plan.md)
 **Scope:** this file only. Retrieval notes in the plan were re-verified against
 live files; numbers were re-read from authoritative sources, not copied from
 plan shorthand.
