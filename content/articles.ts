@@ -8,7 +8,7 @@ import type { Article } from "@/domain/article";
  * `writing[]` slugs); project pages filter via `relatedProjectSlug`.
  *
  * Reasoning lines (`line`) and membership are from
- * `docs/content-evidence-migration.md` §5.I; the public labels are the approved
+ * `docs/archive/content-evidence-migration.md` §5.I; the public labels are the approved
  * 2a rewording (see `content/article-lines.ts`). Each line has exactly one
  * `lineLead`, and only leads carry an `argument`.
  *
