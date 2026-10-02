@@ -41,7 +41,7 @@ Icons use a **flat, full-bleed dark background** extending to every canvas edge.
 - `.ico` or multi-size `favicon.ico`
 - `app/icon.tsx` / `app/apple-icon.tsx` `ImageResponse` routes
 - Mandatory `sharp` or generation scripts in `package.json`
-- Generative models (e.g. Gemini) for character or favicon artwork
+- No runtime or automated generative pipeline in Slice 1 — final artwork is committed as reviewed static assets
 
 ## MT monogram fallback
 
