@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: slice-4-metadata
     content: "PR 3: lib/site-metadata.ts, homepage OG/Twitter description alignment, authors/creator + curated metadata.keywords + metadata consistency tests"
-    status: pending
+    status: completed
   - id: slice-5-jsonld
     content: "PR 4: Evolve PersonJsonLd to linked @graph (WebSite + ProfilePage + Person) with stable @id refs + JSON-LD graph tests"
     status: pending
