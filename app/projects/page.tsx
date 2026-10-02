@@ -7,7 +7,7 @@ import { getPortfolioRepository } from "@/lib/portfolio";
 export const metadata: Metadata = {
   title: "Projects",
   description:
-    "Every system, and what it is allowed to claim. Two co-primary case studies — experiment measurement at Atlassian and Codenames AI — plus supporting and infrastructure systems, each stating its contract and qualified evidence.",
+    "Every system, and what it is allowed to claim. Two co-primary case studies — experiment measurement at Atlassian and Codenames AI — plus supporting systems, each stating its contract and qualified evidence.",
   alternates: {
     canonical: "/projects",
   },

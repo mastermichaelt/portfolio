@@ -6,10 +6,10 @@ import {
 } from "@/lib/sitemap-paths";
 
 describe("getSitemapPaths", () => {
-  it("lists 5 static routes and 5 project detail paths", () => {
+  it("lists 5 static routes and 4 project detail paths", () => {
     const paths = getSitemapPaths();
 
-    expect(paths).toHaveLength(10);
+    expect(paths).toHaveLength(9);
     expect(paths).toEqual([
       ...STATIC_SITEMAP_PATHS,
       ...PROJECT_SITEMAP_SLUGS.map((slug) => `/projects/${slug}`),
@@ -28,7 +28,7 @@ describe("getSitemapPaths", () => {
     expect(paths).toContain("/projects/codenames-ai");
     expect(paths).toContain("/projects/editorial-workflow");
     expect(paths).toContain("/projects/renovate-governance");
-    expect(paths).toContain("/projects/resume-generator");
+    expect(paths).not.toContain("/projects/resume-generator");
   });
 });
 
@@ -43,11 +43,11 @@ describe("sitemap route", () => {
     vi.resetModules();
   });
 
-  it("emits 10 absolute URLs from the canonical site origin", async () => {
+  it("emits 9 absolute URLs from the canonical site origin", async () => {
     const sitemap = (await import("@/app/sitemap")).default;
     const entries = sitemap();
 
-    expect(entries).toHaveLength(10);
+    expect(entries).toHaveLength(9);
     expect(entries).toEqual(
       getSitemapPaths().map((path) => ({
         url: `https://michaeltruong.ai${path}`,

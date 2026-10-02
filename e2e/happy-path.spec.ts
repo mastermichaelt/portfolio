@@ -220,12 +220,6 @@ test.describe("portfolio happy path", () => {
       page.locator('a.pindex-row--support[href="/ecosystem"]'),
     ).toBeVisible();
 
-    // Infrastructure row is not a link.
-    await expect(page.getByText("Resume generator")).toBeVisible();
-    await expect(
-      page.locator('a[href="/projects/resume-generator"]'),
-    ).toHaveCount(0);
-
     // Provenance / fact-id review aids must not ship.
     await expect(page.locator("body")).not.toContainText(".yml");
   });
@@ -406,6 +400,11 @@ test.describe("portfolio happy path", () => {
 
   test("unknown project slug returns not found", async ({ page }) => {
     const response = await page.goto("/projects/does-not-exist");
+    expect(response?.status()).toBe(404);
+  });
+
+  test("removed resume-generator slug returns not found", async ({ page }) => {
+    const response = await page.goto("/projects/resume-generator");
     expect(response?.status()).toBe(404);
   });
 

@@ -33,7 +33,7 @@ export const projectsIndex: ProjectsIndex = {
   hero: {
     eyebrow: "Projects / evidence index",
     title: "Every system, and what it is allowed to claim.",
-    lead: "Two case studies carry the argument: a production AI product operated since 2026, and experiment measurement and attribution at Atlassian. Four more systems are where a requirement led further down — workflow, governance, lifecycle and generation. Each row states its contract and the evidence behind it.",
+    lead: "Two case studies carry the argument: a production AI product operated since 2026, and experiment measurement and attribution at Atlassian. Three more systems are where a requirement led further down — workflow, governance, and agent-native tooling. Each row states its contract and the evidence behind it.",
   },
   key: {
     label: "Index key",
@@ -121,14 +121,7 @@ export const projectsIndex: ProjectsIndex = {
       href: "/ecosystem",
     },
   ],
-  infrastructure: [
-    {
-      title: "Resume generator",
-      summary:
-        "Facts versus prose: applications select, reorder and rephrase; generation stops rather than invent a missing metric, title or employer.",
-      proofSurface: "Private repository · no public URL",
-    },
-  ],
+  infrastructure: [],
   footer: [
     { text: "Field reports on DEV hold the full archive — " },
     { text: "articles →", href: "/articles" },
