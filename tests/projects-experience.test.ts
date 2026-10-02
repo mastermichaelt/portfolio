@@ -183,9 +183,7 @@ describe("projects 1C — index composition", () => {
       "Renovate governance",
       "Agent-native systems",
     ]);
-    expect(index.infrastructure.map((row) => row.title)).toEqual([
-      "Resume generator",
-    ]);
+    expect(index.infrastructure).toEqual([]);
   });
 
   it("shows exactly the two index figures per co-primary, drawn from the cases", () => {
@@ -201,13 +199,6 @@ describe("projects 1C — index composition", () => {
         expect(figure.scope.trim().length).toBeGreaterThan(0);
       }
     }
-  });
-
-  it("gives the resume generator an infrastructure row with no link", () => {
-    const resume = projectsIndex.infrastructure[0];
-    expect(resume?.proofSurface).toMatch(/no public URL/i);
-    // Infrastructure rows carry no href — they are not interactive.
-    expect(resume).not.toHaveProperty("href");
   });
 
   it("previews depth with one chip per detail block", () => {

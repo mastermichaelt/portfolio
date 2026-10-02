@@ -184,7 +184,6 @@ export const articles: Article[] = [
     year: 2026,
     tags: ["ai", "agents", "workflow"],
     url: "https://dev.to/michaeltruong/the-pipeline-was-green-the-product-was-underspecified-1fnj",
-    relatedProjectSlug: "resume-generator",
     line: "readiness",
   },
   {
@@ -195,7 +194,6 @@ export const articles: Article[] = [
     year: 2026,
     tags: ["ai", "automation", "workflow"],
     url: "https://dev.to/michaeltruong/build-looked-absurd-under-a-recruiter-deadline-1145",
-    relatedProjectSlug: "resume-generator",
     line: "readiness",
   },
   {

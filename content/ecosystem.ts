@@ -41,14 +41,6 @@ export const entities: Entity[] = [
     ],
   },
   {
-    id: "project-resume-generator",
-    name: "Resume generator",
-    kind: "project",
-    summary:
-      "Private facts→prose inventory: canonical evidence once, application overlays, deterministic generation.",
-    relatedProjectSlug: "resume-generator",
-  },
-  {
     id: "project-renovate-governance",
     name: "Renovate governance ladder",
     kind: "project",
@@ -190,14 +182,6 @@ export const entities: Entity[] = [
     summary:
       "Explicit stop causes, investigation lanes, and merge-commit-only execution boundaries.",
     relatedProjectSlug: "renovate-governance",
-  },
-  {
-    id: "knowledge-career-inventory",
-    name: "Career facts inventory",
-    kind: "knowledge",
-    summary:
-      "Canonical facts/roles/meta layers that applications select from without inventing claims.",
-    relatedProjectSlug: "resume-generator",
   },
   {
     id: "output-dev-field-reports",
@@ -348,12 +332,6 @@ export const relationships: Relationship[] = [
     toId: "agent-renovate-maintainer",
     type: "feeds",
     label: "after human audit",
-  },
-  {
-    id: "rel-resume-uses-inventory",
-    fromId: "project-resume-generator",
-    toId: "knowledge-career-inventory",
-    type: "uses",
   },
   {
     id: "rel-product-loop-feeds-reports",

@@ -38,7 +38,7 @@ describe("content-foundation inventory", () => {
     // content/project-cases.ts, and the supporting-tier cases (editorial-workflow,
     // renovate-governance) live in content/supporting-cases.ts — neither is in
     // this generic inventory. Hierarchy is not derived from a `featured` flag.
-    expect(listed.map((project) => project.slug)).toEqual(["resume-generator"]);
+    expect(listed.map((project) => project.slug)).toEqual([]);
 
     for (const project of listed) {
       const kinds = new Set(project.sections.map((section) => section.kind));
@@ -69,6 +69,9 @@ describe("content-foundation inventory", () => {
         );
       }
     }
+
+    // Resume generator is withheld from the public portfolio pending redesign.
+    expect(await repository.getProject("resume-generator")).toBeNull();
 
     // The two migrated systems are no longer generic projects.
     expect(await repository.getProject("editorial-workflow")).toBeNull();

@@ -34,7 +34,7 @@ export const articleLines: ArticleLineDefinition[] = [
   {
     id: "readiness",
     label: "Product Taste & Verification",
-    pairs: "Resume generator; Codenames AI",
+    pairs: "Codenames AI — co-primary",
   },
   {
     id: "portability",
@@ -54,9 +54,7 @@ export interface ArticleSystemRef {
  * Short display labels and routes for the systems reports pair with, keyed by
  * `Article.relatedProjectSlug`. Labels mirror the short forms in
  * `content/projects-index.ts` (co-primary case name and supporting-row titles);
- * routes are the real `/projects/*` routes. `resume-generator` is infrastructure
- * with no public detail route, so it renders as a plain-text label only — which
- * is all the archive rows ever need (handoff §6/§8).
+ * routes are the real `/projects/*` routes.
  */
 export const articleSystems: Record<string, ArticleSystemRef> = {
   "codenames-ai": { label: "Codenames AI", href: "/projects/codenames-ai" },
@@ -68,7 +66,6 @@ export const articleSystems: Record<string, ArticleSystemRef> = {
     label: "Editorial workflow",
     href: "/projects/editorial-workflow",
   },
-  "resume-generator": { label: "Resume generator" },
 };
 
 /**
