@@ -4,7 +4,7 @@ overview: "Multi-slice plan to complete michaeltruong.ai web identity: three pix
 todos:
   - id: slice-1-icon-source
     content: "PR 1: Three pixel-art avatar PNGs (favicon-32x32, apple-touch-icon 180, android-chrome-192) + provenance README + brand-icons tests"
-    status: pending
+    status: completed
   - id: slice-2-browser-metadata
     content: "PR 2 (with slice 3): Wire three icons via cleanest App Router mechanism, viewport themeColor + colorScheme, remove scaffold favicon.ico + head-identity tests"
     status: pending
