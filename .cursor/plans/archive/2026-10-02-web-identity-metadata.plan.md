@@ -60,7 +60,7 @@ isProject: false
 | `theme-color` (light + dark)              | **Pass** — `#f2efe8` (`prefers-color-scheme: light`), `#121110` (`prefers-color-scheme: dark`)                                                       |
 | `color-scheme`                            | **Pass** — `dark light`                                                                                                                              |
 | Manifest                                  | **Pass** — `display: browser`, single 192×192 icon (`purpose: any`), identity fields present                                                         |
-| Canonical, title, description on `/`      | **Pass** — canonical `https://michaeltruong.ai`; title and description match `SITE_DESCRIPTION`                                                      |
+| Canonical, title, description on `/`      | **Pass** — canonical `https://michaeltruong.ai`; title matches `SITE_TITLE`; description matches `SITE_DESCRIPTION`                                  |
 | `meta name="keywords"`                    | **Pass** — matches curated `SITE_KEYWORDS`                                                                                                           |
 | `og:*` + `twitter:*` on `/`               | **Pass** — descriptions match `SITE_DESCRIPTION`; OG/Twitter images 1200×630 (HTTP 200)                                                              |
 | JSON-LD graph                             | **Pass** — single script with linked `@graph`: WebSite (`#website`), ProfilePage (`#profilepage`), Person (`#person`)                                |
