@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: slice-e-readme-license
     content: "PR: Rewrite README, add MIT LICENSE + content carve-out, update package.json metadata, document .cursor/ agent-native story"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after last implementation slice: add # Shipped note, move plan to .cursor/plans/archive/2026-10-02-michaeltruong-ai-migration.plan.md"
     status: pending
