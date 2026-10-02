@@ -1,26 +1,18 @@
-# portfolio
+# Michael Truong — portfolio
 
-Personal engineering portfolio and project knowledge base.
+Production site: **[michaeltruong.ai](https://michaeltruong.ai)**
 
-## Purpose
+Personal engineering portfolio and project knowledge base — a static-first Next.js app for case studies, published writing, and an ecosystem map. Typed content modules behind a `PortfolioRepository` abstraction; Supabase and a grounded chatbot stay later.
 
-Job-search-ready static MVP: recruiter link, resume companion, interview reference, and public portfolio. Home, projects (four case studies), articles (DEV.to archive), and an About continuity surface (identity rail + numbered practice record) — fed by typed content modules via `StaticPortfolioRepository`.
+## Stack
 
-**Current status:** static content MVP on production, plus a live read-only `/ecosystem` map (light layer-spine overview + three operational workflow canvases). Brand and IA live in the Next.js app (`app/`, `components/`, layered CSS under `app/styles/` via `app/globals.css`). Design-system guidance: [docs/design-system.md](docs/design-system.md). Supabase and chatbot work stay later.
+- Next.js 16 (App Router), React 19, TypeScript
+- Tailwind CSS + layered brand tokens (`app/styles/`)
+- GSAP ScrollTrigger for scroll choreography (homepage method reveal, Codenames case study)
+- Vitest + Playwright; ESLint + Prettier; Husky pre-commit
+- Deployed on Vercel; optional client-side PostHog analytics
 
-## Tech stack
-
-- Next.js (App Router)
-- TypeScript
-- React Server Components (default)
-- Tailwind CSS + brand CSS tokens
-- ESLint + Prettier
-- npm
-- Deploy target: Vercel
-
-Supabase is planned later and is not part of this MVP.
-
-## Development
+## Local development
 
 Requires Node 24 (see `.nvmrc`).
 
@@ -29,73 +21,53 @@ npm install
 npm run dev
 ```
 
-Other scripts:
+Open [http://localhost:3000](http://localhost:3000).
+
+Common scripts:
 
 ```bash
 npm run lint
 npm run typecheck
-npm run format
-npm run format:check
-npm test
+npm run test
 npm run test:coverage
 npm run build
-npm start
-npm run playwright:install   # once: Chromium for e2e
-npm run test:e2e             # happy-path Playwright (expects `npm run build` first)
-npm run generate:image -- --prompt "..."   # dev-only image tooling (see below)
+npm run test:e2e            # after npm run build; run playwright:install once
 ```
 
-Dev-only image generation (Nano Banana Pro) for portfolio visual experiments is
-documented in [docs/image-generation.md](docs/image-generation.md). It is not
-part of the app runtime or bundle.
+Copy [`.env.example`](.env.example) to `.env.local` when you need `NEXT_PUBLIC_SITE_URL`, PostHog, or dev-only image/video generators. None are required for the static MVP.
 
-Pre-commit (Husky): runs `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Coverage runs in CI (`test:coverage`), not on every commit. Playwright e2e runs in a separate CI job after `verify`. Husky install is skipped when `CI` is set.
+Full command reference: [AGENTS.md](AGENTS.md).
 
-Local app: [http://localhost:3000](http://localhost:3000)
+## Routes
 
-Primary routes:
+| Route              | Purpose                                                                  |
+| ------------------ | ------------------------------------------------------------------------ |
+| `/`                | Homepage — two systems, career ledger, supporting work, selected writing |
+| `/projects`        | Case-study index                                                         |
+| `/projects/[slug]` | Case-study detail (Codenames AI includes scroll-driven narrative)        |
+| `/articles`        | DEV.to archive (external links)                                          |
+| `/ecosystem`       | Read-only workflow canvases over static ecosystem data                   |
+| `/about`           | Identity rail + numbered practice record                                 |
 
-- `/` — homepage (two first-class systems, career ledger, supporting work, selected writing)
-- `/projects` — four case studies
-- `/projects/[slug]` — case-study detail
-- `/articles` — published DEV.to index (external links)
-- `/ecosystem` — read-only React Flow canvases (orientation spine + operational workflows)
-- `/about` — the continuity/career surface ("Standing Record"): a persistent identity + contact rail beside a numbered practice record whose spine is chronological, each era ending on the mechanism it left behind
+## Agent-native development
 
-## Analytics (optional)
+This repository is built and maintained with Cursor agents. [`.cursor/`](.cursor/) holds execution standards, staged plans, Impeccable design-review tooling, and git-hook bridges for Cloud agents — not runtime dependencies. Product truth lives in [`PRODUCT.md`](PRODUCT.md) and [`DESIGN.md`](DESIGN.md); architecture notes in [`docs/`](docs/).
 
-Client-side PostHog is env-gated. Copy [`.env.example`](.env.example) to `.env.local` and set:
+## Licensing
 
-```bash
-NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=
-NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
-```
+| Layer                                                                                  | License                                                            |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Source code** (app, components, scripts, tests, tooling)                             | [MIT](LICENSE)                                                     |
+| **Portfolio content** (copy, branding, portraits, project media, case-study narrative) | All rights reserved — see [CONTENT_LICENSE.md](CONTENT_LICENSE.md) |
 
-Leave the token blank (the default) for local and CI — PostHog does not initialize and no events are sent. Set the same vars on Vercel for preview and production. Events include an `analytics_environment` super property (`production`, `preview`, `local`, or `e2e`) so dashboards can filter non-production traffic. Autocapture and session recording stay off.
+Code is open for learning and reference; portfolio copy and visual identity are not automatically reusable.
 
-Pinned product dashboard (production filter, last 30 days): [Portfolio — Product Health](https://us.posthog.com/project/423501/dashboard/1976872).
+## Documentation
+
+- [Architecture overview](docs/architecture/overview.md)
+- [Design system](docs/design-system.md)
+- [Agent handbook](AGENTS.md)
 
 ## Deployment
 
-Designed for Vercel. The GitHub repository is connected; the Next.js app deploys with default settings. No env vars are required for the static MVP (PostHog is optional; see above).
-
-Stable production URLs (Multipliers Dev team):
-
-- Production: [https://portfolio-multipliers-dev.vercel.app](https://portfolio-multipliers-dev.vercel.app)
-- `main` branch alias: [https://portfolio-git-main-multipliers-dev.vercel.app](https://portfolio-git-main-multipliers-dev.vercel.app)
-
-Per-deploy `*.vercel.app` hosts change every build and are not documented here. Add a custom domain here when one is configured.
-
-## Layout
-
-| Path            | Role                                          |
-| --------------- | --------------------------------------------- |
-| `app/`          | App Router pages                              |
-| `components/`   | Shared UI (header, footer, case-study chrome) |
-| `domain/`       | Lightweight domain interfaces                 |
-| `content/`      | Static content modules (evidence-backed)      |
-| `repositories/` | Storage abstraction + static implementation   |
-| `lib/`          | Shared helpers                                |
-| `docs/`         | Architecture notes and plans                  |
-
-See [docs/architecture/overview.md](docs/architecture/overview.md).
+Canonical host: `https://michaeltruong.ai` (see [`lib/site.ts`](lib/site.ts)). Vercel deploys from `main`; preview environments use `robots.txt` disallow. PostHog is optional — set `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` on Vercel for preview/production analytics.
