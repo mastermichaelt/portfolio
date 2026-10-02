@@ -7,10 +7,10 @@ todos:
     status: completed
   - id: slice-2-browser-metadata
     content: "PR 2 (with slice 3): Wire three icons via cleanest App Router mechanism, viewport themeColor + colorScheme, remove scaffold favicon.ico + head-identity tests"
-    status: pending
+    status: completed
   - id: slice-3-manifest
     content: "PR 2 (with slice 2): app/manifest.ts — identity fields, display browser, single android-chrome-192 icon ref + manifest tests"
-    status: pending
+    status: completed
   - id: slice-4-metadata
     content: "PR 3: lib/site-metadata.ts, homepage OG/Twitter description alignment, authors/creator + curated metadata.keywords + metadata consistency tests"
     status: pending
