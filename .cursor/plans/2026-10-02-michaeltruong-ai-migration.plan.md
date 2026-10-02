@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: slice-b-robots-sitemap
     content: "PR: Add app/robots.ts (preview disallow) and app/sitemap.ts (5 static + 5 project URLs) with tests"
-    status: pending
+    status: completed
   - id: slice-c-jsonld-metadata
     content: "PR: Add Person JSON-LD from profile.ts; refine metadata/OG copy for Senior SWE + AI Product Engineer positioning"
     status: pending
