@@ -2,50 +2,39 @@
 
 Three committed PNG deliverables for michaeltruong.ai web identity (Slice 1). Wiring into `<head>` and manifest is deferred to Slice 2/3.
 
-## Reference hierarchy
+## References
 
-| Priority | Reference                       | Path                                                                         | Role                                                                         |
-| -------- | ------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| 1        | **Canonical photograph**        | [`public/portrait-michael-1200.jpg`](../../public/portrait-michael-1200.jpg) | Likeness truth — hair, glasses, expression, shirt, owl                       |
-| 2        | **Approved pixel-art portrait** | [`approved-pixel-reference.png`](./approved-pixel-reference.png)             | Character/style truth — proportions, palette, pixel treatment, owl rendering |
+| Reference                | Path                                                                           | Role                                                          |
+| ------------------------ | ------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| **Canonical photograph** | [`public/portrait-michael-1200.jpg`](../../public/portrait-michael-1200.jpg)   | Likeness sanity check — hair, glasses, expression, shirt, owl |
+| **Production master**    | [`public/android-chrome-192x192.png`](../../public/android-chrome-192x192.png) | Approved pixel character artwork (192×192, full-bleed dark)   |
 
-**Immutable:** `approved-pixel-reference.png` is a pristine copy of the supplied approved comp. Do not overwrite, crop, resize, or modify it.
-
-**Goal:** likeness from the photograph + character/style from the approved pixel reference. Production assets are **adaptations of that one character**, not separately generated interpretations.
+Production icons are **adaptations of one character design**, not separately generated interpretations.
 
 ## Visual direction
 
 Charming **16-bit / Pixel Remaster** JRPG character portrait — hard pixel edges, restrained palette, simplified sprite features. **Not** photoreal, **not** a photo downscale, **not** text-prompt regeneration.
 
-## Presentation artifacts (not in production)
-
-The approved pixel reference displays the character inside a rounded dark tile with blue visible around it. These are **presentation only** and must **not** appear in production PNGs:
-
-- rounded-square / tile boundary
-- rounded corners baked into artwork
-- blue border or outer blue background
-- outer padding that creates an icon-within-an-icon look
-
 ## Production background
 
-Production icons use a **flat, full-bleed dark background** (`~#101011`) extending to every canvas edge. The dark interior of the approved reference is continued outward to fill the square.
+Icons use a **flat, full-bleed dark background** extending to every canvas edge.
 
 - Background is **not** transparent
 - **No** baked app-icon mask — platforms apply their own masks
 
 ## Final deliverables (`public/`)
 
-| File                         | Size    | Derivation                                                            |
-| ---------------------------- | ------- | --------------------------------------------------------------------- |
-| `android-chrome-192x192.png` | 192×192 | Approved production reference (192×192, full-bleed dark) — used as-is |
-| `apple-touch-icon.png`       | 180×180 | Center crop of `android-chrome-192x192.png` (6 px per side)           |
-| `favicon-32x32.png`          | 32×32   | Nearest-neighbor downscale of 192 reference → manual owl removal      |
+| File                         | Size    | Derivation                                                    |
+| ---------------------------- | ------- | ------------------------------------------------------------- |
+| `android-chrome-192x192.png` | 192×192 | Production master — used as-is                                |
+| `apple-touch-icon.png`       | 180×180 | Center crop of `android-chrome-192x192.png` (6 px per side)   |
+| `favicon-32x32.png`          | 32×32   | Nearest-neighbor downscale of 192 master → manual owl removal |
 
 ### Size-specific rules
 
 - **32×32 favicon:** Same character with detail removed — owl omitted, shoulder clutter cleared. **Not** independently generated. Validate at **~16 CSS px** display size (browser tab).
-- **180×180 and 192×192:** Faithful adaptations preserving hair silhouette, face proportions, glasses, smile, shirt, owl, palette, and shading.
-- All three must be immediately recognizable as the **same** approved character at different detail levels.
+- **180×180 and 192×192:** Same approved character; Apple is a slight center crop of the 192 master.
+- All three must be immediately recognizable as the **same** character at different detail levels.
 
 ## Explicitly not in scope (Slice 1)
 
