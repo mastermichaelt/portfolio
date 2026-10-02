@@ -2,7 +2,9 @@
 
 Production site: **[michaeltruong.ai](https://michaeltruong.ai)**
 
-Personal engineering portfolio and project knowledge base — a static-first Next.js app for case studies, published writing, and an ecosystem map. Typed content modules behind a `PortfolioRepository` abstraction; Supabase and a grounded chatbot stay later.
+Personal engineering portfolio and project knowledge base — a static-first Next.js app for case studies, published writing, and an ecosystem map.
+
+Looking for the open-source engineering work? See [multipliers-dev/renovate-workflow](https://github.com/multipliers-dev/renovate-workflow) and [multipliers-dev/cursor-team-marketplace](https://github.com/multipliers-dev/cursor-team-marketplace).
 
 ## Stack
 
