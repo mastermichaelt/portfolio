@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: slice-5-jsonld
     content: "PR 4: Evolve PersonJsonLd to linked @graph (WebSite + ProfilePage + Person) with stable @id refs + JSON-LD graph tests"
-    status: pending
+    status: completed
   - id: slice-6-cleanup
     content: "PR 4 or 5: Remove unused public/*.svg scaffold assets after grep verification + cleanup verification tests"
     status: pending
