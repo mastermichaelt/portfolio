@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: slice-6-cleanup
     content: "PR 4 or 5: Remove unused public/*.svg scaffold assets after grep verification + cleanup verification tests"
-    status: pending
+    status: completed
   - id: slice-7-verification
     content: "Docs-only PR: run full qualification suite + production checklist; verify slice tests pass; archive plan — no product or test code changes"
     status: pending
