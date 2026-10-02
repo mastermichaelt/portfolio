@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: slice-c-jsonld-metadata
     content: "PR: Add Person JSON-LD from profile.ts; refine metadata/OG copy for Senior SWE + AI Product Engineer positioning"
-    status: pending
+    status: completed
   - id: slice-d-docs-hygiene
     content: "PR: Redact phone PII; archive stale audit docs; add docs/archive/README.md"
     status: pending

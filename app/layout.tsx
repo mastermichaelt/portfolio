@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { PersonJsonLd } from "@/components/PersonJsonLd";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -29,20 +30,20 @@ export const metadata: Metadata = {
     template: "%s · Michael Truong",
   },
   description:
-    "Senior software engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
+    "Michael Truong — Senior Software Engineer and AI Product Engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
   openGraph: {
     type: "website",
     siteName: "Michael Truong",
     title: "Michael Truong · Making uncertain systems dependable",
     description:
-      "Senior software engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
+      "Michael Truong — Senior Software Engineer and AI Product Engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
     locale: "en_AU",
   },
   twitter: {
     card: "summary_large_image",
     title: "Michael Truong · Making uncertain systems dependable",
     description:
-      "Senior software engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
+      "Michael Truong — Senior Software Engineer and AI Product Engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
   },
 };
 
@@ -59,6 +60,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <ThemeScript />
+        <PersonJsonLd profile={profile} />
       </head>
       <body className="min-h-full flex flex-col">
         <a className="skip-link" href="#content">

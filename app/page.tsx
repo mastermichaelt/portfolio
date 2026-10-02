@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     absolute: "Michael Truong · Making uncertain systems dependable",
   },
   description:
-    "Senior software engineer in Sydney. Atlassian measurement and verification practice (2014–2025), independent AI products since 2026, and evidence-backed field reports.",
+    "Michael Truong — Senior Software Engineer and AI Product Engineer in Sydney. Atlassian measurement and verification practice (2014–2025), independent AI products since 2026, and evidence-backed field reports.",
   alternates: {
     canonical: "/",
   },
