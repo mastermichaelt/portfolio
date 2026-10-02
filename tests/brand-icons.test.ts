@@ -6,18 +6,18 @@ import { describe, expect, it } from "vitest";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 const BRAND_ICONS = [
-  { file: "public/favicon-32x32.png", width: 32, height: 32, minBytes: 500 },
+  { file: "public/favicon-32x32.png", width: 32, height: 32, minBytes: 200 },
   {
     file: "public/apple-touch-icon.png",
     width: 180,
     height: 180,
-    minBytes: 5_000,
+    minBytes: 4_000,
   },
   {
     file: "public/android-chrome-192x192.png",
     width: 192,
     height: 192,
-    minBytes: 5_000,
+    minBytes: 4_000,
   },
 ] as const;
 

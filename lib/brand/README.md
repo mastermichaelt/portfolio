@@ -2,21 +2,28 @@
 
 Three committed PNG deliverables for michaeltruong.ai web identity (Slice 1). Wiring into `<head>` and manifest is deferred to Slice 2/3.
 
-## Reference portrait
+## Identity reference (not style source)
 
-Derived from [`public/portrait-michael-1200.jpg`](../../public/portrait-michael-1200.jpg) — the canonical photographic reference on the site.
+Likeness cues come from [`public/portrait-michael-1200.jpg`](../../public/portrait-michael-1200.jpg) — the canonical photographic reference on the site. **Style is not derived from the photo.** Artwork follows a clean **16-bit JRPG / Pixel Remaster** sprite direction (dialogue-portrait charm, stylized proportions, restrained palette).
 
 **Recognizable traits (do not invent or alter):**
 
-- Dark hair
+- Dark hair with a simple readable silhouette
 - Black rectangular glasses
-- Warm smile
-- Dark charcoal crew-neck shirt
-- Small owl on the left shoulder (larger compositions only)
+- Friendly smiling expression (sprite mouth — no individual teeth)
+- Dark crew-neck shirt
+- Small owl companion on the left shoulder (larger compositions only)
 
 ## Visual direction
 
-Clean modern **16-bit / Pixel Remaster** pixel art — not photoreal, not a photo downscale, not an MT monogram.
+Hand-crafted **JRPG character portrait sprites** — warm, charming, readable. **Not** photoreal, **not** a photo converted to pixels, **not** a photo downscale, **not** an MT monogram.
+
+**Sprite rules:**
+
+- Stylized JRPG proportions rather than realistic facial anatomy
+- Simplified eyes, nose, and mouth as deliberate sprite features
+- Restrained pixel-art palette with intentional color clusters — no photographic skin gradients or soft shading
+- Hair silhouette and glasses do most of the recognition work
 
 ## Final deliverables (`public/`)
 
@@ -28,7 +35,7 @@ Clean modern **16-bit / Pixel Remaster** pixel art — not photoreal, not a phot
 
 ## Size-specific rules
 
-- **32×32 favicon:** Prioritize hair, glasses, expression, and face. Owl **omitted** — too small to read at favicon presentation size.
+- **32×32 favicon:** Purpose-built sprite art at native 32×32 (hand-authored grid) — not a downsampled portrait. Prioritize hair silhouette, glasses, and smile. Owl **omitted** — too small to read at favicon presentation size.
 - **180×180 and 192×192:** Preserve the richer composition including the owl on the shoulder.
 - All three share the **same pixel-art identity** but are **not** forced integer upscales of the 32×32 sprite — size-specific simplification is intentional.
 
@@ -40,10 +47,10 @@ Browsers display favicons at approximately **16 CSS px** in tabs, but a **16×16
 
 ## Optional source artwork (`lib/brand/`)
 
-| File                              | Purpose                                               |
-| --------------------------------- | ----------------------------------------------------- |
-| `avatar-pixel-source.png`         | Richer owl composition for 180/192 outputs            |
-| `avatar-pixel-favicon-source.png` | Favicon-focused composition (no owl) for 32×32 output |
+| File                              | Purpose                                          |
+| --------------------------------- | ------------------------------------------------ |
+| `avatar-pixel-source.png`         | Richer owl composition for 180/192 outputs       |
+| `avatar-pixel-favicon-source.png` | Hand-authored 32×32 JRPG favicon sprite (no owl) |
 
 These document the preferred compositions; the three `public/` PNGs are the **final deliverables**.
 
@@ -60,4 +67,4 @@ An **MT monogram** is a **fallback candidate only** if the pixel avatar fails fa
 
 ## Reproducibility
 
-Regeneration is manual design judgment from the reference portrait and optional source files above. A lightweight `npm run generate:icons` script is optional and not required for Slice 1.
+Regeneration is manual design judgment: style-first JRPG sprite art for 180/192 sources, hand-authored 32×32 favicon grid. Identity reference portrait informs likeness only. A lightweight `npm run generate:icons` script is optional and not required for Slice 1.
