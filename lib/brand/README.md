@@ -17,7 +17,7 @@ Charming **16-bit / Pixel Remaster** JRPG character portrait — hard pixel edge
 
 ## Production background
 
-**180×192 and 192×192** icons use a **flat, full-bleed dark background** extending to every canvas edge (not transparent).
+**180×180 and 192×192** icons use a **flat, full-bleed dark background** extending to every canvas edge (not transparent).
 
 **32×32 favicon** uses a **transparent background** so the browser tab composites the owl sprite against the tab chrome. No baked app-icon mask — platforms apply their own masks where needed.
 
