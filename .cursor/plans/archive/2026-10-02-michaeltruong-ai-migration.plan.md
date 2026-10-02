@@ -22,9 +22,29 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after last implementation slice: add # Shipped note, move plan to .cursor/plans/archive/2026-10-02-michaeltruong-ai-migration.plan.md"
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-10-02.**
+
+| Slice                   | Delivered                                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| plan-review             | [#83](https://github.com/mastermichaelt/portfolio/pull/83) — plan artifact (Plan-only PR)                                         |
+| slice-a-site-url        | [#84](https://github.com/mastermichaelt/portfolio/pull/84) — `lib/site.ts`; canonical URL defaults to `michaeltruong.ai`          |
+| slice-b-robots-sitemap  | [#85](https://github.com/mastermichaelt/portfolio/pull/85) — `robots.txt` + `sitemap.xml` (10 URLs); preview disallow             |
+| slice-c-jsonld-metadata | [#86](https://github.com/mastermichaelt/portfolio/pull/86) — Person JSON-LD; metadata positioning for AI Product Engineer         |
+| slice-d-docs-hygiene    | [#87](https://github.com/mastermichaelt/portfolio/pull/87) — phone PII redacted; audit docs archived under `docs/archive/`        |
+| slice-e-readme-license  | [#89](https://github.com/mastermichaelt/portfolio/pull/89) — README, MIT `LICENSE`, `CONTENT_LICENSE.md`, `package.json` metadata |
+| plan-closure            | This PR — archive to `.cursor/plans/archive/2026-10-02-michaeltruong-ai-migration.plan.md`                                        |
+
+**Deferred (out of scope):** `vercel.json` redirects — configure `michaeltruong.ai`, `www`, and legacy hosts in the Vercel dashboard first; add in-repo redirects only if a gap remains.
+
+**External follow-ups:** Vercel DNS and primary domain; GitHub visibility (human step — in-repo public-release presentation complete after D+E); git history scrub for phone PII before public release; DEV/LinkedIn/GitHub profile links; Google Search Console.
+
+This plan is archived. The work described here has shipped; the remaining content is preserved for historical context.
 
 # michaeltruong.ai migration and public-readiness
 
@@ -40,7 +60,7 @@ isProject: false
 | slice-e-readme-license  | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure            | Open PR only          | Do not merge. Stop after opening the PR.               |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ## Repository topology (default)
 
@@ -51,22 +71,22 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 - **Canonical host:** `https://michaeltruong.ai`
 - **Slice F (`vercel.json`) deferred:** configure `michaeltruong.ai`, `www`, legacy domains, and primary-domain redirects in **Vercel first**. Add `vercel.json` only if a redirect requirement remains that Vercel domain settings do not handle cleanly. Do not duplicate Vercel domain config in-repo without cause.
 - **Sitemap inventory:** five static routes (`/`, `/about`, `/projects`, `/articles`, `/ecosystem`) plus five project detail pages (`experiment-measurement`, `codenames-ai`, `editorial-workflow`, `renovate-governance`, `resume-generator`) — **10 URLs total**.
-- **Person JSON-LD:** include public email (`michael@multipliers.dev`) and `Sydney, Australia` from [`content/profile.ts`](../../content/profile.ts); `sameAs` = LinkedIn, GitHub, DEV only.
+- **Person JSON-LD:** include public email (`michael@multipliers.dev`) and `Sydney, Australia` from [`content/profile.ts`](../../../content/profile.ts); `sameAs` = LinkedIn, GitHub, DEV only.
 - **`.cursor/` footprint:** keep and document as agent-native development setup.
-- **License:** MIT for implementation code; explicit carve-out for portfolio copy, branding, portraits, and project media ([`CONTENT_LICENSE.md`](../../CONTENT_LICENSE.md) or README section).
+- **License:** MIT for implementation code; explicit carve-out for portfolio copy, branding, portraits, and project media ([`CONTENT_LICENSE.md`](../../../CONTENT_LICENSE.md) or README section).
 - **Public-release gate (in-repo):** slice D removes hygiene blockers only; **ready to make the repository public** requires slice D **and** slice E merged (README, MIT license, content carve-out, package metadata). Neither slice authorizes the human GitHub visibility change on its own.
 
 ## Current state (audit summary)
 
-**Production host in code today:** `https://portfolio-multipliers-dev.vercel.app` — hard-coded in [`app/layout.tsx`](../../app/layout.tsx) (`metadataBase`), [`lib/analyticsEnvironment.ts`](../../lib/analyticsEnvironment.ts), [`app/opengraph-image.tsx`](../../app/opengraph-image.tsx).
+**Production host in code today:** `https://portfolio-multipliers-dev.vercel.app` — hard-coded in [`app/layout.tsx`](../../../app/layout.tsx) (`metadataBase`), [`lib/analyticsEnvironment.ts`](../../../lib/analyticsEnvironment.ts), [`app/opengraph-image.tsx`](../../../app/opengraph-image.tsx).
 
 **SEO present:** Next.js Metadata API on all route surfaces; per-page canonicals; `generateMetadata` on `/projects/[slug]`; default OG/Twitter images.
 
 **SEO missing:** `app/robots.ts`, `app/sitemap.ts`, Person JSON-LD, env-driven site URL, preview `noindex`, metadata positioning for AI Product Engineer.
 
-**Public-release audit:** no credential blockers in git history; redact phone PII in [`docs/archive/content-evidence-migration.md`](../../docs/archive/content-evidence-migration.md); archive or banner stale internal audit docs; external Vercel DNS required before redirect verification.
+**Public-release audit:** no credential blockers in git history; redact phone PII in [`docs/archive/content-evidence-migration.md`](../../../docs/archive/content-evidence-migration.md); archive or banner stale internal audit docs; external Vercel DNS required before redirect verification.
 
-**Identity source of truth:** [`content/profile.ts`](../../content/profile.ts) — LinkedIn, GitHub, DEV, `michael@multipliers.dev`. DEV profile externally lists `michaeltruong.dev` (not wired in app).
+**Identity source of truth:** [`content/profile.ts`](../../../content/profile.ts) — LinkedIn, GitHub, DEV, `michael@multipliers.dev`. DEV profile externally lists `michaeltruong.dev` (not wired in app).
 
 ---
 
@@ -78,10 +98,10 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 
 **Deliverables:**
 
-- Add [`lib/site.ts`](../../lib/site.ts) — `getSiteUrl()` / `getSiteHostname()` from `NEXT_PUBLIC_SITE_URL` (HTTPS origin only; default `https://michaeltruong.ai`)
-- Update [`app/layout.tsx`](../../app/layout.tsx), [`lib/analyticsEnvironment.ts`](../../lib/analyticsEnvironment.ts), [`app/opengraph-image.tsx`](../../app/opengraph-image.tsx)
-- Add `NEXT_PUBLIC_SITE_URL=` to [`.env.example`](../../.env.example)
-- Update [`tests/analytics-environment.test.ts`](../../tests/analytics-environment.test.ts), [`tests/posthog.test.ts`](../../tests/posthog.test.ts); add [`tests/site.test.ts`](../../tests/site.test.ts)
+- Add [`lib/site.ts`](../../../lib/site.ts) — `getSiteUrl()` / `getSiteHostname()` from `NEXT_PUBLIC_SITE_URL` (HTTPS origin only; default `https://michaeltruong.ai`)
+- Update [`app/layout.tsx`](../../../app/layout.tsx), [`lib/analyticsEnvironment.ts`](../../../lib/analyticsEnvironment.ts), [`app/opengraph-image.tsx`](../../../app/opengraph-image.tsx)
+- Add `NEXT_PUBLIC_SITE_URL=` to [`.env.example`](../../../.env.example)
+- Update [`tests/analytics-environment.test.ts`](../../../tests/analytics-environment.test.ts), [`tests/posthog.test.ts`](../../../tests/posthog.test.ts); add [`tests/site.test.ts`](../../../tests/site.test.ts)
 
 **Acceptance:** `metadataBase` and analytics production fallback resolve to `michaeltruong.ai`; tests pass.
 
@@ -97,9 +117,9 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 
 **Deliverables:**
 
-- [`app/robots.ts`](../../app/robots.ts) — `VERCEL_ENV === 'preview'` → `disallow: /`; production → `allow: /` + sitemap URL from `getSiteUrl()`
-- [`app/sitemap.ts`](../../app/sitemap.ts) + shared [`lib/sitemap-paths.ts`](../../lib/sitemap-paths.ts) (same slug union as `generateStaticParams`)
-- [`tests/robots-sitemap.test.ts`](../../tests/robots-sitemap.test.ts) — assert **10 sitemap URLs** (5 static + 5 project)
+- [`app/robots.ts`](../../../app/robots.ts) — `VERCEL_ENV === 'preview'` → `disallow: /`; production → `allow: /` + sitemap URL from `getSiteUrl()`
+- [`app/sitemap.ts`](../../../app/sitemap.ts) + shared [`lib/sitemap-paths.ts`](../../../lib/sitemap-paths.ts) (same slug union as `generateStaticParams`)
+- [`tests/robots-sitemap.test.ts`](../../../tests/robots-sitemap.test.ts) — assert **10 sitemap URLs** (5 static + 5 project)
 
 **Acceptance:** sitemap lists exactly `/`, `/about`, `/projects`, `/articles`, `/ecosystem`, and all five `/projects/[slug]` paths; preview robots disallows all.
 
@@ -115,10 +135,10 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 
 **Deliverables:**
 
-- [`components/PersonJsonLd.tsx`](../../components/PersonJsonLd.tsx) — `schema.org/Person` with `jobTitle` ["Senior Software Engineer", "AI Product Engineer"], `url`, `email`, `homeLocation`, `sameAs` from profile
-- Mount in [`app/layout.tsx`](../../app/layout.tsx)
-- Refine root/home `description` in `app/layout.tsx` and [`app/page.tsx`](../../app/page.tsx); update OG image eyebrow/footer in [`app/opengraph-image.tsx`](../../app/opengraph-image.tsx)
-- [`tests/person-jsonld.test.tsx`](../../tests/person-jsonld.test.tsx)
+- [`components/PersonJsonLd.tsx`](../../../components/PersonJsonLd.tsx) — `schema.org/Person` with `jobTitle` ["Senior Software Engineer", "AI Product Engineer"], `url`, `email`, `homeLocation`, `sameAs` from profile
+- Mount in [`app/layout.tsx`](../../../app/layout.tsx)
+- Refine root/home `description` in `app/layout.tsx` and [`app/page.tsx`](../../../app/page.tsx); update OG image eyebrow/footer in [`app/opengraph-image.tsx`](../../../app/opengraph-image.tsx)
+- [`tests/person-jsonld.test.tsx`](../../../tests/person-jsonld.test.tsx)
 
 **Acceptance:** valid JSON-LD on all pages; homepage meta description names Michael Truong, Senior Software Engineer, and AI Product Engineer naturally; do not change `content/profile.ts` visible headline unless explicitly requested.
 
@@ -133,8 +153,8 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 **Deliverables:**
 
 - Redact phone number in `docs/archive/content-evidence-migration.md`
-- Move [`docs/content-evidence-migration.md`](../../docs/archive/content-evidence-migration.md) and [`docs/redesign-baseline.md`](../../docs/archive/redesign-baseline.md) to `docs/archive/` with historical banner; add [`docs/archive/README.md`](../../docs/archive/README.md)
-- Update cross-links in [`docs/plans/portfolio-roadmap.plan.md`](../../docs/plans/portfolio-roadmap.plan.md) and content-module references
+- Move [`docs/content-evidence-migration.md`](../../../docs/archive/content-evidence-migration.md) and [`docs/redesign-baseline.md`](../../../docs/archive/redesign-baseline.md) to `docs/archive/` with historical banner; add [`docs/archive/README.md`](../../../docs/archive/README.md)
+- Update cross-links in [`docs/plans/portfolio-roadmap.plan.md`](../../../docs/plans/portfolio-roadmap.plan.md) and content-module references
 
 **Acceptance:** no phone PII in tracked files; archived docs clearly marked non-visitor-facing. **Does not** satisfy the public-release gate — repository presentation and licensing ship in slice E.
 
@@ -150,10 +170,10 @@ Multi-slice plans stack execution order, not Git branches. Integration branch: `
 
 **Deliverables:**
 
-- Rewrite [`README.md`](../../README.md) — lead with `https://michaeltruong.ai`, stack, local dev, agent-native `.cursor/` note
-- [`LICENSE`](../../LICENSE) (MIT), [`CONTENT_LICENSE.md`](../../CONTENT_LICENSE.md)
-- Update [`package.json`](../../package.json) metadata (`description`, `homepage`, `repository`, `author`, `license`); keep `"private": true`
-- Minimal wording refresh in [`docs/architecture/overview.md`](../../docs/architecture/overview.md)
+- Rewrite [`README.md`](../../../README.md) — lead with `https://michaeltruong.ai`, stack, local dev, agent-native `.cursor/` note
+- [`LICENSE`](../../../LICENSE) (MIT), [`CONTENT_LICENSE.md`](../../../CONTENT_LICENSE.md)
+- Update [`package.json`](../../../package.json) metadata (`description`, `homepage`, `repository`, `author`, `license`); keep `"private": true`
+- Minimal wording refresh in [`docs/architecture/overview.md`](../../../docs/architecture/overview.md)
 
 **Acceptance:** README suitable for public GitHub; license split documented. With slice D merged, in-repo prerequisites for public release are satisfied — the human step to change GitHub visibility remains external and occurs only after D+E.
 
@@ -167,7 +187,7 @@ Configure in Vercel dashboard first:
 - Set apex as primary production domain
 - 301 legacy hosts: `portfolio-multipliers-dev.vercel.app`, `portfolio-git-main-multipliers-dev.vercel.app`, `michaeltruong.dev` / `www` (if owned), `www.michaeltruong.ai` → apex
 
-Add [`vercel.json`](../../vercel.json) in a follow-up PR **only** if dashboard config leaves a gap.
+Add [`vercel.json`](../../../vercel.json) in a follow-up PR **only** if dashboard config leaves a gap.
 
 ---
 
@@ -207,7 +227,7 @@ After slice-e-readme-license merges: verify todos, add `# Shipped`, move to `.cu
 ### slice-a-site-url
 
 ```text
-@.cursor/plans/2026-10-02-michaeltruong-ai-migration.plan.md
+@.cursor/plans/archive/2026-10-02-michaeltruong-ai-migration.plan.md
 
 Implement slice slice-a-site-url only. Do not start slice-b-robots-sitemap or later slices. Do not archive the plan.
 
@@ -223,7 +243,7 @@ Verification: npm run typecheck && npm test; metadataBase resolves to michaeltru
 ### slice-b-robots-sitemap
 
 ```text
-@.cursor/plans/2026-10-02-michaeltruong-ai-migration.plan.md
+@.cursor/plans/archive/2026-10-02-michaeltruong-ai-migration.plan.md
 
 Implement slice slice-b-robots-sitemap only. Prerequisite: slice-a-site-url merged. Do not start slice-c-jsonld-metadata or later slices. Do not archive the plan.
 
@@ -239,7 +259,7 @@ Verification: npm run typecheck && npm test; sitemap has 5 static + 5 project pa
 ### slice-c-jsonld-metadata
 
 ```text
-@.cursor/plans/2026-10-02-michaeltruong-ai-migration.plan.md
+@.cursor/plans/archive/2026-10-02-michaeltruong-ai-migration.plan.md
 
 Implement slice slice-c-jsonld-metadata only. Prerequisite: slice-a-site-url merged. Do not start slice-d-docs-hygiene or later slices. Do not archive the plan.
 
@@ -255,7 +275,7 @@ Verification: npm run typecheck && npm test; Person JSON-LD includes email, Sydn
 ### slice-d-docs-hygiene
 
 ```text
-@.cursor/plans/2026-10-02-michaeltruong-ai-migration.plan.md
+@.cursor/plans/archive/2026-10-02-michaeltruong-ai-migration.plan.md
 
 Implement slice slice-d-docs-hygiene only. Do not start slice-e-readme-license or plan-closure. Do not archive the plan.
 
@@ -271,7 +291,7 @@ Verification: no phone number in tracked files; archived docs have historical ba
 ### slice-e-readme-license
 
 ```text
-@.cursor/plans/2026-10-02-michaeltruong-ai-migration.plan.md
+@.cursor/plans/archive/2026-10-02-michaeltruong-ai-migration.plan.md
 
 Implement slice slice-e-readme-license only. Prerequisite: slice-d-docs-hygiene merged. Do not start plan-closure. Do not archive the plan.
 
@@ -287,7 +307,7 @@ Verification: README leads with michaeltruong.ai; MIT + content carve-out docume
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-10-02-michaeltruong-ai-migration.plan.md
+@.cursor/plans/archive/2026-10-02-michaeltruong-ai-migration.plan.md
 
 Execute only plan-closure.
 
