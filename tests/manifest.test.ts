@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from "@/lib/site-metadata";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -14,11 +15,9 @@ describe("web manifest", () => {
     expect(result.start_url).toBe("/");
     expect(result.background_color).toBe("#121110");
     expect(result.theme_color).toBe("#121110");
-    expect(result.name).toBe(
-      "Michael Truong · Making uncertain systems dependable",
-    );
-    expect(result.short_name).toBe("Michael Truong");
-    expect(result.description).toContain("Michael Truong");
+    expect(result.name).toBe(SITE_TITLE);
+    expect(result.short_name).toBe(SITE_NAME);
+    expect(result.description).toBe(SITE_DESCRIPTION);
     expect(result.icons).toHaveLength(1);
     expect(result.icons?.[0]).toEqual({
       src: "/android-chrome-192x192.png",

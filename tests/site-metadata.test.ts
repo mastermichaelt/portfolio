@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  HOME_DESCRIPTION,
   SITE_DESCRIPTION,
   SITE_KEYWORDS,
   SITE_NAME,
@@ -22,10 +21,10 @@ vi.mock("@/lib/portfolio", () => ({
 }));
 
 describe("site metadata constants", () => {
-  it("exports curated HOME_DESCRIPTION and SITE_KEYWORDS", () => {
-    expect(HOME_DESCRIPTION).toContain("Michael Truong");
-    expect(HOME_DESCRIPTION).toContain("Senior Software Engineer");
-    expect(HOME_DESCRIPTION.length).toBeLessThan(SITE_DESCRIPTION.length);
+  it("exports SITE_DESCRIPTION and curated SITE_KEYWORDS", () => {
+    expect(SITE_DESCRIPTION).toContain("Michael Truong");
+    expect(SITE_DESCRIPTION).toContain("Senior Software Engineer");
+    expect(SITE_DESCRIPTION).toContain("AI Product Engineer");
 
     expect(SITE_KEYWORDS).toEqual(
       expect.arrayContaining([
@@ -45,7 +44,7 @@ describe("layout metadata", () => {
     vi.resetModules();
   });
 
-  it("wires authors, creator, and keywords from site-metadata constants", async () => {
+  it("wires authors, creator, keywords, and unified descriptions", async () => {
     const { metadata } = await import("@/app/layout");
     const { getSiteUrl } = await import("@/lib/site");
 
@@ -54,17 +53,21 @@ describe("layout metadata", () => {
     expect(metadata.keywords).toEqual([...SITE_KEYWORDS]);
     expect(metadata.description).toBe(SITE_DESCRIPTION);
     expect(metadata.openGraph?.description).toBe(SITE_DESCRIPTION);
-    expect(metadata.twitter?.description).toBe(SITE_DESCRIPTION);
+    expect(metadata.twitter).toMatchObject({
+      card: "summary_large_image",
+      description: SITE_DESCRIPTION,
+    });
   });
 });
 
 describe("homepage metadata", () => {
-  it("aligns description, Open Graph, and Twitter with HOME_DESCRIPTION", async () => {
+  it("keeps homepage-specific fields without partial Twitter or OG description overrides", async () => {
     const { metadata } = await import("@/app/page");
 
-    expect(metadata.description).toBe(HOME_DESCRIPTION);
-    expect(metadata.openGraph?.description).toBe(HOME_DESCRIPTION);
-    expect(metadata.twitter?.description).toBe(HOME_DESCRIPTION);
     expect(metadata.title).toEqual({ absolute: SITE_TITLE });
+    expect(metadata.alternates).toEqual({ canonical: "/" });
+    expect(metadata.openGraph).toEqual({ url: "/" });
+    expect(metadata.twitter).toBeUndefined();
+    expect(metadata.description).toBeUndefined();
   });
 });

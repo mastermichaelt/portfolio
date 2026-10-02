@@ -7,22 +7,17 @@ import type {
   HomepageMethodDimension,
 } from "@/domain/homepage";
 import { getPortfolioRepository } from "@/lib/portfolio";
-import { HOME_DESCRIPTION, SITE_TITLE } from "@/lib/site-metadata";
+import { SITE_TITLE } from "@/lib/site-metadata";
 
 export const metadata: Metadata = {
   title: {
     absolute: SITE_TITLE,
   },
-  description: HOME_DESCRIPTION,
   alternates: {
     canonical: "/",
   },
   openGraph: {
     url: "/",
-    description: HOME_DESCRIPTION,
-  },
-  twitter: {
-    description: HOME_DESCRIPTION,
   },
 };
 

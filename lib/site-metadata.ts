@@ -8,19 +8,9 @@ export const SITE_TITLE =
 /** Title template for nested routes (`%s · Michael Truong`). */
 export const SITE_TITLE_TEMPLATE = "%s · Michael Truong";
 
-/**
- * Default site description for the root layout, manifest, and non-home routes
- * that inherit layout metadata without overriding description.
- */
+/** Site-wide description for layout metadata, manifest, and inherited page metadata. */
 export const SITE_DESCRIPTION =
-  "Michael Truong — Senior Software Engineer and AI Product Engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.";
-
-/**
- * Homepage-specific description — shorter than {@link SITE_DESCRIPTION} and
- * aligned across page metadata, Open Graph, and Twitter on `/`.
- */
-export const HOME_DESCRIPTION =
-  "Michael Truong — Senior Software Engineer and AI Product Engineer in Sydney. Atlassian measurement and verification practice (2014–2025), independent AI products since 2026, and evidence-backed field reports.";
+  "Michael Truong is a Senior Software Engineer and AI Product Engineer in Sydney, building AI products, engineering systems, and tools for more dependable software development.";
 
 /**
  * Curated site keywords for `metadata.keywords` completeness (not ranking).
