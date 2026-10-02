@@ -48,8 +48,10 @@ describe("sitemap route", () => {
     const entries = sitemap();
 
     expect(entries).toHaveLength(10);
-    expect(entries.map((entry) => entry.url)).toEqual(
-      getSitemapPaths().map((path) => `https://michaeltruong.ai${path}`),
+    expect(entries).toEqual(
+      getSitemapPaths().map((path) => ({
+        url: `https://michaeltruong.ai${path}`,
+      })),
     );
   });
 });
