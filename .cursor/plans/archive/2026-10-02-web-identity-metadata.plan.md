@@ -22,12 +22,54 @@ todos:
     status: completed
   - id: slice-7-verification
     content: "Docs-only PR: run full qualification suite + production checklist; verify slice tests pass; archive plan — no product or test code changes"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Completed in slice 7 docs-only PR: # Shipped note, archive plan, mark all todos completed"
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-10-02.** Production inspected at `https://michaeltruong.ai` (`main` @ `861a73c`).
+
+| Slice                                       | Delivered                                                                                                                                                                                             |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| slice-1-icon-source                         | [#4](https://github.com/mastermichaelt/portfolio/pull/4) — three pixel-art PNGs (32 / 180 / 192), `lib/brand/README.md`, `tests/brand-icons.test.ts`                                                  |
+| slice-2-browser-metadata + slice-3-manifest | [#5](https://github.com/mastermichaelt/portfolio/pull/5) — `metadata.icons`, viewport `themeColor` + `colorScheme`, `app/manifest.ts`, removed scaffold `favicon.ico`, head-identity + manifest tests |
+| slice-4-metadata                            | [#6](https://github.com/mastermichaelt/portfolio/pull/6) — `lib/site-metadata.ts`, authors/creator/keywords, homepage OG/Twitter alignment, `tests/site-metadata.test.ts`                             |
+| slice-5-jsonld                              | [#7](https://github.com/mastermichaelt/portfolio/pull/7) — linked `@graph` (WebSite + ProfilePage + Person), `tests/jsonld-graph.test.tsx`                                                            |
+| slice-6-cleanup                             | [#8](https://github.com/mastermichaelt/portfolio/pull/8) — removed unused `public/*.svg` scaffold assets, `tests/scaffold-cleanup.test.ts`                                                            |
+| slice-7-verification + plan-closure         | This PR — qualification + archive                                                                                                                                                                     |
+
+### Qualification (2026-10-02)
+
+**Local CI-equivalent verify** on `main` (`861a73c`): `npm run lint`, `typecheck`, `format:check`, `test:coverage` (243 tests), `build` — all green. (Portfolio has no `npm run check` script; verify job matches `.github/workflows/ci.yml`.)
+
+**Slice-owned tests** (19/19 passed): `brand-icons`, `head-identity`, `manifest`, `site-metadata`, `jsonld-graph`, `scaffold-cleanup`.
+
+### Production checklist (`https://michaeltruong.ai`)
+
+| Check                                     | Result                                                                                                                                               |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<head>` favicon + apple-touch-icon links | **Pass** — `<link rel="icon" href="/favicon-32x32.png" sizes="32x32">`, `<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">` |
+| `favicon-32x32.png` (32×32)               | **Pass** — HTTP 200, 32×32 PNG; owl motif legible at browser-tab (~16 CSS px) scale                                                                  |
+| `apple-touch-icon.png` (180×180)          | **Pass** — HTTP 200, 180×180; portrait + owl composition                                                                                             |
+| `android-chrome-192x192.png` (192×192)    | **Pass** — HTTP 200, 192×192; manifest icon resolves                                                                                                 |
+| Coherent pixel-art identity               | **Pass** — owl motif across sizes; person+owl at 180/192, simplified owl-only at 32×32 (per size-specific policy)                                    |
+| `theme-color` (light + dark)              | **Pass** — `#f2efe8` (`prefers-color-scheme: light`), `#121110` (`prefers-color-scheme: dark`)                                                       |
+| `color-scheme`                            | **Pass** — `dark light`                                                                                                                              |
+| Manifest                                  | **Pass** — `display: browser`, single 192×192 icon (`purpose: any`), identity fields present                                                         |
+| Canonical, title, description on `/`      | **Pass** — canonical `https://michaeltruong.ai`; title matches `SITE_TITLE`; description matches `SITE_DESCRIPTION`                                  |
+| `meta name="keywords"`                    | **Pass** — matches curated `SITE_KEYWORDS`                                                                                                           |
+| `og:*` + `twitter:*` on `/`               | **Pass** — descriptions match `SITE_DESCRIPTION`; OG/Twitter images 1200×630 (HTTP 200)                                                              |
+| JSON-LD graph                             | **Pass** — single script with linked `@graph`: WebSite (`#website`), ProfilePage (`#profilepage`), Person (`#person`)                                |
+| `/robots.txt`                             | **Pass** — `Allow: /`, sitemap `https://michaeltruong.ai/sitemap.xml`                                                                                |
+| `/sitemap.xml`                            | **Pass** — HTTP 200, 9 URLs (unchanged inventory)                                                                                                    |
+| Preview deploy robots                     | **Pass (contract)** — `tests/robots-sitemap.test.ts` verifies `VERCEL_ENV=preview` → `disallow: /`; live preview URL not re-fetched                  |
+| CI on `main`                              | **Pass** — full verify pipeline green locally; GitHub Actions expected green for docs-only PR (e2e skipped)                                          |
+
+This plan is archived. The work described here has shipped; the remaining content is preserved for historical context.
 
 # Web identity and metadata layer — michaeltruong.ai
 
