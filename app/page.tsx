@@ -7,13 +7,12 @@ import type {
   HomepageMethodDimension,
 } from "@/domain/homepage";
 import { getPortfolioRepository } from "@/lib/portfolio";
+import { SITE_TITLE } from "@/lib/site-metadata";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Michael Truong · Making uncertain systems dependable",
+    absolute: SITE_TITLE,
   },
-  description:
-    "Michael Truong — Senior Software Engineer and AI Product Engineer in Sydney. Atlassian measurement and verification practice (2014–2025), independent AI products since 2026, and evidence-backed field reports.",
   alternates: {
     canonical: "/",
   },

@@ -1,12 +1,10 @@
 import type { MetadataRoute } from "next";
-
-const SITE_DESCRIPTION =
-  "Michael Truong — Senior Software Engineer and AI Product Engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from "@/lib/site-metadata";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Michael Truong · Making uncertain systems dependable",
-    short_name: "Michael Truong",
+    name: SITE_TITLE,
+    short_name: SITE_NAME,
     description: SITE_DESCRIPTION,
     start_url: "/",
     display: "browser",

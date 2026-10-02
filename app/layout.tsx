@@ -6,6 +6,13 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeScript } from "@/components/ThemeScript";
 import { getPortfolioRepository } from "@/lib/portfolio";
+import {
+  SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_TITLE_TEMPLATE,
+} from "@/lib/site-metadata";
 import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -26,24 +33,24 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "Michael Truong · Making uncertain systems dependable",
-    template: "%s · Michael Truong",
+    default: SITE_TITLE,
+    template: SITE_TITLE_TEMPLATE,
   },
-  description:
-    "Michael Truong — Senior Software Engineer and AI Product Engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
+  description: SITE_DESCRIPTION,
+  authors: [{ name: SITE_NAME, url: getSiteUrl() }],
+  creator: SITE_NAME,
+  keywords: [...SITE_KEYWORDS],
   openGraph: {
     type: "website",
-    siteName: "Michael Truong",
-    title: "Michael Truong · Making uncertain systems dependable",
-    description:
-      "Michael Truong — Senior Software Engineer and AI Product Engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     locale: "en_AU",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Michael Truong · Making uncertain systems dependable",
-    description:
-      "Michael Truong — Senior Software Engineer and AI Product Engineer in Sydney. Growth experimentation, attribution and platform measurement at Atlassian (2014–2025). Independent AI products and agent-native engineering systems since 2026 — the same practice: measure it, validate it, and write down what the system is allowed to do.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
   icons: {
     icon: [{ url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" }],
