@@ -1,9 +1,9 @@
 ---
 name: Web identity metadata
-overview: "Multi-slice plan to complete michaeltruong.ai web identity: branded MT monogram assets (single source, generated rasters), Next.js browser metadata + minimal manifest, metadata consistency, linked JSON-LD graph, scaffold cleanup, and production verification — without PWA runtime machinery."
+overview: "Multi-slice plan to complete michaeltruong.ai web identity: pixel-art portrait avatar icon assets (single canonical source, nearest-neighbor derived rasters), Next.js browser metadata + minimal manifest, metadata consistency, linked JSON-LD graph, scaffold cleanup, and production verification — without PWA runtime machinery."
 todos:
   - id: slice-1-icon-source
-    content: "PR 1: Canonical MT monogram SVG + generate:icons/check:icons script + committed raster assets (favicon, icon.png, apple-icon, 192/512)"
+    content: "PR 1: Canonical 16×16 pixel-art avatar PNG + generate:icons/check:icons script + committed raster assets (favicon, icon.png, apple-icon, 192/512)"
     status: pending
   - id: slice-2-browser-metadata
     content: "PR 2 (with slice 3): Wire app icon files, viewport themeColor (dual media) + colorScheme in layout.tsx"
@@ -52,25 +52,32 @@ isProject: false
 
 ### Single icon source — no competing mechanisms
 
-Use **one canonical vector** + **one generation script** + **committed static rasters**. Do **not** add runtime `app/icon.tsx` / `app/apple-icon.tsx` `ImageResponse` routes alongside static PNGs (that duplicates the OG-image pattern unnecessarily and creates two live code paths).
+Use **one canonical pixel-art master** + **one generation script** + **committed static rasters**. Do **not** add runtime `app/icon.tsx` / `app/apple-icon.tsx` `ImageResponse` routes alongside static PNGs (that duplicates the OG-image pattern unnecessarily and creates two live code paths). Do **not** use the raw photographic portrait as a favicon crop — visual testing showed it does not hold up at 16×16.
 
-| Layer                | Mechanism                                                                                        |
-| -------------------- | ------------------------------------------------------------------------------------------------ |
-| **Canonical design** | SVG + token constants in `lib/brand/`                                                            |
-| **Reproduction**     | `npm run generate:icons` script (deterministic, in-repo)                                         |
-| **Browser delivery** | Next file conventions: `app/favicon.ico`, `app/icon.png` (32×32), `app/apple-icon.png` (180×180) |
-| **Manifest icons**   | `public/brand/icon-192.png`, `public/brand/icon-512.png` referenced from `app/manifest.ts`       |
-| **Social preview**   | Unchanged: existing `opengraph-image.tsx` / `twitter-image.tsx` (separate concern)               |
+| Layer                    | Mechanism                                                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| **Canonical design**     | 16×16 indexed PNG master in `lib/brand/` (see format decision below)                                                     |
+| **Derivation reference** | [`public/portrait-michael-1200.jpg`](public/portrait-michael-1200.jpg) — likeness reference only; not emitted as favicon |
+| **Reproduction**         | `npm run generate:icons` script (deterministic, in-repo; **nearest-neighbor** upscale)                                   |
+| **Browser delivery**     | Next file conventions: `app/favicon.ico`, `app/icon.png` (32×32), `app/apple-icon.png` (180×180)                         |
+| **Manifest icons**       | `public/brand/icon-192.png`, `public/brand/icon-512.png` referenced from `app/manifest.ts`                               |
+| **Social preview**       | Unchanged: existing `opengraph-image.tsx` / `twitter-image.tsx` (separate concern)                                       |
 
-**Raster generation:** add `sharp` as a **devDependency** to rasterize the SVG at fixed sizes and emit `favicon.ico` (16+32). This is deterministic, fast, and avoids a second `ImageResponse` renderer. The dev-only `generate:image` Gemini script is **not** used for brand icons.
+**Canonical source format (decision):** a **16×16 indexed PNG** at `lib/brand/avatar-pixel-16.png` is the single source of truth.
 
-**Brand palette** (from [`app/styles/tokens.css`](app/styles/tokens.css) / OG image):
+- Pixel art is authored at the **native 16×16 grid** first; all larger outputs are **integer-scale upscales** via nearest-neighbor — no per-size hand-editing, no bilinear smoothing, no independent redraws at 32/180/192/512.
+- Indexed PNG keeps the palette bounded and diff-friendly; avoids SVG/float geometry that can anti-alias when rasterized.
+- Optional `lib/brand/icon-tokens.ts` documents site-aligned background/accent colors used in the master (e.g. `#121110` canvas from [`app/styles/tokens.css`](app/styles/tokens.css)); the master PNG remains canonical — tokens are documentation/validation helpers, not a second art source.
+- **MT monogram** (`lib/brand/mt-monogram-fallback.svg` or similar) is a **fallback candidate only** if the pixel avatar fails 16×16 legibility testing during slice 1 review — not the default path.
 
-- Background: `#121110`
-- Monogram ink: `#d9a441`
-- Optional inner contrast: `#ece9e2` (only if legibility at 16×16 requires it — keep design minimal)
+**Raster generation:** add `sharp` as a **devDependency** to upscale the 16×16 master with `kernel: nearest` to 32, 180, 192, 512 and emit `favicon.ico` (16+32). No external paid image generation at build or runtime. The dev-only `generate:image` Gemini script is **not** used for brand icons.
 
-**Monogram:** uppercase **MT** in IBM Plex Mono styling (weight/spacing tuned for 16px legibility). No portrait in favicon.
+**Pixel-art avatar direction** (derived from Michael's existing portrait; do not invent or materially alter appearance):
+
+- Clean modern **16-bit / Pixel Remaster** interpretation — not photoreal
+- Preserve recognizable traits: **dark hair, black glasses, face shape/smile**
+- **Owl** (if present in source portrait context) may be included **only** when it remains readable at 16×16; omit rather than clutter
+- Optimize likeness and readability at **16×16 first**, then scale upward
 
 ---
 
@@ -111,21 +118,23 @@ flowchart TD
 
 ## Slice 1 — Icon design source and generated assets
 
-**Objective:** Establish the canonical MT monogram and commit all derived raster assets. No layout/manifest/viewport wiring yet.
+**Objective:** Establish the canonical **pixel-art portrait avatar** (16×16 master) and commit all derived raster assets. No layout/manifest/viewport wiring yet.
 
 **Files / surfaces:**
 
-- **Add** `lib/brand/icon-tokens.ts` — palette constants shared with generator/tests
-- **Add** `lib/brand/mt-monogram.svg` — canonical vector (single source of truth)
-- **Add** `scripts/generate-brand-icons.mjs` — reads SVG, emits rasters via `sharp`
+- **Add** `lib/brand/avatar-pixel-16.png` — canonical 16×16 indexed PNG master (single source of truth; authored for favicon legibility)
+- **Add** `lib/brand/icon-tokens.ts` — optional palette/background constants for generator validation and docs (not a second art source)
+- **Add** `lib/brand/README.md` — brief derivation notes: reference portrait path, likeness constraints, owl inclusion rule, MT monogram fallback policy
+- **Optional fallback only:** `lib/brand/mt-monogram-fallback.svg` — create **only** if pixel avatar fails 16×16 legibility review
+- **Add** `scripts/generate-brand-icons.mjs` — reads 16×16 master; nearest-neighbor upscale via `sharp`; emits all rasters + `favicon.ico`
 - **Add** `npm run generate:icons` and `npm run check:icons` (regenerate + `git diff --exit-code` on outputs)
-- **Add** committed outputs:
-  - `app/favicon.ico` (replace existing)
+- **Add** committed outputs (all derived from master — never hand-edited per size):
+  - `app/favicon.ico` (replace existing; includes 16×16 + 32×32)
   - `app/icon.png` (32×32)
   - `app/apple-icon.png` (180×180)
   - `public/brand/icon-192.png`
   - `public/brand/icon-512.png`
-- **Add** `tests/brand-icons.test.ts` — asserts files exist, PNG dimensions, non-trivial byte size; optional snapshot hash of SVG
+- **Add** `tests/brand-icons.test.ts` — asserts files exist, PNG dimensions, master is 16×16, outputs match expected sizes, non-trivial byte size; hash or snapshot of master PNG
 
 **Dependencies:** None
 
@@ -134,23 +143,29 @@ flowchart TD
 - Do **not** edit [`app/layout.tsx`](app/layout.tsx), add `manifest.ts`, or `viewport` export
 - Do **not** change OG/Twitter image routes
 - Do **not** add PWA/service worker
+- Do **not** use raw photographic portrait crops as favicon/app-icon output
+- Do **not** materially alter Michael's appearance or invent traits not in the reference portrait
+- Do **not** use external paid image generation for the canonical master
 
 **Tests / checks:**
 
 - `npm run check:icons`
 - `npm test` (new unit tests)
-- Manual: open generated PNGs at 16/32/180/192/512 and confirm MT legibility on `#121110`
+- Manual: view master at 16×16 (1:1) and upscaled outputs at 32/180/192/512 — confirm **nearest-neighbor** crisp pixels, recognizable likeness (hair, glasses, face/smile), readable on `#121110` background
+- Manual: if owl is included, confirm it reads at 16×16; otherwise omit
 
 **Acceptance criteria:**
 
-- One SVG source; all five raster targets reproducible from `npm run generate:icons`
+- One 16×16 PNG master; all raster targets reproducible from `npm run generate:icons` via integer nearest-neighbor upscale only
 - `check:icons` passes on clean tree
 - No runtime icon generation routes added
-- **`app/favicon.ico` replaced** with the branded MT monogram (intentional production change)
+- **`app/favicon.ico` replaced** with the pixel-art avatar (intentional production change)
+- Avatar is a simplified pixel interpretation of the existing portrait — not photoreal, not an invented likeness
+- MT monogram fallback used **only** if pixel avatar fails 16×16 legibility (document decision in PR if fallback taken)
 
-**Must remain unchanged:** robots, sitemap, JSON-LD, route metadata, OG image
+**Must remain unchanged:** robots, sitemap, JSON-LD, route metadata, OG image; About-page portrait JPEGs
 
-**Production impact on merge:** Slice 1 **intentionally replaces** the existing `app/favicon.ico` — browsers will serve the new MT favicon as soon as this PR merges. Broader `<head>` integration (`theme-color`, manifest link, explicit verification of apple-touch-icon and multi-size icon tags) remains deferred to Slice 2. Committed `app/icon.png`, `app/apple-icon.png`, and `public/brand/*.png` land in this slice as generated artifacts; Slice 2 owns wiring and verifying the full browser-identity surface.
+**Production impact on merge:** Slice 1 **intentionally replaces** the existing `app/favicon.ico` — browsers will serve the new pixel-art avatar favicon as soon as this PR merges. Broader `<head>` integration (`theme-color`, manifest link, explicit verification of apple-touch-icon and multi-size icon tags) remains deferred to Slice 2. Committed `app/icon.png`, `app/apple-icon.png`, and `public/brand/*.png` land in this slice as generated artifacts; Slice 2 owns wiring and verifying the full browser-identity surface.
 
 **PR:** Own PR — merge-safe (assets + script; favicon updates in production; remaining head metadata deferred to slice 2)
 
@@ -416,23 +431,24 @@ const profilePageId = `${siteUrl}/#profilepage`;
 
 **Verification checklist (production `https://michaeltruong.ai`):**
 
-| Check                                                                           | Method                                                                                       |
-| ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `<head>` icon links                                                             | View source / curl                                                                           |
-| `/favicon.ico`, `/apple-icon.png`, `/brand/icon-192.png`, `/brand/icon-512.png` | HTTP 200 + correct `Content-Type`                                                            |
-| Icon dimensions                                                                 | `file` / image inspect (16/32/180/192/512)                                                   |
-| MT legibility at 16×16                                                          | Visual                                                                                       |
-| `theme-color` (light + dark media)                                              | View source                                                                                  |
-| `color-scheme`                                                                  | View source                                                                                  |
-| Canonical on `/`                                                                | `link[rel=canonical]`                                                                        |
-| Title + description on `/`                                                      | Match `HOME_DESCRIPTION`                                                                     |
-| `meta name="keywords"`                                                          | Present on layout; content matches curated `SITE_KEYWORDS` (completeness check, not ranking) |
-| `og:*` + `twitter:*` on `/`                                                     | Description matches; image 1200×630 URL resolves                                             |
-| JSON-LD graph                                                                   | Rich Results Test; 3 entities linked                                                         |
-| `/robots.txt`                                                                   | Allow `/` + sitemap URL                                                                      |
-| `/sitemap.xml`                                                                  | 9 URLs at canonical origin                                                                   |
-| Preview deploy                                                                  | `VERCEL_ENV=preview` → robots disallow (existing test)                                       |
-| CI                                                                              | `npm run check` green                                                                        |
+| Check                                                                            | Method                                                                                       |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `<head>` icon links                                                              | View source / curl                                                                           |
+| `/favicon.ico`, `/apple-icon.png`, `/brand/icon-192.png`, `/brand/icon-512.png`  | HTTP 200 + correct `Content-Type`                                                            |
+| Icon dimensions                                                                  | `file` / image inspect (16/32/180/192/512)                                                   |
+| Pixel avatar likeness at 16×16 (hair, glasses, face/smile; owl only if readable) | Visual at 1:1; confirm not photoreal crop                                                    |
+| Nearest-neighbor upscale integrity (32/180/192/512)                              | Visual — crisp integer pixels, no smoothing artifacts                                        |
+| `theme-color` (light + dark media)                                               | View source                                                                                  |
+| `color-scheme`                                                                   | View source                                                                                  |
+| Canonical on `/`                                                                 | `link[rel=canonical]`                                                                        |
+| Title + description on `/`                                                       | Match `HOME_DESCRIPTION`                                                                     |
+| `meta name="keywords"`                                                           | Present on layout; content matches curated `SITE_KEYWORDS` (completeness check, not ranking) |
+| `og:*` + `twitter:*` on `/`                                                      | Description matches; image 1200×630 URL resolves                                             |
+| JSON-LD graph                                                                    | Rich Results Test; 3 entities linked                                                         |
+| `/robots.txt`                                                                    | Allow `/` + sitemap URL                                                                      |
+| `/sitemap.xml`                                                                   | 9 URLs at canonical origin                                                                   |
+| Preview deploy                                                                   | `VERCEL_ENV=preview` → robots disallow (existing test)                                       |
+| CI                                                                               | `npm run check` green                                                                        |
 
 **PR:** Docs-only plan-closure PR
 
@@ -440,18 +456,23 @@ const profilePageId = `${siteUrl}/#profilepage`;
 
 ## Risks and open decisions
 
-| Risk                         | Mitigation                                                                                                                     |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| 16×16 MT illegibility        | Tune letter-spacing/weight in SVG; test early in slice 1                                                                       |
-| `check:icons` drift in CI    | Run in `npm run check` or document `generate:icons` in PR workflow                                                             |
-| Slice 4 / 5 ordering         | Merge metadata constants before JSON-LD to share `HOME_DESCRIPTION`                                                            |
-| Duplicate icon links         | Prefer file conventions only; inspect HTML before adding `metadata.icons`                                                      |
-| `themeColor` vs stored theme | User chose **dual_media** on `prefers-color-scheme` — acceptable; stored theme may diverge from chrome (documented limitation) |
-| Manifest mistaken for PWA    | `display: "browser"`, no SW — document in PR description                                                                       |
+| Risk                                             | Mitigation                                                                                                                          |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 16×16 pixel avatar illegibility or lost likeness | Design at native 16×16 grid first; simplify ruthlessly; omit owl if cluttered; fall back to MT monogram only if avatar fails review |
+| Accidental appearance drift or invented traits   | Derive from `portrait-michael-1200.jpg`; PR includes side-by-side reference vs master; no generative retouching                     |
+| Upscale smoothing / per-size hand edits          | Generator enforces `sharp` nearest kernel + integer scale factors only; `check:icons` fails on drift                                |
+| Owl unreadable at 16×16                          | Omit owl from master rather than shrink into noise                                                                                  |
+| `check:icons` drift in CI                        | Run in `npm run check` or document `generate:icons` in PR workflow                                                                  |
+| Slice 4 / 5 ordering                             | Merge metadata constants before JSON-LD to share `HOME_DESCRIPTION`                                                                 |
+| Duplicate icon links                             | Prefer file conventions only; inspect HTML before adding `metadata.icons`                                                           |
+| `themeColor` vs stored theme                     | User chose **dual_media** on `prefers-color-scheme` — acceptable; stored theme may diverge from chrome (documented limitation)      |
+| Manifest mistaken for PWA                        | `display: "browser"`, no SW — document in PR description                                                                            |
 
 **Resolved:** `themeColor` uses light `#f2efe8` / dark `#121110` media queries.
 
-**Still open at implementation:** exact monogram geometry (spacing/weight) — resolved visually in slice 1 PR review.
+**Resolved:** canonical icon identity is pixel-art avatar from portrait (not MT monogram); monogram is fallback only.
+
+**Still open at implementation:** whether owl fits in 16×16 — resolved visually in slice 1 PR review (include only if readable).
 
 ---
 
@@ -463,7 +484,7 @@ const profilePageId = `${siteUrl}/#profilepage`;
 - Per-project OG images
 - Sitemap `lastModified`
 - Search Console verification (unless token provided)
-- Portrait-based favicon
+- Raw photographic portrait favicon (direct photo crop or downscale — rejected after visual testing; pixel-art derivation is in scope)
 
 ---
 
@@ -471,7 +492,7 @@ const profilePageId = `${siteUrl}/#profilepage`;
 
 ### Slice 1 — Icon source and assets
 
-Implement slice 1 only from `@.cursor/plans/web-identity-metadata.plan.md`. Add `lib/brand/mt-monogram.svg`, `lib/brand/icon-tokens.ts`, `scripts/generate-brand-icons.mjs` (sharp), `npm run generate:icons` + `check:icons`, and committed rasters under `app/` and `public/brand/`. Replace `app/favicon.ico` with the branded MT monogram (intentional production change). Do **not** edit layout, manifest, viewport, JSON-LD, or OG images. Verify with `npm run check:icons` and `npm test`. Open PR targeting `main`; do not merge. Mark slice-1 todo completed in plan frontmatter.
+Implement slice 1 only from `@.cursor/plans/web-identity-metadata.plan.md`. Create canonical `lib/brand/avatar-pixel-16.png` (16×16 pixel-art avatar derived from `public/portrait-michael-1200.jpg` — dark hair, black glasses, face shape/smile; owl only if readable at 16×16; no invented traits; Pixel Remaster style not photoreal). Add `scripts/generate-brand-icons.mjs` (sharp, nearest-neighbor integer upscale), `npm run generate:icons` + `check:icons`, and committed rasters under `app/` and `public/brand/`. Replace `app/favicon.ico` with pixel-art avatar (intentional production change). MT monogram fallback only if avatar fails 16×16 legibility. No external paid image generation. Do **not** edit layout, manifest, viewport, JSON-LD, or OG images. Verify with `npm run check:icons` and `npm test`. Open PR targeting `main`; do not merge. Mark slice-1 todo completed in plan frontmatter.
 
 ### Slice 2+3 — Browser identity + manifest
 
