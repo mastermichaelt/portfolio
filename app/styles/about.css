@@ -91,16 +91,6 @@
   color: var(--fg);
 }
 
-.about-focus {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-family: var(--font-mono-stack);
-  font-size: var(--fs-meta);
-  line-height: 1.6;
-  color: var(--fg-2);
-}
-
 /* ========================================================= Document ===== */
 
 .about-doc {
@@ -427,7 +417,7 @@
     grid-template-areas:
       "portrait identity"
       "portrait status"
-      "contact focus";
+      "contact contact";
     column-gap: var(--gap-md);
     row-gap: var(--gap-md);
     align-items: start;
@@ -451,10 +441,6 @@
 
   .about-rail-block--contact {
     grid-area: contact;
-  }
-
-  .about-rail-block--focus {
-    grid-area: focus;
   }
 
   .about-rail .contact-list a,

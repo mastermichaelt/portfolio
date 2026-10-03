@@ -741,17 +741,17 @@ test.describe("portfolio happy path", () => {
     expect(geom.scrollHeight).toBeGreaterThan(geom.clientHeight);
     expect(geom.overflowY).toBe("auto");
 
-    // Focus areas is the last rail block; after scrolling the rail to the end it
+    // Contact is the last rail block; after scrolling the rail to the end it
     // must sit fully inside the rail's own viewport (i.e. it is reachable).
-    const focusReachable = await rail.evaluate((node) => {
+    const contactReachable = await rail.evaluate((node) => {
       node.scrollTop = node.scrollHeight;
-      const focus = node.querySelector(".about-rail-block--focus");
-      if (!focus) return false;
+      const contact = node.querySelector(".about-rail-block--contact");
+      if (!contact) return false;
       const r = node.getBoundingClientRect();
-      const f = focus.getBoundingClientRect();
-      return f.top >= r.top - 1 && f.bottom <= r.bottom + 1;
+      const c = contact.getBoundingClientRect();
+      return c.top >= r.top - 1 && c.bottom <= r.bottom + 1;
     });
-    expect(focusReachable).toBe(true);
+    expect(contactReachable).toBe(true);
 
     // No horizontal scrollbar is introduced — on the page or inside the rail.
     const pageOverflowX = await page.evaluate(

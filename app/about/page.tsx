@@ -145,17 +145,6 @@ export default async function AboutPage() {
                 </li>
               </ul>
             </div>
-
-            {profile.skillClusters?.length ? (
-              <div className="about-rail-block about-rail-block--focus">
-                <p className="about-rail-label">Focus areas</p>
-                <div className="about-focus">
-                  {profile.skillClusters.map((cluster) => (
-                    <span key={cluster}>{cluster}</span>
-                  ))}
-                </div>
-              </div>
-            ) : null}
           </aside>
 
           <div className="about-doc">
