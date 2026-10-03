@@ -281,7 +281,10 @@ describe("content-foundation inventory", () => {
       expect(figure.source.inventory).toMatch(/^resumes\/facts\/.+\.yml$/);
       expect(figure.source.factId.trim().length).toBeGreaterThan(0);
     }
-    expect(figures[0]?.scope).toMatch(/durable floor/i);
+    expect(figures[0]?.scope).toMatch(/Codenames AI · live product telemetry/);
+    expect(figures[0]?.scope).not.toMatch(
+      /resume phrasing|durable floor|monthly-active-players snapshot/i,
+    );
     // 9%–41% keeps its source meaning: the range across attribution windows is
     // the measurement-reliability finding, not a delivery/run-time outcome.
     expect(figures[1]?.scope).toMatch(/Statsig/i);

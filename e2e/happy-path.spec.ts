@@ -70,7 +70,7 @@ test.describe("portfolio happy path", () => {
     // One qualified figure per channel; 9%–41% keeps its finding scope.
     await expect(wide.getByText("175+", { exact: true })).toBeVisible();
     await expect(wide.getByText("9%–41%", { exact: true })).toBeVisible();
-    await expect(wide.getByText(/durable floor/i)).toBeVisible();
+    await expect(wide.getByText(/live product telemetry/i)).toBeVisible();
     await expect(wide.getByText(/the range is the finding/i)).toBeVisible();
 
     // Named per-channel routes to the case studies (CH 02 → its own case study).
@@ -123,7 +123,7 @@ test.describe("portfolio happy path", () => {
 
     // Each channel repeats the schema and carries its own 04 evidence figure.
     await expect(narrow.getByText("175+", { exact: true })).toBeVisible();
-    await expect(narrow.getByText(/durable floor/i)).toBeVisible();
+    await expect(narrow.getByText(/live product telemetry/i)).toBeVisible();
     await expect(narrow.getByText("9%–41%", { exact: true })).toBeVisible();
     await expect(narrow.getByText(/the range is the finding/i)).toBeVisible();
     await expect(page.getByText("game_started")).toHaveCount(0);
@@ -203,7 +203,9 @@ test.describe("portfolio happy path", () => {
         page.getByText(value, { exact: true }).first(),
       ).toBeVisible();
     }
-    await expect(page.getByText(/durable floor/i).first()).toBeVisible();
+    await expect(
+      page.getByText(/live product telemetry/i).first(),
+    ).toBeVisible();
 
     // Supporting rows link to a proof surface.
     await expect(
@@ -247,7 +249,7 @@ test.describe("portfolio happy path", () => {
     const playersFigure = page.locator(".qfigure").filter({ hasText: "175+" });
     await expect(playersFigure.locator(".figure-value")).toHaveText("175+");
     await expect(playersFigure.locator(".figure-scope")).toContainText(
-      /durable floor/i,
+      /live product telemetry/i,
     );
 
     // The four field-report doors resolve, including the persistence report.
@@ -296,7 +298,9 @@ test.describe("portfolio happy path", () => {
           page.getByText(value, { exact: true }).first(),
         ).toBeVisible();
       }
-      await expect(page.getByText(/durable floor/i).first()).toBeVisible();
+      await expect(
+        page.getByText(/live product telemetry/i).first(),
+      ).toBeVisible();
 
       const openHeights = await page
         .locator("a.pindex-open")
@@ -335,7 +339,7 @@ test.describe("portfolio happy path", () => {
         .locator(".qfigure")
         .filter({ hasText: "175+" });
       await expect(playersFigure.locator(".figure-scope")).toContainText(
-        /durable floor/i,
+        /live product telemetry/i,
       );
       const scopeWidth = await playersFigure
         .locator(".figure-scope")
