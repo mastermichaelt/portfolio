@@ -295,13 +295,13 @@
   color: var(--fg);
 }
 
-/* =================================================== Skills & education ===== */
+/* =================================================== §03 reference ===== */
 
-.about-skills {
+.about-reference {
   margin: 0;
 }
 
-.about-skills-row {
+.about-ref-row {
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
   gap: var(--gap-lg);
@@ -309,75 +309,51 @@
   border-top: 1px solid var(--border);
 }
 
-.about-skills-row:last-child {
+.about-ref-row:last-child {
   border-bottom: 1px solid var(--border);
 }
 
-.about-skills-label {
+.about-ref-label {
   margin: 0;
   font-family: var(--font-mono-stack);
   font-size: var(--fs-meta);
   color: var(--fg);
 }
 
-.about-skills-items {
+.about-ref-content {
   margin: 0;
+  min-width: 0;
   font-size: 14px;
   line-height: 1.7;
   color: var(--fg-2);
 }
 
-.about-education {
-  margin-top: var(--gap-lg);
-  padding-top: var(--gap-md);
-  border-top: 1px solid var(--border);
-  max-width: 62ch;
-}
-
-.about-education-institution {
+.about-ref-lead {
   margin: 0;
   font-size: var(--fs-body);
+  line-height: 1.4;
   color: var(--fg);
 }
 
-.about-education-degree,
-.about-education-dates {
+.about-ref-line {
   margin: 6px 0 0;
-  font-size: 14px;
   line-height: 1.6;
-  color: var(--fg-2);
 }
 
-.about-education-honors {
-  margin: 12px 0 0;
-  padding-left: 1.1em;
-  font-size: 14px;
-  line-height: 1.7;
+.about-ref-line--meta {
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
   color: var(--muted);
 }
 
-.about-education-honors li + li {
+.about-ref-honors {
+  margin: 12px 0 0;
+  padding-left: 1.1em;
+  color: var(--muted);
+}
+
+.about-ref-honors li + li {
   margin-top: 6px;
-}
-
-.about-work-rights {
-  margin-top: var(--gap-md);
-  padding-top: var(--gap-md);
-  border-top: 1px solid var(--border);
-  max-width: 62ch;
-}
-
-.about-work-rights-title {
-  margin: 0;
-  font-size: var(--fs-body);
-  color: var(--fg);
-}
-
-.about-work-rights-detail {
-  margin: 6px 0 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--fg-2);
 }
 
 /* Closing block */
@@ -500,7 +476,7 @@
     gap: 8px;
   }
 
-  .about-skills-row {
+  .about-ref-row {
     gap: 16px;
   }
 }
@@ -521,7 +497,7 @@
     grid-template-columns: 1fr;
   }
 
-  .about-skills-row {
+  .about-ref-row {
     grid-template-columns: 1fr;
     gap: 6px;
   }

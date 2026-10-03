@@ -638,7 +638,7 @@ test.describe("portfolio happy path", () => {
 
     // Résumé-shaped sections: experience bullets, skills, and no continuity copy.
     await expect(page.locator(".about-role-bullets")).toHaveCount(8);
-    await expect(page.locator(".about-skills-row")).toHaveCount(5);
+    await expect(page.locator(".about-ref-row")).toHaveCount(7);
     await expect(page.getByText(/one engineering practice/i)).toHaveCount(0);
     await expect(page.getByText(/carried forward/i)).toHaveCount(0);
 

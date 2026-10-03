@@ -207,40 +207,44 @@ export default async function AboutPage() {
                   Skills · Education &amp; work rights
                 </h3>
               </div>
-              <dl className="about-skills">
+              <dl className="about-reference">
                 {about.skillsClusters.map((cluster) => (
-                  <div className="about-skills-row" key={cluster.label}>
-                    <dt className="about-skills-label">{cluster.label}</dt>
-                    <dd className="about-skills-items">{cluster.items}</dd>
+                  <div className="about-ref-row" key={cluster.label}>
+                    <dt className="about-ref-label">{cluster.label}</dt>
+                    <dd className="about-ref-content">{cluster.items}</dd>
                   </div>
                 ))}
+                <div className="about-ref-row">
+                  <dt className="about-ref-label">Education</dt>
+                  <dd className="about-ref-content">
+                    <p className="about-ref-lead">
+                      <strong>{about.education.institution}</strong>
+                    </p>
+                    <p className="about-ref-line">
+                      {about.education.degree} · {about.education.field}
+                    </p>
+                    <p className="about-ref-line about-ref-line--meta">
+                      {about.education.dateRange}
+                    </p>
+                    {about.education.honors.length ? (
+                      <ul className="about-ref-honors">
+                        {about.education.honors.map((honor) => (
+                          <li key={honor.slice(0, 32)}>{honor}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </dd>
+                </div>
+                <div className="about-ref-row">
+                  <dt className="about-ref-label">Work rights</dt>
+                  <dd className="about-ref-content">
+                    <p className="about-ref-lead">
+                      <strong>{about.workRights.title}</strong>
+                    </p>
+                    <p className="about-ref-line">{about.workRights.detail}</p>
+                  </dd>
+                </div>
               </dl>
-              <div className="about-education">
-                <p className="about-education-institution">
-                  <strong>{about.education.institution}</strong>
-                </p>
-                <p className="about-education-degree">
-                  {about.education.degree} · {about.education.field}
-                </p>
-                <p className="about-education-dates">
-                  {about.education.dateRange}
-                </p>
-                {about.education.honors.length ? (
-                  <ul className="about-education-honors">
-                    {about.education.honors.map((honor) => (
-                      <li key={honor.slice(0, 32)}>{honor}</li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-              <div className="about-work-rights">
-                <p className="about-work-rights-title">
-                  <strong>{about.workRights.title}</strong>
-                </p>
-                <p className="about-work-rights-detail">
-                  {about.workRights.detail}
-                </p>
-              </div>
             </section>
 
             {/* Closing block */}
