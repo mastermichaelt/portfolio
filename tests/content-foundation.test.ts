@@ -220,6 +220,10 @@ describe("content-foundation inventory", () => {
       /retraining|career pivot|return to IC|side project|one engineering practice|carried forward|through-line/i,
     );
     expect(copyText).not.toMatch(/Savepoints/i);
+    // Internal provenance/editorial notes must not leak into rendered copy.
+    expect(copyText).not.toMatch(
+      /resume phrasing|durable floor|timeline fork|monthly-active-players snapshot|prior-approach/i,
+    );
     // Never publish the exact 175 MAU snapshot — only the 175+ durable floor.
     expect(copyText.replace(/175\+/g, "")).not.toContain("175");
     // Fact-id / inventory-path review aids never leak into copy.

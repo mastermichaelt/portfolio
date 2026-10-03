@@ -68,7 +68,7 @@ export const about: AboutPage = {
           },
           {
             value: ">10%",
-            name: "prior-approach over-attribution exposed",
+            name: "over-attribution in prior approach exposed",
             scope:
               "Cross Flow funnel audit · formula subsequently adopted for Growth Experiment Impact Estimation",
             source: {
@@ -86,7 +86,7 @@ export const about: AboutPage = {
         org: "Atlassians in Mentoring",
         employmentType: "Concurrent Program",
         employmentNote:
-          "Concurrent with Engineering Manager and Senior Software Engineer roles — a program track, not a separate timeline fork.",
+          "Concurrent with Engineering Manager and Senior Software Engineer roles at Atlassian.",
         bullets: [
           "Founding committee member of Atlassians in Mentoring (AIM), partnering with leaders in Program Management and Strategic Program & Operations to launch the initiative.",
           "Designed and built the engineering platform powering the program, serving as its sole Engineering Craft Champion from the first cohort onward.",
@@ -159,10 +159,10 @@ export const about: AboutPage = {
         ],
         figures: [
           {
+            // Publish 175+ floor only — never the exact rolling MAU snapshot (175).
             value: "175+",
             name: "monthly active players",
-            scope:
-              "Live-product telemetry · resume phrasing uses 175+ as durable floor, not the rolling monthly-active-players snapshot",
+            scope: "Codenames AI · live product telemetry",
             source: {
               inventory: "resumes/facts/codenames-ai-telemetry.yml",
               factId: "telemetry-model-experiments-plain",
