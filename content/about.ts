@@ -276,6 +276,6 @@ export const about: AboutPage = {
   next: {
     label: "Next step",
     statement: "Open to senior engineering roles.",
-    note: "Email is the fastest route; the record above is the reference.",
+    note: "If you'd like to talk, email is the best way to reach me.",
   },
 };
