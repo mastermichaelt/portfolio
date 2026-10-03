@@ -18,6 +18,10 @@ export const about: AboutPage = {
   experience: {
     ordinal: "01",
     title: "Professional Experience · Atlassian",
+    supplement: {
+      label: "Full professional experience on LinkedIn →",
+      profileLink: "linkedin",
+    },
     entries: [
       {
         id: "atlassian-swe-2024",

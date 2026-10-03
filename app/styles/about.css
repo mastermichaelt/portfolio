@@ -285,6 +285,22 @@
   color: var(--fg);
 }
 
+.about-section-supplement {
+  margin: 18px 0 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.about-section-supplement a {
+  color: var(--muted-strong);
+}
+
+.about-section-supplement a:hover {
+  color: var(--accent);
+}
+
 /* =================================================== §03 reference ===== */
 
 .about-reference {
@@ -444,7 +460,8 @@
   }
 
   .about-rail .contact-list a,
-  .about-entry-links a {
+  .about-entry-links a,
+  .about-section-supplement a {
     align-items: center;
     min-height: 44px;
   }
@@ -453,7 +470,8 @@
     display: inline-flex;
   }
 
-  .about-entry-links a {
+  .about-entry-links a,
+  .about-section-supplement a {
     display: flex;
   }
 

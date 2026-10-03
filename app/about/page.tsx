@@ -2,8 +2,41 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ExternalLink } from "@/components/ExternalLink";
 import { QualifiedFigure } from "@/components/QualifiedFigure";
-import type { AboutExperienceEntry, AboutLink } from "@/domain/about";
+import type {
+  AboutExperienceEntry,
+  AboutLink,
+  AboutSectionSupplement,
+} from "@/domain/about";
+import type { Profile } from "@/domain/profile";
 import { getPortfolioRepository } from "@/lib/portfolio";
+
+function resolveSupplementHref(
+  supplement: AboutSectionSupplement,
+  profile: Profile,
+): string {
+  if (supplement.profileLink === "linkedin") {
+    return profile.links.linkedin;
+  }
+  throw new Error(
+    `Unknown About section supplement link: ${supplement.profileLink}`,
+  );
+}
+
+function AboutSectionSupplementLink({
+  supplement,
+  profile,
+}: {
+  supplement: AboutSectionSupplement;
+  profile: Profile;
+}) {
+  return (
+    <p className="about-section-supplement">
+      <ExternalLink href={resolveSupplementHref(supplement, profile)}>
+        {supplement.label}
+      </ExternalLink>
+    </p>
+  );
+}
 
 export const metadata: Metadata = {
   title: "About",
@@ -169,6 +202,12 @@ export default async function AboutPage() {
                   <AboutExperienceRole key={entry.id} entry={entry} />
                 ))}
               </ol>
+              {about.experience.supplement ? (
+                <AboutSectionSupplementLink
+                  supplement={about.experience.supplement}
+                  profile={profile}
+                />
+              ) : null}
             </section>
 
             {/* §02 Independent Projects */}

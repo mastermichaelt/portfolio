@@ -659,6 +659,13 @@ test.describe("portfolio happy path", () => {
     await expect(page.getByText(/Apr 2015/i)).toBeVisible();
     await expect(page.getByText(/Codenames AI/i).first()).toBeVisible();
 
+    // §01 points to LinkedIn for earlier roles omitted from the résumé record.
+    await expect(
+      page.getByRole("link", {
+        name: /Full professional experience on LinkedIn/i,
+      }),
+    ).toHaveAttribute("href", /linkedin\.com\/in\/michael-truong-dev/);
+
     // Project and article entry links are present on independent blocks.
     await expect(
       page.locator('.about-doc a[href="/projects/codenames-ai"]').first(),

@@ -34,11 +34,21 @@ export interface AboutExperienceEntry {
   current?: boolean;
 }
 
+/**
+ * Low-emphasis outbound link below a section body. `href` is resolved from
+ * `Profile` at render time so contact URLs stay in one place.
+ */
+export interface AboutSectionSupplement {
+  label: string;
+  profileLink: "linkedin";
+}
+
 /** A numbered document section grouping experience entries. */
 export interface AboutSection {
   ordinal: string;
   title: string;
   entries: AboutExperienceEntry[];
+  supplement?: AboutSectionSupplement;
 }
 
 /** One skills cluster in §03 — label plus comma-separated items. */

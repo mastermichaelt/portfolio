@@ -191,6 +191,8 @@ describe("content-foundation inventory", () => {
     expect(about.experience.entries).toHaveLength(5);
     expect(about.experience.entries[0]?.dateRange).toMatch(/May 2024/);
     expect(about.experience.entries[4]?.dateRange).toMatch(/Apr 2015/);
+    expect(about.experience.supplement?.profileLink).toBe("linkedin");
+    expect(about.experience.supplement?.label).toMatch(/LinkedIn/i);
     expect(about.independent.entries).toHaveLength(3);
     expect(
       about.independent.entries.filter((entry) => entry.current).length,
