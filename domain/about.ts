@@ -1,21 +1,15 @@
 import type { CaseFigure } from "@/domain/project-case";
 
 /**
- * The About "Standing Record" (2a) presentation model — a numbered practice
- * record beside a persistent identity rail. A distinct presentation concern
- * from `Profile` (which drives the rail's identity and contact) and from the
- * generic role inventory: About signals continuity across eras; Projects
- * proves.
- *
- * Copy is transcribed from the sibling `resumes/` inventory and the locked
- * design handoff. Figures reuse `CaseFigure` so `scope` is non-optional and are
- * rendered through the shared `QualifiedFigure` component; as there,
- * `CaseFigure.source` is a review aid for verifying figures against the
- * inventory and is never rendered. No figure appears here that is not backed by
- * the inventory.
+ * The About career-record presentation model — a numbered résumé-shaped document
+ * beside a persistent identity rail. A distinct presentation concern from
+ * `Profile` (which drives the rail's identity and contact). Figures reuse
+ * `CaseFigure` so `scope` is non-optional and are rendered through the shared
+ * `QualifiedFigure` component; `CaseFigure.source` is a review aid for verifying
+ * figures against the inventory and is never rendered.
  */
 
-/** A document or gutter link; outbound links render through `ExternalLink`. */
+/** A document link; outbound links render through `ExternalLink`. */
 export interface AboutLink {
   label: string;
   href: string;
@@ -23,62 +17,47 @@ export interface AboutLink {
 }
 
 /**
- * One era in the §02 practice arc, newest first. `role`/`org` render as the
- * bold lead-in inside the paragraph (not a heading — it would pollute the
- * outline). `carry` is the carry-forward clause; the origin era omits it by
- * decision. Exactly one era is `current`.
+ * One role or independent-project entry. `employmentType` carries résumé
+ * metadata (Full-time, Concurrent Program, Supporting Project). `employmentNote`
+ * distinguishes concurrent programs without forking the timeline.
  */
-export interface AboutEra {
+export interface AboutExperienceEntry {
   id: string;
   dateRange: string;
   role: string;
   org?: string;
-  body: string;
-  /** Carry-forward clause: `label` is the opener ("In force now" / "Carried forward"). */
-  carry?: { label: string; text: string };
+  employmentType?: string;
+  employmentNote?: string;
+  bullets: string[];
+  figures?: CaseFigure[];
+  links?: AboutLink[];
   current?: boolean;
 }
 
-/**
- * The §02 evidence gutter: the measurement-era figure and an optional
- * cross-link. `ledgerNote` is omitted now that the role-by-role record lives on
- * this page's own practice arc rather than a homepage career ledger.
- */
-export interface AboutArcEvidence {
+/** A numbered document section grouping experience entries. */
+export interface AboutSection {
+  ordinal: string;
+  title: string;
+  entries: AboutExperienceEntry[];
+}
+
+/** One skills cluster in §03 — label plus comma-separated items. */
+export interface AboutSkillsCluster {
   label: string;
-  figure: CaseFigure;
-  ledgerNote?: { lead: string; link: AboutLink };
+  items: string;
 }
 
-/** The §03 management band: a declarative statement, prose, and two figures. */
-export interface AboutManagement {
-  statement: string;
-  body: string[];
-  figures: CaseFigure[];
+export interface AboutEducation {
+  institution: string;
+  degree: string;
+  field: string;
+  dateRange: string;
+  honors: string[];
 }
 
-/** One §04 then/now row. The `→` glyph lives inside `now` so it survives copy. */
-export interface AboutMapRow {
-  then: string;
-  now: string;
-}
-
-/** The §04 current-practice band: prose, the then/now mapping, a figure, links. */
-export interface AboutCurrent {
-  body: string;
-  mapLabel: string;
-  map: AboutMapRow[];
-  figures: CaseFigure[];
-  links: AboutLink[];
-}
-
-/** One §05 surface row. `href` absent = a stated, non-navigable surface. */
-export interface AboutSurface {
-  name: string;
-  href?: string;
-  description: string;
-  /** The current page — rendered at full `--fg`, never linked. */
-  self?: boolean;
+export interface AboutWorkRights {
+  title: string;
+  detail: string;
 }
 
 /** The closing block: the availability line and the mailto call to action. */
@@ -92,18 +71,15 @@ export interface AboutPage {
   eyebrow: string;
   /** Document statement (h2). A career claim — never re-synced with the homepage hero. */
   statement: string;
-  /** Lead paragraph; `emphasis` is the closing clause rendered in full `--fg`. */
-  lead: { text: string; emphasis: string };
-  /** §01: two paragraphs; the second is the two-sentence turn, in `--fg`. */
-  throughLine: string[];
-  /** §02: five eras, newest first, exactly one `current: true`. */
-  arc: AboutEra[];
-  arcEvidence: AboutArcEvidence;
-  /** §03: always visible — not collapsed. */
-  management: AboutManagement;
-  /** §04. */
-  current: AboutCurrent;
-  /** §05: five surfaces (this page + Home, Projects, Articles, Résumé). */
-  surfaces: AboutSurface[];
+  /** Two summary paragraphs transcribed from the résumé. */
+  summary: string[];
+  /** §01: Atlassian roles, newest first. */
+  experience: AboutSection;
+  /** §02: independent capability blocks. */
+  independent: AboutSection;
+  /** §03: résumé sidebar skills clusters. */
+  skillsClusters: AboutSkillsCluster[];
+  education: AboutEducation;
+  workRights: AboutWorkRights;
   next: AboutNext;
 }

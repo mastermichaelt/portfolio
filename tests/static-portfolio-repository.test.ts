@@ -18,39 +18,51 @@ vi.mock("@/content/profile", () => ({
 
 vi.mock("@/content/about", () => ({
   about: {
-    eyebrow: "About · practice record",
-    statement: "One practice.",
-    lead: { text: "Lead.", emphasis: "Emphasis." },
-    throughLine: ["Para one.", "Para two."],
-    arc: [
-      {
-        id: "arc-2026",
-        dateRange: "2026 —",
-        role: "Independent",
-        body: "Body.",
-        carry: { label: "In force now", text: "Mechanism." },
-        current: true,
-      },
-    ],
-    arcEvidence: {
-      label: "From the Atlassian Growth years",
-      figure: {
-        value: ">10%",
-        name: "figure",
-        scope: "scope",
-        source: { inventory: "resumes/facts/test.yml", factId: "id" },
-      },
-      ledgerNote: { lead: "Lead — ", link: { label: "link →", href: "/#x" } },
+    eyebrow: "About · career record",
+    statement: "Senior software engineer.",
+    summary: ["Summary one.", "Summary two."],
+    experience: {
+      ordinal: "01",
+      title: "Professional Experience · Atlassian",
+      entries: [
+        {
+          id: "role-1",
+          dateRange: "2024 – 2025",
+          role: "Senior Software Engineer",
+          bullets: ["Bullet."],
+          figures: [
+            {
+              value: "10×",
+              name: "figure",
+              scope: "scope",
+              source: { inventory: "resumes/facts/test.yml", factId: "id" },
+            },
+          ],
+        },
+      ],
     },
-    management: { statement: "Statement.", body: ["Body."], figures: [] },
-    current: {
-      body: "Body.",
-      mapLabel: "Same mechanism, current form",
-      map: [{ then: "Then", now: "→ now" }],
-      figures: [],
-      links: [{ label: "Link →", href: "/projects" }],
+    independent: {
+      ordinal: "02",
+      title: "Independent Projects",
+      entries: [
+        {
+          id: "project-1",
+          dateRange: "2026 —",
+          role: "AI Product Engineering",
+          bullets: ["Bullet."],
+          current: true,
+        },
+      ],
     },
-    surfaces: [{ name: "This page", self: true, description: "Description." }],
+    skillsClusters: [{ label: "Frontend", items: "TypeScript" }],
+    education: {
+      institution: "UNSW",
+      degree: "B.E.",
+      field: "Software Engineering",
+      dateRange: "2009 – 2013",
+      honors: [],
+    },
+    workRights: { title: "Australian Citizen", detail: "Unrestricted rights." },
     next: { label: "Next step", statement: "Statement.", note: "Note." },
   },
 }));

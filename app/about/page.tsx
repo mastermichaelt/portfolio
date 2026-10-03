@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ExternalLink } from "@/components/ExternalLink";
 import { QualifiedFigure } from "@/components/QualifiedFigure";
+import type { AboutExperienceEntry, AboutLink } from "@/domain/about";
 import { getPortfolioRepository } from "@/lib/portfolio";
 
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Michael Truong — one engineering practice from 2014 to now: Growth experimentation and platform measurement at Atlassian, independent AI products since 2026, and the mechanisms each era left behind.",
+    "Michael Truong — career record: 12+ years building production software at Atlassian Growth and independent AI products since 2026.",
   alternates: {
     canonical: "/about",
   },
@@ -15,6 +16,68 @@ export const metadata: Metadata = {
     url: "/about",
   },
 };
+
+function AboutEntryLinks({ links }: { links: AboutLink[] }) {
+  return (
+    <div className="about-entry-links">
+      {links.map((link) =>
+        link.external ? (
+          <ExternalLink key={link.href} href={link.href}>
+            {link.label}
+          </ExternalLink>
+        ) : (
+          <Link key={link.href} href={link.href}>
+            {link.label}
+          </Link>
+        ),
+      )}
+    </div>
+  );
+}
+
+function AboutExperienceRole({ entry }: { entry: AboutExperienceEntry }) {
+  const hasFigures = (entry.figures?.length ?? 0) > 0;
+
+  return (
+    <li
+      className={entry.current ? "about-role is-current" : "about-role"}
+      key={entry.id}
+    >
+      <div className="about-role-meta">
+        <p className="about-role-date">{entry.dateRange}</p>
+        {entry.employmentType ? (
+          <p className="about-role-type">{entry.employmentType}</p>
+        ) : null}
+      </div>
+      <div className="about-role-body">
+        <p className="about-role-heading">
+          <strong className="about-role-title">
+            {entry.role}
+            {entry.org ? ` · ${entry.org}` : ""}
+          </strong>
+        </p>
+        {entry.employmentNote ? (
+          <p className="about-employment-note">{entry.employmentNote}</p>
+        ) : null}
+        <div className={hasFigures ? "about-role-grid" : undefined}>
+          <ul className="about-role-bullets">
+            {entry.bullets.map((bullet) => (
+              <li key={bullet.slice(0, 48)}>{bullet}</li>
+            ))}
+          </ul>
+          {hasFigures ? (
+            <div className="about-role-figures">
+              {entry.figures?.map((figure) => (
+                <QualifiedFigure key={figure.name} figure={figure} />
+              ))}
+            </div>
+          ) : null}
+        </div>
+        {entry.links?.length ? <AboutEntryLinks links={entry.links} /> : null}
+      </div>
+    </li>
+  );
+}
 
 export default async function AboutPage() {
   const repository = getPortfolioRepository();
@@ -28,13 +91,6 @@ export default async function AboutPage() {
       <div className="container">
         <div className="about-shell fade-in">
           <aside className="about-rail">
-            {/* Identity portrait: hand-rolled with height:auto so aspect-ratio
-                governs the box; next/image is not used in this app and the
-                handoff blesses the hand-rolled img. Sizes track the three rail
-                widths: full viewport width when the rail becomes a header block
-                at ≤700px, 200px as a ≤920px header column, else the 300px
-                desktop rail. Derivatives are regenerated from the locked-crop
-                4:5 master. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className="about-portrait"
@@ -105,194 +161,86 @@ export default async function AboutPage() {
           <div className="about-doc">
             <p className="about-eyebrow">{about.eyebrow}</p>
             <h2 className="about-page-statement">{about.statement}</h2>
-            <p className="about-lead">
-              {about.lead.text}{" "}
-              <span className="about-lead-emph">{about.lead.emphasis}</span>
-            </p>
+            {about.summary.map((paragraph) => (
+              <p key={paragraph.slice(0, 32)} className="about-summary">
+                {paragraph}
+              </p>
+            ))}
 
-            {/* §01 Through-line */}
+            {/* §01 Professional Experience */}
             <section className="about-section about-section--strong">
               <div className="about-section-head">
                 <span className="about-ordinal" aria-hidden="true">
-                  01
+                  {about.experience.ordinal}
                 </span>
-                <h3 className="about-cat">Through-line</h3>
+                <h3 className="about-cat">{about.experience.title}</h3>
               </div>
-              {about.throughLine.map((paragraph, index) => (
-                <p
-                  key={paragraph.slice(0, 24)}
-                  className={index === 0 ? "about-through" : "about-turn"}
-                >
-                  {paragraph}
-                </p>
-              ))}
+              <ol className="about-roles">
+                {about.experience.entries.map((entry) => (
+                  <AboutExperienceRole key={entry.id} entry={entry} />
+                ))}
+              </ol>
             </section>
 
-            {/* §02 Practice arc */}
+            {/* §02 Independent Projects */}
             <section className="about-section">
-              <div className="about-section-head about-section-head--arc">
+              <div className="about-section-head">
                 <span className="about-ordinal" aria-hidden="true">
-                  02
+                  {about.independent.ordinal}
                 </span>
-                <h3 className="about-cat">
-                  Practice arc · what each era left behind
-                </h3>
+                <h3 className="about-cat">{about.independent.title}</h3>
               </div>
-              <div className="about-arc-grid">
-                <ol className="about-arc">
-                  {about.arc.map((era) => (
-                    <li
-                      key={era.id}
-                      className={
-                        era.current ? "about-era is-current" : "about-era"
-                      }
-                    >
-                      <p className="about-era-date">{era.dateRange}</p>
-                      <div className="about-era-body">
-                        <p className="about-era-lede">
-                          <strong className="about-era-role">
-                            {era.role}
-                            {era.org ? `, ${era.org}` : ""}.
-                          </strong>{" "}
-                          {era.body}
-                        </p>
-                        {era.carry ? (
-                          <p className="about-carry">
-                            <span className="about-carry-label">
-                              {era.carry.label} —
-                            </span>{" "}
-                            {era.carry.text}
-                          </p>
-                        ) : null}
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-                <div className="about-arc-gutter">
-                  <p className="about-gutter-label">
-                    {about.arcEvidence.label}
-                  </p>
-                  <QualifiedFigure figure={about.arcEvidence.figure} />
-                  {about.arcEvidence.ledgerNote ? (
-                    <p className="about-ledger-note">
-                      {about.arcEvidence.ledgerNote.lead}
-                      <Link href={about.arcEvidence.ledgerNote.link.href}>
-                        {about.arcEvidence.ledgerNote.link.label}
-                      </Link>
-                    </p>
-                  ) : null}
-                </div>
-              </div>
+              <ol className="about-roles">
+                {about.independent.entries.map((entry) => (
+                  <AboutExperienceRole key={entry.id} entry={entry} />
+                ))}
+              </ol>
             </section>
 
-            {/* §03 Management band */}
+            {/* §03 Skills · Education & work rights */}
             <section className="about-section">
               <div className="about-section-head">
                 <span className="about-ordinal" aria-hidden="true">
                   03
                 </span>
                 <h3 className="about-cat">
-                  Experiment operations &amp; program scale · 2020 – 2025
+                  Skills · Education &amp; work rights
                 </h3>
               </div>
-              <h4 className="about-statement">{about.management.statement}</h4>
-              <div className="about-band-grid">
-                <div className="about-band-narrative">
-                  {about.management.body.map((paragraph, index) => (
-                    <p
-                      key={paragraph.slice(0, 24)}
-                      className={
-                        index === about.management.body.length - 1
-                          ? "about-band-body about-band-body--turn"
-                          : "about-band-body"
-                      }
-                    >
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-                <div className="about-figures">
-                  {about.management.figures.map((figure) => (
-                    <QualifiedFigure key={figure.name} figure={figure} />
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* §04 Current practice */}
-            <section className="about-section">
-              <div className="about-section-head">
-                <span className="about-ordinal" aria-hidden="true">
-                  04
-                </span>
-                <h3 className="about-cat">Current practice · 2026 —</h3>
-              </div>
-              <div className="about-band-grid">
-                <div className="about-band-narrative">
-                  <p className="about-band-body">{about.current.body}</p>
-                  <p className="about-map-label">{about.current.mapLabel}</p>
-                  <dl className="about-map">
-                    {about.current.map.map((row) => (
-                      <div className="about-map-row" key={row.then}>
-                        <dt className="about-map-then">{row.then}</dt>
-                        <dd className="about-map-now">{row.now}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-                <div className="about-current-gutter">
-                  {about.current.figures.map((figure) => (
-                    <QualifiedFigure key={figure.name} figure={figure} />
-                  ))}
-                  <div className="about-links">
-                    {about.current.links.map((link) =>
-                      link.external ? (
-                        <ExternalLink key={link.href} href={link.href}>
-                          {link.label}
-                        </ExternalLink>
-                      ) : (
-                        <Link key={link.href} href={link.href}>
-                          {link.label}
-                        </Link>
-                      ),
-                    )}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* §05 Four-surface boundary */}
-            <section className="about-section">
-              <div className="about-section-head">
-                <span className="about-ordinal" aria-hidden="true">
-                  05
-                </span>
-                <h3 className="about-cat">Where each thing lives</h3>
-              </div>
-              <dl className="about-surfaces">
-                {about.surfaces.map((surface) => (
-                  <div className="about-surface-row" key={surface.name}>
-                    <dt
-                      className={
-                        surface.self
-                          ? "about-surface-name about-surface-name--self"
-                          : "about-surface-name"
-                      }
-                    >
-                      {surface.href ? (
-                        <Link className="text-link" href={surface.href}>
-                          {surface.name}
-                        </Link>
-                      ) : (
-                        surface.name
-                      )}
-                    </dt>
-                    <dd className="about-surface-desc">
-                      {surface.description}
-                    </dd>
+              <dl className="about-skills">
+                {about.skillsClusters.map((cluster) => (
+                  <div className="about-skills-row" key={cluster.label}>
+                    <dt className="about-skills-label">{cluster.label}</dt>
+                    <dd className="about-skills-items">{cluster.items}</dd>
                   </div>
                 ))}
               </dl>
+              <div className="about-education">
+                <p className="about-education-institution">
+                  <strong>{about.education.institution}</strong>
+                </p>
+                <p className="about-education-degree">
+                  {about.education.degree} · {about.education.field}
+                </p>
+                <p className="about-education-dates">
+                  {about.education.dateRange}
+                </p>
+                {about.education.honors.length ? (
+                  <ul className="about-education-honors">
+                    {about.education.honors.map((honor) => (
+                      <li key={honor.slice(0, 32)}>{honor}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+              <div className="about-work-rights">
+                <p className="about-work-rights-title">
+                  <strong>{about.workRights.title}</strong>
+                </p>
+                <p className="about-work-rights-detail">
+                  {about.workRights.detail}
+                </p>
+              </div>
             </section>
 
             {/* Closing block */}

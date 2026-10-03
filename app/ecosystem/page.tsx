@@ -81,7 +81,7 @@ export default async function EcosystemPage() {
               <Link href="/projects">Projects — evidence index →</Link>
             </li>
             <li>
-              <Link href="/about">About — practice record →</Link>
+              <Link href="/about">About — career record →</Link>
             </li>
             <li>
               <Link href="/">Home →</Link>
