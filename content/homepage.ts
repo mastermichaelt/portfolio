@@ -59,10 +59,10 @@ export const homepage: Homepage = {
         contract: "Valid JSON is not a legal move — the validator decides.",
       },
       figure: {
+        // Publish 175+ floor only — never the exact rolling MAU snapshot (175).
         value: "175+",
         name: "monthly active players",
-        scope:
-          "Live-product telemetry · resume phrasing uses 175+ as durable floor, not the rolling monthly-active-players snapshot",
+        scope: "Codenames AI · live product telemetry",
         source: {
           inventory: "resumes/facts/codenames-ai-telemetry.yml",
           factId: "telemetry-model-experiments",

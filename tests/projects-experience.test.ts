@@ -92,7 +92,10 @@ describe("projects 1C — co-primary cases", () => {
     expect(figures.some((figure) => figure.value === "175")).toBe(false);
 
     const players = figures.find((figure) => figure.value === "175+");
-    expect(players?.scope).toMatch(/durable floor/i);
+    expect(players?.scope).toMatch(/Codenames AI · live product telemetry/);
+    expect(players?.scope).not.toMatch(
+      /resume phrasing|durable floor|monthly-active-players snapshot/i,
+    );
 
     const branded = figures.find((figure) => figure.value === "#1");
     expect(branded?.scope).toMatch(/28 days/i);

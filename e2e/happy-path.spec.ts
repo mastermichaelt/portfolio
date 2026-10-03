@@ -70,7 +70,7 @@ test.describe("portfolio happy path", () => {
     // One qualified figure per channel; 9%–41% keeps its finding scope.
     await expect(wide.getByText("175+", { exact: true })).toBeVisible();
     await expect(wide.getByText("9%–41%", { exact: true })).toBeVisible();
-    await expect(wide.getByText(/durable floor/i)).toBeVisible();
+    await expect(wide.getByText(/live product telemetry/i)).toBeVisible();
     await expect(wide.getByText(/the range is the finding/i)).toBeVisible();
 
     // Named per-channel routes to the case studies (CH 02 → its own case study).
@@ -123,7 +123,7 @@ test.describe("portfolio happy path", () => {
 
     // Each channel repeats the schema and carries its own 04 evidence figure.
     await expect(narrow.getByText("175+", { exact: true })).toBeVisible();
-    await expect(narrow.getByText(/durable floor/i)).toBeVisible();
+    await expect(narrow.getByText(/live product telemetry/i)).toBeVisible();
     await expect(narrow.getByText("9%–41%", { exact: true })).toBeVisible();
     await expect(narrow.getByText(/the range is the finding/i)).toBeVisible();
     await expect(page.getByText("game_started")).toHaveCount(0);
@@ -203,7 +203,9 @@ test.describe("portfolio happy path", () => {
         page.getByText(value, { exact: true }).first(),
       ).toBeVisible();
     }
-    await expect(page.getByText(/durable floor/i).first()).toBeVisible();
+    await expect(
+      page.getByText(/live product telemetry/i).first(),
+    ).toBeVisible();
 
     // Supporting rows link to a proof surface.
     await expect(
@@ -247,7 +249,7 @@ test.describe("portfolio happy path", () => {
     const playersFigure = page.locator(".qfigure").filter({ hasText: "175+" });
     await expect(playersFigure.locator(".figure-value")).toHaveText("175+");
     await expect(playersFigure.locator(".figure-scope")).toContainText(
-      /durable floor/i,
+      /live product telemetry/i,
     );
 
     // The four field-report doors resolve, including the persistence report.
@@ -296,7 +298,9 @@ test.describe("portfolio happy path", () => {
           page.getByText(value, { exact: true }).first(),
         ).toBeVisible();
       }
-      await expect(page.getByText(/durable floor/i).first()).toBeVisible();
+      await expect(
+        page.getByText(/live product telemetry/i).first(),
+      ).toBeVisible();
 
       const openHeights = await page
         .locator("a.pindex-open")
@@ -335,7 +339,7 @@ test.describe("portfolio happy path", () => {
         .locator(".qfigure")
         .filter({ hasText: "175+" });
       await expect(playersFigure.locator(".figure-scope")).toContainText(
-        /durable floor/i,
+        /live product telemetry/i,
       );
       const scopeWidth = await playersFigure
         .locator(".figure-scope")
@@ -609,7 +613,7 @@ test.describe("portfolio happy path", () => {
     expect(clearance).toBeLessThanOrEqual(MAX_CLEARANCE);
   });
 
-  test("about carries the identity rail, arc and evidence boundary", async ({
+  test("about carries the identity rail, career record and qualified figures", async ({
     page,
   }) => {
     await page.goto("/about");
@@ -636,27 +640,35 @@ test.describe("portfolio happy path", () => {
       /dev\.to\/michaeltruong/,
     );
 
-    // Every era but the 2014 origin ends on a carry-forward clause.
-    await expect(page.locator(".about-carry")).toHaveCount(4);
+    // Résumé-shaped sections: experience bullets, skills, and no continuity copy.
+    await expect(page.locator(".about-role-bullets")).toHaveCount(8);
+    await expect(page.locator(".about-ref-row")).toHaveCount(7);
+    await expect(page.getByText(/one engineering practice/i)).toHaveCount(0);
+    await expect(page.getByText(/carried forward/i)).toHaveCount(0);
 
-    // Exactly four qualified figures, each keeping a non-empty scope line.
+    // Qualified figures attach to producing roles/projects with non-empty scopes.
     const figures = page.locator(".qfigure");
-    await expect(figures).toHaveCount(4);
+    await expect(figures).toHaveCount(8);
     const scopes = page.locator(".qfigure .figure-scope");
-    await expect(scopes).toHaveCount(4);
+    await expect(scopes).toHaveCount(8);
     for (const text of await scopes.allInnerTexts()) {
       expect(text.trim().length).toBeGreaterThan(0);
     }
 
-    // The §04 then/now mapping and §05 surface boundary have fixed shapes.
-    await expect(page.locator(".about-map .about-map-row")).toHaveCount(3);
-    await expect(
-      page.locator(".about-surfaces .about-surface-row"),
-    ).toHaveCount(5);
+    // Apr 2015 Atlassian start and current independent project are present.
+    await expect(page.getByText(/Apr 2015/i)).toBeVisible();
+    await expect(page.getByText(/Codenames AI/i).first()).toBeVisible();
 
-    // Orientation links to the other evidence surfaces are present.
+    // §01 points to LinkedIn for earlier roles omitted from the résumé record.
     await expect(
-      page.locator('.about-doc a[href="/projects"]').first(),
+      page.getByRole("link", {
+        name: /Full professional experience on LinkedIn/i,
+      }),
+    ).toHaveAttribute("href", /linkedin\.com\/in\/michael-truong-dev/);
+
+    // Project and article entry links are present on independent blocks.
+    await expect(
+      page.locator('.about-doc a[href="/projects/codenames-ai"]').first(),
     ).toBeVisible();
     await expect(
       page.locator('.about-doc a[href="/articles"]').first(),
@@ -692,14 +704,14 @@ test.describe("portfolio happy path", () => {
       .evaluate((node) => node.getBoundingClientRect().height);
     expect(ctaHeight).toBeGreaterThanOrEqual(44);
 
-    // §04 gutter links are standalone targets and meet the same 44px floor.
-    const gutterLinkHeights = await page
-      .locator(".about-links a")
+    // Entry links are standalone targets and meet the same 44px floor.
+    const entryLinkHeights = await page
+      .locator(".about-entry-links a")
       .evaluateAll((nodes) =>
         nodes.map((node) => node.getBoundingClientRect().height),
       );
-    expect(gutterLinkHeights.length).toBeGreaterThan(0);
-    for (const height of gutterLinkHeights) {
+    expect(entryLinkHeights.length).toBeGreaterThan(0);
+    for (const height of entryLinkHeights) {
       expect(height).toBeGreaterThanOrEqual(44);
     }
 
@@ -740,17 +752,17 @@ test.describe("portfolio happy path", () => {
     expect(geom.scrollHeight).toBeGreaterThan(geom.clientHeight);
     expect(geom.overflowY).toBe("auto");
 
-    // Focus areas is the last rail block; after scrolling the rail to the end it
+    // Contact is the last rail block; after scrolling the rail to the end it
     // must sit fully inside the rail's own viewport (i.e. it is reachable).
-    const focusReachable = await rail.evaluate((node) => {
+    const contactReachable = await rail.evaluate((node) => {
       node.scrollTop = node.scrollHeight;
-      const focus = node.querySelector(".about-rail-block--focus");
-      if (!focus) return false;
+      const contact = node.querySelector(".about-rail-block--contact");
+      if (!contact) return false;
       const r = node.getBoundingClientRect();
-      const f = focus.getBoundingClientRect();
-      return f.top >= r.top - 1 && f.bottom <= r.bottom + 1;
+      const c = contact.getBoundingClientRect();
+      return c.top >= r.top - 1 && c.bottom <= r.bottom + 1;
     });
-    expect(focusReachable).toBe(true);
+    expect(contactReachable).toBe(true);
 
     // No horizontal scrollbar is introduced — on the page or inside the rail.
     const pageOverflowX = await page.evaluate(

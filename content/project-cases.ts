@@ -352,16 +352,16 @@ const codenamesAi: ProjectCase = {
       heading:
         "The activity number was only meaningful once the sessions behind it were defined.",
       body: [
-        "Product analytics instrumentation makes the questions answerable: which sessions count, what a model experiment did to behavior, and where discovery comes from. The published figures below carry the same discipline as the Atlassian work — a durable floor is quoted, never the rolling snapshot.",
+        "Product analytics instrumentation makes the questions answerable: which sessions count, what a model experiment did to behavior, and where discovery comes from.",
       ],
       contract:
         "a metric is publishable at the floor its definition can defend.",
       figures: [
         {
+          // Publish 175+ floor only — never the exact rolling MAU snapshot (175).
           value: "175+",
           name: "monthly active players",
-          scope:
-            "Live-product telemetry · resume phrasing uses 175+ as durable floor, not the rolling monthly-active-players snapshot",
+          scope: "Codenames AI · live product telemetry",
           onIndex: true,
           source: {
             inventory: "resumes/facts/codenames-ai-telemetry.yml",

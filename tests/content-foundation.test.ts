@@ -183,24 +183,29 @@ describe("content-foundation inventory", () => {
     }
   });
 
-  it("carries the About standing record as one continuous practice", async () => {
+  it("carries the About career record as a résumé-shaped document", async () => {
     const loaded = await repository.getAbout();
     expect(loaded).toEqual(about);
 
-    // Five eras, newest first, exactly one current.
-    expect(about.arc).toHaveLength(5);
-    expect(about.arc[0]?.dateRange.startsWith("2026")).toBe(true);
-    expect(about.arc.filter((era) => era.current).length).toBe(1);
-    expect(about.arc[0]?.current).toBe(true);
+    // Five Atlassian roles, newest first; independent projects follow.
+    expect(about.experience.entries).toHaveLength(5);
+    expect(about.experience.entries[0]?.dateRange).toMatch(/May 2024/);
+    expect(about.experience.entries[4]?.dateRange).toMatch(/Apr 2015/);
+    expect(about.experience.supplement?.profileLink).toBe("linkedin");
+    expect(about.experience.supplement?.label).toMatch(/LinkedIn/i);
+    expect(about.independent.entries).toHaveLength(3);
+    expect(
+      about.independent.entries.filter((entry) => entry.current).length,
+    ).toBe(1);
+    expect(about.independent.entries[0]?.current).toBe(true);
 
-    // Exactly four qualified figures across the page, each fully qualified and
-    // traceable to a resumes/facts inventory file.
+    // Qualified figures attach to the producing roles/projects, each traceable
+    // to a resumes/facts inventory file.
     const figures: CaseFigure[] = [
-      about.arcEvidence.figure,
-      ...about.management.figures,
-      ...about.current.figures,
+      ...about.experience.entries.flatMap((entry) => entry.figures ?? []),
+      ...about.independent.entries.flatMap((entry) => entry.figures ?? []),
     ];
-    expect(figures).toHaveLength(4);
+    expect(figures.length).toBeGreaterThanOrEqual(4);
     for (const figure of figures) {
       expect(figure.value.trim().length).toBeGreaterThan(0);
       expect(figure.name.trim().length).toBeGreaterThan(0);
@@ -214,12 +219,19 @@ describe("content-foundation inventory", () => {
       key === "source" ? undefined : value,
     );
     expect(copyText).not.toMatch(
-      /retraining|career pivot|return to IC|side project/i,
+      /retraining|career pivot|return to IC|side project|one engineering practice|carried forward|through-line/i,
+    );
+    expect(copyText).not.toMatch(/Savepoints/i);
+    // Internal provenance/editorial notes must not leak into rendered copy.
+    expect(copyText).not.toMatch(
+      /resume phrasing|durable floor|timeline fork|monthly-active-players snapshot|prior-approach/i,
     );
     // Never publish the exact 175 MAU snapshot — only the 175+ durable floor.
     expect(copyText.replace(/175\+/g, "")).not.toContain("175");
     // Fact-id / inventory-path review aids never leak into copy.
     expect(copyText).not.toContain(".yml");
+    // Privacy: no phone number from the résumé.
+    expect(copyText).not.toMatch(/\+61|401\s*217|tel:/i);
   });
 
   it("loads the Homepage 2 method model as two projections of one system", async () => {
@@ -271,7 +283,10 @@ describe("content-foundation inventory", () => {
       expect(figure.source.inventory).toMatch(/^resumes\/facts\/.+\.yml$/);
       expect(figure.source.factId.trim().length).toBeGreaterThan(0);
     }
-    expect(figures[0]?.scope).toMatch(/durable floor/i);
+    expect(figures[0]?.scope).toMatch(/Codenames AI · live product telemetry/);
+    expect(figures[0]?.scope).not.toMatch(
+      /resume phrasing|durable floor|monthly-active-players snapshot/i,
+    );
     // 9%–41% keeps its source meaning: the range across attribution windows is
     // the measurement-reliability finding, not a delivery/run-time outcome.
     expect(figures[1]?.scope).toMatch(/Statsig/i);

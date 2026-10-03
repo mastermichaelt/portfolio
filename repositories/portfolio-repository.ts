@@ -19,7 +19,7 @@ import type { WorkflowView } from "@/domain/workflow-view";
  */
 export interface PortfolioRepository {
   getProfile(): Promise<Profile>;
-  /** The About "Standing Record" (2a) practice-record composition. */
+  /** The About career-record composition. */
   getAbout(): Promise<AboutPage>;
   getHomepage(): Promise<Homepage>;
   /** The Projects 1C index composition (explicit ordering and tiering). */

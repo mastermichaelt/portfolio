@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: slice-1
     content: "PR 1: Résumé-derived About page — domain model, content, page, CSS, tests, minor collateral"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after slice 1: add # Shipped note, move plan to .cursor/plans/archive/2026-10-03-about-resume-rework.plan.md"
     status: pending
