@@ -10,8 +10,20 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after slice 1: add # Shipped note, move plan to .cursor/plans/archive/2026-10-03-about-resume-rework.plan.md"
-    status: pending
+    status: completed
 isProject: false
+---
+
+# Shipped
+
+**Archived 2026-10-03.** Production at `https://michaeltruong.ai` (`main` @ `58562d4`).
+
+| Slice        | Delivered                                                                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| plan-review  | [#10](https://github.com/mastermichaelt/portfolio/pull/10) — plan artifact committed for review                                             |
+| slice-1      | [#11](https://github.com/mastermichaelt/portfolio/pull/11) — résumé-derived About page: domain model, content, page, CSS, tests, collateral |
+| plan-closure | This PR — verify slice todos, `# Shipped` note, archive plan                                                                                |
+
 ---
 
 # About page — résumé-derived career record
@@ -175,7 +187,7 @@ After slice 1 merges:
 ### plan-review
 
 ```text
-@.cursor/plans/2026-10-03-about-resume-rework.plan.md
+@.cursor/plans/archive/2026-10-03-about-resume-rework.plan.md
 
 Execute only plan-review. Do not start slice-1 or later slices.
 
@@ -191,7 +203,7 @@ Verification: plan satisfies repo planning standards; no implementation changes 
 ### slice-1
 
 ```text
-@.cursor/plans/2026-10-03-about-resume-rework.plan.md
+@.cursor/plans/archive/2026-10-03-about-resume-rework.plan.md
 
 Implement slice slice-1 only. Do not start plan-closure. Do not archive the plan.
 
@@ -209,7 +221,7 @@ Constraints: October 2026 Senior SWE résumé is canonical for career content. N
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-10-03-about-resume-rework.plan.md
+@.cursor/plans/archive/2026-10-03-about-resume-rework.plan.md
 
 Execute only plan-closure.
 
