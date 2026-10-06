@@ -66,7 +66,7 @@ npm run generate:video -- --prompt "..."   # dev-only Veo text-to-video tooling 
 npm run verify:git-hooks     # confirm Husky shims are runnable in this checkout
 ```
 
-Pre-commit (Husky): `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Coverage is a CI gate, not a pre-commit step. Playwright e2e runs in CI after `verify`. The `e2e` job always reports a status (required-check safe) but **skips Playwright only when every changed path is on an explicit docs-only allowlist** (`docs/**`, `.cursor/**`, `README.md`, `AGENTS.md`, `CLAUDE.md`, and a few non-workflow `.github` metadata files); any other path (including unknown/future paths) runs e2e. `main` pushes always run e2e.
+Pre-commit (Husky): `lint-staged` (Prettier on staged files), then full `lint`, `typecheck`, and `format:check`. Coverage is a CI gate, not a pre-commit step. Playwright e2e runs in the same `test` CI job when required; the job always reports a status (required-check safe) but **skips Playwright only when every changed path is on an explicit docs-only allowlist** (`docs/**`, `.cursor/**`, `README.md`, `AGENTS.md`, `CLAUDE.md`, and a few non-workflow `.github` metadata files); any other path (including unknown/future paths) runs e2e. `main` pushes always run e2e.
 
 ### Git hooks (four-layer enforcement)
 
