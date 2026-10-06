@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: docs-assistant-corpus-okf
     content: "PR: Update architecture-direction.md, prior-art.md, and overview.md for corpus boundary + OKF adoption"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after docs-assistant-corpus-okf merges: add # Shipped note, move plan to .cursor/plans/archive/"
     status: pending

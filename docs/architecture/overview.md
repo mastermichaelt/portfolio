@@ -19,7 +19,7 @@ The current milestone is a static content MVP on Vercel: home, projects, article
 2. **Static content** (shipped) — evidence-backed copy from typed modules under `content/`
 3. **Ecosystem map** (shipped) — entities, relationships, read-only React Flow canvases
 4. **Postgres persistence** — migrate storage behind the existing repository interface
-5. **Chatbot foundation** — grounded Q&A over portfolio knowledge ([architecture direction](../assistant/architecture-direction.md); implementation later, just-in-time plans)
+5. **Chatbot foundation** — grounded Q&A over a multi-source assistant corpus normalized via OKF ([architecture direction](../assistant/architecture-direction.md); implementation later, just-in-time plans)
 
 ## Static-first strategy
 
