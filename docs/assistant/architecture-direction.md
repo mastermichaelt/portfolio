@@ -72,7 +72,7 @@ The feature also exercises RAG mechanics in the same Next.js codebase that hosts
 app/ pages → PortfolioRepository → content/ modules
 ```
 
-The assistant, when built, should be a **read projection** on top of this stack — not a redesign of it.
+When built, the assistant layers on top of the existing site without redesigning it. Portfolio presentation continues through `PortfolioRepository` → `content/`; corpus producers normalize that curated source alongside selected repositories and published writing into the OKF pipeline.
 
 ## Corpus boundary
 
@@ -294,6 +294,6 @@ We may adopt pgvector, hybrid retrieval, reranking, or strict grounding **only i
 
 | Date       | Change                                                                                                                                                                                       |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-06 | Clarified canonical OKF corpus vs future external retrieval; corpus-only first experiments; opening goal no longer tied to browsable-site-only evidence                                      |
+| 2026-10-06 | Clarified canonical OKF corpus vs future external retrieval; corpus-only first experiments; opening goal and current-implementation posture no longer tied to `content/`-only stack          |
 | 2026-10-06 | Corpus boundary broadened beyond `content/` alone; OKF adopted as canonical normalized representation; five-layer separation documented; supersedes v0.1.0 `content/`-only corpus assumption |
 | 2026-10-06 | Initial direction note; split from monolithic architecture doc; recorded abandoned PR #14 master plan                                                                                        |
