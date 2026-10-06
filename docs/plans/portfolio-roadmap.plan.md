@@ -1,5 +1,7 @@
 # Portfolio roadmap
 
+**Architecture (durable):** [Portfolio assistant RAG](../architecture/portfolio-assistant.md) — product intent, corpus model, retrieval flow, citations, and implementation roadmap boundaries. Not an execution plan.
+
 Execution plans:
 
 - **michaeltruong.ai migration (shipped)** — canonical host, SEO (`robots.txt`, `sitemap.xml`, Person JSON-LD), public-release hygiene, README + MIT/content licensing; plan archived at [`.cursor/plans/archive/2026-10-02-michaeltruong-ai-migration.plan.md`](../../.cursor/plans/archive/2026-10-02-michaeltruong-ai-migration.plan.md). Deferred: `vercel.json` redirects (Vercel dashboard first); external DNS, GitHub visibility, and git history scrub remain human/ops steps.

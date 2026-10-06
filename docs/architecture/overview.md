@@ -11,7 +11,7 @@ This repository serves four overlapping purposes:
 3. A **Next.js learning project** with a clean path to Supabase later
 4. A **foundation** for a future grounded portfolio chatbot
 
-The current milestone is a static content MVP on Vercel: home, projects, articles, about, and a live ecosystem map (orientation spine + operational workflow canvases). Supabase persistence and chatbot work stay later.
+The current milestone is a static content MVP on Vercel: home, projects, articles, about, and a live ecosystem map (orientation spine + operational workflow canvases). Supabase persistence stays later. Assistant architecture is documented at [portfolio-assistant.md](./portfolio-assistant.md); implementation is not started.
 
 ## Milestone progression
 
@@ -19,7 +19,7 @@ The current milestone is a static content MVP on Vercel: home, projects, article
 2. **Static content** (shipped) — evidence-backed copy from typed modules under `content/`
 3. **Ecosystem map** (shipped) — entities, relationships, read-only React Flow canvases
 4. **Supabase** — migrate storage behind the existing repository interface
-5. **Chatbot foundation** — grounded Q&A over portfolio knowledge (later)
+5. **Chatbot foundation** — grounded Q&A over portfolio knowledge ([architecture](./portfolio-assistant.md); implementation later)
 
 ## Static-first strategy
 
