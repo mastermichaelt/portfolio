@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: renovate-implementation
     content: "PR: consumer Renovate files (.agents/renovate-policy.yml, renovate.json, workflows, package.json git dep)"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after implementation: add # Shipped note, move plan to .cursor/plans/archive/2026-10-07-renovate-workflow-setup.plan.md"
     status: pending
