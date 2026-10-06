@@ -7,8 +7,26 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after slice merges: add # Shipped note, move plan to .cursor/plans/archive/2026-10-06-portfolio-assistant-architecture.plan.md"
-    status: pending
+    status: completed
 isProject: false
+---
+
+# Shipped
+
+**Archived 2026-10-06.**
+
+| Slice                  | Delivered                                                                                                                                                                                           |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| slice-architecture-doc | [#13](https://github.com/mastermichaelt/portfolio/pull/13) — Savepoints-style `docs/assistant/architecture-direction.md` + `prior-art.md`; Postgres direction cleanup; PR #14 master plan abandoned |
+| plan-closure           | This PR — verify slice todos, `# Shipped` note, archive plan                                                                                                                                        |
+
+**Durable docs (remain active):**
+
+- [`docs/assistant/architecture-direction.md`](../../../docs/assistant/architecture-direction.md)
+- [`docs/assistant/prior-art.md`](../../../docs/assistant/prior-art.md)
+
+This plan is archived. Assistant implementation proceeds via just-in-time `.cursor/plans/` from the architecture direction and shipped evidence — not a pre-authored master plan.
+
 ---
 
 # Portfolio assistant architecture documentation
@@ -17,8 +35,8 @@ Scoped plan for **durable architecture notes only**. Does not implement the assi
 
 **Architecture source of truth:**
 
-- [`docs/assistant/architecture-direction.md`](../../docs/assistant/architecture-direction.md)
-- [`docs/assistant/prior-art.md`](../../docs/assistant/prior-art.md)
+- [`docs/assistant/architecture-direction.md`](../../../docs/assistant/architecture-direction.md)
+- [`docs/assistant/prior-art.md`](../../../docs/assistant/prior-art.md)
 
 ## Recommended execution authority
 
@@ -39,10 +57,10 @@ Integration branch: `main`. Documentation-only slice.
 
 **Deliverables:**
 
-- [`docs/assistant/architecture-direction.md`](../../docs/assistant/architecture-direction.md)
-- [`docs/assistant/prior-art.md`](../../docs/assistant/prior-art.md)
-- Cross-links from [`docs/architecture/overview.md`](../../docs/architecture/overview.md) and [`docs/plans/portfolio-roadmap.plan.md`](../../docs/plans/portfolio-roadmap.plan.md)
-- Remove superseded [`docs/architecture/portfolio-assistant.md`](../../docs/architecture/portfolio-assistant.md) if present
+- [`docs/assistant/architecture-direction.md`](../../../docs/assistant/architecture-direction.md)
+- [`docs/assistant/prior-art.md`](../../../docs/assistant/prior-art.md)
+- Cross-links from [`docs/architecture/overview.md`](../../../docs/architecture/overview.md) and [`docs/plans/portfolio-roadmap.plan.md`](../../../docs/plans/portfolio-roadmap.plan.md)
+- Remove superseded [`docs/architecture/portfolio-assistant.md`](../../../docs/architecture/portfolio-assistant.md) if present
 
 **Acceptance:** Directional documentation only — no TypeScript interfaces, file-path prescriptions, API payloads, or pre-planned implementation slices. Records abandoned PR #14 master plan. No `app/` or assistant code.
 
@@ -59,7 +77,7 @@ After slice-architecture-doc merges: `# Shipped` note, archive to `.cursor/plans
 ### slice-architecture-doc
 
 ```text
-@.cursor/plans/2026-10-06-portfolio-assistant-architecture.plan.md
+@.cursor/plans/archive/2026-10-06-portfolio-assistant-architecture.plan.md
 
 Implement slice slice-architecture-doc only. Do not start plan-closure. Do not implement the assistant.
 
@@ -75,7 +93,7 @@ Verification: no app/ assistant code; docs are directional, not implementation s
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-10-06-portfolio-assistant-architecture.plan.md
+@.cursor/plans/archive/2026-10-06-portfolio-assistant-architecture.plan.md
 
 Execute only plan-closure.
 
