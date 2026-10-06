@@ -40,6 +40,7 @@
 # disposable output from the dev image generator (scripts/generate-image.mjs).
 # Candidate assets live here until one is promoted into public/ (see
 # docs/image-generation.md). Never a production asset location.
+# Also: ephemeral OKF normalization bundles from npm run okf:build (generated/okf/).
 /generated/
 
 # claude code: share launch.json, keep per-user settings local

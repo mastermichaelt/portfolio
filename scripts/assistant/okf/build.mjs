@@ -6,7 +6,12 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { CORPUS_ROOT, OKF_VERSION } from "./constants.mjs";
+import {
+  CORPUS_ROOT,
+  EXPERIMENT_FINDINGS_DOC,
+  FIXTURES_DIR,
+  OKF_VERSION,
+} from "./constants.mjs";
 import { produceDevConcepts } from "./dev-producer.mjs";
 import { buildNormalizationManifest, writeJson } from "./manifest.mjs";
 import { producePortfolioConcepts } from "./portfolio-producer.mjs";
@@ -44,7 +49,7 @@ ${section("Repository concepts", grouped.repo)}
 
 ${section("Published writing concepts", grouped.writing)}
 
-See [INSPECTION.md](./INSPECTION.md) for mapping decisions and granularity rationale.
+Experiment findings: \`${EXPERIMENT_FINDINGS_DOC}\` (durable; generated output is ephemeral).
 `;
 }
 
@@ -66,31 +71,36 @@ function formatGeneratedCorpus(corpusRoot) {
 export function buildOkfCorpus({
   corpusRoot = CORPUS_ROOT,
   generatedAt = new Date().toISOString(),
+  format = true,
 } = {}) {
   cleanGeneratedConcepts(corpusRoot);
 
   const concepts = [
     ...producePortfolioConcepts(),
-    ...produceRepoConcepts(path.join(corpusRoot, "fixtures")),
-    ...produceDevConcepts(path.join(corpusRoot, "fixtures")),
+    ...produceRepoConcepts(FIXTURES_DIR),
+    ...produceDevConcepts(FIXTURES_DIR),
   ];
 
   const conceptPaths = writeConcepts(corpusRoot, concepts).sort();
   const indexPath = path.join(corpusRoot, "index.md");
   fs.writeFileSync(indexPath, renderIndex(conceptPaths), "utf8");
-  formatGeneratedCorpus(corpusRoot);
+  if (format) {
+    formatGeneratedCorpus(corpusRoot);
+  }
 
   const manifest = buildNormalizationManifest({
     corpusRoot,
-    fixtureRoot: path.join(corpusRoot, "fixtures"),
+    fixtureRoot: FIXTURES_DIR,
     conceptPaths,
     generatedAt,
   });
   const manifestPath = path.join(corpusRoot, "manifest.json");
   writeJson(manifestPath, manifest);
-  execSync(`npx prettier --write ${JSON.stringify(manifestPath)}`, {
-    stdio: "inherit",
-  });
+  if (format) {
+    execSync(`npx prettier --write ${JSON.stringify(manifestPath)}`, {
+      stdio: "inherit",
+    });
+  }
 
   return {
     conceptCount: conceptPaths.length,

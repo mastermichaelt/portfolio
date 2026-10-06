@@ -4,8 +4,11 @@ export const OKF_VERSION = "0.2";
 export const GENERATED_BY = "process:portfolio-okf-producer";
 export const SITE_URL = "https://michaeltruong.ai";
 
-export const CORPUS_ROOT = "assistant-corpus";
-export const FIXTURES_DIR = `${CORPUS_ROOT}/fixtures`;
+/** Ephemeral OKF bundle output (gitignored under /generated/). */
+export const CORPUS_ROOT = "generated/okf";
+
+/** Representative external-source inputs for deterministic producer tests. */
+export const FIXTURES_DIR = "tests/fixtures/assistant-okf";
 
 export const FIXTURE_FILES = {
   renovateWorkflow: "renovate-workflow.md",
@@ -17,3 +20,6 @@ export const DEV_ARTICLE_URL =
 
 export const REPO_RUNBOOK_RESOURCE =
   "https://raw.githubusercontent.com/multipliers-dev/renovate-workflow/main/docs/renovate-workflow.md";
+
+export const EXPERIMENT_FINDINGS_DOC =
+  "docs/assistant/okf-normalization-experiment.md";

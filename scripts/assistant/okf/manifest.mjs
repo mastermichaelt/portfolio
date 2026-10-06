@@ -2,7 +2,12 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-import { CORPUS_ROOT, FIXTURES_DIR, OKF_VERSION } from "./constants.mjs";
+import {
+  CORPUS_ROOT,
+  FIXTURE_FILES,
+  FIXTURES_DIR,
+  OKF_VERSION,
+} from "./constants.mjs";
 
 export function sha256File(filePath) {
   const bytes = fs.readFileSync(filePath);
@@ -13,12 +18,20 @@ export function sha256String(value) {
   return crypto.createHash("sha256").update(value, "utf8").digest("hex");
 }
 
-export function readFixtureManifest(fixtureRoot = FIXTURES_DIR) {
-  const manifestPath = path.join(fixtureRoot, "manifest.json");
-  if (!fs.existsSync(manifestPath)) {
-    throw new Error(`Fixture manifest missing: ${manifestPath}`);
+export function buildFixtureInputs(fixtureRoot = FIXTURES_DIR) {
+  const fixtures = {};
+  const absoluteRoot = path.isAbsolute(fixtureRoot)
+    ? fixtureRoot
+    : path.join(process.cwd(), fixtureRoot);
+
+  for (const fileName of Object.values(FIXTURE_FILES)) {
+    const absolutePath = path.join(absoluteRoot, fileName);
+    fixtures[fileName] = {
+      path: path.relative(process.cwd(), absolutePath),
+      sha256: sha256File(absolutePath),
+    };
   }
-  return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  return fixtures;
 }
 
 export function listConceptFiles(corpusRoot = CORPUS_ROOT) {
@@ -41,7 +54,6 @@ export function buildNormalizationManifest({
   conceptPaths,
   generatedAt,
 }) {
-  const fixtureManifest = readFixtureManifest(fixtureRoot);
   const outputs = conceptPaths.map((relativePath) => {
     const absolutePath = path.join(corpusRoot, relativePath);
     const content = fs.readFileSync(absolutePath, "utf8");
@@ -60,7 +72,7 @@ export function buildNormalizationManifest({
         kind: "in-repo content modules",
         paths: ["content/supporting-cases.ts", "content/articles.ts"],
       },
-      fixtures: fixtureManifest.fixtures,
+      fixtures: buildFixtureInputs(fixtureRoot),
     },
     outputs: {
       index: "index.md",
