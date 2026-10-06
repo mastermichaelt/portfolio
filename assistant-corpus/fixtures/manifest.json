@@ -1,0 +1,19 @@
+{
+  "description": "Acquisition record for pinned OKF normalization inputs. Refresh with npm run okf:snapshot.",
+  "fixtures": {
+    "renovate-workflow.md": {
+      "origin": "https://raw.githubusercontent.com/multipliers-dev/renovate-workflow/main/docs/renovate-workflow.md",
+      "origin_commit": "d8392e621a0fcbfbbdec56b13f920a89703e695b",
+      "source_path": "../../renovate-workflow/docs/renovate-workflow.md",
+      "acquired_at": "2026-10-06T05:55:00.000Z",
+      "sha256": "47ae85c4d13186cbbb5db892804cb5a45b4a66e6b0553364d2dec7ac284d0876"
+    },
+    "evidence-driven-dependency-upgrades.md": {
+      "origin": "https://dev.to/michaeltruong/upgrades-dont-have-to-be-a-blind-trust-exercise-13mj",
+      "devto_article_id": "4056883",
+      "source_path": "../../editorial-workflow/docs/dev.to/published/evidence-driven-dependency-upgrades.md",
+      "acquired_at": "2026-10-06T05:55:00.000Z",
+      "sha256": "9de6532958888ac53e889f4abe8467c41fd328f2734336aa808afe5c1806f222"
+    }
+  }
+}

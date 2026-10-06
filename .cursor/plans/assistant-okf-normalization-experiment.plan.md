@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: okf-normalization-experiment
     content: "PR: Build three-source OKF normalization experiment (producers, assistant-corpus/, manifest, INSPECTION.md, tests)"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after experiment merges: add # Shipped note, move plan to .cursor/plans/archive/"
     status: pending

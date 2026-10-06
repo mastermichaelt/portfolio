@@ -29,7 +29,9 @@
     "generate:image": "node scripts/generate-image.mjs",
     "generate:video": "node scripts/generate-video.mjs",
     "prepare": "sh scripts/prepare-git-hooks.sh",
-    "verify:git-hooks": "sh scripts/verify-git-hooks.sh"
+    "verify:git-hooks": "sh scripts/verify-git-hooks.sh",
+    "okf:build": "node --experimental-strip-types scripts/assistant/okf/build.mjs",
+    "okf:snapshot": "node scripts/assistant/okf/snapshot.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
