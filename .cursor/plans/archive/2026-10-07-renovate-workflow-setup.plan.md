@@ -10,8 +10,30 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after implementation: add # Shipped note, move plan to .cursor/plans/archive/2026-10-07-renovate-workflow-setup.plan.md"
-    status: pending
+    status: completed
 isProject: false
+---
+
+# Shipped
+
+**Archived 2026-10-07.**
+
+| Slice                   | Delivered                                                                                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| plan-review             | [#23](https://github.com/mastermichaelt/portfolio/pull/23) — Renovate workflow adoption plan                                                            |
+| renovate-implementation | [#24](https://github.com/mastermichaelt/portfolio/pull/24) — consumer policy, `renovate.json`, Renovate/validate workflows, `renovate-workflow` git dep |
+| plan-closure            | This PR — verify slice todos, `# Shipped` note, archive plan                                                                                            |
+
+**Durable artifacts (remain active):**
+
+- [`.agents/renovate-policy.yml`](../../.agents/renovate-policy.yml) — repo facts, package buckets, path rules, CI bindings
+- [`renovate.json`](../../renovate.json) — Renovate bot config (`renovate/` branch prefix)
+- [`.github/workflows/renovate.yml`](../../.github/workflows/renovate.yml) — scheduled + manual self-hosted Renovate
+- [`.github/workflows/validate-renovate-config.yml`](../../.github/workflows/validate-renovate-config.yml) — conditional `renovate.json` gate
+- [`package.json`](../../package.json) — `renovate-workflow` git devDep and `renovate:freshness-poll` script for `/renovate-loop --babysit`
+
+**Manual setup (operator):** repository secret `RENOVATE_TOKEN`, branch protection on `CI / test`, Cursor plugin import from `https://github.com/multipliers-dev/renovate-workflow`.
+
 ---
 
 # Renovate workflow adoption for portfolio
