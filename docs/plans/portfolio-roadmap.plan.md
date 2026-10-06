@@ -1,6 +1,6 @@
 # Portfolio roadmap
 
-**Architecture (durable):** [Portfolio assistant RAG](../architecture/portfolio-assistant.md) — product intent, corpus model, retrieval flow, citations, and implementation roadmap boundaries. Not an execution plan.
+**Architecture (durable):** [Portfolio assistant direction](../assistant/architecture-direction.md) and [prior art](../assistant/prior-art.md) — directional notes, not execution plans. Implementation is just-in-time via `.cursor/plans/`.
 
 Execution plans:
 

@@ -1,9 +1,9 @@
 ---
 name: Portfolio assistant architecture doc
-overview: Add durable architecture documentation for the portfolio assistant RAG system at docs/architecture/portfolio-assistant.md. No assistant implementation.
+overview: Land durable assistant architecture-direction and prior-art notes under docs/assistant/. No assistant implementation. No master implementation plan.
 todos:
   - id: slice-architecture-doc
-    content: "PR: Add docs/architecture/portfolio-assistant.md, cross-links in overview and roadmap"
+    content: "PR: Add docs/assistant/architecture-direction.md and prior-art.md; cross-links; retire monolithic portfolio-assistant.md"
     status: completed
   - id: plan-closure
     content: "Docs-only PR after slice merges: add # Shipped note, move plan to .cursor/plans/archive/2026-10-06-portfolio-assistant-architecture.plan.md"
@@ -13,9 +13,12 @@ isProject: false
 
 # Portfolio assistant architecture documentation
 
-Scoped plan for **durable architecture documentation only**. Does not implement the assistant, LangChain, API routes, or UI.
+Scoped plan for **durable architecture notes only**. Does not implement the assistant, LangChain, API routes, UI, or a multi-slice implementation plan.
 
-**Architecture source of truth:** [`docs/architecture/portfolio-assistant.md`](../../docs/architecture/portfolio-assistant.md)
+**Architecture source of truth:**
+
+- [`docs/assistant/architecture-direction.md`](../../docs/assistant/architecture-direction.md)
+- [`docs/assistant/prior-art.md`](../../docs/assistant/prior-art.md)
 
 ## Recommended execution authority
 
@@ -26,29 +29,28 @@ Scoped plan for **durable architecture documentation only**. Does not implement 
 
 ## Repository topology
 
-Integration branch: `main`. This slice is documentation-only; branch represents only the architecture doc and cross-links.
+Integration branch: `main`. Documentation-only slice.
 
 ---
 
 ## Slice — slice-architecture-doc
 
-**Recommended authority:** Open PR only
-
-**Goal:** Land durable assistant architecture documentation for review.
+**Goal:** Land Savepoints-style durable notes (architecture direction + prior art), not an implementation specification.
 
 **Deliverables:**
 
-- [`docs/architecture/portfolio-assistant.md`](../../docs/architecture/portfolio-assistant.md)
-- Cross-link from [`docs/architecture/overview.md`](../../docs/architecture/overview.md) milestone 5
-- Entry in [`docs/plans/portfolio-roadmap.plan.md`](../../docs/plans/portfolio-roadmap.plan.md)
+- [`docs/assistant/architecture-direction.md`](../../docs/assistant/architecture-direction.md)
+- [`docs/assistant/prior-art.md`](../../docs/assistant/prior-art.md)
+- Cross-links from [`docs/architecture/overview.md`](../../docs/architecture/overview.md) and [`docs/plans/portfolio-roadmap.plan.md`](../../docs/plans/portfolio-roadmap.plan.md)
+- Remove superseded [`docs/architecture/portfolio-assistant.md`](../../docs/architecture/portfolio-assistant.md) if present
 
-**Acceptance:** Document covers product intent, RAG architecture, reference prior art, corpus sources, chunk/metadata model, flow, citations/observability, decisions/deferrals/hypotheses, boundaries, and implementation roadmap boundaries. No `app/` or `lib/assistant/` code.
+**Acceptance:** Directional documentation only — no TypeScript interfaces, file-path prescriptions, API payloads, or pre-planned implementation slices. Records abandoned PR #14 master plan. No `app/` or assistant code.
 
 ---
 
 ## Plan closure (docs-only PR)
 
-After slice-architecture-doc merges: add `# Shipped` note, archive to `.cursor/plans/archive/2026-10-06-portfolio-assistant-architecture.plan.md`, mark `plan-closure` completed.
+After slice-architecture-doc merges: `# Shipped` note, archive to `.cursor/plans/archive/2026-10-06-portfolio-assistant-architecture.plan.md`, mark `plan-closure` completed.
 
 ---
 
@@ -65,9 +67,9 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: docs/architecture/portfolio-assistant.md and cross-links. Mark slice-architecture-doc completed in plan frontmatter in this PR.
+Deliverables: docs/assistant/ notes and cross-links. Mark slice-architecture-doc completed in plan frontmatter in this PR.
 
-Verification: no app/ or lib/assistant/ code; document satisfies architecture doc acceptance in the plan.
+Verification: no app/ assistant code; docs are directional, not implementation specs.
 ```
 
 ### plan-closure
@@ -85,5 +87,5 @@ Topology: start from latest origin/main; branch represents only this slice; PR b
 
 Deliverables: verify slice todo, add # Shipped note, move plan to .cursor/plans/archive/2026-10-06-portfolio-assistant-architecture.plan.md, mark plan-closure completed.
 
-Verification: architecture doc remains at docs/architecture/portfolio-assistant.md.
+Verification: docs remain at docs/assistant/architecture-direction.md and prior-art.md.
 ```
