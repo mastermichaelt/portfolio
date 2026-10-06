@@ -10,8 +10,28 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after experiment merges: add # Shipped note, move plan to .cursor/plans/archive/"
-    status: pending
+    status: completed
 isProject: false
+---
+
+# Shipped
+
+**Archived 2026-10-06.**
+
+| Slice                        | Delivered                                                                                                                                            |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| plan-review                  | [#19](https://github.com/mastermichaelt/portfolio/pull/19) — plan artifact for three-source OKF normalization experiment                             |
+| okf-normalization-experiment | [#20](https://github.com/mastermichaelt/portfolio/pull/20) — producers, ephemeral `generated/okf/`, test fixtures, findings doc, normalization tests |
+| plan-closure                 | This PR — verify slice todos, `# Shipped` note, archive plan                                                                                         |
+
+**Durable artifacts (remain active):**
+
+- [`docs/assistant/okf-normalization-experiment.md`](../../../docs/assistant/okf-normalization-experiment.md) — experiment findings and architectural conclusion
+- [`scripts/assistant/okf/`](../../../scripts/assistant/okf/) — source producers and `npm run okf:build`
+- [`tests/fixtures/assistant-okf/`](../../../tests/fixtures/assistant-okf/) — representative external-source test inputs
+
+This plan is archived. Next assistant work proceeds via just-in-time `.cursor/plans/` from [`architecture-direction.md`](../../../docs/assistant/architecture-direction.md) — retrieval-unit derivation, production acquisition, and assistant runtime remain future slices.
+
 ---
 
 # Assistant OKF normalization experiment

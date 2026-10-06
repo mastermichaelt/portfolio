@@ -4,7 +4,7 @@ status: shipped
 updated: 2026-10-06
 related:
   - docs/assistant/architecture-direction.md
-  - .cursor/plans/assistant-okf-normalization-experiment.plan.md
+  - .cursor/plans/archive/2026-10-06-assistant-okf-normalization-experiment.plan.md
 ---
 
 # OKF normalization experiment findings
