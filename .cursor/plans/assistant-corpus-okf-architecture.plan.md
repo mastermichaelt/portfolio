@@ -235,7 +235,7 @@ After the implementation slice merges:
 1. Verify `docs-assistant-corpus-okf` is `completed`
 2. Add `# Shipped` closure note
 3. Move this file to `.cursor/plans/archive/2026-10-06-assistant-corpus-okf-architecture.plan.md`
-4. Mark `plan-closure` `completed`
+4. Mark `plan-closure` `completed` and update agent prompt references to the archived path
 
 ---
 
@@ -288,7 +288,7 @@ Prerequisites: docs-assistant-corpus-okf merged and marked completed in frontmat
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: verify slice todos, add # Shipped note, move plan to .cursor/plans/archive/2026-10-06-assistant-corpus-okf-architecture.plan.md, mark plan-closure completed.
+Deliverables: verify slice todos, add # Shipped note, move plan to .cursor/plans/archive/2026-10-06-assistant-corpus-okf-architecture.plan.md, mark plan-closure completed, update agent prompt references to the archived path.
 
 Verification: confirm docs-assistant-corpus-okf PR is merged before archiving.
 ```
