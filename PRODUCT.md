@@ -31,7 +31,7 @@ Static-first Next.js site deployed on Vercel without required secrets. Content i
 - Routes: home, about, projects (with case-study slugs), articles, ecosystem map
 - Ecosystem map: read-only React Flow canvases over static curated data
 - No auth, no CMS, no chatbot in the current milestone
-- Repository abstraction preserves a future Supabase migration path
+- Repository abstraction preserves a future Postgres-backed persistence path (provider-neutral; hosted Postgres likely Neon)
 
 ## Evidence on Hand
 

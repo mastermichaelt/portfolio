@@ -14,7 +14,7 @@ import { projectsIndex } from "@/content/projects-index";
 import { timelineEvents } from "@/content/timeline";
 import type { PortfolioRepository } from "@/repositories/portfolio-repository";
 
-/** In-memory / static content implementation. Replace later with Supabase. */
+/** In-memory / static content implementation. Replace later with a Postgres-backed adapter. */
 export class StaticPortfolioRepository implements PortfolioRepository {
   async getProfile() {
     return profile;
