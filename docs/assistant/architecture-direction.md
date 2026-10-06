@@ -275,9 +275,35 @@ These are **not** scheduled slices. They name areas future experiments may touch
 - Citation / source presentation in responses and UI
 - Landing-page interaction (suggested questions, additive placement)
 - Retrieval and corpus tuning driven by observed misses
-- Possible persistence, hybrid retrieval, reranking, evaluation harnesses, cost/latency work
+- Possible persistence, hybrid retrieval, reranking
 - Possible grounding or refusal policy **after** behaviour is observed
 - **Corpus + external retrieval** — after corpus-only RAG behaviour is understood, evaluate whether live web retrieval improves questions requiring current, comparative, or external context while preserving clear provenance between canonical corpus evidence and transient external evidence
+- **Context-aware retrieval** — after basic corpus retrieval is understood, evaluate whether the visitor's current portfolio context should influence retrieval (e.g. `/about` for career context, `/projects/savepoints` biasing toward Savepoints evidence, an article route making that article particularly relevant; landing page remains global corpus search). Current page or interaction context may become an additional retrieval signal without making the assistant incapable of retrieving relevant evidence elsewhere in the corpus. Not part of initial RAG; no filtering, metadata schemas, routing algorithms, or weighting strategies prescribed here.
+- **Retrieval + answer evaluation** — after real retrieval behaviour exists, evolve from manual inspection toward repeatable evaluation cases built from observed questions. Potential evidence per case: question, expected/relevant evidence, retrieved units, retrieval ranking/signals, generated answer, citations, comparison with existing ChatGPT + web baseline where useful. No evaluation framework, metrics suite, test schema, or vendor selection yet.
+- **Public assistant hardening** — once the assistant is a public portfolio feature, evaluate production concerns based on observed behaviour and usage: streaming response UX, rate limiting / abuse protection, latency, token/model cost, reliability / failure behaviour, provider/model fallback if justified. No Redis, queues, rate-limit providers, fallback architecture, or infrastructure prescribed yet. **Streaming / SSE** — server-to-client answer streaming is a natural future experiment (SSE or framework-provided streaming primitives not committed yet): portfolio UX benefit (visitors read before generation completes) and systems-learning exercise (long-lived HTTP, incremental delivery, disconnects, cancellation, proxies/timeouts, failure behaviour). Delivery of generated output to the browser is separate from retrieval itself.
+
+Directional sequencing only — not a roadmap or fixed phases:
+
+```text
+OKF normalization
+    ↓
+retrieval units
+    ↓
+semantic retrieval
+    ↓
+RAG
+    ↓
+citations / portfolio integration
+    ↓
+observe real behaviour
+    ↓
+later experiments as justified:
+  - context-aware retrieval
+  - repeatable evaluation
+  - corpus + web retrieval
+  - streaming / production hardening
+  - other retrieval improvements
+```
 
 We may adopt pgvector, hybrid retrieval, reranking, or strict grounding **only if** usage and failure analysis justify them. This note does not prescribe those technologies.
 
@@ -294,6 +320,7 @@ We may adopt pgvector, hybrid retrieval, reranking, or strict grounding **only i
 
 | Date       | Change                                                                                                                                                                                       |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-06 | Added future context-aware retrieval, retrieval + answer evaluation, and public-assistant hardening/streaming experiments (directional only)                                                 |
 | 2026-10-06 | Clarified canonical OKF corpus vs future external retrieval; corpus-only first experiments; opening goal and current-implementation posture no longer tied to `content/`-only stack          |
 | 2026-10-06 | Corpus boundary broadened beyond `content/` alone; OKF adopted as canonical normalized representation; five-layer separation documented; supersedes v0.1.0 `content/`-only corpus assumption |
 | 2026-10-06 | Initial direction note; split from monolithic architecture doc; recorded abandoned PR #14 master plan                                                                                        |
