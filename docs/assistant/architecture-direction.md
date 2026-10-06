@@ -42,7 +42,7 @@ Individual `.cursor/plans/*.plan.md` files are temporary execution handoffs. The
 
 ## What we are trying to build
 
-**Architectural direction.** A landing-page assistant that lets visitors ask questions about Michael Truong's published work, experience, projects, and writing — with answers grounded in the same evidence the browsable site already presents, and links back into portfolio routes where possible.
+**Architectural direction.** A landing-page assistant that lets visitors ask questions about Michael Truong's published work, experience, projects, and writing — with answers grounded in deliberately selected, attributable published knowledge from the assistant corpus, while the browsable site remains independently useful without the assistant.
 
 **Architectural direction.** The assistant is **another view** over the portfolio knowledge system. The browsable site remains primary:
 
