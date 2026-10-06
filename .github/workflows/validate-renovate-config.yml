@@ -5,6 +5,12 @@ on:
     paths:
       - renovate.json
       - .github/workflows/validate-renovate-config.yml
+  push:
+    branches:
+      - main
+    paths:
+      - renovate.json
+      - .github/workflows/validate-renovate-config.yml
 
 permissions:
   contents: read
