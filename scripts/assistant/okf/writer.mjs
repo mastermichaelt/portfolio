@@ -5,7 +5,7 @@ import { stringifyFrontmatter } from "./yaml.mjs";
 
 /**
  * @typedef {object} OkfConcept
- * @property {string} id Relative path under assistant-corpus/ without .md
+ * @property {string} id Relative path under the corpus root (e.g. generated/okf/) without .md
  * @property {Record<string, unknown>} frontmatter
  * @property {string} body Markdown body (no frontmatter)
  */

@@ -11,32 +11,49 @@ related:
 
 Experiment slice for Renovate governance knowledge across three representative source classes. Producers live under `scripts/assistant/okf/`; `npm run okf:build` writes an inspectable OKF bundle to `generated/okf/` (gitignored, ephemeral).
 
+This document records **experiment evidence and architectural conclusions**. It is not a specification for production ingestion, retrieval, or assistant runtime behavior.
+
 ## Experiment conclusion
 
-| Finding                           | Result                                                                                                            |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| OKF fits all three source classes | **Yes** — portfolio, repo runbook, and DEV field report each produced conformant concepts                         |
-| OKF extensions required           | **No** — standard `type`, `resource`, `sources`, `generated.by`, and `tags` sufficed                              |
-| Concept granularity               | Followed **source semantics**, not retrieval-sized chunks                                                         |
-| Committed generated OKF           | Useful as **experiment instrumentation** during development; **not** selected as the production persistence model |
-| OKF role going forward            | **Normalized intermediate representation** between source acquisition and downstream retrieval-unit derivation    |
-| Persistence / materialization     | **Deferred** — where normalized knowledge is stored, versioned, and served remains a later architectural decision |
+| Finding                                        | Result                                                                                                                               |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Three representative source classes normalized | **Yes** — portfolio content, repository runbook, and published DEV writing each produced conformant OKF concepts                     |
+| OKF v0.2 sufficient                            | **Yes** — no schema extensions required for these examples                                                                           |
+| OKF extensions required                        | **No** — standard `type`, `resource`, `sources`, `generated.by`, and `tags` sufficed                                                 |
+| Concept granularity                            | Followed **source semantics**, not heading structure or retrieval-sized chunks                                                       |
+| Initial committed generated OKF                | Useful to make the experiment **inspectable during development**                                                                     |
+| Production persistence model                   | **Not** committing generated normalized knowledge — inspection showed Git/source control is wrong for a duplicated production corpus |
+| Canonical knowledge location                   | Remains at the **originating source** (portfolio `content/`, project repositories, published writing)                                |
+| OKF role going forward                         | **Transient normalized intermediate representation** used during indexing — not an independent system of record                      |
+| Retrieval / embeddings / vector index          | **Disposable downstream projections**, rebuildable from canonical sources through normalization                                      |
+| Persistent OKF storage                         | **Not needed now** — reconsider only if a concrete future requirement justifies it                                                   |
+| Second normalization experiment                | **Optional** — pursue `CaseFigure` / ecosystem graph shapes only if they become a concrete blocker                                   |
 
-## Layer boundary (unchanged)
+## Architectural decision (from this experiment)
 
 ```text
 canonical sources
-        ↓
+      ↓
 source-specific acquisition / input
-        ↓
-OKF normalization          ← this experiment
-        ↓
-retrieval-unit derivation  (future)
-        ↓
-embeddings / vector index  (future)
+      ↓
+OKF normalization                    ← this experiment (producers + build)
+      ↓
+transient OKF concepts               ← generated/okf/ (gitignored)
+      ↓
+retrieval-unit derivation            [future]
+      ↓
+embeddings                           [future]
+      ↓
+vector index                         [future]
 ```
 
-Git/source control holds canonical portfolio content, experiment test fixtures, and these findings — not generated OKF concept documents.
+**Future runtime (not implemented; evidence only):**
+
+```text
+question → query embedding → vector search → retrieved text + provenance → LLM → answer + citations
+```
+
+Git/source control holds canonical portfolio content, representative test fixtures, producer code, and these findings — not generated OKF concept documents, retrieval units, embeddings, or vector indexes.
 
 ## Source inputs
 

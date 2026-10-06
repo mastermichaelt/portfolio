@@ -131,6 +131,22 @@ describe("OKF normalization build", () => {
 
   it("targets the gitignored generated output root by default", () => {
     expect(CORPUS_ROOT).toBe("generated/okf");
+    const gitignore = fs.readFileSync(
+      path.join(process.cwd(), ".gitignore"),
+      "utf8",
+    );
+    expect(gitignore).toContain("/generated/");
+  });
+
+  it("writes inspectable output under the default corpus root", () => {
+    const outputRoot = path.join(process.cwd(), CORPUS_ROOT);
+    fs.rmSync(outputRoot, { recursive: true, force: true });
+
+    const result = buildOkfCorpus({ format: false });
+    expect(result.conceptCount).toBe(15);
+    expect(fs.existsSync(path.join(outputRoot, "index.md"))).toBe(true);
+    expect(fs.existsSync(path.join(outputRoot, "manifest.json"))).toBe(true);
+    expect(listConceptFiles(outputRoot).length).toBe(15);
   });
 });
 
