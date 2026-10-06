@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -120,19 +121,33 @@ describe("committed OKF corpus", () => {
   });
 
   it("builds deterministically from pinned inputs", () => {
-    const first = buildOkfCorpus({
-      corpusRoot: CORPUS_ROOT,
-      generatedAt: "2026-10-06T00:00:00.000Z",
-    });
-    const second = buildOkfCorpus({
-      corpusRoot: CORPUS_ROOT,
-      generatedAt: "2026-10-06T00:00:00.000Z",
-    });
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "okf-corpus-"));
+    const fixtureDest = path.join(tempRoot, "fixtures");
+    fs.mkdirSync(fixtureDest, { recursive: true });
+    for (const file of fs.readdirSync(FIXTURES_ROOT)) {
+      fs.copyFileSync(
+        path.join(FIXTURES_ROOT, file),
+        path.join(fixtureDest, file),
+      );
+    }
 
-    expect(first.manifest.outputs.bundle_sha256).toBe(
-      second.manifest.outputs.bundle_sha256,
-    );
-    expect(first.conceptCount).toBe(second.conceptCount);
+    try {
+      const first = buildOkfCorpus({
+        corpusRoot: tempRoot,
+        generatedAt: "2026-10-06T00:00:00.000Z",
+      });
+      const second = buildOkfCorpus({
+        corpusRoot: tempRoot,
+        generatedAt: "2026-10-06T00:00:00.000Z",
+      });
+
+      expect(first.manifest.outputs.bundle_sha256).toBe(
+        second.manifest.outputs.bundle_sha256,
+      );
+      expect(first.conceptCount).toBe(second.conceptCount);
+    } finally {
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
   });
 
   it("index declares okf_version 0.2", () => {
