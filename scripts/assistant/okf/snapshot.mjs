@@ -6,7 +6,12 @@
  * Usage:
  *   npm run okf:snapshot
  *   npm run okf:snapshot -- --renovate-workflow /path/to/renovate-workflow.md
+ *   npm run okf:snapshot -- --renovate-commit <sha>   # upstream renovate-workflow commit for origin_commit
  *   npm run okf:snapshot -- --dev-article /path/to/evidence-driven-dependency-upgrades.md
+ *
+ * Pass --renovate-commit explicitly when refreshing the repo runbook fixture so
+ * assistant-corpus/fixtures/manifest.json records the exact upstream SHA. The
+ * snapshot command does not infer a commit from git automatically.
  */
 
 import crypto from "node:crypto";
@@ -34,12 +39,17 @@ function sha256File(filePath) {
   return crypto.createHash("sha256").update(bytes).digest("hex");
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const options = {};
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--renovate-workflow") {
       options.renovateWorkflow = argv[i + 1];
+      i += 1;
+      continue;
+    }
+    if (arg === "--renovate-commit") {
+      options.renovateCommit = argv[i + 1];
       i += 1;
       continue;
     }

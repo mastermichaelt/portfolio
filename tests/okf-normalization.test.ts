@@ -12,6 +12,7 @@ import {
 import { produceDevConcepts } from "@/scripts/assistant/okf/dev-producer.mjs";
 import { producePortfolioConcepts } from "@/scripts/assistant/okf/portfolio-producer.mjs";
 import { produceRepoConcepts } from "@/scripts/assistant/okf/repo-producer.mjs";
+import { parseArgs } from "@/scripts/assistant/okf/snapshot.mjs";
 import { renderConcept } from "@/scripts/assistant/okf/writer.mjs";
 import { splitFrontmatter } from "@/scripts/assistant/okf/yaml.mjs";
 
@@ -137,6 +138,22 @@ describe("committed OKF corpus", () => {
   it("index declares okf_version 0.2", () => {
     const index = fs.readFileSync(path.join(CORPUS_ROOT, "index.md"), "utf8");
     expect(index).toContain('okf_version: "0.2"');
+  });
+});
+
+describe("OKF fixture snapshot", () => {
+  it("parses --renovate-commit for fixture provenance", () => {
+    expect(
+      parseArgs([
+        "--renovate-workflow",
+        "/tmp/renovate-workflow.md",
+        "--renovate-commit",
+        "d8392e621a0fcbfbbdec56b13f920a89703e695b",
+      ]),
+    ).toEqual({
+      renovateWorkflow: "/tmp/renovate-workflow.md",
+      renovateCommit: "d8392e621a0fcbfbbdec56b13f920a89703e695b",
+    });
   });
 });
 
