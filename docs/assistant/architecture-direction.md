@@ -42,7 +42,7 @@ Individual `.cursor/plans/*.plan.md` files are temporary execution handoffs. The
 
 ## What we are trying to build
 
-**Architectural direction.** A landing-page assistant that lets visitors ask questions about Michael Truong's published work, experience, projects, and writing — with answers grounded in deliberately selected, attributable published knowledge from the assistant corpus, while the browsable site remains independently useful without the assistant.
+**Architectural direction.** A landing-page assistant that lets visitors ask questions about Michael Truong's published work, experience, projects, and writing — using deliberately selected, attributable published knowledge, while the browsable portfolio remains independently useful without the assistant.
 
 **Architectural direction.** The assistant is **another view** over the portfolio knowledge system. The browsable site remains primary:
 
@@ -76,7 +76,22 @@ The assistant, when built, should be a **read projection** on top of this stack 
 
 ## Corpus boundary
 
-**Architectural direction (decision).** The assistant corpus is bounded to deliberately selected, attributable source material representing Michael's published work and technical reasoning. Portfolio `content/` is one high-quality curated source, not necessarily the entire knowledge corpus.
+**Architectural direction (decision).** The bounded OKF corpus defines canonical indexed knowledge about Michael's published work and technical reasoning. It does **not** permanently restrict every evidence source a future assistant may consult. Portfolio `content/` is one high-quality curated source, not necessarily the entire knowledge corpus.
+
+External web results retrieved to answer a question are **not** automatically part of the canonical OKF corpus merely because they were retrieved.
+
+```text
+canonical knowledge about Michael
+        ↓
+bounded OKF corpus
+        ↓
+corpus retrieval
+        ┐
+        ├──→ evidence available to assistant
+        │
+future live web retrieval
+        ┘
+```
 
 **Source classes:**
 
@@ -212,6 +227,8 @@ Extensions emerge from concrete ingestion / retrieval needs — not from specula
 
 **Architectural direction (decision).** Start with straightforward semantic retrieval over derived units rather than prematurely building the “final” architecture.
 
+**Architectural direction (decision).** The first semantic RAG experiments remain **corpus-only** so retrieval behaviour can be observed and evaluated cleanly. Live web retrieval could mask corpus, chunking, embedding, or retrieval failures by independently finding the answer. This is an experimental sequencing decision, not a permanent product restriction.
+
 **Architectural direction (hypothesis).** An in-memory vector store is a reasonable **first experimental direction** for a small bounded corpus. Persistent storage (pgvector, hosted vector DB, etc.) is a future acceptance milestone only if behaviour and deployment justify it.
 
 **Architectural direction (hypothesis).** LangChain JS is a reasonable way to **learn** RAG mechanics (see prior art). It is not necessarily a permanent dependency.
@@ -220,9 +237,9 @@ Extensions emerge from concrete ingestion / retrieval needs — not from specula
 
 ### Grounding posture
 
-**Architectural direction (decision).** **Bounded retrieval corpus** is an architectural commitment. **Strict epistemic enforcement is not.**
+**Architectural direction (decision).** **Canonical knowledge boundary** — knowledge indexed as Michael's published work is bounded to deliberately selected, attributable material normalized through OKF. Future external retrieval may supplement that corpus without automatically becoming canonical corpus knowledge. **Strict epistemic enforcement is not.**
 
-The first experiments should use a lightweight grounding prompt (e.g. answer from supplied context and cite relevant sources). Do **not** introduce strong refusal gates, confidence thresholds, unsupported-claim rejection, or elaborate biographical inference filters before observing actual failure modes.
+The first corpus-only experiments should use a lightweight grounding prompt (e.g. answer from supplied corpus context and cite relevant sources). Do **not** introduce strong refusal gates, confidence thresholds, unsupported-claim rejection, or elaborate biographical inference filters before observing actual failure modes.
 
 **Future acceptance milestone.** Grounding, evaluation, and refusal policies may be added after retrieval and generation behaviour are understood.
 
@@ -240,7 +257,7 @@ Produce an **inspectable OKF corpus** before semantic retrieval is added.
 
 1. **Additive UX** — assistant does not replace or block existing navigation and page content.
 2. **Single presentation truth** — no parallel hand-maintained `profile.json` or biography database forked from `content/` for the browsable site; corpus normalization flows through OKF, not a competing proprietary document model.
-3. **Published corpus only** — bounded to deliberate, attributable published material across the source classes above.
+3. **Canonical knowledge boundary** — knowledge indexed as Michael's published work is bounded to deliberately selected, attributable material normalized through OKF; future external retrieval may supplement that corpus without automatically becoming canonical corpus knowledge.
 4. **Provenance-backed citations** — links trace to retrieved source metadata.
 5. **Observe before gating** — no aggressive filtering until behaviour is understood.
 6. **Repository independence** — browsable site stays coherent if the assistant is removed.
@@ -260,6 +277,7 @@ These are **not** scheduled slices. They name areas future experiments may touch
 - Retrieval and corpus tuning driven by observed misses
 - Possible persistence, hybrid retrieval, reranking, evaluation harnesses, cost/latency work
 - Possible grounding or refusal policy **after** behaviour is observed
+- **Corpus + external retrieval** — after corpus-only RAG behaviour is understood, evaluate whether live web retrieval improves questions requiring current, comparative, or external context while preserving clear provenance between canonical corpus evidence and transient external evidence
 
 We may adopt pgvector, hybrid retrieval, reranking, or strict grounding **only if** usage and failure analysis justify them. This note does not prescribe those technologies.
 
@@ -276,5 +294,6 @@ We may adopt pgvector, hybrid retrieval, reranking, or strict grounding **only i
 
 | Date       | Change                                                                                                                                                                                       |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-06 | Clarified canonical OKF corpus vs future external retrieval; corpus-only first experiments; opening goal no longer tied to browsable-site-only evidence                                      |
 | 2026-10-06 | Corpus boundary broadened beyond `content/` alone; OKF adopted as canonical normalized representation; five-layer separation documented; supersedes v0.1.0 `content/`-only corpus assumption |
 | 2026-10-06 | Initial direction note; split from monolithic architecture doc; recorded abandoned PR #14 master plan                                                                                        |
