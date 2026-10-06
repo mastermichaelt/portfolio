@@ -10,8 +10,28 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after docs-assistant-corpus-okf merges: add # Shipped note, move plan to .cursor/plans/archive/"
-    status: pending
+    status: completed
 isProject: false
+---
+
+# Shipped
+
+**Archived 2026-10-06.**
+
+| Slice                     | Delivered                                                                                                                                                                                             |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| plan-review               | [#16](https://github.com/mastermichaelt/portfolio/pull/16) — plan artifact for corpus boundary + OKF adoption                                                                                         |
+| docs-assistant-corpus-okf | [#17](https://github.com/mastermichaelt/portfolio/pull/17) — updated `architecture-direction.md`, `prior-art.md`, and `overview.md` for distributed corpus boundary and OKF as normalization decision |
+| plan-closure              | This PR — verify slice todos, `# Shipped` note, archive plan                                                                                                                                          |
+
+**Durable docs (remain active):**
+
+- [`docs/assistant/architecture-direction.md`](../../../docs/assistant/architecture-direction.md)
+- [`docs/assistant/prior-art.md`](../../../docs/assistant/prior-art.md)
+- [`docs/architecture/overview.md`](../../../docs/architecture/overview.md) (milestone 5 alignment)
+
+This plan is archived. Next assistant work proceeds via just-in-time `.cursor/plans/` from the architecture direction — starting with an OKF normalization experiment, not a pre-authored implementation plan.
+
 ---
 
 # Assistant corpus OKF architecture
@@ -24,7 +44,7 @@ isProject: false
 | docs-assistant-corpus-okf | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure              | Open PR only          | Do not merge. Stop after opening the PR.               |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ## Repository topology (default)
 
@@ -41,7 +61,7 @@ Correct the portfolio-assistant architecture before the first corpus implementat
 
 Learning focus: RAG, retrieval, corpus construction, ingestion, provenance, and assistant behaviour — not designing a competing knowledge interchange specification.
 
-**Supersedes:** the `content/`-only corpus assumption in [`docs/assistant/architecture-direction.md`](../../docs/assistant/architecture-direction.md) (v0.1.0, 2026-10-06).
+**Supersedes:** the `content/`-only corpus assumption in [`docs/assistant/architecture-direction.md`](../../../docs/assistant/architecture-direction.md) (v0.1.0, 2026-10-06).
 
 **Does not revive:** [PR #14](https://github.com/mastermichaelt/portfolio/pull/14) master plan.
 
@@ -193,11 +213,11 @@ Produce an **inspectable OKF corpus** before semantic retrieval is added.
 
 **Scope (only):**
 
-| File                                                                                         | Changes                                                                                                                                                    |
-| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`docs/assistant/architecture-direction.md`](../../docs/assistant/architecture-direction.md) | Corpus boundary, OKF adoption decision, extensions policy, layer diagrams, provenance, boundaries reframing, first-milestone direction, learning/changelog |
-| [`docs/assistant/prior-art.md`](../../docs/assistant/prior-art.md)                           | nyaomaru note (distributed corpus); OKF background section (architecture adopts OKF at normalization boundary)                                             |
-| [`docs/architecture/overview.md`](../../docs/architecture/overview.md)                       | Optional one-line milestone 5 alignment                                                                                                                    |
+| File                                                                                            | Changes                                                                                                                                                    |
+| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`docs/assistant/architecture-direction.md`](../../../docs/assistant/architecture-direction.md) | Corpus boundary, OKF adoption decision, extensions policy, layer diagrams, provenance, boundaries reframing, first-milestone direction, learning/changelog |
+| [`docs/assistant/prior-art.md`](../../../docs/assistant/prior-art.md)                           | nyaomaru note (distributed corpus); OKF background section (architecture adopts OKF at normalization boundary)                                             |
+| [`docs/architecture/overview.md`](../../../docs/architecture/overview.md)                       | Optional one-line milestone 5 alignment                                                                                                                    |
 
 **Do not:**
 
@@ -244,7 +264,7 @@ After the implementation slice merges:
 ### plan-review
 
 ```text
-@.cursor/plans/assistant-corpus-okf-architecture.plan.md
+@.cursor/plans/archive/2026-10-06-assistant-corpus-okf-architecture.plan.md
 
 Execute only plan-review. Do not start docs-assistant-corpus-okf or later slices.
 
@@ -260,7 +280,7 @@ Verification: plan satisfies repo planning standards; no implementation changes 
 ### docs-assistant-corpus-okf
 
 ```text
-@.cursor/plans/assistant-corpus-okf-architecture.plan.md
+@.cursor/plans/archive/2026-10-06-assistant-corpus-okf-architecture.plan.md
 
 Implement slice docs-assistant-corpus-okf only. Prerequisite: plan-review merged. Do not start plan-closure. Do not archive the plan.
 
@@ -278,7 +298,7 @@ Verification: read architecture-direction.md end-to-end; grep assistant docs for
 ### plan-closure
 
 ```text
-@.cursor/plans/assistant-corpus-okf-architecture.plan.md
+@.cursor/plans/archive/2026-10-06-assistant-corpus-okf-architecture.plan.md
 
 Execute only plan-closure.
 
