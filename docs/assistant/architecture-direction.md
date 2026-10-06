@@ -50,7 +50,7 @@ Individual `.cursor/plans/*.plan.md` files are temporary execution handoffs. The
 - Navigation, case studies, articles, and the ecosystem map are not subordinated to chat.
 - The assistant UX (when built) is **additive** — prominent on the landing page, not a replacement for structured browsing.
 
-**Architectural direction.** Evidence comes from deliberately published material in `content/` — consistent with [PRODUCT.md](../../PRODUCT.md). The assistant must not invent employers, metrics, or shipped features absent from that corpus.
+**Architectural direction.** Evidence for retrieval comes from deliberately published material in `content/` — consistent with [PRODUCT.md](../../PRODUCT.md). The initial assistant should use that retrieved material as its context; stricter unsupported-claim or refusal behaviour remains an empirical follow-up rather than an architectural gate.
 
 **Architectural direction.** This is partly a **learning project**. We want to observe real retrieval and generation behaviour before committing to refusal machinery, hybrid retrieval, or persistent vector infrastructure.
 
