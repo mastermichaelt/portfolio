@@ -1,13 +1,13 @@
 ---
 name: Assistant OKF normalization experiment
-overview: Plan-only PR first, then one merge-safe implementation slice that normalizes three deliberately selected sources (portfolio case study, repo runbook, DEV article) into a committed, inspectable OKF v0.2 bundle — learning whether OKF fits before any retrieval work.
+overview: Plan-only PR first, then one merge-safe implementation slice that normalizes three deliberately selected sources (portfolio case study, repo runbook, DEV article) into an ephemeral, inspectable OKF v0.2 bundle — learning whether OKF fits before any retrieval work. Generated OKF is gitignored; durable findings live in docs/assistant/okf-normalization-experiment.md.
 todos:
   - id: plan-review
     content: "Plan-only PR — commit plan artifact; open PR for review; do not implement OKF experiment"
     status: completed
   - id: okf-normalization-experiment
-    content: "PR: Build three-source OKF normalization experiment (producers, assistant-corpus/, manifest, INSPECTION.md, tests)"
-    status: pending
+    content: "PR: Build three-source OKF normalization experiment (producers, ephemeral generated/okf/, test fixtures, findings doc, tests)"
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after experiment merges: add # Shipped note, move plan to .cursor/plans/archive/"
     status: pending
@@ -40,7 +40,7 @@ Read the current [OKF specification (v0.2 draft)](https://github.com/GoogleCloud
 
 | Capability                | Spec reality                                                                                                            | Implication for us                                                                                             |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| **Bundle shape**          | Directory tree of UTF-8 `.md` files with YAML frontmatter; distributable as git repo                                    | Committed corpus under e.g. `assistant-corpus/` is idiomatic                                                   |
+| **Bundle shape**          | Directory tree of UTF-8 `.md` files with YAML frontmatter; distributable as git repo                                    | Shipped as ephemeral local bundle under `generated/okf/` (gitignored), not committed as production corpus      |
 | **Conformance**           | Only hard requirements: parseable frontmatter + non-empty `type` on every concept; reserved `index.md` / `log.md` rules | Validation is lightweight; focus on mapping quality, not schema registry                                       |
 | **`type`**                | Free-form string, not centrally registered                                                                              | Use descriptive types (`Case Study Block`, `Published Article`, `Runbook`) — no portfolio type registry needed |
 | **Provenance**            | `sources[]` with required `resource` per entry; optional `id`, `title`, credibility signals                             | Maps cleanly to portfolio URLs, GitHub paths, DEV URLs, inventory paths                                        |
@@ -69,10 +69,10 @@ flowchart TB
   subgraph pinned [Pinned normalization inputs]
     SC --> SCin["in-repo content/"]
     AM --> SCin
-    RW --> FIXrw["fixtures/renovate-workflow.md"]
-    DEV --> FIXdev["fixtures/evidence-driven-....md"]
+    RW --> FIXrw["tests/fixtures/assistant-okf/renovate-workflow.md"]
+    DEV --> FIXdev["tests/fixtures/assistant-okf/evidence-driven-....md"]
   end
-  SCin --> OKF[OKF bundle]
+  SCin --> OKF["generated/okf/ (ephemeral)"]
   FIXrw --> OKF
   FIXdev --> OKF
 ```
@@ -100,7 +100,7 @@ flowchart TB
 #### 2. Project repository — Renovate runbook
 
 - **Canonical origin:** `../renovate-workflow/docs/renovate-workflow.md` (sibling checkout) or `https://raw.githubusercontent.com/multipliers-dev/renovate-workflow/main/docs/renovate-workflow.md` (public mirror for acquisition only)
-- **Normalization input:** committed fixture under `assistant-corpus/fixtures/` (see acquisition pipeline below)
+- **Normalization input:** representative test fixture under `tests/fixtures/assistant-okf/renovate-workflow.md` (not a persisted assistant corpus)
 
 **Why selected:**
 
@@ -113,7 +113,7 @@ flowchart TB
 
 - **Canonical origin:** `../editorial-workflow/docs/dev.to/published/evidence-driven-dependency-upgrades.md` (sibling hub; portfolio [`articles.ts`](content/articles.ts) names this hub as master)
 - **Live URL (provenance only):** `https://dev.to/michaeltruong/upgrades-dont-have-to-be-a-blind-trust-exercise-13mj` (`devto_article_id: 4056883`)
-- **Normalization input:** committed fixture under `assistant-corpus/fixtures/` (see acquisition pipeline below)
+- **Normalization input:** representative test fixture under `tests/fixtures/assistant-okf/evidence-driven-dependency-upgrades.md` (not a persisted assistant corpus)
 
 **Why selected:**
 
@@ -121,33 +121,33 @@ flowchart TB
 - Pairs with `relatedProjectSlug: "renovate-governance"` and the repo runbook
 - YAML frontmatter (Notion, DEV ids, sync timestamps) exercises metadata beyond portfolio `Article` type
 
-### Source acquisition (experiment-only; no permanent ingestion)
+### Source inputs (experiment-only; no production ingestion)
 
-Normalization must be **deterministic**: the same commit always normalizes the same input bytes. Acquisition and normalization are separate steps.
+Normalization must be **deterministic**: the same commit always normalizes the same input bytes. Canonical sources remain authoritative; OKF is a transient normalized intermediate representation.
 
 ```text
-real external source
+canonical sources (portfolio content/, representative test fixtures)
         ↓
-explicit acquisition / snapshot step   (manual; not part of okf:build)
+source-specific producers
         ↓
-pinned input fixture                   (committed)
+OKF normalization                          (okf:build — local inputs only)
         ↓
-normalization                          (okf:build — fixtures only)
+transient OKF concepts                     (generated/okf/ — gitignored)
         ↓
-OKF bundle
+retrieval-unit derivation                  [future]
+        ↓
+embeddings / vector index                  [future]
 ```
 
 **Do not** implement `okf:build` as “sibling checkout if present, else fetch from network.” Two developers on the same commit must not produce different normalized output because their local checkouts differ.
 
-| Source      | Acquisition (refresh fixtures)                                                    | Normalization input (okf:build)                                    | What we are NOT building                             |
-| ----------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------- |
-| Portfolio   | N/A — already pinned by this git commit                                           | In-repo `content/` via domain types / `StaticPortfolioRepository`  | CMS, live site scrape                                |
-| Repo doc    | Copy from sibling checkout **or** pin raw GitHub URL at known commit SHA          | `assistant-corpus/fixtures/renovate-workflow.md`                   | Runtime network fetch during build; whole-repo crawl |
-| DEV article | Copy from sibling editorial hub **or** DEV API `4056883` for one-off verification | `assistant-corpus/fixtures/evidence-driven-dependency-upgrades.md` | Runtime network fetch during build; DEV feed crawler |
+| Source      | Canonical origin                                        | Normalization input (okf:build)                                       | What we are NOT building                             |
+| ----------- | ------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------- |
+| Portfolio   | In-repo `content/` (pinned by this git commit)          | `content/supporting-cases.ts`, `content/articles.ts`                  | CMS, live site scrape                                |
+| Repo doc    | Sibling checkout or public mirror (provenance only)     | `tests/fixtures/assistant-okf/renovate-workflow.md`                   | Runtime network fetch during build; whole-repo crawl |
+| DEV article | Sibling editorial hub or live DEV URL (provenance only) | `tests/fixtures/assistant-okf/evidence-driven-dependency-upgrades.md` | Runtime network fetch during build; DEV feed crawler |
 
-**Fixture refresh** is a separate, documented command (e.g. `npm run okf:snapshot`) run only when deliberately updating inputs. It writes fixtures + updates `assistant-corpus/fixtures/manifest.json` with origin path/URL, origin commit or sync timestamp, and content SHA-256. That manifest is the acquisition record; `assistant-corpus/manifest.json` records what normalization consumed.
-
-Sibling checkouts and live URLs exist for **source acquisition and verification**, not for deterministic normalization.
+Representative external fixtures are **test/experiment inputs**, updated manually when tests need a new sample. No `okf:snapshot` or fixture-refresh command shipped — production multi-repo/DEV acquisition remains undecided.
 
 ---
 
@@ -156,41 +156,40 @@ Sibling checkouts and live URLs exist for **source acquisition and verification*
 ### In scope
 
 ```text
-pinned inputs (content/ + committed fixtures)
+canonical inputs (content/ + test fixtures)
         ↓
 source-specific producers (portfolio | repo | dev)
         ↓
 OKF v0.2 concept documents + bundle index
         ↓
-inspectable output (committed corpus + manifest + inspection report)
+ephemeral inspectable output (generated/okf/) + durable findings doc
 ```
 
-**Deliverables (implementation slice):**
+**Deliverables (implementation slice — as shipped):**
 
-| Path                             | Purpose                                                                                                                            |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `scripts/assistant/okf/`         | Producer scripts + shared OKF writer helpers                                                                                       |
-| `assistant-corpus/`              | Generated OKF bundle (committed)                                                                                                   |
-| `assistant-corpus/index.md`      | Bundle root with `okf_version: "0.2"`                                                                                              |
-| `assistant-corpus/manifest.json` | Input provenance + build metadata                                                                                                  |
-| `assistant-corpus/INSPECTION.md` | Human-readable mapping report (preserved / lost / awkward / extension pressure)                                                    |
-| `package.json` scripts           | `npm run okf:build` (normalization from pinned inputs only); `npm run okf:snapshot` (optional fixture refresh; documented, manual) |
-| Tests                            | Conformance (every concept has `type`), manifest completeness, stable concept ids, build determinism from fixtures                 |
+| Path                                             | Purpose                                                                                                                      |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `scripts/assistant/okf/`                         | Producer scripts + shared OKF writer helpers                                                                                 |
+| `generated/okf/`                                 | Ephemeral OKF bundle from `npm run okf:build` (gitignored; concepts, `index.md`, `manifest.json`)                            |
+| `docs/assistant/okf-normalization-experiment.md` | Durable experiment findings (mapping report, granularity rationale, architectural conclusion)                                |
+| `tests/fixtures/assistant-okf/`                  | Representative external-source test inputs (repo runbook, DEV article) — not a persisted assistant corpus                    |
+| `package.json` scripts                           | `npm run okf:build` (normalization from local inputs only; no network)                                                       |
+| Tests                                            | Producer boundaries, OKF conformance, deterministic ephemeral build, fixture input hashing — not committed corpus assertions |
 
 **Producer boundaries:**
 
-- **Portfolio producer** — reads [`StaticPortfolioRepository`](repositories/static-portfolio-repository.ts) or typed `content/` imports; maps portfolio structure into OKF concepts where source semantics justify it. **Concept granularity is an experiment output**, not a plan assumption — e.g. one case-level concept vs per-block concepts is a decision to document in `INSPECTION.md` with rationale and alternatives considered.
-- **Repo producer** — reads the **pinned fixture** markdown; maps meaningful document structure into OKF concepts where source semantics justify it. **Do not assume every `##` heading becomes one concept** — headings may or may not align with knowledge boundaries; record whether they were useful boundaries in `INSPECTION.md`.
-- **DEV producer** — reads the **pinned fixture**; separates YAML frontmatter metadata from body; documents strip/preserve choices for HTML comments in `INSPECTION.md`; sets `resource` to canonical DEV URL
+- **Portfolio producer** — reads typed `content/` imports; maps portfolio structure into OKF concepts where source semantics justify it. **Concept granularity is an experiment output**, not a plan assumption — documented in `docs/assistant/okf-normalization-experiment.md` with rationale and alternatives considered.
+- **Repo producer** — reads the **test fixture** markdown; maps meaningful document structure into OKF concepts where source semantics justify it. **Do not assume every `##` heading becomes one concept** — headings may or may not align with knowledge boundaries; record whether they were useful boundaries in the findings doc.
+- **DEV producer** — reads the **test fixture**; separates YAML frontmatter metadata from body; documents strip/preserve choices for HTML comments in the findings doc; sets `resource` to canonical DEV URL
 
 **OKF concepts ≠ retrieval units.** Canonical OKF knowledge and future retrieval-unit derivation are separate layers per [architecture-direction.md](docs/assistant/architecture-direction.md). This experiment learns concept boundaries; it does not pre-commit chunk sizes or heading-based splits because they look convenient for retrieval.
 
-**Inspectable questions the bundle must answer:**
+**Inspectable questions the experiment must answer:**
 
-1. What source material entered (fixture manifest + normalization manifest)
-2. How each input maps to OKF concepts (INSPECTION.md + directory layout)
+1. What source material entered (test fixture hashes + ephemeral `generated/okf/manifest.json` after local build)
+2. How each input maps to OKF concepts (findings doc + local `generated/okf/` layout)
 3. Provenance / source identity (`sources`, `resource`, `generated`)
-4. What was preserved vs lost vs awkward (INSPECTION.md table per source)
+4. What was preserved vs lost vs awkward (findings doc table per source)
 5. Whether any OKF extension was actually necessary (default: none; document pressure)
 6. **What concept granularity was chosen and why** — per source class, document the mapping decision, alternatives considered (e.g. whole document vs sections vs blocks), and whether boundaries felt natural or awkward. Note implications for future retrieval-unit derivation without implementing it.
 
@@ -211,7 +210,7 @@ For each apparent mismatch:
 1. Verify base OKF (`sources`, `resource`, `tags`, `generated`, links, optional frontmatter) does not already cover it
 2. Prefer standard semantics
 3. Only add smallest `x_portfolio_*` key if a representative source demonstrates a real gap
-4. Document gap + rationale in `INSPECTION.md` even when no extension is added
+4. Document gap + rationale in the findings doc even when no extension is added
 
 **Anticipated pressure points** (likely resolvable without extensions):
 
@@ -221,7 +220,7 @@ For each apparent mismatch:
 | Inventory fact ids (`CaseFigure.source`) | `sources[].resource` pointing at sibling inventory path + footnote `id`                                             |
 | UI-only fields (`navLabel`, `ordinal`)   | Omit from OKF or nest under optional `x_portfolio_presentation` only if inspection proves loss blocks understanding |
 | `architecture` block canvas data         | Link to ecosystem entities; do not embed React Flow positions                                                       |
-| Editorial HTML comments in DEV body      | Strip from body; note in INSPECTION.md                                                                              |
+| Editorial HTML comments in DEV body      | Strip from body; note in findings doc                                                                               |
 | Article catalog vs full body             | Two linked concepts sharing `resource` / cross-links                                                                |
 
 ---
@@ -249,12 +248,14 @@ For each apparent mismatch:
 
 ## Slice — okf-normalization-experiment
 
+**Status:** completed ([PR #20](https://github.com/mastermichaelt/portfolio/pull/20))
+
 **Recommended authority:** Open PR only
 
 **Rationale:**
 
 - Single bounded experiment; one PR is sufficient
-- Produces inspectable artifacts for manual review before any retrieval work
+- Produces inspectable ephemeral output and durable findings for manual review before any retrieval work
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
@@ -262,47 +263,48 @@ For each apparent mismatch:
 
 **Goal:** Implement the smallest useful OKF normalization experiment for the three representative sources.
 
-**Implementation sketch** (directory layout is illustrative — actual concept tree follows granularity decisions documented in `INSPECTION.md`):
+**Shipped layout:**
 
 ```
-assistant-corpus/
+scripts/assistant/okf/               # producers + build
+tests/fixtures/assistant-okf/        # representative repo + DEV test inputs
+docs/assistant/okf-normalization-experiment.md   # durable findings
+generated/okf/                       # ephemeral OKF bundle (gitignored; not committed)
   index.md
-  manifest.json                      # normalization inputs + output hashes
-  INSPECTION.md                      # mapping report incl. granularity rationale
-  fixtures/
-    manifest.json                    # acquisition record (origin, SHA, timestamp)
-    renovate-workflow.md             # pinned repo doc
-    evidence-driven-dependency-upgrades.md   # pinned DEV article
+  manifest.json
   portfolio/                         # OKF concepts from content/
   repo/                              # OKF concepts from repo fixture
   writing/                           # OKF concepts from DEV fixture
 ```
 
-**Acceptance criteria (decision gate after merge):**
+**Architectural outcome:** Generated OKF is a transient intermediate representation, not an independent system of record. Canonical knowledge remains at originating sources. Retrieval units, embeddings, and vector indexes are future, rebuildable derivatives. No persistent OKF storage was introduced.
 
-| Criterion                           | Pass condition                                                                                                                                                                               |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| OKF fits source types               | Each of 3 classes has ≥1 conformant concept; INSPECTION.md records per-class verdict                                                                                                         |
-| Extensions required?                | Documented yes/no with evidence; default expectation is **no** extensions                                                                                                                    |
-| Producer boundaries                 | Three separate producer modules; portfolio does not read repo/DEV files directly                                                                                                             |
-| Inspectability                      | `manifest.json` + `INSPECTION.md` + readable markdown concepts; `npm run okf:build` reads only in-repo `content/` and committed fixtures — no network I/O                                    |
-| Determinism                         | Same commit → same fixture bytes → same OKF output; fixture manifest records acquisition provenance separately                                                                               |
-| Architecture direction still valid? | INSPECTION.md ends with explicit recommendation: proceed / adjust direction / need second experiment (e.g. figures or ecosystem)                                                             |
-| Concept granularity learned         | INSPECTION.md documents per-source mapping decisions, alternatives, and whether boundaries (blocks, headings, whole doc) felt natural — without conflating OKF concepts with retrieval units |
-| Merge-safe                          | `npm run lint`, `typecheck`, `test`, `format:check` pass; no assistant runtime wired into Next.js app                                                                                        |
-| Layer separation                    | No embeddings, vectors, APIs, UI; portfolio presentation unchanged                                                                                                                           |
+**Acceptance criteria (met):**
+
+| Criterion                           | Pass condition                                                                                                                                              |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OKF fits source types               | Each of 3 classes has ≥1 conformant concept; findings doc records per-class verdict (15 concepts total)                                                     |
+| Extensions required?                | Documented **no** with evidence                                                                                                                             |
+| Producer boundaries                 | Three separate producer modules; portfolio reads `content/` only                                                                                            |
+| Inspectability                      | `npm run okf:build` → `generated/okf/`; findings doc + local concept spot-checks; build reads only in-repo `content/` and test fixtures — no network I/O    |
+| Determinism                         | Same commit → same input bytes → same OKF output; tests verify deterministic ephemeral generation                                                           |
+| Architecture direction still valid? | Findings doc recommends proceed with OKF as normalization layer; optional second experiment for figures/ecosystem only if concrete blocker                  |
+| Concept granularity learned         | Findings doc documents per-source mapping decisions, alternatives, and natural vs awkward boundaries — without conflating OKF concepts with retrieval units |
+| Ephemeral generated output          | `generated/okf/` gitignored; no committed generated OKF, retrieval units, embeddings, or vector indexes                                                     |
+| Merge-safe                          | `npm run lint`, `typecheck`, `test`, `format:check` pass; no assistant runtime wired into Next.js app                                                       |
+| Layer separation                    | No embeddings, vectors, APIs, UI; portfolio presentation unchanged                                                                                          |
 
 **Verification:**
 
 ```bash
 npm run okf:build
-npm run test          # includes OKF conformance tests
+npm run test          # includes OKF normalization tests
 npm run typecheck
 npm run lint
 npm run format:check
 ```
 
-Manual: read `assistant-corpus/INSPECTION.md` and spot-check 2 concepts per source class for provenance and link integrity.
+Manual: read `docs/assistant/okf-normalization-experiment.md` and spot-check concepts under `generated/okf/` after a local build.
 
 **Do not:**
 
@@ -310,6 +312,7 @@ Manual: read `assistant-corpus/INSPECTION.md` and spot-check 2 concepts per sour
 - Modify `app/` routes for assistant behavior
 - Invent speculative OKF extensions without demonstrated gap
 - Build production ingestion for repos or DEV
+- Commit generated OKF as a duplicated production corpus
 
 Mark `okf-normalization-experiment` `completed` in plan frontmatter in same PR.
 
@@ -361,11 +364,11 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: scripts/assistant/okf producers, committed assistant-corpus/fixtures/ (pinned inputs), committed OKF bundle with manifest.json and INSPECTION.md (incl. concept-granularity rationale), npm run okf:build (fixtures-only; no network), optional npm run okf:snapshot (documented fixture refresh), conformance tests. Mark okf-normalization-experiment completed in plan frontmatter in this PR.
+Deliverables: scripts/assistant/okf producers, tests/fixtures/assistant-okf/ (representative external test inputs), ephemeral generated/okf/ output from npm run okf:build (gitignored), docs/assistant/okf-normalization-experiment.md (durable findings incl. concept-granularity rationale), normalization behavior tests. Mark okf-normalization-experiment completed in plan frontmatter in this PR.
 
-Do not: runtime network fetch inside okf:build; heading/block splits chosen for retrieval convenience; embeddings, vector stores, semantic search, LangChain, RAG, LLM calls, assistant API routes, chat UI, SSE, web retrieval, production ingestion pipelines, or changes to browsable portfolio presentation.
+Do not: runtime network fetch inside okf:build; committed generated OKF corpus; okf:snapshot or production ingestion; heading/block splits chosen for retrieval convenience; embeddings, vector stores, semantic search, LangChain, RAG, LLM calls, assistant API routes, chat UI, SSE, web retrieval, or changes to browsable portfolio presentation.
 
-Verification: npm run okf:build; npm run test; npm run typecheck; npm run lint; npm run format:check; manual read of INSPECTION.md.
+Verification: npm run okf:build; npm run test; npm run typecheck; npm run lint; npm run format:check; manual read of docs/assistant/okf-normalization-experiment.md and spot-check generated/okf/ locally.
 ```
 
 ### plan-closure
