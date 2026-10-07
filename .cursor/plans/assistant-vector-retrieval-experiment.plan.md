@@ -9,7 +9,7 @@ todos:
     content: "PR 1: Reconcile architecture docs for Postgres+pgvector retrieval experiment (supersede in-memory-first; update current-state sections)"
     status: pending
   - id: corpus-expansion
-    content: "PR 2: Expand OKF producers for About + Growth case + Codenames (bounded, merge-safe)"
+    content: "PR 2: Expand OKF producers for About + experiment-measurement + codenames-ai (bounded, merge-safe)"
     status: pending
   - id: retrieval-units
     content: "PR 3: Retrieval-unit derivation from OKF concepts (stable IDs, content hashes, CLI inspect)"
@@ -121,15 +121,15 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; branch 
 
 ### Still to decide during implementation (flagged, not silently chosen)
 
-| Decision                                            | Recommendation                                                                                             | Resolve in slice                       |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| Local Postgres vs Neon-only dev                     | Commit a small `docker-compose.yml` for local pgvector + optional Neon for shared env                      | `db-foundation`                        |
-| `pg` vs `postgres.js` driver                        | `pg` (mature, straightforward migrations)                                                                  | `db-foundation`                        |
-| Embedding representation                            | **`text-embedding-3-small` @ 1536 dimensions** — fixed in schema; model change = migration + full re-embed | `db-foundation` + `embeddings-adapter` |
-| Distance metric                                     | Cosine via pgvector `<=>` operator                                                                         | `retrieve-cli` + docs                  |
-| CI without `DATABASE_URL`                           | Skip pgvector integration tests when unset; unit tests always run                                          | `db-foundation`                        |
-| 1:1 OKF→unit vs sub-splitting                       | **Start 1:1** for all concepts; document split rules for dense concepts only if eval shows misses          | `retrieval-units`                      |
-| Expanded OKF granularity for About/Growth/Codenames | Mirror existing producer style (semantic units, not token chunks)                                          | `corpus-expansion`                     |
+| Decision                                                               | Recommendation                                                                                                                        | Resolve in slice                       |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| Local Postgres vs Neon-only dev                                        | Commit a small `docker-compose.yml` for local pgvector + optional Neon for shared env                                                 | `db-foundation`                        |
+| `pg` vs `postgres.js` driver                                           | `pg` (mature, straightforward migrations)                                                                                             | `db-foundation`                        |
+| Embedding representation                                               | **`text-embedding-3-small` @ 1536 dimensions** — fixed in schema; model change = migration + full re-embed                            | `db-foundation` + `embeddings-adapter` |
+| Distance metric                                                        | Cosine via pgvector `<=>` operator                                                                                                    | `retrieve-cli` + docs                  |
+| CI without `DATABASE_URL`                                              | Skip pgvector integration tests when unset; unit tests always run                                                                     | `db-foundation`                        |
+| 1:1 OKF→unit vs sub-splitting                                          | **Start 1:1** for all concepts; document split rules for dense concepts only if eval shows misses                                     | `retrieval-units`                      |
+| Expanded OKF granularity for About/experiment-measurement/codenames-ai | Per-source producers with shape-correct body helpers (`CaseBlock.heading`, About entry bullets); shared infra only where fields match | `corpus-expansion`                     |
 
 ---
 
@@ -161,7 +161,7 @@ flowchart TD
 
 **Shipped OKF corpus today:** 15 concepts (Renovate portfolio case + repo runbook fixture + DEV article fixture).
 
-**Corpus expansion prerequisite:** add bounded producers for **About**, **Growth measurement case**, and **Codenames case** so evaluation can exercise heterogeneous shapes without full-site ingestion.
+**Corpus expansion prerequisite:** add bounded producers for **About**, **`experiment-measurement` project case**, and **`codenames-ai` project case** so evaluation can exercise heterogeneous shapes without full-site ingestion.
 
 ---
 
@@ -244,26 +244,88 @@ Store `type`, `tags`, `resource`, `sources` relationally / JSON for filtering �
 
 ### Corpus expansion producer sketch (slice `corpus-expansion`)
 
-| Source module                                                                      | Proposed OKF concepts (bounded)                                                                                                                       |
-| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [content/about.ts](content/about.ts)                                               | One concept per experience entry (role + bullets); one summary concept from `summary[]`                                                               |
-| [content/project-cases.ts](content/project-cases.ts) `experiment-measurement` case | `portfolio/experiment-measurement-case` + `portfolio/experiment-measurement-{blockId}-{category}` per `blocks[]` (mirror renovate-governance pattern) |
-| [content/project-cases.ts](content/project-cases.ts) `codenames-ai` case           | `portfolio/codenames-ai-case` + `portfolio/codenames-ai-{blockId}-{category}` per `blocks[]`                                                          |
-| Existing Renovate corpus                                                           | Unchanged                                                                                                                                             |
+| Source module                                                                 | Producer module                                                        | Proposed OKF concepts (bounded)                                                     |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [content/about.ts](content/about.ts)                                          | `about-producer.mjs`                                                   | `about/summary` + one concept per experience/independent entry (`about/{entry.id}`) |
+| [content/project-cases.ts](content/project-cases.ts) `experiment-measurement` | `project-case-producer.mjs`                                            | `portfolio/experiment-measurement-case` + one concept per `CaseBlock`               |
+| [content/project-cases.ts](content/project-cases.ts) `codenames-ai`           | `project-case-producer.mjs`                                            | `portfolio/codenames-ai-case` + one concept per `CaseBlock`                         |
+| Existing Renovate corpus                                                      | [portfolio-producer.mjs](scripts/assistant/okf/portfolio-producer.mjs) | Unchanged                                                                           |
 
-**OKF ID convention for new project-case producers** (follow [portfolio-producer.mjs](scripts/assistant/okf/portfolio-producer.mjs)):
+**Do not mechanically reuse [portfolio-producer.mjs](scripts/assistant/okf/portfolio-producer.mjs) block logic for project cases.** That producer targets `SupportingCase` blocks (`SupportingProseBlock` / `SupportingArchitectureBlock` with `type`, `lead`, and architecture-specific fields). [content/project-cases.ts](content/project-cases.ts) uses `ProjectCase` + `CaseBlock` — a different shape.
 
-- Overview: `portfolio/{slug}-case` (e.g. `portfolio/experiment-measurement-case`)
-- Prose block: `portfolio/{slug}-{block.id}-{block.category.toLowerCase()}` (e.g. `portfolio/experiment-measurement-b01-attribution`)
+#### Project-case producer (`project-case-producer.mjs`)
 
-**About producer IDs** (from `content/about.ts` entry `id` fields):
+Read `ProjectCase` values from `content/project-cases.ts` for slugs `experiment-measurement` and `codenames-ai`.
 
-- Summary: `about/summary`
-- Experience / independent entries: `about/{entry.id}` (e.g. `about/atlassian-em-2020`, `about/codenames-ai`)
+**OKF IDs** (reuse only the _naming_ pattern from portfolio-producer, not its block-type branching):
 
-Exclude: `CaseFigure.source` inventory ids, ecosystem graph, timeline, production-line (unless eval gap remains after expansion).
+- Overview: `portfolio/{slug}-case`
+- Block: `portfolio/{slug}-{block.id}-{block.category.toLowerCase()}` (e.g. `portfolio/experiment-measurement-b01-attribution`)
 
-**Tests:** extend [tests/okf-normalization.test.ts](tests/okf-normalization.test.ts) with producer boundary + minimum concept counts per new prefix (e.g. `about/`, `portfolio/experiment-measurement-*`, `portfolio/codenames-ai-*`).
+**Case overview body** — reuse the _overview composition_ idea (lead, aside, elsewhere) where `ProjectCase` fields match `SupportingCase` (`lead`, `aside`, `elsewhere`). Do **not** copy architecture-block handling; project cases have no `architecture` blocks. Include `artifacts` as a prose summary only if needed for inspectability; do not embed artifact row `id` values as canonical evidence.
+
+**CaseBlock → OKF body** — implement a dedicated `caseBlockBody(block)` helper. Each `CaseBlock` is a single homogeneous block (no `type` discriminator). Preserve evidence-bearing fields in this order:
+
+```text
+{block.heading}          ← primary uncertainty sentence (required; must appear in body)
+
+{block.body joined}      ← narrative paragraphs
+
+Contract: {block.contract}
+
+{optional CaseNote from block.note — label, lines, closing}
+
+{optional figure lines — value, name, scope only; omit CaseFigure.source}
+```
+
+Do **not** call `proseBody()` from portfolio-producer (expects `lead`, not `heading`). Do **not** branch on `block.type === "prose"` / `"architecture"`.
+
+**Frontmatter:** `type: "Project Case Block"` (or similar free-form OKF type); `resource: {SITE_URL}/projects/{slug}#{block.id}`; `sources` pointing at the project case route.
+
+#### About producer (`about-producer.mjs`)
+
+Read [content/about.ts](content/about.ts) — a career-record page, not a block-structured case study.
+
+**OKF IDs:**
+
+- `about/summary` — both `summary[]` paragraphs
+- `about/{entry.id}` for each `experience.entries[]` and `independent.entries[]` entry (e.g. `about/atlassian-em-2020`, `about/codenames-ai`)
+
+**About entry body** — dedicated `aboutEntryBody(entry)`:
+
+```text
+{role} · {org} ({dateRange})
+
+{bullets joined}
+
+{optional figure lines — value, name, scope only; omit source inventory}
+```
+
+Do not invent block ids or split a single entry into multiple concepts unless eval later proves retrieval misses.
+
+**Frontmatter:** `type: "About Experience"` or `"About Independent Work"`; `resource: {SITE_URL}/about` (section-level provenance; entry identity carried in concept id + title).
+
+#### Generated corpus hygiene (required in this slice)
+
+[writer.mjs](scripts/assistant/okf/writer.mjs) `cleanGeneratedConcepts` currently removes only `portfolio/`, `repo/`, `writing/`. **This slice must extend cleanup to every generated namespace**, including `about/`, so removed or renamed concepts cannot leave stale `.md` files.
+
+Also update in the same slice:
+
+- [manifest.mjs](scripts/assistant/okf/manifest.mjs) `listConceptFiles` — include `about/`
+- [build.mjs](scripts/assistant/okf/build.mjs) `renderIndex` — add an About concepts section; wire new producers into `buildOkfCorpus`
+- [constants.mjs](scripts/assistant/okf/constants.mjs) — document new content-module inputs in manifest metadata if applicable
+
+Exclude from all producers: `CaseFigure.source` / inventory fact ids, ecosystem graph, timeline, production-line (unless eval gap remains after expansion).
+
+#### Corpus-expansion tests ([tests/okf-normalization.test.ts](tests/okf-normalization.test.ts))
+
+Extend existing OKF tests with **specific** coverage for the failure modes above:
+
+1. **CaseBlock evidence preservation** — for at least one `experiment-measurement` block concept, assert the rendered body contains that block's `heading` verbatim and at least one `body[]` paragraph; assert `contract` text is present when the source block has one.
+2. **No orphaned About files** — build to a temp corpus with a stub/about concept, rebuild with that concept removed from the producer output, assert `about/` contains no leftover `.md` for the removed id.
+3. **Deterministic rebuild across namespaces** — temp-dir build with fixed `generatedAt` still produces matching `bundle_sha256` after corpus expansion; `listConceptFiles` enumerates `portfolio/`, `repo/`, `writing/`, and `about/`.
+4. **Producer boundaries** — minimum concept counts per namespace prefix (`about/`, `portfolio/experiment-measurement-*`, `portfolio/codenames-ai-*`, existing renovate/repo/writing counts unchanged).
+5. **Render conformance** — every new concept has non-empty `type`, `sources`, `resource`, `generated`.
 
 ---
 
@@ -535,17 +597,30 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 ### Slice — `corpus-expansion`
 
-**Purpose:** Bounded OKF producers for About + Growth + Codenames so retrieval eval has heterogeneous content.
+**Purpose:** Bounded OKF producers for About + `experiment-measurement` + `codenames-ai` so retrieval eval has heterogeneous content — with shape-correct mapping per source type.
 
-**Files:** New `about-producer.mjs`, extend [portfolio-producer.mjs](scripts/assistant/okf/portfolio-producer.mjs) or add `project-case-producer.mjs`, [build.mjs](scripts/assistant/okf/build.mjs), [manifest.mjs](scripts/assistant/okf/manifest.mjs), [constants.mjs](scripts/assistant/okf/constants.mjs), [tests/okf-normalization.test.ts](tests/okf-normalization.test.ts)
+**Files:**
 
-**Approach:** Follow existing producer patterns; semantic units; update concept counts and deterministic bundle hash expectations.
+- New [scripts/assistant/okf/about-producer.mjs](scripts/assistant/okf/about-producer.mjs)
+- New [scripts/assistant/okf/project-case-producer.mjs](scripts/assistant/okf/project-case-producer.mjs) — **separate from** [portfolio-producer.mjs](scripts/assistant/okf/portfolio-producer.mjs); do not extend renovate producer for `CaseBlock` shapes
+- [scripts/assistant/okf/build.mjs](scripts/assistant/okf/build.mjs) — wire producers; extend index grouping
+- [scripts/assistant/okf/manifest.mjs](scripts/assistant/okf/manifest.mjs) — `listConceptFiles` includes `about/`
+- [scripts/assistant/okf/writer.mjs](scripts/assistant/okf/writer.mjs) — `cleanGeneratedConcepts` cleans `about/` (and any other new namespace) before rewrite
+- [scripts/assistant/okf/constants.mjs](scripts/assistant/okf/constants.mjs) — manifest input metadata for new content modules
+- [tests/okf-normalization.test.ts](tests/okf-normalization.test.ts)
 
-**Tests:** Producer boundaries, deterministic build, render conformance
+**Approach:**
+
+- `CaseBlock` bodies via dedicated `caseBlockBody()` preserving `heading`, `body[]`, `contract`, optional `note` / figure lines — **not** `proseBody()` or `block.type` branching
+- About entries via dedicated `aboutEntryBody()` — no faux block structure
+- Reuse shared infrastructure only where shapes match: `renderConcept`, `writeConcepts`, `SITE_URL` helpers, manifest hashing, overview-level fields shared between `ProjectCase` and `SupportingCase` (`lead`, `aside`, `elsewhere`)
+- Extend generated-corpus cleanup and enumeration to all namespaces
+
+**Tests:** CaseBlock heading preservation; About orphan cleanup on rebuild; deterministic `bundle_sha256` across all namespaces; producer boundaries; render conformance (see Corpus expansion producer sketch above)
 
 **Depends on:** `doc-reconcile` merged
 
-**Stop:** `npm run okf:build` produces expanded inspectable corpus; tests green
+**Stop:** `npm run okf:build` produces expanded inspectable corpus; tests green; no stale files under `generated/okf/about/` after concept removal
 
 ---
 
@@ -737,11 +812,11 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: bounded OKF producers for About + Growth + Codenames; updated okf tests and build manifest. Mark corpus-expansion completed in plan frontmatter in this PR.
+Deliverables: about-producer.mjs and project-case-producer.mjs (CaseBlock-aware, not portfolio-producer block.type reuse); writer.mjs cleanGeneratedConcepts extended for about/; manifest listConceptFiles + build index updated; okf tests covering CaseBlock heading preservation, About orphan cleanup, and deterministic rebuild across all namespaces. Mark corpus-expansion completed in plan frontmatter in this PR.
 
 Do not: retrieval units, embeddings, pgvector, ingest/retrieve, or full portfolio ingestion.
 
-Verification: npm run okf:build; npm run test; npm run typecheck; npm run lint; npm run format:check.
+Verification: npm run okf:build; npm run test; npm run typecheck; npm run lint; npm run format:check; confirm rebuild removes stale about/ concepts.
 ```
 
 ### retrieval-units
