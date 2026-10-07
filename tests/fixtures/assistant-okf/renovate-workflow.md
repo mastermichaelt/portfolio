@@ -178,7 +178,7 @@ Supported invocations:
 - `/renovate-loop --babysit` — same routing as normal loop, plus helper-backed post-update GitHub settling and required PR CI completion
 - `/renovate-loop dry-run` — one classify pass (FIFO queue overview + routing: `dry_run_complete`, `investigation_complete`, or hard-stop tag) without invoking maintainer or investigator
 
-`--babysit` is supported only with the normal loop invocation. It does not expand merge authority; after a successful `gh pr update-branch`, the classifier invokes `scripts/renovate-freshness-poll.ts` to wait for a terminal result. Only `outcome: "clean"` can produce a packet, and the packet must use the helper's returned `headSha`. `--babysit` does **not** wait on pre-update §2.6 `UNKNOWN` — only post-update settling per classifier §2.7.
+`--babysit` is supported only with the normal loop invocation. It does not expand merge authority; after a successful `gh pr update-branch`, the classifier invokes `npm run renovate:freshness-poll` (compiled `renovate-workflow freshness-poll` CLI) to wait for a terminal result. Only `outcome: "clean"` can produce a packet, and the packet must use the helper's returned `headSha`. `--babysit` does **not** wait on pre-update §2.6 `UNKNOWN` — only post-update settling per classifier §2.7.
 
 Manual verification checklist: [`skills/renovate-loop/verification.md`](../skills/renovate-loop/verification.md). Loop summaries: `.agent-runs/renovate/loop-{YYYY-MM-DD}.md` (gitignored).
 
