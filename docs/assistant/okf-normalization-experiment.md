@@ -40,12 +40,14 @@ OKF normalization                    ← this experiment (producers + build)
       ↓
 transient OKF concepts               ← generated/okf/ (gitignored)
       ↓
-retrieval-unit derivation            [future]
+retrieval-unit derivation            [next — vector retrieval experiment]
       ↓
-embeddings                           [future]
+embeddings                           [next — vector retrieval experiment]
       ↓
-vector index                         [future]
+vector index (Postgres + pgvector)   [next — vector retrieval experiment]
 ```
+
+**Follow-on experiment:** [assistant-vector-retrieval-experiment.plan.md](../../.cursor/plans/assistant-vector-retrieval-experiment.plan.md) — retrieval units, OpenAI embeddings, pgvector persistence, idempotent ingest, and inspectable retrieval CLI. OKF remains a transient normalization boundary; the vector store is a disposable derived index, not source of truth.
 
 **Future runtime (not implemented; evidence only):**
 

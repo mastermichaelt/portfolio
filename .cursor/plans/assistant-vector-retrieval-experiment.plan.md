@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: doc-reconcile
     content: "PR 1: Reconcile architecture docs for Postgres+pgvector retrieval experiment (supersede in-memory-first; update current-state sections)"
-    status: pending
+    status: completed
   - id: corpus-expansion
     content: "PR 2: Expand OKF producers for About + experiment-measurement + codenames-ai (bounded, merge-safe)"
     status: pending

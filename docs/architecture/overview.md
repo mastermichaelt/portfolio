@@ -11,7 +11,7 @@ This repository serves four overlapping purposes:
 3. A **Next.js learning project** with a clean path to Postgres-backed persistence later
 4. A **foundation** for a future grounded portfolio chatbot
 
-The current milestone is a static content MVP on Vercel: home, projects, articles, about, and a live ecosystem map (orientation spine + operational workflow canvases). Database persistence stays later. Assistant **architecture direction** is documented under [`docs/assistant/`](../assistant/architecture-direction.md); no assistant implementation yet.
+The current milestone is a static content MVP on Vercel: home, projects, articles, about, and a live ecosystem map (orientation spine + operational workflow canvases). Database persistence stays later. Assistant **architecture direction** is documented under [`docs/assistant/`](../assistant/architecture-direction.md). **OKF normalization** is shipped as dev-only CLI tooling (`npm run okf:build`); retrieval units, embeddings, pgvector, ingest/retrieve CLIs, and chat UI remain future work ([vector retrieval experiment](../../.cursor/plans/assistant-vector-retrieval-experiment.plan.md)).
 
 ## Milestone progression
 
@@ -41,6 +41,8 @@ hosted Postgres provider (likely Neon)
 ```
 
 Pages should keep depending on the repository interface so persistence is a swap of adapters, not a rewrite of routes. No Neon-specific coupling, migrations, or env wiring are planned in the static MVP.
+
+**Separate from site persistence:** the assistant retrieval experiment uses its own Postgres+pgvector schema for derived embeddings (see [architecture direction](../assistant/architecture-direction.md)). Site `PortfolioRepository` persistence and assistant vector index are different tables, migrations, and lifecycles — they may share a Neon project in development but must not be conflated.
 
 ## Why a repository abstraction
 
