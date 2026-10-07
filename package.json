@@ -33,6 +33,7 @@
     "okf:build": "node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs scripts/assistant/okf/build.mjs",
     "assistant:derive": "node scripts/assistant/retrieval/derive-units.mjs",
     "assistant:db:migrate": "node scripts/assistant/db/migrate.mjs",
+    "assistant:db:verify": "node scripts/assistant/db/verify.mjs",
     "renovate:freshness-poll": "renovate-workflow freshness-poll"
   },
   "dependencies": {
