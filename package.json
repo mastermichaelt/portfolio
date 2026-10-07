@@ -32,6 +32,8 @@
     "verify:git-hooks": "sh scripts/verify-git-hooks.sh",
     "okf:build": "node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs scripts/assistant/okf/build.mjs",
     "assistant:derive": "node scripts/assistant/retrieval/derive-units.mjs",
+    "assistant:db:migrate": "node scripts/assistant/db/migrate.mjs",
+    "assistant:db:verify": "node scripts/assistant/db/verify.mjs",
     "renovate:freshness-poll": "renovate-workflow freshness-poll"
   },
   "dependencies": {
@@ -44,9 +46,11 @@
   },
   "devDependencies": {
     "@google/genai": "^2.24.0",
+    "@multipliers-dev/renovate-workflow": "^0.3.0",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.43",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.1.10",
@@ -55,8 +59,8 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^17.3.0",
+    "pg": "^8.16.3",
     "prettier": "^3.9.6",
-    "@multipliers-dev/renovate-workflow": "^0.3.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"

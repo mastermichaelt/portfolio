@@ -15,19 +15,22 @@ todos:
     content: "PR 3: Retrieval-unit derivation from OKF concepts (stable IDs, content hashes, CLI inspect)"
     status: completed
   - id: db-foundation
-    content: "PR 4: Postgres+pgvector schema, migrations, docker-compose, DATABASE_URL wiring"
-    status: pending
+    content: "PR 4: Postgres+pgvector schema, portable migrations, local docker-compose, DATABASE_URL wiring, schema verify CLI"
+    status: completed
   - id: embeddings-adapter
     content: "PR 5: Thin OpenAI embeddings adapter (batching, retries, fixed index config validation)"
     status: pending
+  - id: neon-deployment
+    content: "PR 6: Hosted Neon assistant retrieval index — operator workflow, migrate + verify on Neon (no ingest)"
+    status: pending
   - id: ingest-sync
-    content: "PR 6: Idempotent ingest pipeline (upsert/skip/delete stale, ingestion run metadata)"
+    content: "PR 7: Idempotent ingest pipeline (upsert/skip/delete stale, ingestion run metadata)"
     status: pending
   - id: retrieve-cli
-    content: "PR 7: Inspectable retrieval CLI with documented cosine distance semantics"
+    content: "PR 8: Inspectable retrieval CLI with documented cosine distance semantics"
     status: pending
   - id: retrieval-eval
-    content: "PR 8: Representative eval cases with top-K assertions (skip without secrets)"
+    content: "PR 9: Representative eval cases with top-K assertions (skip without secrets)"
     status: pending
   - id: plan-closure
     content: "Docs-only PR: vector-retrieval-experiment findings + archive plan"
@@ -47,6 +50,7 @@ isProject: false
 | retrieval-units    | Open PR only          | Do not merge. Stop after opening the PR.               |
 | db-foundation      | Open PR only          | Do not merge. Stop after opening the PR.               |
 | embeddings-adapter | Open PR only          | Do not merge. Stop after opening the PR.               |
+| neon-deployment    | Open PR only          | Do not merge. Stop after opening the PR.               |
 | ingest-sync        | Open PR only          | Do not merge. Stop after opening the PR.               |
 | retrieve-cli       | Open PR only          | Do not merge. Stop after opening the PR.               |
 | retrieval-eval     | Open PR only          | Do not merge. Stop after opening the PR.               |
@@ -121,15 +125,15 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; branch 
 
 ### Still to decide during implementation (flagged, not silently chosen)
 
-| Decision                                                               | Recommendation                                                                                                                        | Resolve in slice                       |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| Local Postgres vs Neon-only dev                                        | Commit a small `docker-compose.yml` for local pgvector + optional Neon for shared env                                                 | `db-foundation`                        |
-| `pg` vs `postgres.js` driver                                           | `pg` (mature, straightforward migrations)                                                                                             | `db-foundation`                        |
-| Embedding representation                                               | **`text-embedding-3-small` @ 1536 dimensions** — fixed in schema; model change = migration + full re-embed                            | `db-foundation` + `embeddings-adapter` |
-| Distance metric                                                        | Cosine via pgvector `<=>` operator                                                                                                    | `retrieve-cli` + docs                  |
-| CI without `DATABASE_URL`                                              | Skip pgvector integration tests when unset; unit tests always run                                                                     | `db-foundation`                        |
-| 1:1 OKF→unit vs sub-splitting                                          | **Start 1:1** for all concepts; document split rules for dense concepts only if eval shows misses                                     | `retrieval-units`                      |
-| Expanded OKF granularity for About/experiment-measurement/codenames-ai | Per-source producers with shape-correct body helpers (`CaseBlock.heading`, About entry bullets); shared infra only where fields match | `corpus-expansion`                     |
+| Decision                                                               | Recommendation                                                                                                                                               | Resolve in slice                       |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------- |
+| Local Postgres vs Neon hosted index                                    | **Both:** `docker-compose.yml` for local dev/CI verification; **Neon** as explicit hosted assistant retrieval target (`neon-deployment` slice before ingest) | `db-foundation` + `neon-deployment`    |
+| `pg` vs `postgres.js` driver                                           | `pg` (mature, straightforward migrations)                                                                                                                    | `db-foundation`                        |
+| Embedding representation                                               | **`text-embedding-3-small` @ 1536 dimensions** — fixed in schema; model change = migration + full re-embed                                                   | `db-foundation` + `embeddings-adapter` |
+| Distance metric                                                        | Cosine via pgvector `<=>` operator                                                                                                                           | `retrieve-cli` + docs                  |
+| CI without `DATABASE_URL`                                              | Skip pgvector integration tests when unset; unit tests always run                                                                                            | `db-foundation`                        |
+| 1:1 OKF→unit vs sub-splitting                                          | **Start 1:1** for all concepts; document split rules for dense concepts only if eval shows misses                                                            | `retrieval-units`                      |
+| Expanded OKF granularity for About/experiment-measurement/codenames-ai | Per-source producers with shape-correct body helpers (`CaseBlock.heading`, About entry bullets); shared infra only where fields match                        | `corpus-expansion`                     |
 
 ---
 
@@ -415,12 +419,21 @@ Do **not** add HNSW or IVFFlat in any slice of this experiment. Closure doc shou
 
 ### Connection / migrations
 
-- `scripts/assistant/db/client.mjs` — `pg` Pool from `DATABASE_URL`
-- `scripts/assistant/db/migrate.mjs` — apply `db/migrations/*.sql` in order
-- `npm run assistant:db:migrate`
-- Local: `docker-compose.yml` with `pgvector/pgvector:pg16` (committed, assistant-dev only)
+- `scripts/assistant/db/client.mjs` — `pg` Pool from `DATABASE_URL` (assistant retrieval only; no site `PortfolioRepository` coupling)
+- `scripts/assistant/db/migrate.mjs` — apply `db/migrations/*.sql` in order (provider-neutral; no localhost assumptions)
+- `scripts/assistant/db/verify.mjs` — schema verification CLI (`npm run assistant:db:verify`)
+- Operator runbook: [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md)
 
-**CI:** integration tests run when `DATABASE_URL` is set; otherwise skip with explicit message (keeps default CI green).
+**Deployment topology:**
+
+| Target                           | Role                                        | How                                                                                                        |
+| -------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Local Docker Postgres + pgvector | Default dev + migration verification        | `docker-compose.yml` (`pgvector/pgvector:pg16`); `.env.example` local `DATABASE_URL`                       |
+| Neon Postgres + pgvector         | Persistent hosted assistant retrieval index | `DATABASE_URL` via secrets; same migrations via `assistant:db:migrate`; verified via `assistant:db:verify` |
+
+Site `PortfolioRepository` persistence (future Milestone 4) remains a **separate** connection config and migration lifecycle even if both use Neon as provider.
+
+**CI:** integration tests run when `DATABASE_URL` is set; otherwise skip with explicit message (keeps default CI green). Neon is not required in CI.
 
 ---
 
@@ -642,17 +655,19 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 ### Slice — `db-foundation`
 
-**Purpose:** Postgres + pgvector schema, migrations, local docker compose, connection helper.
+**Purpose:** Postgres + pgvector schema, portable migrations, local docker compose, connection helper, schema verification CLI.
 
-**Files:** `db/migrations/20261007100000_assistant_pgvector.sql`, `docker-compose.yml`, `scripts/assistant/db/*`, [.env.example](.env.example), `npm run assistant:db:migrate`
+**Files:** `db/migrations/20261007100000_assistant_pgvector.sql`, `docker-compose.yml`, `scripts/assistant/db/*`, [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md), [.env.example](.env.example), `npm run assistant:db:migrate`, `npm run assistant:db:verify`
 
-**Approach:** Enable extension; create table with `vector(1536)` (fixed index representation); add btree indexes on filter columns only — **no ANN index**; migration runner; document `DATABASE_URL` and the model/dimension migration constraint.
+**Approach:** `CREATE EXTENSION IF NOT EXISTS vector`; create `assistant_retrieval_units` with `vector(1536)`; btree filter indexes only — **no ANN index**; provider-neutral migration runner driven entirely by `DATABASE_URL` (no localhost assumptions in migration/database code); local Docker remains default dev path; document that the same migrations apply to hosted Neon in `neon-deployment`; schema verify command checks extension, migration state, table, `vector(1536)`, and absence of ANN indexes.
 
-**Tests:** `tests/assistant-db.test.ts` — migration applies, extension exists (skip if no `DATABASE_URL`)
+**Tests:** `tests/assistant-db.test.ts` — shared schema verification passes after migrate (skip if no `DATABASE_URL`)
 
 **Depends on:** `doc-reconcile` merged
 
-**Stop:** `docker compose up` + migrate succeeds locally
+**Stop:** `docker compose up` + migrate + verify succeeds locally
+
+**Does not include:** Neon provisioning, hosted migrate/verify execution, ingest, embeddings API, retrieve CLI
 
 ---
 
@@ -670,6 +685,36 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 ---
 
+### Slice — `neon-deployment`
+
+**Purpose:** Deploy assistant retrieval schema to hosted Neon; prove connectivity and schema; document operator workflow. **No ingest, no embeddings API, no retrieve CLI.**
+
+**Prerequisite:** `db-foundation` merged (migrations + verify CLI exist).
+
+**Files:** [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md) (operator workflow — may be introduced in `db-foundation`, completed/verified here), optional architecture-direction clarification
+
+**Operator workflow (human/account actions):**
+
+1. Provision or select a **dedicated** Neon database/branch for the assistant retrieval index (not site `PortfolioRepository` persistence).
+2. Obtain connection string(s): direct for migration/extension setup if Neon recommends; pooled acceptable for later runtime.
+3. Configure `DATABASE_URL` via gitignored `.env` or secrets — **never commit** connection strings.
+4. Run `npm run assistant:db:migrate` against Neon (same repo migrations; do not hand-create tables in Neon console).
+5. Run `npm run assistant:db:verify` (or documented SQL equivalents) — confirm `vector` extension, migration recorded, `assistant_retrieval_units`, `vector(1536)`, no ANN index.
+6. Record minimal connectivity smoke (verify CLI covers this).
+7. Document that `assistant:ingest` and `assistant:retrieve` (later slices) use this same `DATABASE_URL` assistant retrieval connection.
+
+**Automation boundary:** If Neon provisioning requires account/dashboard actions the agent cannot perform safely, stop and hand off exact human steps — do not invent credentials or fall back to local-only for hosted deployment.
+
+**Tests:** Docs/operator verification; optional CI skip (Neon secrets not in CI). Re-run `assistant:db:verify` against Neon as acceptance.
+
+**Depends on:** `db-foundation` merged
+
+**Blocks:** `ingest-sync` (hosted persistent index must exist before first real ingest to Neon)
+
+**Stop:** Neon assistant database migrated and verified; operator workflow documented
+
+---
+
 ### Slice — `ingest-sync`
 
 **Purpose:** End-to-end `okf:build → derive → embed → upsert → delete stale`.
@@ -678,9 +723,9 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Tests:** `tests/assistant-ingest.test.ts` — mock embeddings; verify skip on unchanged hash, update on change, delete orphan; integration path with real DB when `DATABASE_URL` set
 
-**Depends on:** `retrieval-units`, `db-foundation`, `embeddings-adapter`
+**Depends on:** `retrieval-units`, `db-foundation`, `embeddings-adapter`, **`neon-deployment`** (hosted Neon assistant index migrated and verified)
 
-**Stop:** Repeatable ingest with skip counts logged
+**Stop:** Repeatable ingest with skip counts logged against hosted Neon (local Docker remains valid for dev)
 
 ---
 
@@ -736,6 +781,7 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 "okf:build": "...",
 "assistant:derive": "node scripts/assistant/retrieval/derive-units.mjs",
 "assistant:db:migrate": "node scripts/assistant/db/migrate.mjs",
+"assistant:db:verify": "node scripts/assistant/db/verify.mjs",
 "assistant:ingest": "node scripts/assistant/ingest.mjs",
 "assistant:retrieve": "node scripts/assistant/retrieve.mjs"
 ```
@@ -848,11 +894,29 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: pgvector migration (vector(1536), no ANN index), docker-compose, migrate CLI, DATABASE_URL in .env.example, db tests (skip without DATABASE_URL). Mark db-foundation completed in plan frontmatter in this PR.
+Deliverables: pgvector migration (vector(1536), no ANN index), docker-compose, portable migrate CLI, schema verify CLI, DATABASE_URL in .env.example, docs/assistant/assistant-database.md (local path + Neon operator workflow stub), db tests (skip without DATABASE_URL). Mark db-foundation completed in plan frontmatter in this PR.
 
-Do not: embeddings API, ingest, retrieve, or app/ routes.
+Do not: Neon provisioning execution, embeddings API, ingest, retrieve, or app/ routes.
 
-Verification: docker compose up; npm run assistant:db:migrate; npm run test; npm run format:check.
+Verification: docker compose up; npm run assistant:db:migrate; npm run assistant:db:verify; npm run test; npm run format:check.
+```
+
+### neon-deployment
+
+```text
+@.cursor/plans/assistant-vector-retrieval-experiment.plan.md
+
+Execute slice neon-deployment only. Prerequisite: db-foundation merged. Do not start ingest-sync or later slices. Do not archive the plan.
+
+Authority: Open PR only — implement and open the PR; do not merge.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: complete hosted Neon operator workflow in docs/assistant/assistant-database.md; run npm run assistant:db:migrate and npm run assistant:db:verify against Neon (human configures DATABASE_URL via secrets); document connection config for future assistant:ingest and assistant:retrieve. Mark neon-deployment completed in plan frontmatter in this PR.
+
+Do not: hand-create schema in Neon console, ingest retrieval units, OpenAI embeddings API, retrieve CLI, or app/ routes. Stop at Neon account provisioning if human action is required — report exact steps.
+
+Verification: npm run assistant:db:verify against Neon DATABASE_URL; npm run format:check.
 ```
 
 ### embeddings-adapter
@@ -878,7 +942,7 @@ Verification: npm run test; npm run typecheck; npm run lint; npm run format:chec
 ```text
 @.cursor/plans/assistant-vector-retrieval-experiment.plan.md
 
-Implement slice ingest-sync only. Prerequisites: retrieval-units, db-foundation, embeddings-adapter merged. Do not start retrieve-cli or later slices. Do not archive the plan.
+Implement slice ingest-sync only. Prerequisites: retrieval-units, db-foundation, embeddings-adapter, neon-deployment merged. Do not start retrieve-cli or later slices. Do not archive the plan.
 
 Authority: Open PR only — implement and open the PR; do not merge.
 

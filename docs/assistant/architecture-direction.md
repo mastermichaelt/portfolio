@@ -175,7 +175,16 @@ Neon remains a likely future Postgres provider where Postgres is appropriate. **
 | **Site content persistence**  | Future `PortfolioRepository` adapter (Milestone 4) | Not started; see [architecture overview](../architecture/overview.md)                 |
 | **Assistant embedding index** | Derived pgvector store for semantic retrieval      | In progress — [vector retrieval experiment](#vector-retrieval-experiment-in-progress) |
 
-They may share a Neon project in development but must not share tables or migration paths.
+They may share a Neon **account or organization** in development but must not share databases, connection strings, tables, or migration paths.
+
+**Local vs hosted assistant index (decision — vector retrieval experiment).**
+
+| Target                               | Role                                           | Configuration                                                                                                    |
+| ------------------------------------ | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Local Docker Postgres + pgvector** | Default development and migration verification | `docker compose up -d`; `DATABASE_URL` points at local container                                                 |
+| **Neon Postgres + pgvector**         | Persistent hosted assistant retrieval index    | `DATABASE_URL` via gitignored `.env` or secrets; same `db/migrations/` applied by `npm run assistant:db:migrate` |
+
+Repository-owned migrations under `db/migrations/` are the only source of truth for assistant schema creation — including on Neon. Operator workflow: [assistant-database.md](./assistant-database.md). Hosted Neon deployment is a dedicated plan slice (`neon-deployment`) and a **prerequisite before `ingest-sync`**.
 
 This is **directional**. It is not a commitment to any particular API shape forever. The active vector retrieval experiment uses direct primitives only — **no LangChain, LlamaIndex, or dedicated vector SaaS** (see experiment plan).
 

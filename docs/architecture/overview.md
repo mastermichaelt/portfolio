@@ -42,7 +42,7 @@ hosted Postgres provider (likely Neon)
 
 Pages should keep depending on the repository interface so persistence is a swap of adapters, not a rewrite of routes. No Neon-specific coupling, migrations, or env wiring are planned in the static MVP.
 
-**Separate from site persistence:** the assistant retrieval experiment uses its own Postgres+pgvector schema for derived embeddings (see [architecture direction](../assistant/architecture-direction.md)). Site `PortfolioRepository` persistence and assistant vector index are different tables, migrations, and lifecycles — they may share a Neon project in development but must not be conflated.
+**Separate from site persistence:** the assistant retrieval experiment uses its own Postgres+pgvector schema for derived embeddings (see [architecture direction](../assistant/architecture-direction.md) and [assistant database runbook](../assistant/assistant-database.md)). Site `PortfolioRepository` persistence and assistant vector index are different connection strings, tables, migrations, and lifecycles — they may share a Neon account but must not share a database or `DATABASE_URL`.
 
 ## Why a repository abstraction
 
