@@ -36,7 +36,7 @@ export function buildFixtureInputs(fixtureRoot = FIXTURES_DIR) {
 
 export function listConceptFiles(corpusRoot = CORPUS_ROOT) {
   const concepts = [];
-  for (const dir of ["portfolio", "repo", "writing"]) {
+  for (const dir of ["portfolio", "repo", "writing", "about"]) {
     const absoluteDir = path.join(corpusRoot, dir);
     if (!fs.existsSync(absoluteDir)) continue;
     for (const file of fs.readdirSync(absoluteDir).sort()) {
@@ -70,7 +70,15 @@ export function buildNormalizationManifest({
     inputs: {
       portfolio: {
         kind: "in-repo content modules",
-        paths: ["content/supporting-cases.ts", "content/articles.ts"],
+        paths: [
+          "content/supporting-cases.ts",
+          "content/articles.ts",
+          "content/project-cases.ts",
+        ],
+      },
+      about: {
+        kind: "in-repo content modules",
+        paths: ["content/about.ts"],
       },
       fixtures: buildFixtureInputs(fixtureRoot),
     },
