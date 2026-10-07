@@ -4,7 +4,11 @@ import path from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { createPool, getDatabaseUrl } from "@/scripts/assistant/db/client.mjs";
+import {
+  createPool,
+  getDatabaseUrl,
+  resolveAssistantDatabaseUrl,
+} from "@/scripts/assistant/db/client.mjs";
 import {
   loadEnvFiles,
   resetEnvFileLoader,
@@ -17,7 +21,8 @@ import {
   verifyAssistantSchema,
 } from "@/scripts/assistant/db/verify-schema.mjs";
 
-const databaseUrl = process.env.DATABASE_URL?.trim();
+// Match migrate/verify entrypoints: load .env.local/.env before gating integration tests.
+const databaseUrl = resolveAssistantDatabaseUrl();
 const hasDatabase = Boolean(databaseUrl);
 
 describe("assistant db env loading", () => {
@@ -69,6 +74,36 @@ describe("assistant db env loading", () => {
       loadEnvFiles({ force: true });
       expect(process.env.DATABASE_URL).toBe("postgresql://from-shell/test");
       expect(getDatabaseUrl()).toBe("postgresql://from-shell/test");
+    } finally {
+      process.chdir(previousCwd);
+      resetEnvFileLoader();
+      if (previousUrl === undefined) {
+        delete process.env.DATABASE_URL;
+      } else {
+        process.env.DATABASE_URL = previousUrl;
+      }
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("activates integration gating when DATABASE_URL exists only in .env", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "assistant-db-env-"));
+    const previousCwd = process.cwd();
+    const previousUrl = process.env.DATABASE_URL;
+
+    delete process.env.DATABASE_URL;
+    resetEnvFileLoader();
+
+    try {
+      process.chdir(tempDir);
+      fs.writeFileSync(
+        path.join(tempDir, ".env"),
+        "DATABASE_URL=postgresql://dotenv-only-integration/test\n",
+      );
+
+      expect(resolveAssistantDatabaseUrl()).toBe(
+        "postgresql://dotenv-only-integration/test",
+      );
     } finally {
       process.chdir(previousCwd);
       resetEnvFileLoader();

@@ -3,12 +3,21 @@ import pg from "pg";
 import { loadEnvFiles } from "./load-env.mjs";
 
 /**
+ * Load env files and return a trimmed DATABASE_URL when configured.
+ *
+ * @returns {string | undefined}
+ */
+export function resolveAssistantDatabaseUrl() {
+  loadEnvFiles();
+  const url = process.env.DATABASE_URL?.trim();
+  return url || undefined;
+}
+
+/**
  * @returns {string}
  */
 export function getDatabaseUrl() {
-  loadEnvFiles();
-
-  const url = process.env.DATABASE_URL?.trim();
+  const url = resolveAssistantDatabaseUrl();
   if (!url) {
     throw new Error(
       "DATABASE_URL is required for assistant retrieval tooling (see .env.example and docs/assistant/assistant-database.md)",
