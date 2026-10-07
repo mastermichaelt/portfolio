@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: corpus-expansion
     content: "PR 2: Expand OKF producers for About + experiment-measurement + codenames-ai (bounded, merge-safe)"
-    status: pending
+    status: completed
   - id: retrieval-units
     content: "PR 3: Retrieval-unit derivation from OKF concepts (stable IDs, content hashes, CLI inspect)"
     status: pending

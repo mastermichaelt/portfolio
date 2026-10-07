@@ -12,9 +12,11 @@ import {
   FIXTURES_DIR,
   OKF_VERSION,
 } from "./constants.mjs";
+import { produceAboutConcepts } from "./about-producer.mjs";
 import { produceDevConcepts } from "./dev-producer.mjs";
 import { buildNormalizationManifest, writeJson } from "./manifest.mjs";
 import { producePortfolioConcepts } from "./portfolio-producer.mjs";
+import { produceProjectCaseConcepts } from "./project-case-producer.mjs";
 import { produceRepoConcepts } from "./repo-producer.mjs";
 import { cleanGeneratedConcepts, writeConcepts } from "./writer.mjs";
 
@@ -23,6 +25,7 @@ function renderIndex(conceptPaths) {
     portfolio: conceptPaths.filter((entry) => entry.startsWith("portfolio/")),
     repo: conceptPaths.filter((entry) => entry.startsWith("repo/")),
     writing: conceptPaths.filter((entry) => entry.startsWith("writing/")),
+    about: conceptPaths.filter((entry) => entry.startsWith("about/")),
   };
 
   const section = (title, paths) => {
@@ -41,9 +44,11 @@ generated:
 
 # Portfolio assistant OKF corpus
 
-Normalization experiment bundle for Renovate governance knowledge across portfolio content, a pinned repo runbook, and a pinned DEV field report.
+Normalization experiment bundle across portfolio content, About career record, a pinned repo runbook, and a pinned DEV field report.
 
 ${section("Portfolio concepts", grouped.portfolio)}
+
+${section("About concepts", grouped.about)}
 
 ${section("Repository concepts", grouped.repo)}
 
@@ -57,6 +62,7 @@ function formatGeneratedCorpus(corpusRoot) {
   const targets = [
     path.join(corpusRoot, "index.md"),
     path.join(corpusRoot, "portfolio"),
+    path.join(corpusRoot, "about"),
     path.join(corpusRoot, "repo"),
     path.join(corpusRoot, "writing"),
   ];
@@ -77,6 +83,8 @@ export function buildOkfCorpus({
 
   const concepts = [
     ...producePortfolioConcepts(),
+    ...produceProjectCaseConcepts(),
+    ...produceAboutConcepts(),
     ...produceRepoConcepts(FIXTURES_DIR),
     ...produceDevConcepts(FIXTURES_DIR),
   ];

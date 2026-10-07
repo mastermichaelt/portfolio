@@ -23,3 +23,12 @@ export const REPO_RUNBOOK_RESOURCE =
 
 export const EXPERIMENT_FINDINGS_DOC =
   "docs/assistant/okf-normalization-experiment.md";
+
+/** In-repo content modules consumed by OKF producers (manifest metadata). */
+export const PORTFOLIO_CONTENT_PATHS = [
+  "content/supporting-cases.ts",
+  "content/articles.ts",
+  "content/project-cases.ts",
+];
+
+export const ABOUT_CONTENT_PATHS = ["content/about.ts"];
