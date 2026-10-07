@@ -7,6 +7,26 @@ export const EXPECTED_EMBEDDING_DIMENSIONS = 1536;
 
 /**
  * @param {import("pg").Pool | import("pg").PoolClient} db
+ * @param {string} tableName
+ * @returns {Promise<boolean>}
+ */
+async function publicTableExists(db, tableName) {
+  const result = await db.query(
+    `
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_name = $1
+    ) AS exists
+  `,
+    [tableName],
+  );
+  return result.rows[0]?.exists === true;
+}
+
+/**
+ * @param {import("pg").Pool | import("pg").PoolClient} db
  * @returns {Promise<SchemaCheck[]>}
  */
 export async function verifyAssistantSchema(db) {
@@ -24,30 +44,40 @@ export async function verifyAssistantSchema(db) {
         : "pgvector extension is missing",
   });
 
-  const migrationResult = await db.query(
-    "SELECT filename FROM schema_migrations WHERE filename = $1",
-    [ASSISTANT_PGVECTOR_MIGRATION],
+  const schemaMigrationsTableExists = await publicTableExists(
+    db,
+    "schema_migrations",
   );
   checks.push({
-    name: "assistant_pgvector_migration",
-    ok: migrationResult.rows.length === 1,
-    detail:
-      migrationResult.rows.length === 1
-        ? `${ASSISTANT_PGVECTOR_MIGRATION} is recorded in schema_migrations`
-        : `${ASSISTANT_PGVECTOR_MIGRATION} has not been applied`,
+    name: "schema_migrations_table",
+    ok: schemaMigrationsTableExists,
+    detail: schemaMigrationsTableExists
+      ? "schema_migrations table exists"
+      : "schema_migrations table is missing; run npm run assistant:db:migrate",
   });
 
-  const tableResult = await db.query(
-    `
-    SELECT EXISTS (
-      SELECT 1
-      FROM information_schema.tables
-      WHERE table_schema = 'public'
-        AND table_name = 'assistant_retrieval_units'
-    ) AS exists
-  `,
-  );
-  const tableExists = tableResult.rows[0]?.exists === true;
+  if (schemaMigrationsTableExists) {
+    const migrationResult = await db.query(
+      "SELECT filename FROM schema_migrations WHERE filename = $1",
+      [ASSISTANT_PGVECTOR_MIGRATION],
+    );
+    checks.push({
+      name: "assistant_pgvector_migration",
+      ok: migrationResult.rows.length === 1,
+      detail:
+        migrationResult.rows.length === 1
+          ? `${ASSISTANT_PGVECTOR_MIGRATION} is recorded in schema_migrations`
+          : `${ASSISTANT_PGVECTOR_MIGRATION} has not been applied`,
+    });
+  } else {
+    checks.push({
+      name: "assistant_pgvector_migration",
+      ok: false,
+      detail: `${ASSISTANT_PGVECTOR_MIGRATION} cannot be verified until schema_migrations exists`,
+    });
+  }
+
+  const tableExists = await publicTableExists(db, "assistant_retrieval_units");
   checks.push({
     name: "assistant_retrieval_units_table",
     ok: tableExists,

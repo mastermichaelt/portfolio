@@ -15,6 +15,7 @@ Verify assistant retrieval database schema against DATABASE_URL.
 Checks:
   - connectivity
   - pgvector extension enabled
+  - schema_migrations table present
   - assistant pgvector migration recorded
   - assistant_retrieval_units table present
   - embedding column is vector(1536)

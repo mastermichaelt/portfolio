@@ -35,7 +35,7 @@ The initial migration enables pgvector and creates `assistant_retrieval_units` w
    docker compose up -d
    ```
 
-2. Set `DATABASE_URL` in a gitignored `.env` (see `.env.example` for the local default).
+2. Set `DATABASE_URL` in a gitignored `.env` or `.env.local` (see `.env.example` for the local default). Shell/CI-provided `DATABASE_URL` takes precedence over file values.
 
 3. Apply migrations:
 

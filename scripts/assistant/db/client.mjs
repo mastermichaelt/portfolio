@@ -1,9 +1,13 @@
 import pg from "pg";
 
+import { loadEnvFiles } from "./load-env.mjs";
+
 /**
  * @returns {string}
  */
 export function getDatabaseUrl() {
+  loadEnvFiles();
+
   const url = process.env.DATABASE_URL?.trim();
   if (!url) {
     throw new Error(
