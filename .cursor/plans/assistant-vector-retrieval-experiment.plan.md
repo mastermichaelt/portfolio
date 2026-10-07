@@ -244,16 +244,26 @@ Store `type`, `tags`, `resource`, `sources` relationally / JSON for filtering �
 
 ### Corpus expansion producer sketch (slice `corpus-expansion`)
 
-| Source module                                                       | Proposed OKF concepts (bounded)                                                         |
-| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [content/about.ts](content/about.ts)                                | One concept per experience entry (role + bullets); one summary concept from `summary[]` |
-| [content/project-cases.ts](content/project-cases.ts) growth case    | Case overview + one concept per `blocks[]` entry (mirror supporting-case pattern)       |
-| [content/project-cases.ts](content/project-cases.ts) codenames case | Case overview + one concept per major block                                             |
-| Existing Renovate corpus                                            | Unchanged                                                                               |
+| Source module                                                                      | Proposed OKF concepts (bounded)                                                                                                                       |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [content/about.ts](content/about.ts)                                               | One concept per experience entry (role + bullets); one summary concept from `summary[]`                                                               |
+| [content/project-cases.ts](content/project-cases.ts) `experiment-measurement` case | `portfolio/experiment-measurement-case` + `portfolio/experiment-measurement-{blockId}-{category}` per `blocks[]` (mirror renovate-governance pattern) |
+| [content/project-cases.ts](content/project-cases.ts) `codenames-ai` case           | `portfolio/codenames-ai-case` + `portfolio/codenames-ai-{blockId}-{category}` per `blocks[]`                                                          |
+| Existing Renovate corpus                                                           | Unchanged                                                                                                                                             |
+
+**OKF ID convention for new project-case producers** (follow [portfolio-producer.mjs](scripts/assistant/okf/portfolio-producer.mjs)):
+
+- Overview: `portfolio/{slug}-case` (e.g. `portfolio/experiment-measurement-case`)
+- Prose block: `portfolio/{slug}-{block.id}-{block.category.toLowerCase()}` (e.g. `portfolio/experiment-measurement-b01-attribution`)
+
+**About producer IDs** (from `content/about.ts` entry `id` fields):
+
+- Summary: `about/summary`
+- Experience / independent entries: `about/{entry.id}` (e.g. `about/atlassian-em-2020`, `about/codenames-ai`)
 
 Exclude: `CaseFigure.source` inventory ids, ecosystem graph, timeline, production-line (unless eval gap remains after expansion).
 
-**Tests:** extend [tests/okf-normalization.test.ts](tests/okf-normalization.test.ts) with producer boundary + minimum concept counts per new prefix (e.g. `about/`, `portfolio/growth-*`, `portfolio/codenames-*`).
+**Tests:** extend [tests/okf-normalization.test.ts](tests/okf-normalization.test.ts) with producer boundary + minimum concept counts per new prefix (e.g. `about/`, `portfolio/experiment-measurement-*`, `portfolio/codenames-ai-*`).
 
 ---
 
@@ -423,22 +433,50 @@ Optional flags: `--top-k 5`, `--filter-source-class portfolio`, `--json`.
 
 New: `tests/assistant-retrieval-eval.test.ts` + `tests/fixtures/assistant-retrieval/eval-cases.json`
 
+### Eval fixture contract
+
+Matchers operate on **`unit_id`** (the persisted primary key), not bare `okf_concept_id`. Per the retrieval-unit contract: `unit_id = unit/{okf_concept_id}`.
+
+Fixture fields:
+
+- `expected_any_of`: array of `unit_id` values or prefix globs (e.g. `unit/portfolio/experiment-measurement-b04-onboarding`, `unit/about/atlassian-em-*`)
+- `min_rank` (optional): highest acceptable rank for any `expected_any_of` match (1-based)
+- `kind`: `positive` | `negative_inspection` | `corpus_gap`
+
+Implement prefix matching against `unit_id` only. Do not match against `okf_concept_id` without the `unit/` prefix.
+
 ### Refined eval cases (post corpus expansion)
 
-| Question                                                              | Expected evidence signal (unit_id prefix or title substring) | Exercises                         |
-| --------------------------------------------------------------------- | ------------------------------------------------------------ | --------------------------------- |
-| What experimentation infrastructure did Michael work on at Atlassian? | growth case / Loom onboarding / experimentation              | portfolio blocks                  |
-| Has Michael managed engineers?                                        | about experience EM entry / "8–10 engineers"                 | about concepts                    |
-| Why did Michael return to individual-contributor engineering?         | about summary IC return                                      | about summary                     |
-| What experience does Michael have with attribution?                   | growth case attribution block                                | portfolio semantic units          |
-| What has Michael built with AI?                                       | codenames case / OpenAI / validation                         | heterogeneous case shape          |
-| What developer infrastructure has Michael worked on?                  | renovate governance / renovate-workflow                      | existing + repo runbook           |
-| What has Michael written about agent memory?                          | **Likely weak/absent** — document as known corpus gap        | gap signal (not a hard pass/fail) |
+| Question                                                              | `expected_any_of` (`unit_id` prefix or exact)                                                                                         | Exercises                                            |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| What experimentation infrastructure did Michael work on at Atlassian? | `unit/portfolio/experiment-measurement-b04-onboarding`, `unit/about/atlassian-swe-2024`, `unit/portfolio/experiment-measurement-case` | experiment-measurement blocks + about experience     |
+| Has Michael managed engineers?                                        | `unit/about/atlassian-em-2020`                                                                                                        | about experience entry (`id: atlassian-em-2020`)     |
+| Why did Michael return to individual-contributor engineering?         | `unit/about/summary`                                                                                                                  | about summary concept                                |
+| What experience does Michael have with attribution?                   | `unit/portfolio/experiment-measurement-b01-attribution`, `unit/about/atlassian-em-2020`                                               | experiment-measurement attribution block + EM bullet |
+| What has Michael built with AI?                                       | `unit/portfolio/codenames-ai-case`, `unit/portfolio/codenames-ai-b01-validation`, `unit/about/codenames-ai`                           | codenames-ai case + about independent entry          |
+| What developer infrastructure has Michael worked on?                  | `unit/portfolio/renovate-governance-*`, `unit/repo/renovate-workflow-*`                                                               | existing renovate portfolio + repo runbook concepts  |
+| What has Michael written about agent memory?                          | _(none — `kind: corpus_gap`)_                                                                                                         | document weak/absent evidence; not a hard pass/fail  |
+
+Example fixture entry:
+
+```json
+{
+  "id": "attribution-experience",
+  "question": "What experience does Michael have with attribution?",
+  "kind": "positive",
+  "top_k": 5,
+  "expected_any_of": [
+    "unit/portfolio/experiment-measurement-b01-attribution",
+    "unit/about/atlassian-em-2020"
+  ],
+  "min_rank": 3
+}
+```
 
 ### Positive eval assertions (avoid brittle floats)
 
-- `expected_any_of: ["portfolio/growth-*", "about/atlassian-em-*"]` — at least one hit in top-K
-- `min_rank` optional (e.g. expected unit in top 3)
+- At least one retrieved `unit_id` matches an entry in `expected_any_of` (exact or prefix glob) within `top_k`
+- Optional `min_rank` caps how far down the ranked list an acceptable hit may appear
 - Skip entire eval suite when `DATABASE_URL` / `OPENAI_API_KEY` unset (prefer skip + manual gate for this experiment)
 
 ### Negative / out-of-corpus eval (inspect scores, do not assert absence)
