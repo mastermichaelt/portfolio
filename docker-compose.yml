@@ -1,0 +1,16 @@
+# Local Postgres + pgvector for assistant retrieval dev tooling only.
+# Not used by the Next.js app or Vercel deploy.
+services:
+  assistant-postgres:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: portfolio_dev
+      POSTGRES_DB: portfolio_assistant
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio -d portfolio_assistant"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

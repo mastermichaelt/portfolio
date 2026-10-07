@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: db-foundation
     content: "PR 4: Postgres+pgvector schema, migrations, docker-compose, DATABASE_URL wiring"
-    status: pending
+    status: completed
   - id: embeddings-adapter
     content: "PR 5: Thin OpenAI embeddings adapter (batching, retries, fixed index config validation)"
     status: pending
