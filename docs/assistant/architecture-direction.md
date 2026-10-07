@@ -2,8 +2,8 @@
 title: Portfolio assistant architecture direction
 subtitle: Another view over published knowledge — not a site redesign
 status: draft
-version: 0.2.0
-updated: 2026-10-06
+version: 0.3.0
+updated: 2026-10-07
 related:
   - docs/assistant/prior-art.md
   - docs/architecture/overview.md
@@ -62,7 +62,7 @@ The feature also exercises RAG mechanics in the same Next.js codebase that hosts
 
 ## Current implementation
 
-**Current implementation.** No assistant exists. The production app is a static-first Next.js site:
+**Current implementation.** No visitor-facing assistant exists. The production app is a static-first Next.js site:
 
 - Pages read through `PortfolioRepository` → typed modules under `content/`.
 - No `app/api/` routes, no embeddings, no vector store, no chat UI.
@@ -71,6 +71,12 @@ The feature also exercises RAG mechanics in the same Next.js codebase that hosts
 ```text
 app/ pages → PortfolioRepository → content/ modules
 ```
+
+**Current implementation (assistant dev tooling only).** OKF normalization is shipped as CLI tooling outside the Next.js app bundle:
+
+- Producers under `scripts/assistant/okf/`; `npm run okf:build` writes an inspectable, gitignored corpus to `generated/okf/`.
+- Fifteen concepts today across portfolio, repository runbook, and published-writing fixtures (see [okf-normalization-experiment.md](./okf-normalization-experiment.md)).
+- No retrieval units, embeddings, Postgres/pgvector, ingest/retrieve CLIs, or answer generation yet.
 
 When built, the assistant layers on top of the existing site without redesigning it. Portfolio presentation continues through `PortfolioRepository` → `content/`; corpus producers normalize that curated source alongside selected repositories and published writing into the OKF pipeline.
 
@@ -162,7 +168,16 @@ Multiple retrieval chunks may derive from one OKF concept. Chunks are retrieval 
 
 Neon remains a likely future Postgres provider where Postgres is appropriate. **OKF ≠ Postgres.** OKF is not an embedding format, a vector index, or a storage engine.
 
-This is **directional**. It is not a commitment to LangChain, OpenAI, in-memory vectors, or any particular API shape forever.
+**Two Postgres concerns (do not conflate).** The portfolio site and the assistant retrieval index may both use Postgres (likely Neon as hosted provider), but they are separate schema and lifecycle concerns:
+
+| Concern                       | Role                                               | Status                                                                                |
+| ----------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **Site content persistence**  | Future `PortfolioRepository` adapter (Milestone 4) | Not started; see [architecture overview](../architecture/overview.md)                 |
+| **Assistant embedding index** | Derived pgvector store for semantic retrieval      | In progress — [vector retrieval experiment](#vector-retrieval-experiment-in-progress) |
+
+They may share a Neon project in development but must not share tables or migration paths.
+
+This is **directional**. It is not a commitment to any particular API shape forever. The active vector retrieval experiment uses direct primitives only — **no LangChain, LlamaIndex, or dedicated vector SaaS** (see experiment plan).
 
 ### OKF as canonical normalized representation
 
@@ -229,11 +244,11 @@ Extensions emerge from concrete ingestion / retrieval needs — not from specula
 
 **Architectural direction (decision).** The first semantic RAG experiments remain **corpus-only** so retrieval behaviour can be observed and evaluated cleanly. Live web retrieval could mask corpus, chunking, embedding, or retrieval failures by independently finding the answer. This is an experimental sequencing decision, not a permanent product restriction.
 
-**Architectural direction (hypothesis).** An in-memory vector store is a reasonable **first experimental direction** for a small bounded corpus. Persistent storage (pgvector, hosted vector DB, etc.) is a future acceptance milestone only if behaviour and deployment justify it.
+**Architectural direction (decision — vector retrieval experiment).** **Postgres + pgvector is the retrieval backbone** for the current experiment family. The prior in-memory-first hypothesis (see [changelog](#changelog)) is superseded for this work: a small bounded corpus still warrants a real derived index so distance semantics, sync, and inspectability match production-shaped learning.
 
-**Architectural direction (hypothesis).** LangChain JS is a reasonable way to **learn** RAG mechanics (see prior art). It is not necessarily a permanent dependency.
+**Architectural direction (decision — vector retrieval experiment).** Use **direct primitives only** — thin OpenAI embeddings adapter, `pg` driver, cosine distance via pgvector `<=>`, exact search (no ANN index in the first experiment). **LangChain** was a reasonable learning hypothesis (see [prior art](./prior-art.md)); it is **explicitly not used** in this experiment.
 
-**Architectural direction (hypothesis).** OpenAI embeddings and a small chat model are a plausible first provider pairing; provider choice remains swappable.
+**Architectural direction (decision — vector retrieval experiment).** The embedding index representation is **fixed**: `text-embedding-3-small` at **1536 dimensions** (`vector(1536)` in schema). Model or dimension changes require a schema migration and full re-embed — not a runtime env swap. A small chat model for grounded answers remains a later milestone.
 
 ### Grounding posture
 
@@ -247,11 +262,42 @@ The first corpus-only experiments should use a lightweight grounding prompt (e.g
 
 **Resolved:** “What generic knowledge representation should we invent?” → **OKF**.
 
-**Next experiment (future just-in-time plan):**
+**Shipped (2026-10-06):** OKF normalization — representative portfolio, repository, and published-writing sources normalized into an inspectable corpus with no schema extensions required. Findings: [okf-normalization-experiment.md](./okf-normalization-experiment.md).
 
-> Can representative sources from the portfolio, a project repository, and published writing be faithfully normalized into OKF, using minimal extensions only where demonstrated necessary?
+**Next experiment (in progress):** Vector retrieval over a bounded expanded OKF corpus — retrieval-unit derivation, OpenAI embeddings, Postgres+pgvector persistence, idempotent ingest, and an inspectable retrieval CLI. No answer generation, chat UI, or RAG frameworks. Plan: [assistant-vector-retrieval-experiment.plan.md](../../.cursor/plans/assistant-vector-retrieval-experiment.plan.md).
 
-Produce an **inspectable OKF corpus** before semantic retrieval is added.
+## Vector retrieval experiment (in progress)
+
+**Status:** Active multi-slice experiment (doc reconciliation → corpus expansion → retrieval units → pgvector → embeddings → ingest → retrieve → eval).
+
+**Target pipeline:**
+
+```text
+Canonical portfolio sources (content/ + fixtures)
+        ↓
+OKF producers (okf:build) — shipped; corpus expansion in progress
+        ↓
+Retrieval-unit derivation (1:1 per OKF concept initially)
+        ↓
+OpenAI embeddings (text-embedding-3-small, 1536 dims — fixed index config)
+        ↓
+Postgres + pgvector (derived index only; exact cosine search)
+        ↓
+Inspectable top-K evidence + provenance (CLI)
+```
+
+**Canonical vs derived:**
+
+| Artifact             | Canonical?     | Location                      |
+| -------------------- | -------------- | ----------------------------- |
+| `content/`, repo/DEV | Yes            | Git                           |
+| OKF concepts         | No (transient) | `generated/okf/` (gitignored) |
+| Retrieval units      | No             | Derived at ingest             |
+| Embeddings / vectors | No             | Postgres (rebuildable)        |
+
+**Explicit non-goals for this experiment:** chatbot UI, answer generation, LangChain/LlamaIndex, ANN indexes (HNSW/IVFFlat), hybrid lexical+semantic search, public API routes.
+
+Closure findings will ship in `docs/assistant/vector-retrieval-experiment.md` after implementation slices complete.
 
 ## Boundaries that should remain true
 
@@ -268,9 +314,9 @@ Produce an **inspectable OKF corpus** before semantic retrieval is added.
 
 These are **not** scheduled slices. They name areas future experiments may touch after earlier work ships:
 
-- Source-specific producers normalizing portfolio content, repo docs, and published writing into OKF
-- Inspectable OKF corpus before embeddings
-- Retrieval-unit derivation from OKF knowledge
+- Source-specific producers normalizing portfolio content, repo docs, and published writing into OKF — **partially shipped** (Renovate corpus + fixtures; About and project cases expanding)
+- Inspectable OKF corpus before embeddings — **shipped**
+- Retrieval-unit derivation from OKF knowledge — **in progress** (vector retrieval experiment)
 - First end-to-end semantic RAG experiment (server-side, credentials required)
 - Citation / source presentation in responses and UI
 - Landing-page interaction (suggested questions, additive placement)
@@ -305,7 +351,7 @@ later experiments as justified:
   - other retrieval improvements
 ```
 
-We may adopt pgvector, hybrid retrieval, reranking, or strict grounding **only if** usage and failure analysis justify them. This note does not prescribe those technologies.
+**pgvector** is adopted for the active vector retrieval experiment (exact search baseline). Hybrid retrieval, reranking, ANN indexes, and strict grounding may follow **only if** usage and failure analysis justify them.
 
 ## What we have learned so far
 
@@ -316,11 +362,24 @@ We may adopt pgvector, hybrid retrieval, reranking, or strict grounding **only i
 - The site's existing `PortfolioRepository` / `content/` split is the right seam for portfolio presentation; a read projection for `content/` does not require a new content store to start learning.
 - The corpus spans more than `content/` alone — project repositories and published writing are part of the knowledge boundary; OKF provides a standard normalization layer so we do not invent a parallel knowledge format.
 
+**Experimental evidence (2026-10-06, OKF normalization).**
+
+- OKF v0.2 is sufficient for representative portfolio, repo, and writing sources without extensions.
+- OKF concepts are transient normalization output; embeddings and vector rows are disposable projections rebuildable from canonical sources.
+- Concept granularity should follow source semantics (case blocks, runbook sections, article body) — not fixed-token chunking at normalization time.
+
+**Direction (2026-10-07, vector retrieval experiment).**
+
+- Postgres+pgvector replaces the prior in-memory-first hypothesis for retrieval learning.
+- Fixed embedding representation (`text-embedding-3-small`, 1536 dims) is a schema constraint, not a swappable runtime knob.
+- Exact cosine search establishes the quality baseline before any ANN optimization.
+
 ## Changelog
 
-| Date       | Change                                                                                                                                                                                       |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-06 | Added future context-aware retrieval, retrieval + answer evaluation, and public-assistant hardening/streaming experiments (directional only)                                                 |
-| 2026-10-06 | Clarified canonical OKF corpus vs future external retrieval; corpus-only first experiments; opening goal and current-implementation posture no longer tied to `content/`-only stack          |
-| 2026-10-06 | Corpus boundary broadened beyond `content/` alone; OKF adopted as canonical normalized representation; five-layer separation documented; supersedes v0.1.0 `content/`-only corpus assumption |
-| 2026-10-06 | Initial direction note; split from monolithic architecture doc; recorded abandoned PR #14 master plan                                                                                        |
+| Date       | Change                                                                                                                                                                                                                                                                           |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-07 | Reconciled for vector retrieval experiment: OKF normalization marked shipped; Postgres+pgvector as retrieval backbone; superseded in-memory-first hypothesis; LangChain non-use for this experiment; two Postgres concerns documented; OKF dev tooling in current implementation |
+| 2026-10-06 | Added future context-aware retrieval, retrieval + answer evaluation, and public-assistant hardening/streaming experiments (directional only)                                                                                                                                     |
+| 2026-10-06 | Clarified canonical OKF corpus vs future external retrieval; corpus-only first experiments; opening goal and current-implementation posture no longer tied to `content/`-only stack                                                                                              |
+| 2026-10-06 | Corpus boundary broadened beyond `content/` alone; OKF adopted as canonical normalized representation; five-layer separation documented; supersedes v0.1.0 `content/`-only corpus assumption                                                                                     |
+| 2026-10-06 | Initial direction note; split from monolithic architecture doc; recorded abandoned PR #14 master plan                                                                                                                                                                            |

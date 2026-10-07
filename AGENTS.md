@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # AGENTS.md
 
-Personal engineering portfolio and project knowledge base (Next.js App Router). Static-first content behind a repository abstraction; Postgres-backed persistence later when needed (hosted provider likely Neon).
+Personal engineering portfolio and project knowledge base (Next.js App Router). Static-first content behind a repository abstraction; Postgres-backed site persistence later when needed (hosted provider likely Neon). Assistant retrieval uses a separate Postgres+pgvector derived index — see [docs/assistant/architecture-direction.md](docs/assistant/architecture-direction.md).
 
 ## Engineering preferences
 
