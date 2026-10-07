@@ -31,7 +31,7 @@
     "prepare": "sh scripts/prepare-git-hooks.sh",
     "verify:git-hooks": "sh scripts/verify-git-hooks.sh",
     "okf:build": "node --experimental-strip-types scripts/assistant/okf/build.mjs",
-    "renovate:freshness-poll": "tsx node_modules/renovate-workflow/scripts/renovate-freshness-poll.ts"
+    "renovate:freshness-poll": "renovate-workflow freshness-poll"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -55,9 +55,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
-    "renovate-workflow": "github:multipliers-dev/renovate-workflow",
+    "@multipliers-dev/renovate-workflow": "^0.3.0",
     "tailwindcss": "^4",
-    "tsx": "^4.23.12",
     "typescript": "^5",
     "vitest": "^4.1.10"
   },
