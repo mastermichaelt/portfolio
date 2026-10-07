@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: retrieval-units
     content: "PR 3: Retrieval-unit derivation from OKF concepts (stable IDs, content hashes, CLI inspect)"
-    status: pending
+    status: completed
   - id: db-foundation
     content: "PR 4: Postgres+pgvector schema, migrations, docker-compose, DATABASE_URL wiring"
     status: pending

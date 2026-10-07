@@ -31,6 +31,7 @@
     "prepare": "sh scripts/prepare-git-hooks.sh",
     "verify:git-hooks": "sh scripts/verify-git-hooks.sh",
     "okf:build": "node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs scripts/assistant/okf/build.mjs",
+    "assistant:derive": "node scripts/assistant/retrieval/derive-units.mjs",
     "renovate:freshness-poll": "renovate-workflow freshness-poll"
   },
   "dependencies": {
