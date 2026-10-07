@@ -22,7 +22,7 @@ todos:
     status: pending
   - id: neon-deployment
     content: "PR 6: Hosted Neon assistant retrieval index — operator workflow, migrate + verify on Neon (no ingest)"
-    status: pending
+    status: completed
   - id: ingest-sync
     content: "PR 7: Idempotent ingest pipeline (upsert/skip/delete stale, ingestion run metadata)"
     status: pending
