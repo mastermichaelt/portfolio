@@ -276,7 +276,7 @@ CI does not require `OPENAI_API_KEY`; unit tests mock embeddings.
 
 ### 6. Post corpus-expansion re-ingest acceptance
 
-After [corpus coverage expansion](../.cursor/plans/assistant-corpus-coverage-expansion.plan.md) merges, the indexed corpus grows (on the order of **~89** OKF concepts and **~200+** structure-aware retrieval units vs the prior bounded experiment). Passing retrieval-eval on the old index does **not** guarantee passing on the expanded index — more units compete in top-K.
+After [corpus coverage expansion](./corpus-coverage-expansion.md) ([#45](https://github.com/mastermichaelt/portfolio/pull/45)), the indexed corpus grows (on the order of **~89** OKF concepts and **~200+** structure-aware retrieval units vs the prior bounded experiment). Passing retrieval-eval on the old index does **not** guarantee passing on the expanded index — more units compete in top-K.
 
 **Operator sequence** (against the intended assistant `DATABASE_URL`, not `ASSISTANT_TEST_DATABASE_URL`):
 
@@ -288,7 +288,7 @@ After [corpus coverage expansion](../.cursor/plans/assistant-corpus-coverage-exp
    npm run test -- tests/assistant-retrieval-eval.test.ts
    ```
 
-4. **Record outcomes** — if rankings regress, document in corpus expansion findings ([plan-closure](../.cursor/plans/assistant-corpus-coverage-expansion.plan.md) slice / `docs/assistant/`) before weakening `tests/fixtures/assistant-retrieval/eval-cases.json`. Expanded competition is expected signal, not noise to fixture away without review.
+4. **Record outcomes** — if rankings regress, document in [corpus-coverage-expansion.md](./corpus-coverage-expansion.md) before weakening `tests/fixtures/assistant-retrieval/eval-cases.json`. Expanded competition is expected signal, not noise to fixture away without review.
 
 ## Commands
 

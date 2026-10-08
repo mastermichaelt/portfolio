@@ -66,7 +66,7 @@ isProject: false
 - Assistant CLI pipeline on `main` (`okf:build`, `assistant:derive`, `assistant:ingest`, `assistant:retrieve`) — see [assistant-database.md](../../../docs/assistant/assistant-database.md)
 - [`tests/fixtures/assistant-retrieval/`](../../../tests/fixtures/assistant-retrieval/) — eval fixtures
 
-**Next active plan:** [`assistant-corpus-coverage-expansion.plan.md`](../../assistant-corpus-coverage-expansion.plan.md) — expand OKF coverage and re-ingest; do not reopen 1:1 vs structure-aware chunking.
+**Follow-on (shipped):** [`corpus-coverage-expansion.md`](../../../docs/assistant/corpus-coverage-expansion.md) / [archived plan](2026-10-08-assistant-corpus-coverage-expansion.plan.md). **Next active plan:** [`assistant-career-inventory-corpus.plan.md`](../../assistant-career-inventory-corpus.plan.md).
 
 ---
 
