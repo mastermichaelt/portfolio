@@ -1,6 +1,6 @@
 /**
  * Retrieval unit shape derived from OKF concepts (in-memory / pre-persist).
- * One unit per OKF concept in the initial 1:1 mapping.
+ * Structure-aware 1:N mapping per OKF concept when body structure warrants it.
  */
 
 /**
@@ -16,7 +16,7 @@
 
 /**
  * @typedef {object} RetrievalUnit
- * @property {string} unit_id Stable deterministic id (`unit/{okf_concept_id}`)
+ * @property {string} unit_id Stable deterministic id (`unit/{okf_concept_id}` or `unit/{okf_concept_id}#{partKey}`)
  * @property {string} okf_concept_id OKF concept path without `.md`
  * @property {string} okf_version OKF bundle version (e.g. `0.2`)
  * @property {SourceClass} source_class Namespace prefix of the concept id
@@ -27,7 +27,10 @@
  * @property {string[]} tags OKF tags for filtering
  * @property {string} text Embedding input (`{title}\n\n{body}`)
  * @property {string} content_hash SHA-256 hex digest of `text`
- * @property {Record<string, unknown>} metadata Filterable facets (e.g. `generated`)
+ * @property {string} [section_heading] Heading for this chunk when split by structure
+ * @property {number} [chunk_index] Zero-based index when split (omitted for single-chunk concepts)
+ * @property {number} [chunk_count] Total chunks for parent concept when split
+ * @property {Record<string, unknown>} metadata Filterable facets (generated, chunk provenance)
  */
 
 export {};

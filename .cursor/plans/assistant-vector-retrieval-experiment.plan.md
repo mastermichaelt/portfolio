@@ -31,7 +31,7 @@ todos:
     status: completed
   - id: structure-aware-chunking
     content: "PR 9: Structure-aware 1:N retrieval units (deterministic IDs, provenance, re-ingest via ingest-sync)"
-    status: pending
+    status: completed
   - id: retrieval-eval
     content: "PR 10: Eval suite — parent concept, section/chunk, ranking, specificity, failure cases"
     status: pending
