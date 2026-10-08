@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   assertCareerInventoryPublicationIntegrity,
+  assertSafeCareerInventoryRelativePath,
   CAREER_INVENTORY_DIR,
   CAREER_PUBLICATION_MANIFEST_PATH,
   CAREER_SOURCE_ELIGIBILITY_PATH,
@@ -29,6 +30,39 @@ describe("career inventory publication boundary", () => {
 
   it("fails closed when publication integrity checks run", () => {
     expect(() => assertCareerInventoryPublicationIntegrity()).not.toThrow();
+  });
+
+  it("rejects unsafe and malformed career inventory paths", () => {
+    expect(() =>
+      assertSafeCareerInventoryRelativePath(
+        "facts/admin-hub-experimentation.yml",
+        "eligible_source",
+      ),
+    ).not.toThrow();
+    expect(() =>
+      assertSafeCareerInventoryRelativePath(
+        "snapshots/admin-hub-experimentation.md",
+        "snapshot_file",
+      ),
+    ).not.toThrow();
+
+    for (const unsafe of [
+      "../facts/leak.yml",
+      "facts/../../etc/passwd",
+      "/etc/passwd",
+      "snapshots/../publication-manifest.json",
+      "wrong/admin-hub.yml",
+    ]) {
+      expect(() =>
+        assertSafeCareerInventoryRelativePath(unsafe, "eligible_source"),
+      ).toThrow();
+    }
+    expect(() =>
+      assertSafeCareerInventoryRelativePath(
+        "snapshots/../source-eligibility.json",
+        "snapshot_file",
+      ),
+    ).toThrow();
   });
 
   it("emits career/ concepts from snapshots only with source_class career", () => {
