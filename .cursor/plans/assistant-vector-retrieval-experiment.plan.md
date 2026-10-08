@@ -852,14 +852,15 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 - Preserve parent `okf_concept_id`, canonical source, section heading, chunk position, and `sources` provenance on each unit.
 - Deterministic `unit_id` + `content_hash` per unit; obsolete ids removed on re-ingest via existing orphan cleanup.
 - Re-ingest authoritative assistant index after merge (`okf:build` → `assistant:derive` → `assistant:ingest`).
+- **Post-re-ingest retrieve regression:** rerun `assistant:retrieve` against the chunked index (representative queries + `--filter-source-class` when applicable) and confirm ranking order, cosine distance fields, provenance (`okf_concept_id`, `sources`, section/chunk metadata in output), and source-class filtering still behave as before chunking — chunking must not break the retrieve CLI contract.
 
-**Tests:** Deterministic IDs/hashes across rebuilds; short concept → 1 unit; long/multi-section concept → multiple units; chunk metadata present; no OKF producer output changes for the same `okf:build`.
+**Tests:** Deterministic IDs/hashes across rebuilds; short concept → 1 unit; long/multi-section concept → multiple units; chunk metadata present; no OKF producer output changes for the same `okf:build`. Extend or add retrieve tests as needed so post-re-ingest ranking/metadata/filter regressions are caught in CI when `DATABASE_URL` is set (otherwise document manual verification in the PR).
 
 **Depends on:** `retrieve-cli` merged
 
 **Does not include:** `ingest-sync` semantic changes, dual derivation modes for benchmarking, parallel 1:1 indexes, embedding model/schema change, ANN indexes, LangChain/LlamaIndex, OKF producer edits, generative answers, generic chunking framework, eval harness (slice `retrieval-eval`)
 
-**Stop:** `assistant:derive` emits structure-aware units (>1 unit for at least one bounded-corpus long concept); `assistant:ingest` syncs with correct orphan behavior; tests green
+**Stop:** `assistant:derive` emits structure-aware units (>1 unit for at least one bounded-corpus long concept); `assistant:ingest` syncs with correct orphan behavior; **post-re-ingest `assistant:retrieve` regression verified** (ranking, metadata/provenance fields, source filtering); tests green
 
 ---
 
@@ -1116,11 +1117,11 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: structure-aware 1:N retrieval-unit derivation (deterministic unit_id, content_hash, provenance metadata); tests; re-ingest via assistant:ingest on DATABASE_URL documented in PR. Mark structure-aware-chunking completed in plan frontmatter in this PR.
+Deliverables: structure-aware 1:N retrieval-unit derivation (deterministic unit_id, content_hash, provenance metadata); tests; re-ingest via assistant:ingest on DATABASE_URL; post-re-ingest assistant:retrieve regression (ranking, metadata/provenance, --filter-source-class) documented in PR. Mark structure-aware-chunking completed in plan frontmatter in this PR.
 
 Do not: ingest-sync semantic changes, dual derivation modes for benchmarking, OKF producer/normalization edits, embedding model or vector(1536) schema changes, ANN indexes, LangChain/LlamaIndex, generic chunking frameworks, generative answers, or retrieval-eval harness.
 
-Verification: npm run okf:build; npm run assistant:derive; npm run test; npm run format:check; npm run assistant:ingest when secrets configured.
+Verification: npm run okf:build; npm run assistant:derive; npm run test; npm run format:check; npm run assistant:ingest when secrets configured; then npm run assistant:retrieve (and filter flags) against chunked index — confirm retrieve-cli contract unchanged.
 ```
 
 ### retrieval-eval
