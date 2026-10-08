@@ -36,3 +36,11 @@ Compare body text to the private inventory entries named in `approved_entry_ids`
 1. Update eligibility and/or snapshots after inventory review.
 2. Recompute `sha256` for each changed snapshot and update `publication-manifest.json`.
 3. Run `npm run test -- tests/okf-career-inventory-coverage.test.ts`.
+
+## Post-merge operator acceptance (ingest)
+
+After this producer merges:
+
+1. `npm run okf:build` — confirm **94** OKF concepts (was **89**; **+5** `career/*` concepts from the publication manifest).
+2. `npm run assistant:derive --write` — read the derived total (structure-aware chunking; **do not** assume one retrieval unit per concept). Compare to the pre-merge derive baseline (e.g. **209** units after corpus expansion) and record the **unit** delta in the PR or ops notes.
+3. `npm run assistant:ingest` on the intended `DATABASE_URL` — use ingest upsert/skip/delete summary; publication approval remains the merged manifests + human snapshot review, not a green ingest.

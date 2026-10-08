@@ -153,7 +153,7 @@ Integration branch: `main`. Each implementation slice from latest `origin/main`;
 - **Content publication** manifest + **reviewed public snapshots** under `tests/fixtures/assistant-okf/career-inventory/` (deterministic excerpt format — not full private file copies)
 - `career-inventory-producer.mjs` reading **snapshots only** (CI-safe), emitting **`career/`** concepts with **`source_class: career`**
 - Coverage tests — eligibility ↔ publication manifest ↔ snapshot hashes; **fail closed** on mismatch or unapproved content
-- Re-ingest only after publication artifacts merge; note unit count delta (ingest success does not retroactively approve publication)
+- Re-ingest only after publication artifacts merge; expect **+5** OKF concepts (`89` → `94`). **Retrieval units:** measure the delta after `assistant:derive` (structure-aware 1:N — not 1:1 with concepts); record derived total and ingest summary (ingest success does not retroactively approve publication)
 
 **Does not include:** live private-repo fetch in CI; wholesale YAML mirroring; `applications/**`, `out/`, `stories/`, interview prep, recruiter notes; embedding or ingest as a publication approval step
 
