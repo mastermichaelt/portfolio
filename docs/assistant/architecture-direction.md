@@ -2,10 +2,11 @@
 title: Portfolio assistant architecture direction
 subtitle: Another view over published knowledge — not a site redesign
 status: draft
-version: 0.3.0
-updated: 2026-10-07
+version: 0.4.0
+updated: 2026-10-08
 related:
   - docs/assistant/prior-art.md
+  - docs/assistant/rag-generation-direction.md
   - docs/architecture/overview.md
   - PRODUCT.md
 ---
@@ -72,11 +73,15 @@ The feature also exercises RAG mechanics in the same Next.js codebase that hosts
 app/ pages → PortfolioRepository → content/ modules
 ```
 
-**Current implementation (assistant dev tooling only).** OKF normalization is shipped as CLI tooling outside the Next.js app bundle:
+**Current implementation (assistant dev tooling only).** OKF normalization and the **retrieval index pipeline** are shipped as CLI tooling outside the Next.js app bundle (no answer generation, no chat UI):
 
-- Producers under `scripts/assistant/okf/`; `npm run okf:build` writes an inspectable, gitignored corpus to `generated/okf/`.
-- Fifteen concepts today across portfolio, repository runbook, and published-writing fixtures (see [okf-normalization-experiment.md](./okf-normalization-experiment.md)).
-- No retrieval units, embeddings, Postgres/pgvector, ingest/retrieve CLIs, or answer generation yet.
+- Producers under `scripts/assistant/okf/`; `npm run okf:build` writes an inspectable, gitignored corpus to `generated/okf/` (bounded experiment corpus — see [vector retrieval experiment](#vector-retrieval-experiment-in-progress)).
+- **Structure-aware retrieval-unit derivation** (`npm run assistant:derive`): 1..N units per OKF concept from markdown structure (headings, paragraph safeguards, fence-aware splits), deterministic `unit_id` / `content_hash`, parent `okf_concept_id`, chunk provenance.
+- **Embeddings + pgvector index** (`npm run assistant:ingest`): idempotent sync to Postgres (`assistant_retrieval_units`); operator workflow [assistant-database.md](./assistant-database.md).
+- **Inspectable retrieval** (`npm run assistant:retrieve`): top-K cosine search + provenance fields; stops before any LLM answer step.
+- **Retrieval evaluation** (in progress per experiment plan): fixtures against the ingested index — retrieval quality only.
+
+**Current implementation.** Answer generation, evidence assembly for LLM context, API routes, and visitor UI are **not implemented**. Future design considerations: [rag-generation-direction.md](./rag-generation-direction.md).
 
 When built, the assistant layers on top of the existing site without redesigning it. Portfolio presentation continues through `PortfolioRepository` → `content/`; corpus producers normalize that curated source alongside selected repositories and published writing into the OKF pipeline.
 
@@ -273,26 +278,28 @@ The first corpus-only experiments should use a lightweight grounding prompt (e.g
 
 **Shipped (2026-10-06):** OKF normalization — representative portfolio, repository, and published-writing sources normalized into an inspectable corpus with no schema extensions required. Findings: [okf-normalization-experiment.md](./okf-normalization-experiment.md).
 
-**Next experiment (in progress):** Vector retrieval over a bounded expanded OKF corpus — retrieval-unit derivation, OpenAI embeddings, Postgres+pgvector persistence, idempotent ingest, and an inspectable retrieval CLI. No answer generation, chat UI, or RAG frameworks. Plan: [assistant-vector-retrieval-experiment.plan.md](../../.cursor/plans/assistant-vector-retrieval-experiment.plan.md).
+**Next experiment (in progress):** Vector retrieval over a bounded expanded OKF corpus — structure-aware retrieval-unit derivation, OpenAI embeddings, Postgres+pgvector persistence, idempotent ingest, inspectable retrieval CLI, and retrieval-eval. **No answer generation, chat UI, or RAG frameworks** in this experiment. Plan: [assistant-vector-retrieval-experiment.plan.md](../../.cursor/plans/assistant-vector-retrieval-experiment.plan.md). **Generation architecture** (evidence assembly, citations, abstention) is documented separately in [rag-generation-direction.md](./rag-generation-direction.md) for a later milestone.
 
 ## Vector retrieval experiment (in progress)
 
-**Status:** Active multi-slice experiment (doc reconciliation → corpus expansion → retrieval units → pgvector → embeddings → ingest → retrieve → eval).
+**Status:** Active multi-slice experiment — retrieval infrastructure largely shipped; **retrieval-eval** and plan closure remain. Answer generation is out of scope.
 
-**Target pipeline:**
+**Target pipeline (retrieval stage — implemented in dev tooling):**
 
 ```text
 Canonical portfolio sources (content/ + fixtures)
         ↓
-OKF producers (okf:build) — shipped; corpus expansion in progress
+OKF producers (okf:build)
         ↓
-Retrieval-unit derivation (1:1 per OKF concept initially)
+Structure-aware retrieval-unit derivation (1..N per OKF concept)
         ↓
 OpenAI embeddings (text-embedding-3-small, 1536 dims — fixed index config)
         ↓
 Postgres + pgvector (derived index only; exact cosine search)
         ↓
-Inspectable top-K evidence + provenance (CLI)
+Inspectable top-K evidence + provenance (assistant:retrieve CLI)
+        ↓
+(retrieval-eval) → (future RAG generation — not implemented)
 ```
 
 **Canonical vs derived:**
@@ -307,6 +314,10 @@ Inspectable top-K evidence + provenance (CLI)
 **Explicit non-goals for this experiment:** chatbot UI, answer generation, LangChain/LlamaIndex, ANN indexes (HNSW/IVFFlat), hybrid lexical+semantic search, public API routes.
 
 Closure findings will ship in `docs/assistant/vector-retrieval-experiment.md` after implementation slices complete.
+
+### Answer generation (future — not implemented)
+
+**Architectural direction.** The retrieval experiment deliberately ends at ranked evidence. A later milestone adds **evidence assembly** (context packet for the LLM) and **grounded generation** (answer + citations + abstention). Parent-context expansion after chunk-level retrieval, token budgets, and split retrieval-vs-answer evaluation are **proposed options and open decisions** — not commitments — in [rag-generation-direction.md](./rag-generation-direction.md).
 
 ## Boundaries that should remain true
 
@@ -325,7 +336,9 @@ These are **not** scheduled slices. They name areas future experiments may touch
 
 - Source-specific producers normalizing portfolio content, repo docs, and published writing into OKF — **partially shipped** (Renovate corpus + fixtures; About and project cases expanding)
 - Inspectable OKF corpus before embeddings — **shipped**
-- Retrieval-unit derivation from OKF knowledge — **in progress** (vector retrieval experiment)
+- Retrieval-unit derivation from OKF knowledge — **shipped** (structure-aware 1:N; vector retrieval experiment)
+- Retrieval quality evaluation — **in progress** (retrieval-eval slice)
+- Evidence assembly + grounded answer generation — **not implemented**; design notes in [rag-generation-direction.md](./rag-generation-direction.md)
 - First end-to-end semantic RAG experiment (server-side, credentials required)
 - Citation / source presentation in responses and UI
 - Landing-page interaction (suggested questions, additive placement)
@@ -383,10 +396,16 @@ later experiments as justified:
 - Fixed embedding representation (`text-embedding-3-small`, 1536 dims) is a schema constraint, not a swappable runtime knob.
 - Exact cosine search establishes the quality baseline before any ANN optimization.
 
+**Direction (2026-10-08, retrieval → generation boundary).**
+
+- Structure-aware 1:N retrieval units link chunk-level search to parent `okf_concept_id` — a natural hook for future parent-context expansion, but expansion is **not** an approved implementation requirement.
+- Retrieval-eval measures retrieval in isolation; grounded answer quality and abstention belong to a later generation milestone ([rag-generation-direction.md](./rag-generation-direction.md)).
+
 ## Changelog
 
 | Date       | Change                                                                                                                                                                                                                                                                           |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-08 | Added [rag-generation-direction.md](./rag-generation-direction.md); updated current implementation for retrieval pipeline + structure-aware derivation; clarified generation as future work                                                                                      |
 | 2026-10-07 | Reconciled for vector retrieval experiment: OKF normalization marked shipped; Postgres+pgvector as retrieval backbone; superseded in-memory-first hypothesis; LangChain non-use for this experiment; two Postgres concerns documented; OKF dev tooling in current implementation |
 | 2026-10-06 | Added future context-aware retrieval, retrieval + answer evaluation, and public-assistant hardening/streaming experiments (directional only)                                                                                                                                     |
 | 2026-10-06 | Clarified canonical OKF corpus vs future external retrieval; corpus-only first experiments; opening goal and current-implementation posture no longer tied to `content/`-only stack                                                                                              |
