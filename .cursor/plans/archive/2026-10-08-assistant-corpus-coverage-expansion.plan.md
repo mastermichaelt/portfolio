@@ -33,7 +33,7 @@ isProject: false
 
 # Assistant corpus coverage expansion
 
-**Follow-on milestone** — not part of the archived [vector retrieval experiment](archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md) ([findings](../../docs/assistant/vector-retrieval-experiment.md)). That experiment validated retrieval machinery and **structure-aware 1:N retrieval units** on a bounded corpus; this plan expands **what** gets indexed (published articles, remaining portfolio surfaces) using the **same derivation strategy**.
+**Follow-on milestone** — not part of the archived [vector retrieval experiment](2026-10-07-assistant-vector-retrieval-experiment.plan.md) ([findings](../../../docs/assistant/vector-retrieval-experiment.md)). That experiment validated retrieval machinery and **structure-aware 1:N retrieval units** on a bounded corpus; this plan expands **what** gets indexed (published articles, remaining portfolio surfaces) using the **same derivation strategy**.
 
 ## Prerequisites
 
@@ -87,7 +87,7 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; PR base
 3. `npm run test -- tests/assistant-retrieval-eval.test.ts` on the re-ingested index.
 4. Record ranking regressions in corpus expansion findings; do not weaken eval fixtures until reviewed.
 
-**Follow-up (operational):** pinned `published/*.md` fixtures — distinguish missing slug, upstream body change, and stale fixture vs hub master; see [architecture-direction.md](../../docs/assistant/architecture-direction.md) (no live DEV fetch in OKF build).
+**Follow-up (operational):** pinned `published/*.md` fixtures — distinguish missing slug, upstream body change, and stale fixture vs hub master; see [architecture-direction.md](../../../docs/assistant/architecture-direction.md) (no live DEV fetch in OKF build).
 
 **Deferred (separate plan):** cross-repository sources — [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md) + [cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md).
 
