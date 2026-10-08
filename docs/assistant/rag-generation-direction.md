@@ -2,19 +2,22 @@
 title: Portfolio assistant — RAG generation direction
 subtitle: Design considerations between retrieval and grounded answers (not implemented)
 status: draft
-version: 0.1.0
+version: 0.2.0
 updated: 2026-10-08
 related:
   - docs/assistant/architecture-direction.md
   - docs/assistant/assistant-database.md
   - docs/assistant/okf-normalization-experiment.md
   - docs/assistant/vector-retrieval-experiment.md
+  - .cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md
   - .cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md
 ---
 
 # RAG generation direction
 
-This note captures **future** answer-generation architecture for the portfolio assistant. It does **not** specify API routes, prompts, models, or implementation slices. It preserves design considerations so a full RAG pipeline can be designed holistically when that milestone arrives.
+This note captures answer-generation architecture for the portfolio assistant. **Active execution plan:** [2026-10-08-assistant-grounded-rag-generation.plan.md](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md) (implementation slices; not yet shipped). This direction doc remains design background — routes, prompts, and code land via that plan.
+
+**Locked for the current milestone (see plan):** `gpt-4o-mini`; default evidence assembly **`full_parent`** (OKF concept boundary, Postgres-backed units); eval baseline **`top_k_only`**; generation default top-K **10**; budget fail-closed **`EvidenceBudgetExceeded`** (no silent drop of matched retrieval units); **citation integrity** (contract) vs **citation support** (generation-eval).
 
 Sections use the same labels as [architecture-direction.md](./architecture-direction.md): **current implementation**, **proposed design option**, **open decision**, **architectural direction**.
 
@@ -190,3 +193,4 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 | Date       | Change                                                                                                                                                                         |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 2026-10-08 | Initial draft: retrieval/generation boundary, evidence assembly options, parent-context expansion as proposed (not mandated), budgets, citations, abstention, split evaluation |
+| 2026-10-08 | Link active grounded-RAG execution plan; record locked assembly/citation/budget decisions for milestone                                                                        |
