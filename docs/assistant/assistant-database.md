@@ -215,9 +215,17 @@ CI does not require Neon; this verification is operator-run with secrets.
 
 ### 8. Ingest / retrieve configuration
 
-`assistant:ingest` and `assistant:retrieve` (later slice) use the same `DATABASE_URL` assistant retrieval connection — local Docker for development, Neon (direct or pooled) for persistent hosted index. They do not introduce a second assistant database configuration surface.
+`assistant:ingest` and `assistant:retrieve` use the same `DATABASE_URL` assistant retrieval connection — local Docker for development, Neon (direct or pooled) for persistent hosted index. They do not introduce a second assistant database configuration surface.
 
 Optional: use the **pooled** Neon connection string for long-running ingest/retrieve while keeping the **direct** string for migrations after schema changes.
+
+**Retrieve CLI:** after ingesting the corpus, inspect semantic search with:
+
+```bash
+npm run assistant:retrieve -- "your question"
+```
+
+Options: `--top-k <n>` (default 5), `--filter-source-class <id>`, `--json` for machine-readable output. The CLI embeds the question with the same model as ingest (`text-embedding-3-small`), then runs exact pgvector cosine search using the `<=>` operator. Each hit reports `cosine_distance` (lower = more similar; OpenAI embeddings are unit-normalized so distance is typically in `[0, 2]`) and `similarity = 1 - cosine_distance` as a diagnostic only. Requires `OPENAI_API_KEY` from the `portfolio-assistant` project.
 
 ## OpenAI Embeddings API (operator workflow)
 
