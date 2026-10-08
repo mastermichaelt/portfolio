@@ -138,7 +138,32 @@ describe("assistant generation evidence assembly", () => {
     });
 
     expect(packet.entries).toHaveLength(1);
+    expect(packet.entries[0]?.unit_id).toBe("unit/x#intro");
     expect(packet.entries[0]?.matched_retrieval).toBe(true);
+  });
+
+  it("supersedes unmatched-first duplicate when matched sibling shares content_hash", async () => {
+    const matchedHits = [
+      hit(1, "unit/x#intro", "x", "Shared body", "same-hash"),
+    ];
+    const fetchParentUnits = async () => [
+      parentRow("unit/x#dup", "x", "Shared body", 0, "same-hash"),
+      parentRow("unit/x#intro", "x", "Shared body", 1, "same-hash"),
+    ];
+
+    const packet = await assembleEvidencePacket({
+      matchedHits,
+      assemblyMode: "full_parent",
+      characterBudget: 10_000,
+      fetchParentUnits,
+    });
+
+    expect(packet.entries).toHaveLength(1);
+    expect(packet.entries[0]?.unit_id).toBe("unit/x#intro");
+    expect(packet.entries[0]?.matched_retrieval).toBe(true);
+    expect(packet.character_count).toBe(
+      characterCostForRetrievalText("Shared body"),
+    );
   });
 
   it("keeps identical text from different OKF concepts as separate evidence entries", async () => {
@@ -205,6 +230,53 @@ describe("assistant generation evidence assembly", () => {
       "unit/x#a",
       "unit/x#b",
     ]);
+  });
+
+  it("dedupeCandidatesWithinConcept supersedes unmatched-first hash duplicates", () => {
+    const conceptId = "x";
+    const deduped = dedupeCandidatesWithinConcept([
+      {
+        unit: parentRow("unit/x#dup", conceptId, "Same", 0, "dup-hash"),
+        matched: false,
+      },
+      {
+        unit: parentRow("unit/x#intro", conceptId, "Same", 1, "dup-hash"),
+        matched: true,
+        retrieval_rank: 1,
+      },
+    ]);
+
+    expect(deduped).toHaveLength(1);
+    expect(deduped[0]?.unit.unit_id).toBe("unit/x#intro");
+    expect(deduped[0]?.matched).toBe(true);
+  });
+
+  it("preserves two matched units sharing a hash in full_parent expansion", async () => {
+    const sharedText = "Same text";
+    const sharedHash = "dup-hash";
+    const matchedHits = [
+      hit(1, "unit/x#a", "x", sharedText, sharedHash),
+      hit(2, "unit/x#b", "x", sharedText, sharedHash),
+    ];
+    const fetchParentUnits = async () => [
+      parentRow("unit/x#a", "x", sharedText, 0, sharedHash),
+      parentRow("unit/x#b", "x", sharedText, 1, sharedHash),
+    ];
+
+    const packet = await assembleEvidencePacket({
+      matchedHits,
+      assemblyMode: "full_parent",
+      characterBudget: 10_000,
+      fetchParentUnits,
+    });
+
+    expect(packet.entries.map((e) => e.unit_id)).toEqual([
+      "unit/x#a",
+      "unit/x#b",
+    ]);
+    expect(packet.character_count).toBe(
+      characterCostForRetrievalText(sharedText) * 2,
+    );
   });
 
   it("truncates unmatched chunks only when over budget", async () => {

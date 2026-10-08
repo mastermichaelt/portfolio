@@ -145,8 +145,9 @@ function toCandidateUnit(row, rankByUnitId) {
 }
 
 /**
- * Deduplicate within one OKF concept. Matched retrieval units are never
- * collapsed by `content_hash`; only unmatched siblings may share one hash.
+ * Deduplicate within one OKF concept. Matched units are never collapsed with
+ * each other; unmatched duplicates share one hash; a matched unit supersedes an
+ * earlier unmatched row with the same hash.
  *
  * @param {Array<{ unit: ParentRetrievalUnitRow, matched: boolean, retrieval_rank?: number }>} candidates
  * @returns {Array<{ unit: ParentRetrievalUnitRow, matched: boolean, retrieval_rank?: number }>}
@@ -160,20 +161,30 @@ export function dedupeCandidatesWithinConcept(candidates) {
   const deduped = [];
 
   for (const candidate of candidates) {
+    const contentHash = candidate.unit.content_hash;
+
     if (candidate.matched) {
       if (matchedUnitIds.has(candidate.unit.unit_id)) {
         continue;
       }
+
+      for (let index = deduped.length - 1; index >= 0; index -= 1) {
+        const existing = deduped[index];
+        if (!existing.matched && existing.unit.content_hash === contentHash) {
+          deduped.splice(index, 1);
+        }
+      }
+
       matchedUnitIds.add(candidate.unit.unit_id);
-      seenContentHashes.add(candidate.unit.content_hash);
+      seenContentHashes.add(contentHash);
       deduped.push(candidate);
       continue;
     }
 
-    if (seenContentHashes.has(candidate.unit.content_hash)) {
+    if (seenContentHashes.has(contentHash)) {
       continue;
     }
-    seenContentHashes.add(candidate.unit.content_hash);
+    seenContentHashes.add(contentHash);
     deduped.push(candidate);
   }
 
