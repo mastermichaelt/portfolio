@@ -2,7 +2,7 @@ import {
   DEFAULT_EMBEDDING_BATCH_SIZE,
   EXPECTED_EMBEDDING_DIMENSIONS,
   OPENAI_EMBEDDINGS_URL,
-  assertEmbeddingDimensions,
+  parseEmbeddingVector,
   validateEmbeddingModel,
 } from "./index-config.mjs";
 import {
@@ -71,24 +71,45 @@ export function parseEmbeddingsResponse(payload, expectedCount) {
     );
   }
 
-  const sorted = [...data].sort((a, b) => {
-    const ai = Number(a?.index ?? 0);
-    const bi = Number(b?.index ?? 0);
-    return ai - bi;
-  });
+  /** @type {Map<number, number[]>} */
+  const byIndex = new Map();
 
-  return sorted.map((item, index) => {
-    const embedding = item?.embedding;
-    if (!Array.isArray(embedding)) {
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i];
+    const rawIndex = item?.index;
+    if (typeof rawIndex !== "number" || !Number.isInteger(rawIndex)) {
       throw new Error(
-        `OpenAI embeddings response item ${index} missing embedding array`,
+        `OpenAI embeddings response item ${i} has invalid index (expected integer 0..${expectedCount - 1})`,
       );
     }
-    return assertEmbeddingDimensions(
-      embedding.map((value) => Number(value)),
-      `OpenAI embeddings response item ${index}`,
+    if (rawIndex < 0 || rawIndex >= expectedCount) {
+      throw new Error(
+        `OpenAI embeddings response index ${rawIndex} is out of range (expected 0..${expectedCount - 1})`,
+      );
+    }
+    if (byIndex.has(rawIndex)) {
+      throw new Error(
+        `OpenAI embeddings response has duplicate index ${rawIndex}`,
+      );
+    }
+
+    const vector = parseEmbeddingVector(
+      item?.embedding,
+      `OpenAI embeddings response item index ${rawIndex}`,
     );
-  });
+    byIndex.set(rawIndex, vector);
+  }
+
+  const vectors = [];
+  for (let index = 0; index < expectedCount; index++) {
+    const vector = byIndex.get(index);
+    if (!vector) {
+      throw new Error(`OpenAI embeddings response missing index ${index}`);
+    }
+    vectors.push(vector);
+  }
+
+  return vectors;
 }
 
 /**

@@ -30,6 +30,42 @@ export function validateEmbeddingModel(model) {
 }
 
 /**
+ * @param {unknown} value
+ * @param {string} context
+ * @param {number} position
+ * @returns {number}
+ */
+function assertFiniteEmbeddingComponent(value, context, position) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(
+      `${context}: embedding[${position}] must be a finite number`,
+    );
+  }
+  return value;
+}
+
+/**
+ * @param {unknown[]} embedding
+ * @param {string} [context]
+ * @returns {number[]}
+ */
+export function parseEmbeddingVector(embedding, context = "embedding") {
+  if (!Array.isArray(embedding)) {
+    throw new Error(`${context}: missing embedding array`);
+  }
+  if (embedding.length !== EXPECTED_EMBEDDING_DIMENSIONS) {
+    throw new Error(
+      `${context}: expected ${EXPECTED_EMBEDDING_DIMENSIONS} dimensions, received ${embedding.length}. The configured index is ${SUPPORTED_EMBEDDING_MODEL} @ ${EXPECTED_EMBEDDING_DIMENSIONS}.`,
+    );
+  }
+  const vector = [];
+  for (let i = 0; i < embedding.length; i++) {
+    vector.push(assertFiniteEmbeddingComponent(embedding[i], context, i));
+  }
+  return vector;
+}
+
+/**
  * @param {number[]} vector
  * @param {string} [context]
  * @returns {number[]}
@@ -42,6 +78,9 @@ export function assertEmbeddingDimensions(vector, context = "embedding") {
     throw new Error(
       `${context}: expected ${EXPECTED_EMBEDDING_DIMENSIONS} dimensions, received ${vector.length}. The configured index is ${SUPPORTED_EMBEDDING_MODEL} @ ${EXPECTED_EMBEDDING_DIMENSIONS}.`,
     );
+  }
+  for (let i = 0; i < vector.length; i++) {
+    assertFiniteEmbeddingComponent(vector[i], context, i);
   }
   return vector;
 }

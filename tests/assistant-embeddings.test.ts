@@ -22,15 +22,21 @@ function fakeVector(seed = 0) {
   );
 }
 
-function embeddingsJson(vectors: number[][]) {
+function embeddingsJson(entries: { index: number; embedding: number[] }[]) {
   return {
     object: "list",
-    data: vectors.map((embedding, index) => ({
+    data: entries.map(({ index, embedding }) => ({
       object: "embedding",
       index,
       embedding,
     })),
   };
+}
+
+function embeddingsJsonInOrder(vectors: number[][]) {
+  return embeddingsJson(
+    vectors.map((embedding, index) => ({ index, embedding })),
+  );
 }
 
 describe("embedding index config", () => {
@@ -49,6 +55,14 @@ describe("embedding index config", () => {
   it("rejects wrong dimension count", () => {
     expect(() => assertEmbeddingDimensions([1, 2, 3])).toThrow(
       /expected 1536 dimensions/,
+    );
+  });
+
+  it("rejects non-finite embedding components", () => {
+    const vector = fakeVector();
+    vector[0] = Number.NaN;
+    expect(() => assertEmbeddingDimensions(vector)).toThrow(
+      /must be a finite number/,
     );
   });
 });
@@ -93,8 +107,67 @@ describe("chunkTexts", () => {
 describe("parseEmbeddingsResponse", () => {
   it("rejects wrong dimension count from the API", () => {
     expect(() =>
-      parseEmbeddingsResponse(embeddingsJson([[0.1, 0.2]]), 1),
+      parseEmbeddingsResponse(embeddingsJsonInOrder([[0.1, 0.2]]), 1),
     ).toThrow(/expected 1536 dimensions/);
+  });
+
+  it("orders vectors by index when the API response is shuffled", () => {
+    const first = fakeVector(1);
+    const second = fakeVector(2);
+    const result = parseEmbeddingsResponse(
+      embeddingsJson([
+        { index: 1, embedding: second },
+        { index: 0, embedding: first },
+      ]),
+      2,
+    );
+    expect(result).toEqual([first, second]);
+  });
+
+  it("rejects duplicate indices", () => {
+    const vector = fakeVector();
+    expect(() =>
+      parseEmbeddingsResponse(
+        embeddingsJson([
+          { index: 0, embedding: vector },
+          { index: 0, embedding: fakeVector(9) },
+        ]),
+        2,
+      ),
+    ).toThrow(/duplicate index 0/);
+  });
+
+  it("rejects out-of-range indices", () => {
+    expect(() =>
+      parseEmbeddingsResponse(
+        embeddingsJson([
+          { index: 0, embedding: fakeVector(0) },
+          { index: 2, embedding: fakeVector(2) },
+        ]),
+        2,
+      ),
+    ).toThrow(/out of range/);
+  });
+
+  it("rejects non-integer indices", () => {
+    expect(() =>
+      parseEmbeddingsResponse(
+        embeddingsJson([{ index: 0.5, embedding: fakeVector() }]),
+        1,
+      ),
+    ).toThrow(/invalid index/);
+  });
+
+  it("rejects null embedding components", () => {
+    const vector = fakeVector();
+    const malformed = [...vector] as unknown[];
+    malformed[0] = null;
+    expect(() =>
+      parseEmbeddingsResponse(
+        embeddingsJsonInOrder([malformed as number[]]),
+        1,
+      ),
+    ).toThrow(/must be a finite number/);
   });
 });
 
@@ -132,7 +205,7 @@ describe("requestEmbeddingsBatch", () => {
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => embeddingsJson([vector]),
+        json: async () => embeddingsJsonInOrder([vector]),
       });
 
     const sleep = vi.fn().mockResolvedValue(undefined);
@@ -170,7 +243,7 @@ describe("embedTexts", () => {
       return {
         ok: true,
         status: 200,
-        json: async () => embeddingsJson(batchVectors),
+        json: async () => embeddingsJsonInOrder(batchVectors),
       };
     });
 
