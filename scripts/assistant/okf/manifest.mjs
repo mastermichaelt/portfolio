@@ -114,6 +114,13 @@ export function buildNormalizationManifest({
           "tests/fixtures/assistant-okf/savepoints-public-notes/snapshots/*.md",
         ],
       },
+      codenames_engineering_docs: {
+        kind: "pinned Codenames AI engineering documentation",
+        paths: [
+          "tests/fixtures/assistant-okf/codenames-engineering-docs/publication-manifest.json",
+          "tests/fixtures/assistant-okf/codenames-engineering-docs/sources/*.md",
+        ],
+      },
       fixtures: buildFixtureInputs(fixtureRoot),
     },
     outputs: {

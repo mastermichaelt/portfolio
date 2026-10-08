@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: codenames-engineering-docs
     content: "Bounded codenames docs (AI pipeline, validation) → OKF"
-    status: pending
+    status: completed
   - id: retrieval-eval-expansion
     content: "Add eval cases + acceptance criteria; run on expanded index; document regressions"
     status: pending
