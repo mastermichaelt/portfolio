@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: generation-contract
     content: "PR: evidence packet (full_parent default, top_k_only baseline), EvidenceBudgetExceeded fail-closed, citation-integrity validators, contract tests"
-    status: pending
+    status: completed
   - id: generation-cli
     content: "PR: openai-chat fetch adapter, assistant:answer CLI, usage/timeouts, assistant-database + .env.example"
     status: pending
