@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "deny",
+  "upstream_repo": "multipliers-dev/savepoints",
+  "snapshots": [
+    {
+      "file": "snapshots/savepoints-architecture-direction-excerpt.md",
+      "concept_slug": "savepoints-architecture-direction",
+      "upstream_path": "notes/architecture-direction.md",
+      "sha256": "0a9a9b375e1a7b8f9fd1d136d8c07b9e78a836532039ce9bd0378cca5a9998e1"
+    }
+  ]
+}

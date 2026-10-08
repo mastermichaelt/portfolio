@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: savepoints-public-notes
     content: "Reviewed Savepoints architecture excerpt → OKF; full note only after publication review"
-    status: pending
+    status: completed
   - id: codenames-engineering-docs
     content: "Bounded codenames docs (AI pipeline, validation) → OKF"
     status: pending
