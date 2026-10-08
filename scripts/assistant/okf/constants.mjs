@@ -17,6 +17,14 @@ export const FIXTURE_FILES = {
 export const REPO_RUNBOOK_RESOURCE =
   "https://raw.githubusercontent.com/multipliers-dev/renovate-workflow/main/docs/renovate-workflow.md";
 
+export const CURSOR_TEAM_MARKETPLACE_REPO =
+  "multipliers-dev/cursor-team-marketplace";
+
+/** Visitor-facing link to a pinned upstream markdown file on GitHub. */
+export function marketplaceUpstreamResource(upstreamPath) {
+  return `https://github.com/${CURSOR_TEAM_MARKETPLACE_REPO}/blob/main/${upstreamPath}`;
+}
+
 export const EXPERIMENT_FINDINGS_DOC =
   "docs/assistant/okf-normalization-experiment.md";
 

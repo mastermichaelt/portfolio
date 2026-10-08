@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "default": "deny",
+  "upstream_repo": "multipliers-dev/cursor-team-marketplace",
+  "snapshots": [
+    {
+      "file": "snapshots/cursor-team-marketplace-readme.md",
+      "concept_slug": "cursor-team-marketplace-overview",
+      "upstream_path": "README.md",
+      "sha256": "697e27da720c18525943df1f68c7fb362b39c2847f5e951a6dcc1ce1eb692f5c"
+    },
+    {
+      "file": "snapshots/engineering-invariants.md",
+      "concept_slug": "engineering-invariants",
+      "upstream_path": "docs/engineering-invariants.md",
+      "sha256": "0309eaa6ef71f7c1bd6ddf07512ab7ebf29684316dad4e6cb7a57df704d78901"
+    },
+    {
+      "file": "snapshots/team-harness-layers.md",
+      "concept_slug": "team-harness-layers",
+      "upstream_path": "plugins/team-harness/docs/layers.md",
+      "sha256": "9dbf61c928aafeb134af08e23d805b9f1596ed3bfcb59e490582f01fae1340f2"
+    },
+    {
+      "file": "snapshots/team-harness-versioning.md",
+      "concept_slug": "team-harness-versioning",
+      "upstream_path": "plugins/team-harness/docs/versioning.md",
+      "sha256": "04019ccd7b3e517b2d6d3c957caccf8fbf7a66f2ac27ad82396d168c3b032fe2"
+    }
+  ]
+}

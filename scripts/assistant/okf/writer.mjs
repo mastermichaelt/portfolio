@@ -32,7 +32,14 @@ export function writeConcepts(corpusRoot, concepts) {
 
 /** Remove generated concept trees while preserving fixtures and inspection docs. */
 export function cleanGeneratedConcepts(corpusRoot) {
-  for (const dir of ["portfolio", "repo", "writing", "about", "career"]) {
+  for (const dir of [
+    "portfolio",
+    "repo",
+    "writing",
+    "about",
+    "career",
+    "tooling",
+  ]) {
     const target = path.join(corpusRoot, dir);
     if (fs.existsSync(target)) {
       fs.rmSync(target, { recursive: true, force: true });
