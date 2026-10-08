@@ -1,6 +1,6 @@
 # Cross-repository corpus — retrieval eval findings
 
-**Slice:** `retrieval-eval-expansion` ([assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md))
+**Slice:** `retrieval-eval-expansion` ([archived plan](../../.cursor/plans/archive/2026-10-08-assistant-cross-repository-corpus.plan.md))
 
 **Prerequisite:** Cross-repo OKF producers merged (`career-inventory-producer`, `marketplace-public-docs`, `savepoints-public-notes`, `codenames-engineering-docs`) and structure-aware corpus re-ingested on the assistant `DATABASE_URL`.
 
