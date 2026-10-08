@@ -16,7 +16,7 @@ isProject: false
 
 # Assistant career inventory corpus
 
-**Prerequisite:** [corpus coverage expansion](../../docs/assistant/corpus-coverage-expansion.md) shipped ([#45](https://github.com/mastermichaelt/portfolio/pull/45)); retrieval eval re-run on expanded index (operator acceptance in [assistant-database.md](../../docs/assistant/assistant-database.md) §6).
+**Prerequisite:** [corpus coverage expansion](../../docs/assistant/corpus-coverage-expansion.md) shipped ([#45](https://github.com/mastermichaelt/portfolio/pull/45)) with operator acceptance **completed** on the expanded index ([findings § Operational acceptance](../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance); [assistant-database.md](../../docs/assistant/assistant-database.md) §6).
 
 **Direction:** [docs/assistant/career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md)
 
