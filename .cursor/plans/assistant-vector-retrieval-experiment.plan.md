@@ -28,7 +28,7 @@ todos:
     status: completed
   - id: retrieve-cli
     content: "PR 8: Inspectable retrieval CLI with documented cosine distance semantics"
-    status: pending
+    status: completed
   - id: structure-aware-chunking
     content: "PR 9: Structure-aware 1:N retrieval units (deterministic IDs, provenance, re-ingest via ingest-sync)"
     status: pending
