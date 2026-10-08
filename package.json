@@ -34,6 +34,7 @@
     "assistant:derive": "node scripts/assistant/retrieval/derive-units.mjs",
     "assistant:db:migrate": "node scripts/assistant/db/migrate.mjs",
     "assistant:db:verify": "node scripts/assistant/db/verify.mjs",
+    "assistant:ingest": "node scripts/assistant/ingest.mjs",
     "renovate:freshness-poll": "renovate-workflow freshness-poll"
   },
   "dependencies": {

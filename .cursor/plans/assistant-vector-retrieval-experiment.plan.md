@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: ingest-sync
     content: "PR 7: Idempotent ingest pipeline (upsert/skip/delete stale, ingestion run metadata)"
-    status: pending
+    status: completed
   - id: retrieve-cli
     content: "PR 8: Inspectable retrieval CLI with documented cosine distance semantics"
     status: pending

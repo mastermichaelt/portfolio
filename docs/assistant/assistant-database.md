@@ -211,11 +211,58 @@ Hosted deployment is complete when `npm run assistant:db:verify` reports **ok** 
 
 CI does not require Neon; this verification is operator-run with secrets.
 
-### 8. Later ingest / retrieve configuration
+### 8. Ingest / retrieve configuration
 
-`assistant:ingest` and `assistant:retrieve` (future slices) use the same `DATABASE_URL` assistant retrieval connection — local Docker for development, Neon (direct or pooled) for persistent hosted index. They do not introduce a second assistant database configuration surface.
+`assistant:ingest` and `assistant:retrieve` (later slice) use the same `DATABASE_URL` assistant retrieval connection — local Docker for development, Neon (direct or pooled) for persistent hosted index. They do not introduce a second assistant database configuration surface.
 
 Optional: use the **pooled** Neon connection string for long-running ingest/retrieve while keeping the **direct** string for migrations after schema changes.
+
+## OpenAI Embeddings API (operator workflow)
+
+**Prerequisite:** complete hosted Neon migrate/verify above before the first **live** ingest that calls OpenAI.
+
+**Separation from Codenames:** use a dedicated OpenAI API **project** named `portfolio-assistant`. Do not reuse the OpenAI **Default** project (or its keys) used by Codenames AI — separate billing, usage visibility, and blast radius.
+
+### 1. Create or select the OpenAI project
+
+1. Sign in to the [OpenAI platform](https://platform.openai.com/).
+2. Create or open the **`portfolio-assistant`** API project.
+
+### 2. Issue a project-scoped Embeddings key
+
+1. In that project, create an API key with access to the **Embeddings** API.
+2. Store the key only in gitignored `.env.local` (local) or runtime secrets (Cursor Cloud / CI when explicitly configured) as `OPENAI_API_KEY`.
+3. **Never commit** the key, key IDs, or secret values. Do not paste secrets into PRs or issues.
+
+### 3. Budget and alerts
+
+Configure a modest **project budget** and **usage alerts** on `portfolio-assistant` before bulk ingest experiments.
+
+### 4. Confirm model access (smoke test)
+
+The assistant index is fixed to **`text-embedding-3-small` at 1536 dimensions** (`vector(1536)` in Postgres). Before the first full ingest:
+
+1. Ensure `OPENAI_API_KEY` is set (portfolio-assistant project).
+2. Run a one-off embeddings smoke (any of):
+   - `node --input-type=module -e "import { embedTexts } from './scripts/assistant/embeddings/openai-embeddings.mjs'; const v = await embedTexts(['smoke']); console.log(v[0].length);"`
+   - Or run `npm run assistant:ingest` only after this passes.
+3. Expect vector length **1536**. Fail closed if Embeddings access is missing or dimensions differ.
+
+Optional override `ASSISTANT_EMBEDDING_MODEL` is validated against the supported index model only — changing model requires a schema migration and full re-embed (see migration comments).
+
+### 5. First live ingest acceptance
+
+With `DATABASE_URL` pointing at migrated assistant retrieval Postgres (local Docker or Neon) and `OPENAI_API_KEY` from `portfolio-assistant`:
+
+```bash
+npm run assistant:db:migrate   # includes assistant_ingestion_runs when present
+npm run assistant:db:verify
+npm run assistant:ingest
+```
+
+Ingest is idempotent: unchanged `(unit_id, content_hash, embedding_model)` rows skip the Embeddings API. Logs include provenance (`canonical source → okf_concept_id → unit_id → content_hash → embedding_model`) and summary counts; each run records metadata in `assistant_ingestion_runs` with the OKF `manifest.json` `bundle_sha256`.
+
+CI does not require `OPENAI_API_KEY`; unit tests mock embeddings.
 
 ## Commands
 
@@ -223,5 +270,6 @@ Optional: use the **pooled** Neon connection string for long-running ingest/retr
 | ------------------------------ | ------------------------------------------------------- |
 | `npm run assistant:db:migrate` | Apply `db/migrations/*.sql` in order via `DATABASE_URL` |
 | `npm run assistant:db:verify`  | Schema + connectivity verification                      |
+| `npm run assistant:ingest`     | OKF build → derive → embed → upsert → delete stale      |
 
-Both commands are provider-neutral: they work against local Docker Postgres or hosted Neon depending solely on `DATABASE_URL`.
+Database commands are provider-neutral: they work against local Docker Postgres or hosted Neon depending solely on `DATABASE_URL`.
