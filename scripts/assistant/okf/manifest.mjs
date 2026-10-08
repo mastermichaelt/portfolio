@@ -74,11 +74,16 @@ export function buildNormalizationManifest({
           "content/supporting-cases.ts",
           "content/articles.ts",
           "content/project-cases.ts",
+          "content/ecosystem.ts",
         ],
       },
       about: {
         kind: "in-repo content modules",
         paths: ["content/about.ts"],
+      },
+      writing: {
+        kind: "pinned DEV article fixtures",
+        paths: ["tests/fixtures/assistant-okf/published/*.md"],
       },
       fixtures: buildFixtureInputs(fixtureRoot),
     },

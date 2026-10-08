@@ -12,11 +12,7 @@ export const FIXTURES_DIR = "tests/fixtures/assistant-okf";
 
 export const FIXTURE_FILES = {
   renovateWorkflow: "renovate-workflow.md",
-  evidenceDrivenUpgrades: "evidence-driven-dependency-upgrades.md",
 };
-
-export const DEV_ARTICLE_URL =
-  "https://dev.to/michaeltruong/upgrades-dont-have-to-be-a-blind-trust-exercise-13mj";
 
 export const REPO_RUNBOOK_RESOURCE =
   "https://raw.githubusercontent.com/multipliers-dev/renovate-workflow/main/docs/renovate-workflow.md";
@@ -29,6 +25,10 @@ export const PORTFOLIO_CONTENT_PATHS = [
   "content/supporting-cases.ts",
   "content/articles.ts",
   "content/project-cases.ts",
+  "content/ecosystem.ts",
 ];
 
 export const ABOUT_CONTENT_PATHS = ["content/about.ts"];
+
+export const PUBLISHED_WRITING_FIXTURES_DIR =
+  "tests/fixtures/assistant-okf/published";

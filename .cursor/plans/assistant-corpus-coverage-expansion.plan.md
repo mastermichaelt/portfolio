@@ -4,7 +4,7 @@ overview: Follow-on to the vector retrieval experiment — expand OKF producers 
 todos:
   - id: corpus-coverage-expansion
     content: "Expand OKF producers, coverage tests, re-ingest with structure-aware derivation"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR: corpus expansion findings + archive plan"
     status: pending
