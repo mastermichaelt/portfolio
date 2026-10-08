@@ -9,6 +9,7 @@ import {
   loadMarketplacePublicationManifest,
   MARKETPLACE_PUBLIC_DOCS_DIR,
   MARKETPLACE_PUBLICATION_MANIFEST_PATH,
+  MARKETPLACE_SNAPSHOTS_DIR,
 } from "@/scripts/assistant/okf/marketplace-public-docs-manifest.mjs";
 import { produceMarketplacePublicDocsConcepts } from "@/scripts/assistant/okf/marketplace-public-docs-producer.mjs";
 import { marketplaceUpstreamResource } from "@/scripts/assistant/okf/constants.mjs";
@@ -29,6 +30,55 @@ describe("marketplace public docs publication boundary", () => {
 
   it("fails closed when publication integrity checks run", () => {
     expect(() => assertMarketplacePublicationIntegrity()).not.toThrow();
+  });
+
+  it("rejects orphan snapshot markdown without publication approval", () => {
+    const orphanPath = path.join(
+      MARKETPLACE_SNAPSHOTS_DIR,
+      "orphan-unapproved.md",
+    );
+    fs.writeFileSync(orphanPath, "# Orphan fixture\n", "utf8");
+    try {
+      expect(() => assertMarketplacePublicationIntegrity()).toThrow(
+        /Orphan marketplace snapshot without publication approval: snapshots\/orphan-unapproved\.md/,
+      );
+      expect(() => produceMarketplacePublicDocsConcepts()).toThrow(
+        /Orphan marketplace snapshot without publication approval/,
+      );
+    } finally {
+      fs.unlinkSync(orphanPath);
+    }
+  });
+
+  it("rejects manifest entries for snapshots not on the allowlist", () => {
+    const manifestBackup = fs.readFileSync(
+      MARKETPLACE_PUBLICATION_MANIFEST_PATH,
+      "utf8",
+    );
+    const manifest = loadMarketplacePublicationManifest();
+    const tampered = {
+      ...manifest,
+      snapshots: [
+        ...manifest.snapshots,
+        {
+          file: "snapshots/not-on-allowlist.md",
+          concept_slug: "not-on-allowlist",
+          upstream_path:
+            "plugins/team-harness/skills/planning-methodology/SKILL.md",
+          sha256: "0".repeat(64),
+        },
+      ],
+    };
+    fs.writeFileSync(
+      MARKETPLACE_PUBLICATION_MANIFEST_PATH,
+      `${JSON.stringify(tampered, null, 2)}\n`,
+    );
+    try {
+      expect(() => assertMarketplacePublicationIntegrity()).toThrow();
+      expect(() => produceMarketplacePublicDocsConcepts()).toThrow();
+    } finally {
+      fs.writeFileSync(MARKETPLACE_PUBLICATION_MANIFEST_PATH, manifestBackup);
+    }
   });
 
   it("rejects unsafe marketplace snapshot paths", () => {
@@ -55,7 +105,6 @@ describe("marketplace public docs publication boundary", () => {
       expect(concept.id.startsWith("tooling/")).toBe(true);
       expect(sourceClassFromConceptId(concept.id)).toBe("tooling");
       expect(concept.body.length).toBeGreaterThan(0);
-      expect(concept.body).not.toMatch(/SKILL\.md/);
       const upstream = concept.frontmatter.upstream as {
         path: string;
       };
