@@ -22,13 +22,14 @@ import {
   caseBlockBody,
   produceProjectCaseConcepts,
 } from "@/scripts/assistant/okf/project-case-producer.mjs";
+import { produceCareerInventoryConcepts } from "@/scripts/assistant/okf/career-inventory-producer.mjs";
 import { produceRepoConcepts } from "@/scripts/assistant/okf/repo-producer.mjs";
 import { renderConcept } from "@/scripts/assistant/okf/writer.mjs";
 import { splitFrontmatter } from "@/scripts/assistant/okf/yaml.mjs";
 import { projectCases } from "@/content/project-cases";
 
 const FIXTURES_ROOT = path.join(process.cwd(), FIXTURES_DIR);
-const EXPECTED_CONCEPT_COUNT = 89;
+const EXPECTED_CONCEPT_COUNT = 94;
 
 function parseFrontmatterType(frontmatterYaml: string | null): string {
   expect(frontmatterYaml).toBeTruthy();
@@ -52,6 +53,7 @@ describe("OKF producers", () => {
     const about = produceAboutConcepts();
     const repo = produceRepoConcepts(FIXTURES_ROOT);
     const dev = produceDevConcepts();
+    const career = produceCareerInventoryConcepts();
 
     expect(portfolio).toHaveLength(30);
     expect(projectCase).toHaveLength(11);
@@ -59,6 +61,7 @@ describe("OKF producers", () => {
     expect(about).toHaveLength(9);
     expect(repo.length).toBeGreaterThanOrEqual(5);
     expect(dev).toHaveLength(30);
+    expect(career).toHaveLength(5);
 
     expect(
       portfolio.every((concept) => concept.id.startsWith("portfolio/")),
@@ -76,6 +79,9 @@ describe("OKF producers", () => {
     );
     expect(repo.every((concept) => concept.id.startsWith("repo/"))).toBe(true);
     expect(dev.every((concept) => concept.id.startsWith("writing/"))).toBe(
+      true,
+    );
+    expect(career.every((concept) => concept.id.startsWith("career/"))).toBe(
       true,
     );
 
@@ -111,6 +117,7 @@ describe("OKF producers", () => {
       ...produceAboutConcepts(),
       ...produceRepoConcepts(FIXTURES_ROOT),
       ...produceDevConcepts(),
+      ...produceCareerInventoryConcepts(),
     ];
 
     for (const concept of concepts) {
@@ -168,6 +175,9 @@ describe("OKF normalization build", () => {
         true,
       );
       expect(conceptPaths.some((entry) => entry.startsWith("about/"))).toBe(
+        true,
+      );
+      expect(conceptPaths.some((entry) => entry.startsWith("career/"))).toBe(
         true,
       );
 

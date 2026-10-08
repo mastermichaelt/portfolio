@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: career-inventory-producer
     content: "Source eligibility + content publication manifests, reviewed public snapshots, career/ + source_class career"
-    status: pending
+    status: completed
   - id: marketplace-public-docs
     content: "Marketplace README + engineering docs only (no SKILL summaries unless eval gap)"
     status: pending

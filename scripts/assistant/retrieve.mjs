@@ -76,7 +76,7 @@ Requires DATABASE_URL and OPENAI_API_KEY (portfolio-assistant project).
 
 Options:
   --top-k <n>                 Number of hits (default ${DEFAULT_TOP_K})
-  --filter-source-class <id>  Restrict to source_class (e.g. portfolio, about)
+  --filter-source-class <id>  Restrict to source_class (e.g. portfolio, about, career)
   --json                      Print JSON instead of a table
   -h, --help                  Show this help
 `);

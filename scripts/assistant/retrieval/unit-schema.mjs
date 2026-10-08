@@ -4,7 +4,7 @@
  */
 
 /**
- * @typedef {"portfolio" | "repo" | "writing" | "about"} SourceClass
+ * @typedef {"portfolio" | "repo" | "writing" | "about" | "career"} SourceClass
  */
 
 /**

@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "reviewed_at": "2026-10-08",
+  "notes": "Content publication — only listed snapshots may enter OKF. Ingest success does not imply publication approval.",
+  "snapshots": [
+    {
+      "file": "snapshots/admin-hub-experimentation.md",
+      "inventory_fact_id": "admin-hub-experimentation",
+      "inventory_role_id": "atlassian-senior-swe-2024",
+      "source_eligibility": [
+        "facts/admin-hub-experimentation.yml",
+        "roles/atlassian-senior-swe-2024.yml"
+      ],
+      "approved_entry_ids": [
+        "request-flow-consolidation",
+        "loom-global-requests-experiment",
+        "admin-hub-scope",
+        "zero-incident-launch",
+        "d1d6ai-increase",
+        "first-week-active-instances",
+        "monthly-end-user-requests",
+        "admin-hub-tech"
+      ],
+      "sha256": "06093265d7f1848aa1af51edee2895d3dac789e5c0763af0ac85157797ff7432"
+    },
+    {
+      "file": "snapshots/cross-flow-experiment-measurement.md",
+      "inventory_fact_id": "cross-flow-experiment-measurement",
+      "inventory_role_id": "atlassian-em-2020",
+      "source_eligibility": [
+        "facts/cross-flow-experiment-measurement.yml",
+        "roles/atlassian-em-2020.yml"
+      ],
+      "approved_entry_ids": [
+        "attribution-formula-concise",
+        "shared-experiment-flow",
+        "experiment-sev3-alerting",
+        "experiment-design-template",
+        "attribution-uplift-outcome",
+        "measurement-scope",
+        "attribution-uplift",
+        "tenant-propagation-reach",
+        "measurement-tech"
+      ],
+      "sha256": "81c6d60519832809a213b46f6b959179566ab8357879655c847896de18efa235"
+    },
+    {
+      "file": "snapshots/em-growth-delivery.md",
+      "inventory_fact_id": "em-growth-delivery",
+      "inventory_role_id": "atlassian-em-2020",
+      "source_eligibility": [
+        "facts/em-growth-delivery.yml",
+        "roles/atlassian-em-2020.yml"
+      ],
+      "approved_entry_ids": [
+        "org-change-leadership-concise",
+        "named-growth-projects-concise",
+        "experiment-ops-pioneer-concise",
+        "unified-cross-flow-analytics",
+        "developer-productivity-goal",
+        "fy22-delivery-outcome",
+        "multipliers-delivery-scope",
+        "direct-reports",
+        "fy22-projects-shipped",
+        "fy22-complex-projects",
+        "trust-score-card"
+      ],
+      "sha256": "c0bd43263c94cfe27f8293099540d4fc7409ec73b8a286c96f7ec28d42b523b5"
+    },
+    {
+      "file": "snapshots/loom-acquisition.md",
+      "inventory_fact_id": "loom-acquisition",
+      "inventory_role_id": "atlassian-senior-swe-2024",
+      "source_eligibility": [
+        "facts/loom-acquisition.yml",
+        "roles/atlassian-senior-swe-2024.yml"
+      ],
+      "approved_entry_ids": [
+        "acquisition-onboarding",
+        "loom-m25-cross-flow-enablement",
+        "acquisition-onboarding-scope",
+        "okr-10x",
+        "loom-m25-okr",
+        "loom-m25-delivery-quality",
+        "okr-attainment",
+        "loom-m25-okr-score",
+        "loom-acquisition-tech"
+      ],
+      "sha256": "a03be15744bfce05bb985a1cd3cce3d1fdafcc3db26177c97a4bb5745d0c7e3f"
+    },
+    {
+      "file": "snapshots/savepoints-durable-capture.md",
+      "inventory_fact_id": "savepoints-durable-capture",
+      "inventory_role_id": "independent-savepoints-2026",
+      "source_eligibility": [
+        "facts/savepoints-durable-capture.yml",
+        "roles/independent-savepoints-2026.yml"
+      ],
+      "approved_entry_ids": [
+        "savepoints-pipeline-plain",
+        "savepoints-postgres-store",
+        "savepoints-dual-runtime",
+        "savepoints-prototype-scope",
+        "savepoints-tech"
+      ],
+      "sha256": "b467bb860f901f7853c7aafe88ac3a3a7e8d2642d306f145fc6dd31d9718e644"
+    }
+  ]
+}
