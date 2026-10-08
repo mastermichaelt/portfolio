@@ -16,7 +16,7 @@ related:
 
 Multi-slice experiment validating **derive → embed → sync → retrieve → eval** over a **bounded** OKF corpus (~35 concepts → **61 structure-aware retrieval units** on the reference ingested index). This document records evidence and architectural conclusions. It is not a runtime specification.
 
-**Follow-on (shipped):** [corpus-coverage-expansion.md](./corpus-coverage-expansion.md) — production portfolio OKF scope on the same structure-aware pipeline. **Next active plan:** [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md).
+**Follow-on (shipped):** [corpus-coverage-expansion.md](./corpus-coverage-expansion.md) — production portfolio OKF scope; [cross-repository corpus](../../.cursor/plans/archive/2026-10-08-assistant-cross-repository-corpus.plan.md) — sibling-repo producers and expanded retrieval-eval ([cross-repository-corpus-eval-findings.md](./cross-repository-corpus-eval-findings.md)).
 
 ## Experiment conclusion
 

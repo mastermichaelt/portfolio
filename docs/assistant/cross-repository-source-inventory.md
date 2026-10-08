@@ -9,7 +9,7 @@ related:
   - docs/assistant/career-inventory-corpus-direction.md
   - docs/assistant/corpus-coverage-expansion.md
   - docs/assistant/vector-retrieval-experiment.md
-  - .cursor/plans/assistant-cross-repository-corpus.plan.md
+  - .cursor/plans/archive/2026-10-08-assistant-cross-repository-corpus.plan.md
   - .cursor/plans/archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md
 ---
 
@@ -66,7 +66,7 @@ Legend: **Coverage** = already represented in OKF (possibly thin). **Priority** 
 
 ### `mastermichaelt/resumes` (private — local verified)
 
-**Career inventory policy (aligned with [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md)):** **source eligibility** and **content publication** are separate, both **default deny**. The repo contains 38 fact files and 21 role files — **none** are corpus-eligible until explicitly listed on the committed source allowlist. Listing a fact or role file authorizes consideration only; **ingestion reads reviewed public snapshots**, not wholesale private YAML. Eligibility does **not** imply publication approval.
+**Career inventory policy (aligned with the [archived cross-repository corpus plan](../../.cursor/plans/archive/2026-10-08-assistant-cross-repository-corpus.plan.md)):** **source eligibility** and **content publication** are separate, both **default deny**. The repo contains 38 fact files and 21 role files — **none** are corpus-eligible until explicitly listed on the committed source allowlist. Listing a fact or role file authorizes consideration only; **ingestion reads reviewed public snapshots**, not wholesale private YAML. Eligibility does **not** imply publication approval.
 
 | Path / surface                                      | Knowledge                                                                                                                                | OKF coverage                       | Gap                                                                              | Canonical?                    | Public?                          | Recommendation                                                                                                                                                                                                               | Method                                                                             | Priority |
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------- | ----------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | -------- |
@@ -230,7 +230,7 @@ Exclude unless explicitly eligible and publication-reviewed:
 | 2   | Savepoints         | **Reviewed architecture excerpt first.** Promote to the full `notes/architecture-direction.md` only after a publication-suitability review.                                                                                                                                                                                                                               |
 | 3   | Marketplace        | **Public README and engineering docs first** (`README.md`, `docs/engineering-invariants.md`, `plugins/team-harness/docs/layers.md`, optionally `versioning.md`). **Defer SKILL summaries** unless retrieval eval shows a gap.                                                                                                                                             |
 | 4   | OKF `source_class` | Introduce **`source_class: career`** and **`career/`** namespace. Career evidence is a distinct retrieval category from About presentation (`about/`).                                                                                                                                                                                                                    |
-| 5   | Merge order        | **PR #45 + operator ingest/eval complete** (2026-10-08). Next implementation slice: `career-inventory-producer` in [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md).                                                                                                                                            |
+| 5   | Merge order        | **Completed** (2026-10-08) — corpus expansion gate, then cross-repo slices [#48](https://github.com/mastermichaelt/portfolio/pull/48)–[#52](https://github.com/mastermichaelt/portfolio/pull/52); plan archived [2026-10-08-assistant-cross-repository-corpus.plan.md](../../.cursor/plans/archive/2026-10-08-assistant-cross-repository-corpus.plan.md).                 |
 
 **Still open (operational):** snapshot cadence — manual hub/resumes → portfolio fixture sync with manifest hashes; no live fetch in CI until a dedicated automation slice.
 
@@ -238,6 +238,6 @@ Exclude unless explicitly eligible and publication-reviewed:
 
 ## Related plans
 
-- [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md) — **active** execution plan for this inventory
+- [2026-10-08-assistant-cross-repository-corpus.plan.md](../../.cursor/plans/archive/2026-10-08-assistant-cross-repository-corpus.plan.md) — **shipped** execution plan for this inventory
 - [2026-10-08-assistant-corpus-coverage-expansion.plan.md](../../.cursor/plans/archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md) — shipped PR #45 / #47 closure
 - [assistant-career-inventory-corpus-superseded.plan.md](../../.cursor/plans/archive/assistant-career-inventory-corpus-superseded.plan.md) — superseded; career slice retained in cross-repository plan
