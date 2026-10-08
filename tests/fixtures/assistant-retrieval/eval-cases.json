@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "experimentation-infrastructure",
+      "question": "What experimentation infrastructure did Michael work on at Atlassian?",
+      "kind": "positive",
+      "top_k": 5,
+      "expected_parent_concepts": [
+        "portfolio/experiment-measurement-b04-onboarding",
+        "about/atlassian-swe-2024",
+        "portfolio/experiment-measurement-case"
+      ],
+      "min_parent_rank": 5
+    },
+    {
+      "id": "managed-engineers",
+      "question": "Has Michael managed engineers?",
+      "kind": "positive",
+      "top_k": 5,
+      "expected_parent_concepts": ["about/atlassian-em-2020"],
+      "min_parent_rank": 3
+    },
+    {
+      "id": "return-to-ic",
+      "question": "Why did Michael return to individual-contributor engineering?",
+      "kind": "positive",
+      "top_k": 5,
+      "expected_parent_concepts": ["about/summary"],
+      "min_parent_rank": 3
+    },
+    {
+      "id": "attribution-experience",
+      "question": "What experience does Michael have with attribution?",
+      "kind": "positive",
+      "top_k": 5,
+      "expected_parent_concepts": [
+        "portfolio/experiment-measurement-b01-attribution",
+        "about/atlassian-em-2020"
+      ],
+      "expected_unit_any_of": [
+        "unit/portfolio/experiment-measurement-b01-attribution"
+      ],
+      "expected_sections": ["Attribution"],
+      "min_parent_rank": 3
+    },
+    {
+      "id": "ai-built",
+      "question": "What has Michael built with AI?",
+      "kind": "positive",
+      "top_k": 5,
+      "expected_parent_concepts": [
+        "portfolio/codenames-ai-case",
+        "portfolio/codenames-ai-b01-validation",
+        "about/codenames-ai"
+      ],
+      "min_parent_rank": 5
+    },
+    {
+      "id": "developer-infrastructure",
+      "question": "What developer infrastructure has Michael worked on?",
+      "kind": "positive",
+      "top_k": 5,
+      "expected_parent_concepts": [
+        "portfolio/renovate-governance-b01-system",
+        "repo/renovate-workflow-operator-ladder",
+        "about/agent-infra"
+      ],
+      "expected_unit_any_of": [
+        "unit/portfolio/renovate-governance*",
+        "unit/repo/renovate-workflow*"
+      ],
+      "min_parent_rank": 5,
+      "notes": "Unit globs are diagnostic when renovate chunks miss top-K; parent match on agent-infra or renovate concepts is the pass bar."
+    },
+    {
+      "id": "agent-memory-corpus-gap",
+      "question": "What has Michael written about agent memory?",
+      "kind": "corpus_gap",
+      "top_k": 5
+    },
+    {
+      "id": "nuclear-reactor-negative-inspection",
+      "question": "What is Michael's experience designing nuclear reactors?",
+      "kind": "negative_inspection",
+      "top_k": 5
+    }
+  ]
+}
