@@ -250,6 +250,12 @@ async function recordIngestionRun(client, record) {
  * @returns {Promise<IngestSyncResult>}
  */
 export async function runIngestSync(pool, units, options) {
+  if (!Array.isArray(units) || units.length === 0) {
+    throw new Error(
+      "Ingestion aborted: zero retrieval units derived. Refusing to delete the index.",
+    );
+  }
+
   const log = options.log ?? console.log;
   const embeddingModel =
     options.embeddingModel ?? resolveEmbeddingConfig().model;

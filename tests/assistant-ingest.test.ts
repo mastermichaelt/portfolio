@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { createPool } from "@/scripts/assistant/db/client.mjs";
 import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
@@ -116,6 +116,24 @@ describe("assistant ingest helpers", () => {
     ]);
     expect(plan.deleted).toBe(1);
   });
+
+  it("rejects zero derived units before any database access", async () => {
+    const pool = { query: vi.fn() };
+    const embedTexts = vi.fn(async () => []);
+
+    await expect(
+      runIngestSync(pool as unknown as import("pg").Pool, [], {
+        okfBundleSha256: "test-empty",
+        embeddingModel: "text-embedding-3-small",
+        embedTexts,
+      }),
+    ).rejects.toThrow(
+      "Ingestion aborted: zero retrieval units derived. Refusing to delete the index.",
+    );
+
+    expect(pool.query).not.toHaveBeenCalled();
+    expect(embedTexts).not.toHaveBeenCalled();
+  });
 });
 
 describe("assistant ingest sync", () => {
@@ -207,6 +225,40 @@ describe("assistant ingest sync", () => {
           [alphaChanged.unit_id],
         );
         expect(row.rows[0]?.content_hash).toBe(alphaChanged.content_hash);
+      });
+
+      it("rejects an empty derived unit list without wiping existing rows", async () => {
+        const seed = makeTestUnit("seed-empty-guard", "seed body");
+        const embedTexts = async (texts: string[]) =>
+          texts.map((_, index) => fakeVector(index + 10));
+
+        await runIngestSync(pool, [seed], {
+          okfBundleSha256: "test-empty-guard-seed",
+          embeddingModel: "text-embedding-3-small",
+          embedTexts,
+          log: () => {},
+        });
+
+        const before = await loadExistingUnitFingerprints(pool);
+        expect(before.has(seed.unit_id)).toBe(true);
+
+        await expect(
+          runIngestSync(pool, [], {
+            okfBundleSha256: "test-empty-guard",
+            embeddingModel: "text-embedding-3-small",
+            embedTexts,
+            log: () => {},
+          }),
+        ).rejects.toThrow(/zero retrieval units derived/);
+
+        const after = await loadExistingUnitFingerprints(pool);
+        expect(after.has(seed.unit_id)).toBe(true);
+        expect(after.size).toBe(before.size);
+
+        await pool.query(
+          `DELETE FROM assistant_retrieval_units WHERE unit_id = $1`,
+          [seed.unit_id],
+        );
       });
     },
   );
