@@ -12,6 +12,7 @@ import { embedTexts } from "@/scripts/assistant/embeddings/openai-embeddings.mjs
 import {
   evaluateRetrievalCase,
   formatEvalDiagnostics,
+  formatEvalFailureMessage,
   hitMatchesSections,
   matchesUnitPattern,
 } from "@/scripts/assistant/retrieve/eval.mjs";
@@ -209,7 +210,7 @@ describe("assistant retrieval eval helpers", () => {
     expect(negative.status).toBe("diagnostic");
   });
 
-  it("finalizeEvalOutcome always sets blocking_failure_modes on parent miss", () => {
+  it("reports missing parent in top-K with full diagnostic fields", () => {
     const outcome = evaluateRetrievalCase(
       {
         id: "parent-miss",
@@ -236,9 +237,24 @@ describe("assistant retrieval eval helpers", () => {
       ],
     );
     expect(outcome.pass).toBe(false);
+    expect(outcome.status).toBe("fail");
+    expect(outcome.failureModes).toContain("missing_parent_context");
+    expect(outcome.diagnostics.failure_modes).toEqual([
+      "missing_parent_context",
+    ]);
     expect(outcome.diagnostics.blocking_failure_modes).toEqual([
       "missing_parent_context",
     ]);
+  });
+
+  it("formatEvalFailureMessage survives missing diagnostics", () => {
+    expect(
+      formatEvalFailureMessage({ pass: false, failureModes: ["x"] }),
+    ).toContain("blocking_failure_modes=x");
+    expect(formatEvalFailureMessage(null)).toContain(
+      "blocking_failure_modes=(none reported)",
+    );
+    expect(formatEvalFailureMessage(null)).toContain("missing diagnostics");
   });
 
   it("matches section needles against retrieval_text when metadata lacks heading", () => {
@@ -330,12 +346,7 @@ describe("assistant retrieval eval integration", () => {
             console.info(formatEvalDiagnostics(outcome));
           }
 
-          expect(
-            outcome.pass,
-            `blocking_failure_modes=${(
-              outcome.diagnostics.blocking_failure_modes as string[]
-            ).join(",")}\n${formatEvalDiagnostics(outcome)}`,
-          ).toBe(true);
+          expect(outcome.pass, formatEvalFailureMessage(outcome)).toBe(true);
         });
       }
 

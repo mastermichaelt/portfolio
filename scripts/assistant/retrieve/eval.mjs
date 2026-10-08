@@ -119,14 +119,15 @@ export function firstUnitPatternMatch(hits, patterns) {
  * @param {Record<string, unknown>} diagnostics
  */
 export function finalizeEvalOutcome(pass, failureModes, diagnostics) {
-  const blockingFailureModes = failureModes.filter(
+  const modes = Array.isArray(failureModes) ? [...failureModes] : [];
+  const blockingFailureModes = modes.filter(
     (mode) => !mode.startsWith("optional_"),
   );
-  diagnostics.failure_modes = failureModes;
+  diagnostics.failure_modes = modes;
   diagnostics.blocking_failure_modes = blockingFailureModes;
   /** @type {"pass" | "fail" | "diagnostic"} */
   const status = pass === null ? "diagnostic" : pass ? "pass" : "fail";
-  return { pass, failureModes, diagnostics, status };
+  return { pass, failureModes: modes, diagnostics, status };
 }
 
 /**
@@ -148,6 +149,8 @@ export function evaluateRetrievalCase(case_, hits) {
     kind: case_.kind,
     question: case_.question,
     top_k: case_.top_k,
+    failure_modes: [],
+    blocking_failure_modes: [],
     hits: topHits.map((hit) => ({
       rank: hit.rank,
       unit_id: hit.unit_id,
@@ -273,8 +276,35 @@ export function evaluateRetrievalCase(case_, hits) {
 }
 
 /**
- * @param {Record<string, unknown>} result
+ * @param {{ diagnostics?: Record<string, unknown> } | null | undefined} result
  */
 export function formatEvalDiagnostics(result) {
-  return JSON.stringify(result.diagnostics, null, 2);
+  const diagnostics = result?.diagnostics;
+  if (!diagnostics || typeof diagnostics !== "object") {
+    return JSON.stringify({ error: "missing diagnostics" }, null, 2);
+  }
+  return JSON.stringify(diagnostics, null, 2);
+}
+
+/**
+ * Safe assertion message for integration failures — never throws when diagnostics are incomplete.
+ *
+ * @param {{
+ *   pass?: boolean | null,
+ *   failureModes?: string[],
+ *   diagnostics?: Record<string, unknown>,
+ * } | null | undefined} outcome
+ */
+export function formatEvalFailureMessage(outcome) {
+  const failureModes = Array.isArray(outcome?.failureModes)
+    ? outcome.failureModes
+    : [];
+  const diagnostics = outcome?.diagnostics;
+  const blockingFromDiagnostics = diagnostics?.blocking_failure_modes;
+  const blocking = Array.isArray(blockingFromDiagnostics)
+    ? blockingFromDiagnostics.map(String)
+    : failureModes.filter((mode) => !mode.startsWith("optional_"));
+  const blockingLabel =
+    blocking.length > 0 ? blocking.join(",") : "(none reported)";
+  return `blocking_failure_modes=${blockingLabel}\n${formatEvalDiagnostics(outcome ?? {})}`;
 }
