@@ -47,7 +47,7 @@ embeddings                           [next — vector retrieval experiment]
 vector index (Postgres + pgvector)   [next — vector retrieval experiment]
 ```
 
-**Follow-on experiment:** [assistant-vector-retrieval-experiment.plan.md](../../.cursor/plans/assistant-vector-retrieval-experiment.plan.md) — retrieval units, OpenAI embeddings, pgvector persistence, idempotent ingest, and inspectable retrieval CLI. OKF remains a transient normalization boundary; the vector store is a disposable derived index, not source of truth.
+**Follow-on experiment (shipped 2026-10-08):** [vector-retrieval-experiment.md](./vector-retrieval-experiment.md) — structure-aware retrieval units, OpenAI embeddings, pgvector persistence, idempotent ingest, inspectable retrieval CLI, and retrieval-eval. Archived plan: [2026-10-07-assistant-vector-retrieval-experiment.plan.md](../../.cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md). OKF remains a transient normalization boundary; the vector store is a disposable derived index, not source of truth.
 
 **Future runtime (not implemented; evidence only):**
 

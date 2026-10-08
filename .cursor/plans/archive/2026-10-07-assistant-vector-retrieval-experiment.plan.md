@@ -37,8 +37,37 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR: vector-retrieval-experiment findings + archive plan"
-    status: pending
+    status: completed
 isProject: false
+---
+
+# Shipped
+
+**Archived 2026-10-08.**
+
+| Slice                    | Delivered                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| plan-review              | [#30](https://github.com/mastermichaelt/portfolio/pull/30) — plan artifact                              |
+| doc-reconcile            | [#31](https://github.com/mastermichaelt/portfolio/pull/31) — architecture doc reconciliation            |
+| corpus-expansion         | [#32](https://github.com/mastermichaelt/portfolio/pull/32) — About + project OKF producers              |
+| retrieval-units          | [#33](https://github.com/mastermichaelt/portfolio/pull/33) — 1:1 derivation (infrastructure validation) |
+| db-foundation            | [#34](https://github.com/mastermichaelt/portfolio/pull/34) — Postgres + pgvector schema                 |
+| neon-deployment          | [#35](https://github.com/mastermichaelt/portfolio/pull/35) — hosted Neon operator workflow              |
+| embeddings-adapter       | [#36](https://github.com/mastermichaelt/portfolio/pull/36) — OpenAI embeddings adapter                  |
+| ingest-sync              | [#38](https://github.com/mastermichaelt/portfolio/pull/38) — idempotent ingest                          |
+| retrieve-cli             | [#40](https://github.com/mastermichaelt/portfolio/pull/40) — inspectable retrieval CLI                  |
+| structure-aware-chunking | [#41](https://github.com/mastermichaelt/portfolio/pull/41) — structure-aware 1:N units                  |
+| retrieval-eval           | [#43](https://github.com/mastermichaelt/portfolio/pull/43) — retrieval eval harness                     |
+| plan-closure             | This PR — findings doc, verify slice todos, `# Shipped` note, archive plan                              |
+
+**Durable artifacts (remain active):**
+
+- [`docs/assistant/vector-retrieval-experiment.md`](../../../docs/assistant/vector-retrieval-experiment.md) — experiment findings
+- Assistant CLI pipeline on `main` (`okf:build`, `assistant:derive`, `assistant:ingest`, `assistant:retrieve`) — see [assistant-database.md](../../../docs/assistant/assistant-database.md)
+- [`tests/fixtures/assistant-retrieval/`](../../../tests/fixtures/assistant-retrieval/) — eval fixtures
+
+**Next active plan:** [`assistant-corpus-coverage-expansion.plan.md`](../../assistant-corpus-coverage-expansion.plan.md) — expand OKF coverage and re-ingest; do not reopen 1:1 vs structure-aware chunking.
+
 ---
 
 # Portfolio assistant vector retrieval experiment
