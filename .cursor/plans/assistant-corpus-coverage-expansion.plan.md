@@ -1,9 +1,9 @@
 ---
 name: Assistant corpus coverage expansion
-overview: Follow-on to the vector retrieval experiment — expand OKF producers and coverage tests so the assistant index reflects production portfolio content, reusing okf:build and assistant:ingest. Start only after the experiment plan is archived and findings document retrieval-unit granularity.
+overview: Follow-on to the vector retrieval experiment — expand OKF producers and coverage tests for production portfolio content. Reuses okf:build, structure-aware retrieval-unit derivation, and assistant:ingest from the archived experiment. Start only after experiment closure documents the chosen chunking strategy.
 todos:
   - id: corpus-coverage-expansion
-    content: "Expand OKF producers, granularity decision, coverage tests, re-ingest beyond ~35-unit experiment index"
+    content: "Expand OKF producers, coverage tests, re-ingest using experiment-validated retrieval-unit derivation"
     status: pending
   - id: plan-closure
     content: "Docs-only PR: corpus expansion findings + archive plan"
@@ -13,15 +13,15 @@ isProject: false
 
 # Assistant corpus coverage expansion
 
-**Follow-on milestone** — not part of [assistant-vector-retrieval-experiment.plan.md](assistant-vector-retrieval-experiment.plan.md). That experiment validates retrieval machinery on a **bounded ~35-unit** index; this plan decides **what content** to index at **what granularity** for production assistant retrieval.
+**Follow-on milestone** — not part of [assistant-vector-retrieval-experiment.plan.md](assistant-vector-retrieval-experiment.plan.md). That experiment validates retrieval machinery and **compares concept-level baseline vs structure-aware chunking** on a bounded corpus; this plan expands **what** gets indexed for production assistant retrieval.
 
 ## Prerequisites
 
-- Vector retrieval experiment **archived** (see `.cursor/plans/archive/` for `assistant-vector-retrieval-experiment`)
-- [docs/assistant/vector-retrieval-experiment.md](docs/assistant/vector-retrieval-experiment.md) shipped with retrieval-unit granularity recommendation
-- `retrieve-cli`, `retrieval-eval`, and `ingest-sync` merged on `main`
+- Vector retrieval experiment **archived** (`.cursor/plans/archive/` + [docs/assistant/vector-retrieval-experiment.md](docs/assistant/vector-retrieval-experiment.md))
+- Findings doc records the **production retrieval-unit strategy** (structure-aware 1:N rules, or documented exceptions)
+- `structure-aware-chunking`, `retrieve-cli`, `retrieval-eval`, and `ingest-sync` merged on `main`
 
-Ingestion machinery is content-agnostic: new OKF concepts → derive → embed → upsert on `npm run assistant:ingest`.
+**Ingestion is granularity-agnostic:** expand OKF concepts → derive retrieval units (per experiment strategy) → `npm run assistant:ingest`. Do not re-litigate 1:1 vs chunking here — adopt the experiment outcome.
 
 ## Recommended execution authority
 
@@ -40,26 +40,26 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; PR base
 
 ### Slice — `corpus-coverage-expansion`
 
-**Purpose:** Expand what the assistant indexes after retrieval quality and **retrieval-unit granularity** are validated on the bounded experiment corpus.
+**Purpose:** Expand indexed content to production-relevant portfolio coverage using the **retrieval-unit strategy established by the vector retrieval experiment** (structure-aware derivation + existing ingest/sync).
 
-**Planned work (may split into multiple PRs within this slice if merge-safe):**
+**Planned work (may split into multiple merge-safe PRs within this slice):**
 
-| Area                         | Intent                                                                                                                                   |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Published technical articles | All published articles in the index, not only the current two `writing/` units                                                           |
-| Remaining portfolio content  | Producers for portfolio surfaces not yet represented (ecosystem, timeline, additional cases/repos as bounded)                            |
-| Long-document granularity    | Evaluate whether 1 OKF concept = 1 retrieval unit is too coarse for long articles; document decision before mass re-embed                |
-| Coverage tests               | Assert newly published / in-repo content paths are represented in OKF output (fail when content modules change without producer updates) |
+| Area                         | Intent                                                                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Published technical articles | All published articles represented in OKF, not only current `writing/` fixtures                                              |
+| Remaining portfolio content  | Producers for surfaces not yet in OKF (ecosystem, timeline, additional cases/repos — bounded)                                |
+| Coverage tests               | Fail when `content/` modules change without corresponding OKF producer updates                                               |
+| Re-ingest                    | Full `okf:build` → `assistant:derive` → `assistant:ingest` after expansion; expect unit count growth from content + chunking |
 
 **Files (indicative):** OKF producers under `scripts/assistant/okf/`, `content/` module coverage, `tests/okf-normalization.test.ts` or dedicated coverage tests; optional eval fixture updates after re-ingest
 
-**Does not include (unless findings mandate a dedicated migration slice):** embedding model change, `vector(1536)` schema change, ingest sync semantics change, retrieve CLI rewrite
+**Does not include:** redefining chunking (unless experiment left explicit follow-ups), embedding model change, `vector(1536)` migration, ANN indexes, LangChain/LlamaIndex, OKF normalization changes for chunking convenience, generative answers, ingest sync semantics change, retrieve CLI rewrite
 
-**Tests:** Producer + coverage tests; re-run retrieval eval when fixtures change
+**Tests:** Producer + coverage tests; optional retrieval-eval fixture updates if new content adds eval cases
 
-**Depends on:** archived vector retrieval experiment + findings doc
+**Depends on:** archived vector retrieval experiment + findings doc with retrieval-unit strategy
 
-**Stop:** Expanded OKF build + ingest increases unit count beyond experiment baseline; coverage tests guard drift; architecture-direction updated with production corpus scope
+**Stop:** Expanded OKF + ingest beyond experiment baseline; coverage tests guard drift; architecture-direction updated with production corpus scope
 
 ---
 
@@ -82,15 +82,15 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; PR base
 ```text
 @.cursor/plans/assistant-corpus-coverage-expansion.plan.md
 
-Implement slice corpus-coverage-expansion only. Prerequisites: vector retrieval experiment archived and docs/assistant/vector-retrieval-experiment.md on main. Do not start plan-closure. Do not archive the plan.
+Implement slice corpus-coverage-expansion only. Prerequisites: vector retrieval experiment archived; docs/assistant/vector-retrieval-experiment.md on main with retrieval-unit strategy. Do not start plan-closure. Do not archive the plan.
 
 Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: expanded OKF producers and coverage tests per plan; re-ingest via npm run assistant:ingest when secrets configured; update architecture-direction with production corpus scope. Mark corpus-coverage-expansion completed in plan frontmatter in this PR.
+Deliverables: expanded OKF producers and coverage tests; use experiment-validated structure-aware derivation + assistant:ingest; update architecture-direction with production corpus scope. Mark corpus-coverage-expansion completed in plan frontmatter in this PR.
 
-Do not: embedding model/schema changes or ingest sync rewrites unless findings require a separate migration plan.
+Do not: change chunking rules unless findings explicitly defer them; embedding model/schema changes; ingest-sync rewrites.
 
 Verification: npm run okf:build; npm run test; npm run format:check.
 ```
