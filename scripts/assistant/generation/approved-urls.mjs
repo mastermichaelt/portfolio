@@ -97,6 +97,10 @@ export function collectApprovedEvidenceUrls(packet) {
     for (const url of urlsFromSourcesJson(entry.sources)) {
       approved.add(url);
     }
+
+    for (const url of extractHttpUrlsFromText(entry.retrieval_text)) {
+      approved.add(url);
+    }
   }
 
   return approved;

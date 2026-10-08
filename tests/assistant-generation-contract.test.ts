@@ -353,6 +353,66 @@ describe("assistant generation citation integrity", () => {
     expect(mismatch.errors.join(" ")).toContain("does not match");
   });
 
+  it("approves HTTP(S) URLs extracted from included entry retrieval_text", async () => {
+    const packet = await assembleEvidencePacket({
+      matchedHits: [
+        hit(
+          1,
+          "unit/a#intro",
+          "a",
+          "See https://example.test/in-body/ for the write-up.",
+        ),
+      ],
+      assemblyMode: "top_k_only",
+      characterBudget: 10_000,
+    });
+
+    const approved = collectApprovedEvidenceUrls(packet);
+    expect(approved.has("https://example.test/in-body")).toBe(true);
+
+    const result = validateCitationIntegrity(
+      {
+        answer_text: "Cited from https://example.test/in-body.",
+        support_level: "full",
+        citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
+      },
+      packet,
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects URLs from truncated evidence chunks not in the assembled packet", async () => {
+    const truncatedUrl = "https://example.test/truncated-only";
+    const matchedHits = [hit(1, "unit/p#0", "p", "MATCH")];
+    const fetchParentUnits = async () => [
+      parentRow("unit/p#0", "p", "MATCH", 0),
+      parentRow("unit/p#1", "p", `More at ${truncatedUrl}/`, 1),
+    ];
+
+    const matchedCost = characterCostForRetrievalText("MATCH");
+    const packet = await assembleEvidencePacket({
+      matchedHits,
+      assemblyMode: "full_parent",
+      characterBudget: matchedCost,
+      fetchParentUnits,
+    });
+
+    expect(packet.truncated).toBe(true);
+    expect(packet.entries).toHaveLength(1);
+    expect(collectApprovedEvidenceUrls(packet).has(truncatedUrl)).toBe(false);
+
+    const result = validateCitationIntegrity(
+      {
+        answer_text: `Excluded link ${truncatedUrl}.`,
+        support_level: "partial",
+        citations: [{ evidence_id: "E1", unit_id: "unit/p#0" }],
+      },
+      packet,
+    );
+    expect(result.valid).toBe(false);
+    expect(result.errors.join(" ")).toContain("not in evidence packet");
+  });
+
   it("rejects URLs in answer_text that are not present on evidence sources", async () => {
     const packet = await assembleEvidencePacket({
       matchedHits: [
