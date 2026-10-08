@@ -72,6 +72,8 @@ Allowlisting a source file does **not** authorize publishing its entire YAML. Pr
 - New files and new content in previously eligible sources require a fresh publication review — no automatic promotion
 - **Fail closed** if eligibility, publication manifest, or snapshot freshness cannot be verified
 
+**Structural vs content review:** `assertCareerInventoryPublicationIntegrity()` (see `career-inventory-manifest.mjs`) verifies hashes, allowlists, path safety, and `approved_entry_ids` alignment between manifest and snapshot frontmatter. It does **not** validate snapshot **bodies** against inventory claims — operators must content-review each `snapshots/*.md` file before merge ([fixture README](../../tests/fixtures/assistant-okf/career-inventory/README.md)).
+
 **Provenance:** OKF may carry stable inventory fact ids for operator/debug use; visitor-facing bodies and `resource` URLs must not expose private repo paths or internal metadata.
 
 Near-identical résumé variants must **not** create parallel OKF concepts — one published line per reviewed inventory excerpt, not per application slug.

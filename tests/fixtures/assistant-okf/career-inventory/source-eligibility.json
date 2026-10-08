@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "deny",
+  "reviewed_at": "2026-10-08",
+  "notes": "Source eligibility authorizes consideration only — not publication. Producers read reviewed snapshots in this directory, not private repo files.",
+  "facts": [
+    "facts/admin-hub-experimentation.yml",
+    "facts/cross-flow-experiment-measurement.yml",
+    "facts/em-growth-delivery.yml",
+    "facts/loom-acquisition.yml",
+    "facts/savepoints-durable-capture.yml"
+  ],
+  "roles": [
+    "roles/atlassian-em-2020.yml",
+    "roles/atlassian-senior-swe-2024.yml",
+    "roles/independent-savepoints-2026.yml"
+  ],
+  "meta": []
+}

@@ -36,7 +36,7 @@ export function buildFixtureInputs(fixtureRoot = FIXTURES_DIR) {
 
 export function listConceptFiles(corpusRoot = CORPUS_ROOT) {
   const concepts = [];
-  for (const dir of ["portfolio", "repo", "writing", "about"]) {
+  for (const dir of ["portfolio", "repo", "writing", "about", "career"]) {
     const absoluteDir = path.join(corpusRoot, dir);
     if (!fs.existsSync(absoluteDir)) continue;
     for (const file of fs.readdirSync(absoluteDir).sort()) {
@@ -84,6 +84,14 @@ export function buildNormalizationManifest({
       writing: {
         kind: "pinned DEV article fixtures",
         paths: ["tests/fixtures/assistant-okf/published/*.md"],
+      },
+      career_inventory: {
+        kind: "reviewed career inventory snapshots",
+        paths: [
+          "tests/fixtures/assistant-okf/career-inventory/source-eligibility.json",
+          "tests/fixtures/assistant-okf/career-inventory/publication-manifest.json",
+          "tests/fixtures/assistant-okf/career-inventory/snapshots/*.md",
+        ],
       },
       fixtures: buildFixtureInputs(fixtureRoot),
     },

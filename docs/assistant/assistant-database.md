@@ -292,6 +292,14 @@ After [corpus coverage expansion](./corpus-coverage-expansion.md) ([#45](https:/
 
 4. **Record outcomes** — if rankings regress, document in [corpus-coverage-expansion.md](./corpus-coverage-expansion.md) before weakening `tests/fixtures/assistant-retrieval/eval-cases.json`. Expanded competition is expected signal, not noise to fixture away without review.
 
+### 7. Post career-inventory producer re-ingest
+
+After [career-inventory snapshots](../../tests/fixtures/assistant-okf/career-inventory/README.md) ship (`career/*` OKF concepts):
+
+1. **Concept count** — `npm run okf:build` → **94** concepts (was **89**; **+5** career concepts).
+2. **Retrieval units** — run `npm run assistant:derive --write` and record the derived total. Structure-aware chunking means the unit delta is **not** equal to the concept delta (measure, do not assume one unit per new concept). Compare to the last accepted derive baseline (**209** units after corpus expansion).
+3. **Ingest** — `npm run assistant:ingest`; use ingest summary counts. Ingest success does not substitute for publication review of snapshot bodies.
+
 ## Commands
 
 | Command                        | Purpose                                                 |

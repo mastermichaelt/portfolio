@@ -18,6 +18,7 @@ import { buildNormalizationManifest, writeJson } from "./manifest.mjs";
 import { produceEcosystemConcepts } from "./ecosystem-producer.mjs";
 import { producePortfolioConcepts } from "./portfolio-producer.mjs";
 import { produceProjectCaseConcepts } from "./project-case-producer.mjs";
+import { produceCareerInventoryConcepts } from "./career-inventory-producer.mjs";
 import { produceRepoConcepts } from "./repo-producer.mjs";
 import { cleanGeneratedConcepts, writeConcepts } from "./writer.mjs";
 
@@ -27,6 +28,7 @@ function renderIndex(conceptPaths) {
     repo: conceptPaths.filter((entry) => entry.startsWith("repo/")),
     writing: conceptPaths.filter((entry) => entry.startsWith("writing/")),
     about: conceptPaths.filter((entry) => entry.startsWith("about/")),
+    career: conceptPaths.filter((entry) => entry.startsWith("career/")),
   };
 
   const section = (title, paths) => {
@@ -45,11 +47,13 @@ generated:
 
 # Portfolio assistant OKF corpus
 
-Production-scoped bundle: portfolio cases and catalogs, flagship project cases, About, ecosystem inventory, pinned Renovate runbook, and full published DEV article bodies aligned with content/articles.ts.
+Production-scoped bundle: portfolio cases and catalogs, flagship project cases, About, reviewed career-inventory snapshots, ecosystem inventory, pinned Renovate runbook, and full published DEV article bodies aligned with content/articles.ts.
 
 ${section("Portfolio concepts", grouped.portfolio)}
 
 ${section("About concepts", grouped.about)}
+
+${section("Career inventory concepts", grouped.career)}
 
 ${section("Repository concepts", grouped.repo)}
 
@@ -87,6 +91,7 @@ export function buildOkfCorpus({
     ...produceProjectCaseConcepts(),
     ...produceEcosystemConcepts(),
     ...produceAboutConcepts(),
+    ...produceCareerInventoryConcepts(),
     ...produceRepoConcepts(FIXTURES_DIR),
     ...produceDevConcepts(),
   ];
