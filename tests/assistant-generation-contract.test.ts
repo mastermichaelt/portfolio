@@ -2,8 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import { EvidenceBudgetExceeded } from "@/scripts/assistant/generation/errors.mjs";
 import {
+  collectApprovedEvidenceUrls,
+  extractHttpUrlsFromText,
+} from "@/scripts/assistant/generation/approved-urls.mjs";
+import {
   assembleEvidencePacket,
   characterCostForRetrievalText,
+  dedupeCandidatesWithinConcept,
 } from "@/scripts/assistant/generation/evidence-packet.mjs";
 import { buildGenerationMessages } from "@/scripts/assistant/generation/prompt-templates.mjs";
 import {
@@ -116,7 +121,7 @@ describe("assistant generation evidence assembly", () => {
     expect(packet.entries[1]?.matched_retrieval).toBe(false);
   });
 
-  it("dedupes identical content_hash while preserving matched retrieval coverage", async () => {
+  it("dedupes unmatched identical content_hash only within an OKF concept", async () => {
     const matchedHits = [
       hit(1, "unit/x#intro", "x", "Shared body", "same-hash"),
     ];
@@ -134,6 +139,72 @@ describe("assistant generation evidence assembly", () => {
 
     expect(packet.entries).toHaveLength(1);
     expect(packet.entries[0]?.matched_retrieval).toBe(true);
+  });
+
+  it("keeps identical text from different OKF concepts as separate evidence entries", async () => {
+    const sharedText = "Identical paragraph across concepts.";
+    const sharedHash = "shared-hash";
+    const matchedHits = [
+      hit(1, "unit/concept-a#0", "concept-a", sharedText, sharedHash),
+      hit(2, "unit/concept-b#0", "concept-b", sharedText, sharedHash),
+    ];
+
+    const fetchParentUnits = async (conceptId: string) => [
+      parentRow(`unit/${conceptId}#0`, conceptId, sharedText, 0, sharedHash),
+    ];
+
+    const packet = await assembleEvidencePacket({
+      matchedHits,
+      assemblyMode: "full_parent",
+      characterBudget: 10_000,
+      fetchParentUnits,
+    });
+
+    expect(packet.entries).toHaveLength(2);
+    expect(packet.entries.map((e) => e.okf_concept_id)).toEqual([
+      "concept-a",
+      "concept-b",
+    ]);
+  });
+
+  it("preserves distinct matched unit_id values that share a content_hash", async () => {
+    const matchedHits = [
+      hit(1, "unit/x#a", "x", "Same text", "dup-hash"),
+      hit(2, "unit/x#b", "x", "Same text", "dup-hash"),
+    ];
+
+    const packet = await assembleEvidencePacket({
+      matchedHits,
+      assemblyMode: "top_k_only",
+      characterBudget: 10_000,
+    });
+
+    expect(packet.entries.map((e) => e.unit_id)).toEqual([
+      "unit/x#a",
+      "unit/x#b",
+    ]);
+  });
+
+  it("dedupeCandidatesWithinConcept never collapses two matched units with the same hash", () => {
+    const conceptId = "x";
+    const candidates = [
+      {
+        unit: parentRow("unit/x#a", conceptId, "Same", 0, "dup-hash"),
+        matched: true,
+        retrieval_rank: 1,
+      },
+      {
+        unit: parentRow("unit/x#b", conceptId, "Same", 1, "dup-hash"),
+        matched: true,
+        retrieval_rank: 2,
+      },
+    ];
+
+    const deduped = dedupeCandidatesWithinConcept(candidates);
+    expect(deduped.map((c) => c.unit.unit_id)).toEqual([
+      "unit/x#a",
+      "unit/x#b",
+    ]);
   });
 
   it("truncates unmatched chunks only when over budget", async () => {
@@ -236,7 +307,7 @@ describe("assistant generation citation integrity", () => {
     });
 
     const response = {
-      answer_text: "Alpha detail.",
+      answer_text: "Alpha detail. See https://example.test/a for more.",
       support_level: "full",
       citations: [
         {
@@ -280,6 +351,58 @@ describe("assistant generation citation integrity", () => {
     );
     expect(mismatch.valid).toBe(false);
     expect(mismatch.errors.join(" ")).toContain("does not match");
+  });
+
+  it("rejects URLs in answer_text that are not present on evidence sources", async () => {
+    const packet = await assembleEvidencePacket({
+      matchedHits: [
+        {
+          ...hit(1, "unit/a#intro", "a", "Alpha"),
+          resource: "https://example.test/a",
+          sources: [
+            {
+              id: "src-a",
+              title: "Source A",
+              resource: "https://example.test/source-a",
+            },
+          ],
+        },
+      ],
+      assemblyMode: "top_k_only",
+      characterBudget: 10_000,
+    });
+
+    const approved = collectApprovedEvidenceUrls(packet);
+    expect(approved.has("https://example.test/a")).toBe(true);
+    expect(approved.has("https://example.test/source-a")).toBe(true);
+
+    const allowed = validateCitationIntegrity(
+      {
+        answer_text: "Read https://example.test/source-a.",
+        support_level: "full",
+        citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
+      },
+      packet,
+    );
+    expect(allowed.valid).toBe(true);
+
+    const invented = validateCitationIntegrity(
+      {
+        answer_text: "See https://evil.example/phish for details.",
+        support_level: "full",
+        citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
+      },
+      packet,
+    );
+    expect(invented.valid).toBe(false);
+    expect(invented.errors.join(" ")).toContain("not in evidence packet");
+  });
+
+  it("extracts and normalizes HTTP URLs from answer text", () => {
+    const urls = extractHttpUrlsFromText(
+      "Link https://example.test/path/ and https://example.test/path.",
+    );
+    expect(urls).toEqual(["https://example.test/path"]);
   });
 });
 

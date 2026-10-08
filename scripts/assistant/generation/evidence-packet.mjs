@@ -28,6 +28,7 @@ import { EvidenceBudgetExceeded } from "./errors.mjs";
  * @property {string} retrieval_text
  * @property {string} [resource]
  * @property {string} [title]
+ * @property {unknown} [sources] OKF provenance chain for URL integrity checks
  * @property {boolean} matched_retrieval Included because it appeared in top-K hits
  * @property {number} [retrieval_rank] Best rank when matched
  */
@@ -144,49 +145,36 @@ function toCandidateUnit(row, rankByUnitId) {
 }
 
 /**
+ * Deduplicate within one OKF concept. Matched retrieval units are never
+ * collapsed by `content_hash`; only unmatched siblings may share one hash.
+ *
  * @param {Array<{ unit: ParentRetrievalUnitRow, matched: boolean, retrieval_rank?: number }>} candidates
  * @returns {Array<{ unit: ParentRetrievalUnitRow, matched: boolean, retrieval_rank?: number }>}
  */
-function dedupeCandidatesByContentHash(candidates) {
-  /** @type {Map<string, { unit: ParentRetrievalUnitRow, matched: boolean, retrieval_rank?: number }>} */
-  const byHash = new Map();
-
-  for (const candidate of candidates) {
-    const hash = candidate.unit.content_hash;
-    const existing = byHash.get(hash);
-    if (!existing) {
-      byHash.set(hash, candidate);
-      continue;
-    }
-
-    const mergedMatched = existing.matched || candidate.matched;
-    const ranks = [existing.retrieval_rank, candidate.retrieval_rank].filter(
-      (rank) => typeof rank === "number",
-    );
-    const bestRank =
-      ranks.length > 0
-        ? Math.min(.../** @type {number[]} */ (ranks))
-        : undefined;
-
-    byHash.set(hash, {
-      unit: existing.matched ? existing.unit : candidate.unit,
-      matched: mergedMatched,
-      retrieval_rank: bestRank,
-    });
-  }
-
+export function dedupeCandidatesWithinConcept(candidates) {
   /** @type {Set<string>} */
-  const seenHashes = new Set();
+  const matchedUnitIds = new Set();
+  /** @type {Set<string>} */
+  const seenContentHashes = new Set();
   /** @type {Array<{ unit: ParentRetrievalUnitRow, matched: boolean, retrieval_rank?: number }>} */
   const deduped = [];
 
   for (const candidate of candidates) {
-    const hash = candidate.unit.content_hash;
-    if (seenHashes.has(hash)) {
+    if (candidate.matched) {
+      if (matchedUnitIds.has(candidate.unit.unit_id)) {
+        continue;
+      }
+      matchedUnitIds.add(candidate.unit.unit_id);
+      seenContentHashes.add(candidate.unit.content_hash);
+      deduped.push(candidate);
       continue;
     }
-    seenHashes.add(hash);
-    deduped.push(byHash.get(hash) ?? candidate);
+
+    if (seenContentHashes.has(candidate.unit.content_hash)) {
+      continue;
+    }
+    seenContentHashes.add(candidate.unit.content_hash);
+    deduped.push(candidate);
   }
 
   return deduped;
@@ -254,6 +242,7 @@ function assignEvidenceIds(included) {
     retrieval_text: candidate.unit.retrieval_text,
     resource: candidate.unit.resource,
     title: candidate.unit.title,
+    sources: candidate.unit.sources,
     matched_retrieval: candidate.matched,
     retrieval_rank: candidate.retrieval_rank,
   }));
@@ -312,12 +301,13 @@ export async function assembleEvidencePacket(options) {
 
     for (const parentId of parentIds) {
       const parentUnits = await fetchParentUnits(parentId);
-      for (const unit of parentUnits) {
-        expanded.push(toCandidateUnit(unit, rankByUnitId));
-      }
+      const parentCandidates = parentUnits.map((unit) =>
+        toCandidateUnit(unit, rankByUnitId),
+      );
+      expanded.push(...dedupeCandidatesWithinConcept(parentCandidates));
     }
 
-    candidates = dedupeCandidatesByContentHash(expanded);
+    candidates = expanded;
   }
 
   const { included, truncated } = applyEvidenceBudget(

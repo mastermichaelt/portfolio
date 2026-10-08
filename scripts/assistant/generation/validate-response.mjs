@@ -1,3 +1,7 @@
+import {
+  collectApprovedEvidenceUrls,
+  findUnapprovedUrlsInAnswer,
+} from "./approved-urls.mjs";
 import { parseAssistantGenerationResponse } from "./response-schema.mjs";
 
 /** @typedef {import("./evidence-packet.mjs").EvidencePacket} EvidencePacket */
@@ -66,6 +70,15 @@ export function validateCitationIntegrityForParsedResponse(response, packet) {
         `citations[${index}] unit_id ${citation.unit_id} is not present in the evidence packet`,
       );
     }
+  }
+
+  const approvedUrls = collectApprovedEvidenceUrls(packet);
+  const unapprovedUrls = findUnapprovedUrlsInAnswer(
+    response.answer_text,
+    approvedUrls,
+  );
+  for (const url of unapprovedUrls) {
+    errors.push(`answer_text references URL not in evidence packet: ${url}`);
   }
 
   return { valid: errors.length === 0, errors };
