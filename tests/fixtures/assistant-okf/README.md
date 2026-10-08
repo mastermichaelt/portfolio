@@ -1,12 +1,14 @@
-# Assistant OKF experiment fixtures
+# Assistant OKF fixtures
 
-Representative **test inputs** for repo and DEV producers in the OKF normalization experiment. These are not the assistant's persisted corpus and are not refreshed by an ingestion pipeline.
+Pinned **test inputs** for OKF producers. These are not the assistant's persisted corpus and are not refreshed by an ingestion pipeline.
 
-| File                                     | Represents                                        |
-| ---------------------------------------- | ------------------------------------------------- |
-| `renovate-workflow.md`                   | Repo runbook excerpt (Renovate governance ladder) |
-| `evidence-driven-dependency-upgrades.md` | Published DEV field report with YAML frontmatter  |
+| Path                   | Represents                                                                                                                        |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `renovate-workflow.md` | Repo runbook excerpt (Renovate governance ladder)                                                                                 |
+| `published/*.md`       | Full DEV article bodies for every row in `content/articles.ts` (slug-named copies of `editorial-workflow/docs/dev.to/published/`) |
 
-Portfolio normalization reads canonical in-repo `content/` directly — no portfolio fixture here.
+Portfolio normalization reads canonical in-repo `content/` directly for cases, catalogs, About, project cases, and ecosystem inventory.
 
-Update fixtures only when producer tests need a new representative sample; record the upstream origin in the commit message.
+Update fixtures when portfolio article inventory changes or when producer tests need a new representative repo sample; record the upstream origin in the commit message.
+
+**Freshness:** slug coverage (`published-articles.mjs` + `tests/okf-content-coverage.test.ts`) does not prove a fixture matches the latest hub or DEV body. When `editorial-workflow/docs/dev.to/published/` changes, re-copy the slug-named file here, update `content-source-registry.mjs` if `articles.ts` changed, and re-run `assistant:ingest`. Operational detail: [architecture-direction.md](../../../docs/assistant/architecture-direction.md).

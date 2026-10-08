@@ -274,6 +274,22 @@ Ingest is idempotent: unchanged `(unit_id, content_hash, embedding_model)` rows 
 
 CI does not require `OPENAI_API_KEY`; unit tests mock embeddings.
 
+### 6. Post corpus-expansion re-ingest acceptance
+
+After [corpus coverage expansion](../.cursor/plans/assistant-corpus-coverage-expansion.plan.md) merges, the indexed corpus grows (on the order of **~89** OKF concepts and **~200+** structure-aware retrieval units vs the prior bounded experiment). Passing retrieval-eval on the old index does **not** guarantee passing on the expanded index — more units compete in top-K.
+
+**Operator sequence** (against the intended assistant `DATABASE_URL`, not `ASSISTANT_TEST_DATABASE_URL`):
+
+1. **Ingest** — `npm run assistant:ingest` (runs `okf:build`, derives units in memory, embeds, syncs).
+2. **Confirm index shape** — read ingest summary (upsert/skip/delete counts) and `assistant_ingestion_runs` / row count; expect unit count well above the prior ~61-unit experiment baseline.
+3. **Retrieval eval** — with `DATABASE_URL` and `OPENAI_API_KEY` set:
+
+   ```bash
+   npm run test -- tests/assistant-retrieval-eval.test.ts
+   ```
+
+4. **Record outcomes** — if rankings regress, document in corpus expansion findings ([plan-closure](../.cursor/plans/assistant-corpus-coverage-expansion.plan.md) slice / `docs/assistant/`) before weakening `tests/fixtures/assistant-retrieval/eval-cases.json`. Expanded competition is expected signal, not noise to fixture away without review.
+
 ## Commands
 
 | Command                        | Purpose                                                 |

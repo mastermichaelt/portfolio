@@ -1,0 +1,102 @@
+---
+name: Assistant career inventory corpus
+overview: Curate mastermichaelt/resumes career inventory (facts/roles/meta) into OKF with a public publication boundary — before RAG generation. Not resume variants or application packages.
+todos:
+  - id: publication-policy-and-producer-design
+    content: "Allowlist, snapshot strategy, OKF career/ namespace + source_class design doc"
+    status: pending
+  - id: career-inventory-okf-producer
+    content: "Implement career inventory producer, snapshots, coverage tests, re-ingest"
+    status: pending
+  - id: plan-closure
+    content: "Docs-only PR: findings + archive plan"
+    status: pending
+isProject: false
+---
+
+# Assistant career inventory corpus
+
+**Prerequisite:** [corpus coverage expansion](assistant-corpus-coverage-expansion.plan.md) merged and retrieval eval re-run on expanded index (operator acceptance in [assistant-database.md](../../docs/assistant/assistant-database.md) §6).
+
+**Direction:** [docs/assistant/career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md)
+
+## Recommended execution authority
+
+| Slice                                  | Recommended authority        | Agent instruction                                          |
+| -------------------------------------- | ---------------------------- | ---------------------------------------------------------- |
+| publication-policy-and-producer-design | Plan-only PR or Open PR only | Docs + allowlist artifact; no ingest until policy reviewed |
+| career-inventory-okf-producer          | Open PR only                 | Do not merge. Stop after opening the PR.                   |
+| plan-closure                           | Open PR only                 | Do not merge. Stop after opening the PR.                   |
+
+## Repository topology (default)
+
+Integration branch: `main`. Each slice from latest `origin/main`; PR base is `main`.
+
+---
+
+### Slice — `publication-policy-and-producer-design`
+
+**Purpose:** Lock publication boundary and producer contract before YAML enters OKF.
+
+**Deliverables:**
+
+- Committed allowlist (fact ids + meta files approved for public assistant)
+- Snapshot sync rule (resumes → `tests/fixtures/assistant-okf/career-inventory/`)
+- `source_class: career` + `listConceptFiles` / derive-units wiring spec
+- Update [career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md) with decisions
+
+**Does not include:** full fact ingestion, embedding spend, eval fixture changes
+
+---
+
+### Slice — `career-inventory-okf-producer`
+
+**Purpose:** Ship producer + coverage tests; re-ingest; retrieval-eval on expanded index.
+
+**Depends on:** `publication-policy-and-producer-design`
+
+**Stop:** Career inventory in OKF; eval regressions documented before fixture edits
+
+---
+
+### Slice — `plan-closure`
+
+**Depends on:** `career-inventory-okf-producer` merged
+
+---
+
+## Agent prompts (copy/paste for Cursor)
+
+### publication-policy-and-producer-design
+
+```text
+@.cursor/plans/assistant-career-inventory-corpus.plan.md
+
+Execute slice publication-policy-and-producer-design only. Authority: Open PR only — stop after opening the PR; do not merge.
+
+Topology: latest origin/main; PR base main.
+
+Deliverables: public allowlist, snapshot strategy, career/ OKF + source_class design; update docs/assistant/career-inventory-corpus-direction.md. Do not implement full producer or ingest.
+
+Mark publication-policy-and-producer-design completed in plan frontmatter in this PR.
+```
+
+### career-inventory-okf-producer
+
+```text
+@.cursor/plans/assistant-career-inventory-corpus.plan.md
+
+Execute slice career-inventory-okf-producer only. Prerequisite: publication-policy-and-producer-design merged.
+
+Authority: Open PR only — stop after opening the PR; do not merge.
+
+Implement career inventory OKF producer per allowlist; coverage tests; okf:build + re-ingest guidance. Mark career-inventory-okf-producer completed in frontmatter.
+```
+
+### plan-closure
+
+```text
+@.cursor/plans/assistant-career-inventory-corpus.plan.md
+
+Execute plan-closure only. Docs-only archive PR; Open PR only; do not merge.
+```

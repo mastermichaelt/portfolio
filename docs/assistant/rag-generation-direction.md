@@ -20,6 +20,8 @@ Sections use the same labels as [architecture-direction.md](./architecture-direc
 
 **Explicit non-goals for this document:** changing active `.cursor/plans/` scope, implementing chat UI, or shipping generation code.
 
+**Prerequisite corpus work (direction).** Grounded answers about career history should not rely on `content/about.ts` alone. Curated career inventory from `mastermichaelt/resumes` (`facts/`, `roles/`, allowlisted `meta/`) with an explicit **publication boundary** (no `applications/**`, `out/`, `stories/`, or per-variant résumé prose) should ship in OKF **before** this generation milestone — see [career-inventory-corpus-direction.md](./career-inventory-corpus-direction.md).
+
 ---
 
 ## Implemented retrieval boundary (today)

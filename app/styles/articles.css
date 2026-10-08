@@ -382,6 +382,9 @@
     display: inline-flex;
     align-items: center;
     min-height: 44px;
+    /* Headless Linux can report getBoundingClientRect().height just under 44px
+       despite min-height; 1px padding keeps the hit target unambiguous. */
+    padding-block: 1px;
   }
 }
 

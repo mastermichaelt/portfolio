@@ -15,6 +15,7 @@ import {
 import { produceAboutConcepts } from "./about-producer.mjs";
 import { produceDevConcepts } from "./dev-producer.mjs";
 import { buildNormalizationManifest, writeJson } from "./manifest.mjs";
+import { produceEcosystemConcepts } from "./ecosystem-producer.mjs";
 import { producePortfolioConcepts } from "./portfolio-producer.mjs";
 import { produceProjectCaseConcepts } from "./project-case-producer.mjs";
 import { produceRepoConcepts } from "./repo-producer.mjs";
@@ -37,14 +38,14 @@ function renderIndex(conceptPaths) {
 
   return `---
 okf_version: "${OKF_VERSION}"
-title: Portfolio assistant OKF corpus (experiment)
+title: Portfolio assistant OKF corpus (production scope)
 generated:
   by: process:portfolio-okf-producer
 ---
 
 # Portfolio assistant OKF corpus
 
-Normalization experiment bundle across portfolio content, About career record, a pinned repo runbook, and a pinned DEV field report.
+Production-scoped bundle: portfolio cases and catalogs, flagship project cases, About, ecosystem inventory, pinned Renovate runbook, and full published DEV article bodies aligned with content/articles.ts.
 
 ${section("Portfolio concepts", grouped.portfolio)}
 
@@ -84,9 +85,10 @@ export function buildOkfCorpus({
   const concepts = [
     ...producePortfolioConcepts(),
     ...produceProjectCaseConcepts(),
+    ...produceEcosystemConcepts(),
     ...produceAboutConcepts(),
     ...produceRepoConcepts(FIXTURES_DIR),
-    ...produceDevConcepts(FIXTURES_DIR),
+    ...produceDevConcepts(),
   ];
 
   const conceptPaths = writeConcepts(corpusRoot, concepts).sort();

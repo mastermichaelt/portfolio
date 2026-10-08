@@ -16,6 +16,7 @@ import {
   sha256String,
 } from "@/scripts/assistant/okf/manifest.mjs";
 import { produceDevConcepts } from "@/scripts/assistant/okf/dev-producer.mjs";
+import { produceEcosystemConcepts } from "@/scripts/assistant/okf/ecosystem-producer.mjs";
 import { producePortfolioConcepts } from "@/scripts/assistant/okf/portfolio-producer.mjs";
 import {
   caseBlockBody,
@@ -27,7 +28,7 @@ import { splitFrontmatter } from "@/scripts/assistant/okf/yaml.mjs";
 import { projectCases } from "@/content/project-cases";
 
 const FIXTURES_ROOT = path.join(process.cwd(), FIXTURES_DIR);
-const EXPECTED_CONCEPT_COUNT = 35;
+const EXPECTED_CONCEPT_COUNT = 89;
 
 function parseFrontmatterType(frontmatterYaml: string | null): string {
   expect(frontmatterYaml).toBeTruthy();
@@ -47,21 +48,28 @@ describe("OKF producers", () => {
   it("keeps portfolio, repo, dev, about, and project-case producer boundaries separate", () => {
     const portfolio = producePortfolioConcepts();
     const projectCase = produceProjectCaseConcepts();
+    const ecosystem = produceEcosystemConcepts();
     const about = produceAboutConcepts();
     const repo = produceRepoConcepts(FIXTURES_ROOT);
-    const dev = produceDevConcepts(FIXTURES_ROOT);
+    const dev = produceDevConcepts();
 
-    expect(portfolio).toHaveLength(8);
+    expect(portfolio).toHaveLength(30);
     expect(projectCase).toHaveLength(11);
+    expect(ecosystem).toHaveLength(4);
     expect(about).toHaveLength(9);
     expect(repo.length).toBeGreaterThanOrEqual(5);
-    expect(dev).toHaveLength(2);
+    expect(dev).toHaveLength(30);
 
     expect(
       portfolio.every((concept) => concept.id.startsWith("portfolio/")),
     ).toBe(true);
     expect(
       projectCase.every((concept) => concept.id.startsWith("portfolio/")),
+    ).toBe(true);
+    expect(
+      ecosystem.every((concept) =>
+        concept.id.startsWith("portfolio/ecosystem-"),
+      ),
     ).toBe(true);
     expect(about.every((concept) => concept.id.startsWith("about/"))).toBe(
       true,
@@ -99,9 +107,10 @@ describe("OKF producers", () => {
     const concepts = [
       ...producePortfolioConcepts(),
       ...produceProjectCaseConcepts(),
+      ...produceEcosystemConcepts(),
       ...produceAboutConcepts(),
       ...produceRepoConcepts(FIXTURES_ROOT),
-      ...produceDevConcepts(FIXTURES_ROOT),
+      ...produceDevConcepts(),
     ];
 
     for (const concept of concepts) {
@@ -119,10 +128,7 @@ describe("OKF producers", () => {
 describe("OKF normalization build", () => {
   it("records representative fixture inputs with stable hashes", () => {
     const fixtures = buildFixtureInputs(FIXTURES_ROOT);
-    expect(Object.keys(fixtures)).toEqual([
-      "renovate-workflow.md",
-      "evidence-driven-dependency-upgrades.md",
-    ]);
+    expect(Object.keys(fixtures)).toEqual(["renovate-workflow.md"]);
     for (const fixture of Object.values(fixtures)) {
       expect(fixture.sha256).toHaveLength(64);
       expect(fs.existsSync(path.join(process.cwd(), fixture.path))).toBe(true);

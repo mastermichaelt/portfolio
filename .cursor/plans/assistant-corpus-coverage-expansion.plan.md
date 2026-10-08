@@ -4,7 +4,7 @@ overview: Follow-on to the vector retrieval experiment — expand OKF producers 
 todos:
   - id: corpus-coverage-expansion
     content: "Expand OKF producers, coverage tests, re-ingest with structure-aware derivation"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR: corpus expansion findings + archive plan"
     status: pending
@@ -59,6 +59,17 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; PR base
 **Depends on:** archived vector retrieval experiment + findings doc
 
 **Stop:** Expanded OKF + ingest beyond experiment baseline; coverage tests guard drift; architecture-direction updated with production corpus scope
+
+**Post-merge operator acceptance (not CI-gated on this PR):**
+
+1. `npm run assistant:ingest` against the intended assistant database.
+2. Confirm indexed unit count and ingest summary (expect growth vs ~61-unit experiment index).
+3. `npm run test -- tests/assistant-retrieval-eval.test.ts` on the re-ingested index.
+4. Record ranking regressions in corpus expansion findings; do not weaken eval fixtures until reviewed.
+
+**Follow-up (operational):** pinned `published/*.md` fixtures — distinguish missing slug, upstream body change, and stale fixture vs hub master; see [architecture-direction.md](../../docs/assistant/architecture-direction.md) (no live DEV fetch in OKF build).
+
+**Deferred (separate plan):** career inventory from `mastermichaelt/resumes` — not in this slice; see [assistant-career-inventory-corpus.plan.md](assistant-career-inventory-corpus.plan.md).
 
 ---
 

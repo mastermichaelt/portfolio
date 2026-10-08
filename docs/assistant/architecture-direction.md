@@ -75,7 +75,7 @@ app/ pages → PortfolioRepository → content/ modules
 
 **Current implementation (assistant dev tooling only).** OKF normalization and the **retrieval index pipeline** are shipped as CLI tooling outside the Next.js app bundle (no answer generation, no chat UI):
 
-- Producers under `scripts/assistant/okf/`; `npm run okf:build` writes an inspectable, gitignored corpus to `generated/okf/` (bounded experiment corpus — see [vector retrieval experiment findings](./vector-retrieval-experiment.md)).
+- Producers under `scripts/assistant/okf/`; `npm run okf:build` writes an inspectable, gitignored corpus to `generated/okf/` (**production corpus scope** below; retrieval machinery validated in [vector retrieval experiment findings](./vector-retrieval-experiment.md)).
 - **Structure-aware retrieval-unit derivation** (`npm run assistant:derive`): 1..N units per OKF concept from markdown structure (headings, paragraph safeguards, fence-aware splits), deterministic `unit_id` / `content_hash`, parent `okf_concept_id`, chunk provenance.
 - **Embeddings + pgvector index** (`npm run assistant:ingest`): idempotent sync to Postgres (`assistant_retrieval_units`); operator workflow [assistant-database.md](./assistant-database.md).
 - **Inspectable retrieval** (`npm run assistant:retrieve`): top-K cosine search + provenance fields; stops before any LLM answer step.
@@ -106,16 +106,41 @@ future live web retrieval
 
 **Source classes:**
 
-| Class                             | Role                                                                            | Notes                                                                                                                                    |
-| --------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **Curated portfolio content**     | Canonical for portfolio **presentation**                                        | About, case studies, summaries, ecosystem, article metadata under `content/`                                                             |
-| **Selected project repositories** | Architecture notes, READMEs, design decisions, published technical explanations | ~7 repos; **not** whole-repo automatic ingestion. Exclude agent docs, plans, secrets, gitignored artifacts, private operational material |
-| **Published writing**             | Full DEV article bodies (not just portfolio summaries)                          | Ingestion mechanism deferred                                                                                                             |
-| **Comments / discussions**        | Open corpus-policy question                                                     | No decision yet                                                                                                                          |
+| Class                             | Role                                                                            | Notes                                                                                                                                                                                                               |
+| --------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Curated portfolio content**     | Canonical for portfolio **presentation**                                        | About, case studies, summaries, ecosystem, article metadata under `content/`                                                                                                                                        |
+| **Career inventory**              | Canonical **evidence** for career Q&A (facts, metrics, role scope)              | **Not indexed yet** — private `mastermichaelt/resumes` (`facts/`, `roles/`, allowlisted `meta/`). Distinct from About narrative; see [career-inventory-corpus-direction.md](./career-inventory-corpus-direction.md) |
+| **Selected project repositories** | Architecture notes, READMEs, design decisions, published technical explanations | ~7 repos; **not** whole-repo automatic ingestion. Exclude agent docs, plans, secrets, gitignored artifacts, private operational material                                                                            |
+| **Published writing**             | Full DEV article bodies (not just portfolio summaries)                          | **Shipped (dev tooling):** one pinned fixture per `content/articles.ts` row under `tests/fixtures/assistant-okf/published/` → `writing/*` OKF concepts                                                              |
+| **Résumé variants**               | Job-search positioning per application                                          | **Exclude** from assistant corpus — `applications/**/out/` and tailoring intent are not public knowledge                                                                                                            |
+| **Comments / discussions**        | Open corpus-policy question                                                     | No decision yet                                                                                                                                                                                                     |
+
+**Current implementation (production OKF corpus scope).** After [corpus coverage expansion](../../.cursor/plans/assistant-corpus-coverage-expansion.plan.md), `okf:build` normalizes:
+
+- **Supporting + flagship cases** — all `content/supporting-cases.ts` blocks and `content/project-cases.ts` flagship case studies (catalog + block-level concepts).
+- **Article catalog** — every `content/articles.ts` row (metadata on the portfolio side; full bodies in `writing/`).
+- **About** — `content/about.ts` career record.
+- **Ecosystem** — entity inventory, relationship graph, and curated workflow views from `content/ecosystem.ts` (layout coordinates omitted).
+- **Selected repo runbook** — pinned Renovate workflow fixture (not whole-repo ingestion).
+- **Published DEV bodies** — slug-aligned fixtures synced from the editorial hub master (`editorial-workflow/docs/dev.to/published/`).
+
+**Known gap (before RAG generation):** career inventory from the resumes repo — About alone is insufficient for experimentation, leadership-depth, and evidence-backed career questions. Planned work: [assistant-career-inventory-corpus.plan.md](../../.cursor/plans/assistant-career-inventory-corpus.plan.md).
+
+**Out of scope (for now):** `content/timeline.ts` (empty placeholder), homepage/production-line metaphor copy, additional sibling-repo runbooks, live DEV/network fetch at build time, whole-resumes-repo ingestion. `tests/okf-content-coverage.test.ts` pins `content/` module hashes so producer updates stay paired with content edits.
+
+**Operational follow-up (published article fixtures — not live fetch).** Corpus expansion deliberately uses **pinned** markdown under `tests/fixtures/assistant-okf/published/`, not runtime DEV or hub pulls. `assertPublishedArticleFixtureCoverage()` only proves every `content/articles.ts` slug has a fixture file — not that the fixture matches the latest published body. A future ingestion workflow should distinguish at least:
+
+| Situation                     | Meaning                                                               | Today                                                                     |
+| ----------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Missing corpus row**        | New article in `articles.ts` (or hub) with no fixture / OKF concept   | Caught by coverage tests when slug inventory diverges                     |
+| **Body changed upstream**     | Hub or live DEV post updated; fixture copy in portfolio is unchanged  | Not detected automatically; re-copy fixture + re-ingest when intentional  |
+| **Fixture present but stale** | File exists and passes slug coverage but content hash lags hub master | Same as body changed — operator/process concern until a sync check exists |
+
+Do not add live DEV fetching in the OKF build path without an explicit slice; prefer hub-to-fixture sync with recorded provenance (commit message / optional fixture manifest hashes) when refreshing bodies.
 
 **Architectural direction (decision).** Exclude agent docs, planning artifacts, private sibling-repo references, and internal review provenance (e.g. `CaseFigure.source` / inventory fact ids used only for editorial verification).
 
-**Future acceptance milestone.** Additional modules (timeline, workflow canvases, production-line metaphor) may enter the corpus only if experiments show retrieval gaps.
+**Future acceptance milestone.** Timeline and production-line metaphor may enter the corpus when content ships and retrieval eval shows gaps.
 
 ## Architectural direction — pipeline shape
 
@@ -334,7 +359,7 @@ Closure findings: [vector-retrieval-experiment.md](./vector-retrieval-experiment
 
 These are **not** scheduled slices. They name areas future experiments may touch after earlier work ships:
 
-- Source-specific producers normalizing portfolio content, repo docs, and published writing into OKF — **partially shipped** (Renovate corpus + fixtures; About and project cases expanding)
+- Source-specific producers normalizing portfolio content, repo docs, and published writing into OKF — **shipped (production scope)** — see [Corpus boundary](#corpus-boundary)
 - Inspectable OKF corpus before embeddings — **shipped**
 - Retrieval-unit derivation from OKF knowledge — **shipped** (structure-aware 1:N; vector retrieval experiment)
 - Retrieval quality evaluation — **shipped** ([vector-retrieval-experiment.md](./vector-retrieval-experiment.md))
@@ -410,12 +435,14 @@ later experiments as justified:
 
 ## Changelog
 
-| Date       | Change                                                                                                                                                                                                                                                                           |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-08 | Shipped vector retrieval experiment — [vector-retrieval-experiment.md](./vector-retrieval-experiment.md); archived plan; follow-on [corpus coverage expansion](../../.cursor/plans/assistant-corpus-coverage-expansion.plan.md)                                                  |
-| 2026-10-08 | Added [rag-generation-direction.md](./rag-generation-direction.md); updated current implementation for retrieval pipeline + structure-aware derivation; clarified generation as future work                                                                                      |
-| 2026-10-07 | Reconciled for vector retrieval experiment: OKF normalization marked shipped; Postgres+pgvector as retrieval backbone; superseded in-memory-first hypothesis; LangChain non-use for this experiment; two Postgres concerns documented; OKF dev tooling in current implementation |
-| 2026-10-06 | Added future context-aware retrieval, retrieval + answer evaluation, and public-assistant hardening/streaming experiments (directional only)                                                                                                                                     |
-| 2026-10-06 | Clarified canonical OKF corpus vs future external retrieval; corpus-only first experiments; opening goal and current-implementation posture no longer tied to `content/`-only stack                                                                                              |
-| 2026-10-06 | Corpus boundary broadened beyond `content/` alone; OKF adopted as canonical normalized representation; five-layer separation documented; supersedes v0.1.0 `content/`-only corpus assumption                                                                                     |
-| 2026-10-06 | Initial direction note; split from monolithic architecture doc; recorded abandoned PR #14 master plan                                                                                                                                                                            |
+| Date       | Change                                                                                                                                                                                                                                                                                                   |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-08 | Documented career inventory corpus gap and follow-on plan ([career-inventory-corpus-direction.md](./career-inventory-corpus-direction.md), [assistant-career-inventory-corpus.plan.md](../../.cursor/plans/assistant-career-inventory-corpus.plan.md)) — resumes `facts/`/`roles/` before RAG generation |
+| 2026-10-08 | Expanded OKF producers to production corpus scope (all supporting cases, article catalog + DEV bodies, ecosystem inventory, content coverage tests); see [corpus coverage expansion](../../.cursor/plans/assistant-corpus-coverage-expansion.plan.md) slice `corpus-coverage-expansion`                  |
+| 2026-10-08 | Shipped vector retrieval experiment — [vector-retrieval-experiment.md](./vector-retrieval-experiment.md); archived plan; follow-on [corpus coverage expansion](../../.cursor/plans/assistant-corpus-coverage-expansion.plan.md)                                                                          |
+| 2026-10-08 | Added [rag-generation-direction.md](./rag-generation-direction.md); updated current implementation for retrieval pipeline + structure-aware derivation; clarified generation as future work                                                                                                              |
+| 2026-10-07 | Reconciled for vector retrieval experiment: OKF normalization marked shipped; Postgres+pgvector as retrieval backbone; superseded in-memory-first hypothesis; LangChain non-use for this experiment; two Postgres concerns documented; OKF dev tooling in current implementation                         |
+| 2026-10-06 | Added future context-aware retrieval, retrieval + answer evaluation, and public-assistant hardening/streaming experiments (directional only)                                                                                                                                                             |
+| 2026-10-06 | Clarified canonical OKF corpus vs future external retrieval; corpus-only first experiments; opening goal and current-implementation posture no longer tied to `content/`-only stack                                                                                                                      |
+| 2026-10-06 | Corpus boundary broadened beyond `content/` alone; OKF adopted as canonical normalized representation; five-layer separation documented; supersedes v0.1.0 `content/`-only corpus assumption                                                                                                             |
+| 2026-10-06 | Initial direction note; split from monolithic architecture doc; recorded abandoned PR #14 master plan                                                                                                                                                                                                    |
