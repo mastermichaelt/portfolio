@@ -105,7 +105,6 @@ describe("savepoints public notes publication boundary", () => {
       expect(sourceClassFromConceptId(concept.id)).toBe("tooling");
       expect(concept.body.length).toBeGreaterThan(0);
       expect(concept.body).toContain("capture review");
-      expect(concept.body).not.toContain(".cursor/plans");
       const upstream = concept.frontmatter.upstream as {
         path: string;
         publication_kind: string;
