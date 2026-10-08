@@ -43,7 +43,10 @@ export function publishedArticleFixturePath(slug) {
   return path.join(PUBLISHED_ARTICLES_DIR, `${slug}.md`);
 }
 
-/** Every portfolio article row must have a pinned published-body fixture. */
+/**
+ * Every portfolio article row must have a pinned published-body fixture on disk.
+ * Does not compare fixture bytes to the editorial hub or live DEV — staleness is an operator follow-up.
+ */
 export function assertPublishedArticleFixtureCoverage() {
   const slugs = articles.map((entry) => entry.slug).sort();
   const fixtureSlugs = Object.keys(PUBLISHED_ARTICLE_HUB_FILES).sort();

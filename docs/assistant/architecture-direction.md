@@ -124,6 +124,16 @@ future live web retrieval
 
 **Out of scope (for now):** `content/timeline.ts` (empty placeholder), homepage/production-line metaphor copy, additional sibling-repo runbooks, live DEV/network fetch at build time. `tests/okf-content-coverage.test.ts` pins `content/` module hashes so producer updates stay paired with content edits.
 
+**Operational follow-up (published article fixtures — not live fetch).** Corpus expansion deliberately uses **pinned** markdown under `tests/fixtures/assistant-okf/published/`, not runtime DEV or hub pulls. `assertPublishedArticleFixtureCoverage()` only proves every `content/articles.ts` slug has a fixture file — not that the fixture matches the latest published body. A future ingestion workflow should distinguish at least:
+
+| Situation                     | Meaning                                                               | Today                                                                     |
+| ----------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Missing corpus row**        | New article in `articles.ts` (or hub) with no fixture / OKF concept   | Caught by coverage tests when slug inventory diverges                     |
+| **Body changed upstream**     | Hub or live DEV post updated; fixture copy in portfolio is unchanged  | Not detected automatically; re-copy fixture + re-ingest when intentional  |
+| **Fixture present but stale** | File exists and passes slug coverage but content hash lags hub master | Same as body changed — operator/process concern until a sync check exists |
+
+Do not add live DEV fetching in the OKF build path without an explicit slice; prefer hub-to-fixture sync with recorded provenance (commit message / optional fixture manifest hashes) when refreshing bodies.
+
 **Architectural direction (decision).** Exclude agent docs, planning artifacts, private sibling-repo references, and internal review provenance (e.g. `CaseFigure.source` / inventory fact ids used only for editorial verification).
 
 **Future acceptance milestone.** Timeline and production-line metaphor may enter the corpus when content ships and retrieval eval shows gaps.
