@@ -124,7 +124,7 @@ future live web retrieval
 - **Selected repo runbook** — pinned Renovate workflow fixture (not whole-repo ingestion).
 - **Published DEV bodies** — slug-aligned fixtures synced from the editorial hub master (`editorial-workflow/docs/dev.to/published/`).
 
-**Known gap (before RAG generation):** career inventory from the resumes repo — About alone is insufficient for experimentation, leadership-depth, and evidence-backed career questions. Planned work: [assistant-career-inventory-corpus.plan.md](../../.cursor/plans/assistant-career-inventory-corpus.plan.md).
+**Known gap (before RAG generation):** cross-repository professional evidence — especially career inventory (`mastermichaelt/resumes`), Cursor Team Marketplace docs, and Savepoints architecture notes — not fully discovered in corpus expansion alone. Research: [cross-repository-source-inventory.md](./cross-repository-source-inventory.md). Execution: [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md).
 
 **Out of scope (for now):** `content/timeline.ts` (empty placeholder), homepage/production-line metaphor copy, additional sibling-repo runbooks, live DEV/network fetch at build time, whole-resumes-repo ingestion. `tests/okf-content-coverage.test.ts` pins `content/` module hashes so producer updates stay paired with content edits.
 
