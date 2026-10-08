@@ -66,7 +66,7 @@ isProject: false
 - Assistant CLI pipeline on `main` (`okf:build`, `assistant:derive`, `assistant:ingest`, `assistant:retrieve`) — see [assistant-database.md](../../../docs/assistant/assistant-database.md)
 - [`tests/fixtures/assistant-retrieval/`](../../../tests/fixtures/assistant-retrieval/) — eval fixtures
 
-**Follow-on (shipped):** [`corpus-coverage-expansion.md`](../../../docs/assistant/corpus-coverage-expansion.md) / [archived plan](2026-10-08-assistant-corpus-coverage-expansion.plan.md). **Next active plan:** [`assistant-career-inventory-corpus.plan.md`](../../assistant-career-inventory-corpus.plan.md).
+**Follow-on (shipped):** [`corpus-coverage-expansion.md`](../../../docs/assistant/corpus-coverage-expansion.md) / [archived plan](2026-10-08-assistant-corpus-coverage-expansion.plan.md). **Next active plan:** [`assistant-cross-repository-corpus.plan.md`](../assistant-cross-repository-corpus.plan.md).
 
 ---
 

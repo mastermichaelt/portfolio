@@ -7,14 +7,14 @@ related:
   - docs/assistant/vector-retrieval-experiment.md
   - docs/assistant/assistant-database.md
   - .cursor/plans/archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md
-  - .cursor/plans/assistant-career-inventory-corpus.plan.md
+  - .cursor/plans/assistant-cross-repository-corpus.plan.md
 ---
 
 # Corpus coverage expansion findings
 
 Follow-on to the [vector retrieval experiment](./vector-retrieval-experiment.md): expand **what** is normalized into OKF and indexed with the **same** structure-aware retrieval-unit derivation — without reopening 1:1 vs 1:N mapping, embedding model changes, or ingest-sync rewrites.
 
-**Next active plan:** [assistant-career-inventory-corpus.plan.md](../../.cursor/plans/assistant-career-inventory-corpus.plan.md) — public-safe career inventory from `mastermichaelt/resumes` before RAG generation.
+**Next active plan:** [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md) — cross-repository corpus (career inventory producer first) before RAG generation.
 
 ## Outcome
 

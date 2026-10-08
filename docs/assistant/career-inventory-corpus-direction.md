@@ -7,12 +7,13 @@ updated: 2026-10-08
 related:
   - docs/assistant/architecture-direction.md
   - docs/assistant/rag-generation-direction.md
-  - .cursor/plans/assistant-career-inventory-corpus.plan.md
+  - .cursor/plans/assistant-cross-repository-corpus.plan.md
+  - .cursor/plans/archive/assistant-career-inventory-corpus-superseded.plan.md
 ---
 
 # Career inventory corpus direction
 
-The portfolio assistant indexes `content/about.ts` as public career narrative. That is **not** equivalent to indexing the **career inventory** in the private [`mastermichaelt/resumes`](https://github.com/mastermichaelt/resumes) repository. This note identifies canonical inventory layers, defines a **publication boundary**, and sketches an OKF producer — implementation is a separate plan slice ([assistant-career-inventory-corpus.plan.md](../../.cursor/plans/assistant-career-inventory-corpus.plan.md)).
+The portfolio assistant indexes `content/about.ts` as public career narrative. That is **not** equivalent to indexing the **career inventory** in the private [`mastermichaelt/resumes`](https://github.com/mastermichaelt/resumes) repository. This note identifies canonical inventory layers, defines a **publication boundary**, and sketches an OKF producer — implementation is slice `career-inventory-producer` in [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md) (supersedes the archived [career-only plan](../../.cursor/plans/archive/assistant-career-inventory-corpus-superseded.plan.md)).
 
 **Milestone placement:** address curated career-inventory indexing **before** visitor-facing RAG generation ([rag-generation-direction.md](./rag-generation-direction.md)). Retrieval-eval questions about Atlassian experimentation, engineering leadership, and developer infrastructure should hit inventory-backed evidence, not only condensed About copy.
 

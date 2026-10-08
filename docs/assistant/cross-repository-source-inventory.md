@@ -7,26 +7,30 @@ updated: 2026-10-08
 related:
   - docs/assistant/architecture-direction.md
   - docs/assistant/career-inventory-corpus-direction.md
+  - docs/assistant/corpus-coverage-expansion.md
   - docs/assistant/vector-retrieval-experiment.md
   - .cursor/plans/assistant-cross-repository-corpus.plan.md
-  - .cursor/plans/assistant-corpus-coverage-expansion.plan.md
+  - .cursor/plans/archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md
 ---
 
 # Cross-repository assistant source inventory
 
-Research artifact for **cross-repository knowledge coverage** before RAG generation. Findings are from **local workspace inspection** (Oct 2026) plus portfolio assistant code on branch `assistant/corpus-coverage-expansion` (PR #45). Repositories not present locally are marked **unverified**.
+Research artifact for **cross-repository knowledge coverage** before RAG generation. Findings are from **local workspace inspection** (Oct 2026) plus portfolio assistant code on `main` after PR [#45](https://github.com/mastermichaelt/portfolio/pull/45). Repositories not present locally are marked **unverified**.
+
+**Corpus baseline (2026-10-08):** **89** OKF concepts and **209** indexed retrieval units after operator acceptance — canonical record [corpus-coverage-expansion.md § Operational acceptance](./corpus-coverage-expansion.md#operational-acceptance).
 
 ## Pipeline baseline (preserve — do not replace)
 
-| Stage                                       | Status                 | Notes                                                                                        |
-| ------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------- |
-| OKF producers (`scripts/assistant/okf/`)    | **Shipped**            | Namespace dirs: `portfolio/`, `about/`, `repo/`, `writing/`                                  |
-| Structure-aware derive (`assistant:derive`) | **Shipped**            | 1..N units per concept; `unit_id` + `content_hash`                                           |
-| Embeddings + pgvector + ingest sync         | **Shipped**            | Idempotent upsert/skip/delete stale                                                          |
-| Retrieve CLI + retrieval-eval               | **Shipped**            | Fixture harness; exact cosine                                                                |
-| PR #45 corpus expansion (~89 concepts)      | **Open PR**            | Code complete; not merged to `main` at inventory time                                        |
-| Post-merge ingest + eval on expanded index  | **Pending acceptance** | [assistant-database.md](./assistant-database.md) §6; corpus-expansion `plan-closure` pending |
-| RAG answer generation                       | **Not implemented**    | [rag-generation-direction.md](./rag-generation-direction.md)                                 |
+| Stage                                       | Status                     | Notes                                                                                                                                      |
+| ------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| OKF producers (`scripts/assistant/okf/`)    | **Shipped**                | Namespace dirs: `portfolio/`, `about/`, `repo/`, `writing/`                                                                                |
+| Structure-aware derive (`assistant:derive`) | **Shipped**                | 1..N units per concept; `unit_id` + `content_hash`                                                                                         |
+| Embeddings + pgvector + ingest sync         | **Shipped**                | Idempotent upsert/skip/delete stale                                                                                                        |
+| Retrieve CLI + retrieval-eval               | **Shipped**                | Fixture harness; exact cosine                                                                                                              |
+| PR #45 corpus expansion (~89 concepts)      | **Shipped** on `main`      | [#45](https://github.com/mastermichaelt/portfolio/pull/45) merged                                                                          |
+| Post-merge ingest + eval on expanded index  | **Completed** (2026-10-08) | [corpus-coverage-expansion.md](./corpus-coverage-expansion.md#operational-acceptance); [assistant-database.md](./assistant-database.md) §6 |
+| Corpus expansion plan-closure               | **Shipped**                | [#47](https://github.com/mastermichaelt/portfolio/pull/47); archived plan under `.cursor/plans/archive/`                                   |
+| RAG answer generation                       | **Not implemented**        | [rag-generation-direction.md](./rag-generation-direction.md)                                                                               |
 
 **Indexed today (after PR #45 build):** ~89 OKF concepts → ~209 retrieval units (fresh derive). Pre-PR #45 baseline was ~35 concepts / ~61 units.
 
@@ -199,13 +203,13 @@ Exclude unless explicitly allowlisted and reviewed:
 
 ## Decisions (PR #46 review — locked)
 
-| #   | Decision           | Resolution                                                                                                                                                                                                                    |
-| --- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Career allowlist   | **Explicit per-file allowlist, default deny.** Do not automatically ingest all 38 facts and 21 roles. Only allowlisted `facts/<id>.yml` and matching `roles/<id>.yml` (plus approved `meta/`) enter OKF.                      |
-| 2   | Savepoints         | **Reviewed architecture excerpt first.** Promote to the full `notes/architecture-direction.md` only after a publication-suitability review.                                                                                   |
-| 3   | Marketplace        | **Public README and engineering docs first** (`README.md`, `docs/engineering-invariants.md`, `plugins/team-harness/docs/layers.md`, optionally `versioning.md`). **Defer SKILL summaries** unless retrieval eval shows a gap. |
-| 4   | OKF `source_class` | Introduce **`source_class: career`** and **`career/`** namespace. Career evidence is a distinct retrieval category from About presentation (`about/`).                                                                        |
-| 5   | Merge order        | **Merge PR #45 first.** Complete ingestion and retrieval evaluation (`corpus-expansion-acceptance-gate`) before `career-inventory-producer`.                                                                                  |
+| #   | Decision           | Resolution                                                                                                                                                                                                                     |
+| --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Career allowlist   | **Explicit per-file allowlist, default deny.** Do not automatically ingest all 38 facts and 21 roles. Only allowlisted `facts/<id>.yml` and matching `roles/<id>.yml` (plus approved `meta/`) enter OKF.                       |
+| 2   | Savepoints         | **Reviewed architecture excerpt first.** Promote to the full `notes/architecture-direction.md` only after a publication-suitability review.                                                                                    |
+| 3   | Marketplace        | **Public README and engineering docs first** (`README.md`, `docs/engineering-invariants.md`, `plugins/team-harness/docs/layers.md`, optionally `versioning.md`). **Defer SKILL summaries** unless retrieval eval shows a gap.  |
+| 4   | OKF `source_class` | Introduce **`source_class: career`** and **`career/`** namespace. Career evidence is a distinct retrieval category from About presentation (`about/`).                                                                         |
+| 5   | Merge order        | **PR #45 + operator ingest/eval complete** (2026-10-08). Next implementation slice: `career-inventory-producer` in [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md). |
 
 **Still open (operational):** snapshot cadence — manual hub/resumes → portfolio fixture sync with manifest hashes; no live fetch in CI until a dedicated automation slice.
 
@@ -213,6 +217,6 @@ Exclude unless explicitly allowlisted and reviewed:
 
 ## Related plans
 
-- [assistant-corpus-coverage-expansion.plan.md](../../.cursor/plans/assistant-corpus-coverage-expansion.plan.md) — PR #45; pending merge acceptance + plan-closure
-- [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md) — execution plan for this inventory
-- [assistant-career-inventory-corpus.plan.md](../../.cursor/plans/assistant-career-inventory-corpus.plan.md) — **superseded** by cross-repository plan (career slice retained)
+- [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md) — **active** execution plan for this inventory
+- [2026-10-08-assistant-corpus-coverage-expansion.plan.md](../../.cursor/plans/archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md) — shipped PR #45 / #47 closure
+- [assistant-career-inventory-corpus-superseded.plan.md](../../.cursor/plans/archive/assistant-career-inventory-corpus-superseded.plan.md) — superseded; career slice retained in cross-repository plan

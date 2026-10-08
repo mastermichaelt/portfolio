@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: corpus-expansion-acceptance-gate
     content: "Operator — merge PR #45, re-ingest ~209 units, retrieval-eval, corpus-expansion plan-closure"
-    status: pending
+    status: completed
   - id: career-inventory-producer
     content: "Explicit per-file allowlist (default deny) + snapshots + career/ + source_class career"
     status: pending
@@ -35,28 +35,30 @@ isProject: false
 
 **Inventory (research):** [docs/assistant/cross-repository-source-inventory.md](../../docs/assistant/cross-repository-source-inventory.md)
 
-**Supersedes:** [assistant-career-inventory-corpus.plan.md](assistant-career-inventory-corpus.plan.md) (career work lives as `career-inventory-producer` slice here).
+**Prerequisites (completed 2026-10-08):** PR [#45](https://github.com/mastermichaelt/portfolio/pull/45) corpus expansion merged; PR [#47](https://github.com/mastermichaelt/portfolio/pull/47) corpus-expansion plan-closure merged; operator acceptance recorded in [corpus-coverage-expansion.md](../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance) (**89** OKF concepts, **209** retrieval units; ingest **148** inserted / **5** updated / **56** skipped / **0** deleted; retrieval-eval **18/18** with **6/6** scored positives).
+
+**Supersedes:** [assistant-career-inventory-corpus-superseded.plan.md](archive/assistant-career-inventory-corpus-superseded.plan.md) (career work lives as `career-inventory-producer` slice here).
 
 ## Decisions (locked — PR #46 review)
 
-| Decision         | Resolution                                                                                 |
-| ---------------- | ------------------------------------------------------------------------------------------ |
-| Career allowlist | Explicit per-file allowlist, **default deny** (not all 38 facts / 21 roles)                |
-| Savepoints       | **Reviewed excerpt** first; full `architecture-direction.md` only after publication review |
-| Marketplace      | README + public engineering docs first; **defer SKILL summaries** unless eval shows a gap  |
-| OKF taxonomy     | **`career/`** namespace + **`source_class: career`** (distinct from `about/`)              |
-| Merge order      | **PR #45 merged** + operator ingest/eval **before** career producer                        |
+| Decision         | Resolution                                                                                            |
+| ---------------- | ----------------------------------------------------------------------------------------------------- |
+| Career allowlist | Explicit per-file allowlist, **default deny** (not all 38 facts / 21 roles)                           |
+| Savepoints       | **Reviewed excerpt** first; full `architecture-direction.md` only after publication review            |
+| Marketplace      | README + public engineering docs first; **defer SKILL summaries** unless eval shows a gap             |
+| OKF taxonomy     | **`career/`** namespace + **`source_class: career`** (distinct from `about/`)                         |
+| Merge order      | **PR #45 + operator ingest/eval complete** — `career-inventory-producer` is next implementation slice |
 
 ## Status: shipped vs pending vs new
 
-| Item                                                                                                      | State                                                                                |
-| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Vector retrieval experiment + structure-aware chunking                                                    | **Shipped** on `main`                                                                |
-| PR [#45](https://github.com/mastermichaelt/portfolio/pull/45) portfolio corpus (~89 concepts)             | **Open** — predecessor; do not duplicate                                             |
-| Post-merge ingest + `tests/assistant-retrieval-eval.test.ts` on expanded index                            | **Pending** ([assistant-database.md](../../docs/assistant/assistant-database.md) §6) |
-| [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) `plan-closure` | **Pending** after acceptance                                                         |
-| Cross-repo sources (resumes, marketplace, savepoints, …)                                                  | **New work** — this plan                                                             |
-| RAG generation / chat UI                                                                                  | **Out of scope** — after corpus + eval                                               |
+| Item                                                                                                | State                                                                                                                                           |
+| --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vector retrieval experiment + structure-aware chunking                                              | **Shipped** on `main`                                                                                                                           |
+| PR [#45](https://github.com/mastermichaelt/portfolio/pull/45) portfolio corpus (~89 concepts)       | **Shipped** on `main`                                                                                                                           |
+| Post-merge ingest + `tests/assistant-retrieval-eval.test.ts` on expanded index                      | **Completed** (2026-10-08) — [corpus-coverage-expansion.md](../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance)           |
+| Corpus coverage expansion plan-closure ([#47](https://github.com/mastermichaelt/portfolio/pull/47)) | **Shipped** — archived [2026-10-08-assistant-corpus-coverage-expansion.plan.md](archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md) |
+| Cross-repo sources (resumes, marketplace, savepoints, …)                                            | **Pending** — this plan (`career-inventory-producer` first)                                                                                     |
+| RAG generation / chat UI                                                                            | **Out of scope** — after corpus + eval                                                                                                          |
 
 ## Architectural extension (minimal)
 
@@ -97,7 +99,7 @@ Repo default: **Open PR only** ([planning-standards.md](../standards/planning-st
 
 ## Repository topology
 
-Integration branch: `main`. Each implementation slice from latest `origin/main`; PR base `main`. Do not stack cross-repo slices on unmerged PR #45 — merge or rebase after #45 lands.
+Integration branch: `main`. Each implementation slice from latest `origin/main`; PR base `main`.
 
 ---
 
@@ -109,15 +111,15 @@ Integration branch: `main`. Each implementation slice from latest `origin/main`;
 
 ### Slice — `corpus-expansion-acceptance-gate`
 
-**Type:** Operator prerequisite (not an agent implementation PR).
+**Status:** **Completed** (2026-10-08). Canonical acceptance record: [corpus-coverage-expansion.md § Operational acceptance](../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance). Do **not** repeat ingest for this gate — proceed to `career-inventory-producer` when ready.
 
-1. Merge PR #45.
-2. `npm run assistant:ingest` on intended `DATABASE_URL`.
-3. Confirm ~209 units indexed; record ingest summary.
-4. `npm run test -- tests/assistant-retrieval-eval.test.ts` — require all **six** existing `kind: positive` cases to pass; **record observations** for the two diagnostic cases (`corpus_gap`, `negative_inspection`) — they are not scored pass/fail.
-5. Complete [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) `plan-closure`.
+**Type:** Operator prerequisite (not an agent implementation PR). Historical steps:
 
-**Stop:** Document results before starting `career-inventory-producer`. **Hard prerequisite** — do not start career producer until this gate completes.
+1. Merge PR #45 — **done**.
+2. `npm run assistant:ingest` on intended `DATABASE_URL` — **done** (148 inserted, 5 updated, 56 skipped, 0 deleted).
+3. Confirm **209** derived retrieval units / **89** OKF concepts — **done**.
+4. `npm run test -- tests/assistant-retrieval-eval.test.ts` — **18/18** passed; **6/6** scored positives; two diagnostics observed only.
+5. Corpus expansion plan-closure ([#47](https://github.com/mastermichaelt/portfolio/pull/47)) — **done**.
 
 ---
 
@@ -224,15 +226,7 @@ The fixture file has **eight** cases: **six** `kind: positive` (scored) and **tw
 ### corpus-expansion-acceptance-gate
 
 ```text
-Manual verification gate only — do not implement code or open a PR.
-
-Prerequisites: PR #45 merged to main.
-
-Run: npm run assistant:ingest; confirm unit count ~209; npm run test -- tests/assistant-retrieval-eval.test.ts.
-
-Acceptance: all six existing kind: positive cases pass; record observations for corpus_gap and negative_inspection (not scored pass/fail). Report ingest summary + eval summary. Then execute assistant-corpus-coverage-expansion plan-closure (docs-only archive PR) if positives pass.
-
-Mark corpus-expansion-acceptance-gate completed in assistant-cross-repository-corpus.plan.md only if your scope includes plan frontmatter update in that closure PR.
+Completed 2026-10-08 — see corpus-coverage-expansion.md § Operational acceptance. Do not re-run ingest for this gate.
 ```
 
 ### career-inventory-producer
@@ -240,11 +234,11 @@ Mark corpus-expansion-acceptance-gate completed in assistant-cross-repository-co
 ```text
 @.cursor/plans/assistant-cross-repository-corpus.plan.md
 
-Implement slice career-inventory-producer only. Prerequisite: corpus-expansion-acceptance-gate complete (PR #45 merged + eval run).
+Implement slice career-inventory-producer only. Prerequisite: corpus-expansion-acceptance-gate complete (recorded 2026-10-08).
 
 Authority: Open PR only — do not merge. Topology: origin/main; base main.
 
-Use docs/assistant/cross-repository-source-inventory.md and career-inventory-corpus-direction.md. Explicit per-file allowlist (default deny — not all facts/roles). Deterministic YAML producer + pinned snapshots only. career/ namespace + source_class: career. Do not start until corpus-expansion-acceptance-gate is complete.
+Use docs/assistant/cross-repository-source-inventory.md and career-inventory-corpus-direction.md. Explicit per-file allowlist (default deny — not all facts/roles). Deterministic YAML producer + pinned snapshots only. career/ namespace + source_class: career.
 
 Mark career-inventory-producer completed in plan frontmatter in the same PR.
 ```

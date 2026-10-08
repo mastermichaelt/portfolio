@@ -27,7 +27,7 @@ isProject: false
 - [`tests/okf-content-coverage.test.ts`](../../../tests/okf-content-coverage.test.ts) — pinned `content/` module hashes
 - Retrieval pipeline on `main` (unchanged machinery) — [assistant-database.md](../../../docs/assistant/assistant-database.md)
 
-**Next active plan:** [`assistant-career-inventory-corpus.plan.md`](../../assistant-career-inventory-corpus.plan.md) — career inventory OKF producer before RAG generation.
+**Next active plan:** [`assistant-cross-repository-corpus.plan.md`](../assistant-cross-repository-corpus.plan.md) — cross-repository corpus (`career-inventory-producer` first) before RAG generation.
 
 ---
 

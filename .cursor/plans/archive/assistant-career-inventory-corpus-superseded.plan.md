@@ -18,11 +18,11 @@ isProject: false
 
 **Superseded 2026-10-08** — this plan was **not completed** and is **not** an active execution plan.
 
-| Item | Resolution |
-| --- | --- |
-| Canonical plan | [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md) |
-| Career slice | `career-inventory-producer` in the cross-repository plan |
-| Research | [cross-repository-source-inventory.md](../../docs/assistant/cross-repository-source-inventory.md), [career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md) |
+| Item           | Resolution                                                                                                                                                                                           |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Canonical plan | [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md)                                                                                                            |
+| Career slice   | `career-inventory-producer` in the cross-repository plan                                                                                                                                             |
+| Research       | [cross-repository-source-inventory.md](../../docs/assistant/cross-repository-source-inventory.md), [career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md) |
 
 Do not execute slices from this file. Retained for historical context only.
 
