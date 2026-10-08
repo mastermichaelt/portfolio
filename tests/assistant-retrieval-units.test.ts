@@ -10,7 +10,9 @@ import { renderConcept } from "@/scripts/assistant/okf/writer.mjs";
 import { producePortfolioConcepts } from "@/scripts/assistant/okf/portfolio-producer.mjs";
 import {
   chunkOkfBody,
+  MAX_CHUNK_ESTIMATED_TOKENS,
   slugifyHeading,
+  splitBodyIntoParagraphs,
   unitIdForChunk,
 } from "@/scripts/assistant/retrieval/chunk-okf-body.mjs";
 import {
@@ -110,6 +112,44 @@ Beta body.`;
     expect(unitIdForChunk("writing/sample", chunks, 1)).toMatch(
       /^unit\/writing\/sample#/,
     );
+  });
+
+  it("does not duplicate an oversized paragraph when packing prior paragraphs", () => {
+    const small = "A".repeat(100);
+    const huge = "B".repeat(MAX_CHUNK_ESTIMATED_TOKENS * 4 + 100);
+    const chunks = chunkOkfBody(`${small}\n\n${huge}`);
+
+    expect(chunks).toHaveLength(2);
+    expect(chunks[0]!.body).toBe(small);
+    expect(chunks[1]!.body).toBe(huge);
+
+    const bodies = chunks.map((chunk) => chunk.body);
+    expect(new Set(bodies).size).toBe(bodies.length);
+  });
+
+  it("keeps fenced code blocks as one paragraph despite internal blank lines", () => {
+    const body = `Before code.
+
+\`\`\`
+line one
+
+line two
+\`\`\`
+
+After code.`;
+
+    const paragraphs = splitBodyIntoParagraphs(body);
+    expect(paragraphs).toHaveLength(3);
+    expect(paragraphs[1]).toContain("line one\n\nline two");
+  });
+
+  it("emits a single oversized fenced block once without mid-fence splits", () => {
+    const inner = "x".repeat(MAX_CHUNK_ESTIMATED_TOKENS * 4);
+    const body = `\`\`\`\n${inner}\n\`\`\``;
+    const chunks = chunkOkfBody(body);
+
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0]!.body).toBe(body.trim());
   });
 });
 

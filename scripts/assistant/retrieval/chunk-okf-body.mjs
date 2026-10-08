@@ -4,6 +4,12 @@
  * Splits on markdown ATX headings (`#`–`###`) already present in OKF bodies.
  * Paragraph boundaries split oversized sections (token safeguard only).
  *
+ * Oversized-section behavior:
+ * - Paragraphs are merged greedily until the next block would exceed the token estimate.
+ * - Blank-line splits are ignored inside fenced code blocks (``` or ~~~).
+ * - A single paragraph or fenced block that alone exceeds the cap is emitted once as-is
+ *   (no mid-paragraph split; embedding input may exceed the safeguard).
+ *
  * `unit_id` suffix scheme (when a concept yields more than one chunk):
  *   `unit/{okf_concept_id}#{partKey}`
  * where `partKey` is URL-safe and stable:
@@ -18,6 +24,15 @@
 export const MAX_CHUNK_ESTIMATED_TOKENS = 1200;
 
 const HEADING_RE = /^(#{1,3})\s+(.+)$/;
+
+/**
+ * @param {string} line
+ * @returns {string | null} Fence marker (` ``` ` / `~~~`) when the line opens or closes a fence.
+ */
+function fenceMarkerOnLine(line) {
+  const match = /^(```+|~~~+)(\s.*)?$/.exec(line.trim());
+  return match ? match[1] : null;
+}
 
 /**
  * @param {string} text
@@ -98,14 +113,70 @@ export function splitBodyIntoHeadingSections(body) {
 }
 
 /**
+ * Split section body into paragraph blocks. Blank lines delimit paragraphs only
+ * outside fenced code regions.
+ *
+ * @param {string} body
+ * @returns {string[]}
+ */
+export function splitBodyIntoParagraphs(body) {
+  const normalized = body.replace(/\r\n/g, "\n");
+  const lines = normalized.split("\n");
+  /** @type {string[]} */
+  const paragraphs = [];
+  /** @type {string[]} */
+  let current = [];
+  let inFence = false;
+  /** @type {string | null} */
+  let openFenceMarker = null;
+
+  const flush = () => {
+    const text = current.join("\n").trim();
+    if (text) {
+      paragraphs.push(text);
+    }
+    current = [];
+  };
+
+  for (const line of lines) {
+    const fenceMarker = fenceMarkerOnLine(line);
+    if (fenceMarker) {
+      if (!inFence) {
+        inFence = true;
+        openFenceMarker = fenceMarker;
+      } else if (
+        openFenceMarker &&
+        fenceMarker[0] === openFenceMarker[0] &&
+        fenceMarker.length >= 3
+      ) {
+        inFence = false;
+        openFenceMarker = null;
+      }
+      current.push(line);
+      continue;
+    }
+
+    if (!inFence && line.trim() === "") {
+      flush();
+      continue;
+    }
+
+    current.push(line);
+  }
+
+  flush();
+  return paragraphs;
+}
+
+/**
+ * Pack paragraph blocks into chunks under the token estimate. Oversized single
+ * blocks are emitted once (see module header).
+ *
  * @param {string} body
  * @returns {string[]}
  */
 function splitOversizedBodyByParagraphs(body) {
-  const paragraphs = body
-    .split(/\n{2,}/)
-    .map((part) => part.trim())
-    .filter(Boolean);
+  const paragraphs = splitBodyIntoParagraphs(body);
 
   if (paragraphs.length === 0) {
     return [];
@@ -134,11 +205,10 @@ function splitOversizedBodyByParagraphs(body) {
       estimateTokenCount(candidate) > MAX_CHUNK_ESTIMATED_TOKENS
     ) {
       flushBuffer();
-      buffer.push(paragraph);
       if (estimateTokenCount(paragraph) > MAX_CHUNK_ESTIMATED_TOKENS) {
-        flushBuffer();
         chunks.push(paragraph);
-        buffer = [];
+      } else {
+        buffer.push(paragraph);
       }
       continue;
     }
