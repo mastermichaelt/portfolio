@@ -72,6 +72,12 @@ export function hitMatchesUnitPatterns(hit, patterns) {
 }
 
 /**
+ * Section substring match for eval — textual relevance, not strict chunk boundaries.
+ *
+ * Matches against `section_heading` (metadata), `title`, and the first 400 chars of
+ * `retrieval_text`. A pass does not prove the hit aligns with structure-aware
+ * `section_heading` / part_key; a stricter follow-on eval can require heading-only.
+ *
  * @param {EvalHit} hit
  * @param {string[]} sectionSubstrings
  */
