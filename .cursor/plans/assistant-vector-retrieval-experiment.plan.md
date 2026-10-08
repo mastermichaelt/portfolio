@@ -1,6 +1,6 @@
 ---
 name: Assistant vector retrieval experiment
-overview: Multi-slice experiment to validate retrieval machinery (derive → embed → sync → retrieve → eval) over a bounded ~35-unit OKF corpus—not full portfolio coverage. Ingestion is content-agnostic; corpus-coverage-expansion is the scheduled post-experiment milestone for producers, granularity, and coverage tests. No answer generation, chat UI, or RAG frameworks in this plan.
+overview: Multi-slice experiment to validate retrieval machinery (derive → embed → sync → retrieve → eval) over a bounded ~35-unit OKF corpus—not full portfolio coverage. Follow-on content scope lives in assistant-corpus-coverage-expansion.plan.md (separate plan). No answer generation, chat UI, or RAG frameworks in this plan.
 todos:
   - id: plan-review
     content: "Plan-only PR — commit plan artifact; open PR for review; do not implement"
@@ -32,9 +32,6 @@ todos:
   - id: retrieval-eval
     content: "PR 9: Representative eval cases with top-K assertions (skip without secrets)"
     status: pending
-  - id: corpus-coverage-expansion
-    content: "Post-experiment: expand OKF producers to full article/portfolio coverage, granularity learnings, coverage tests (after retrieve-cli + retrieval-eval + closure)"
-    status: pending
   - id: plan-closure
     content: "Docs-only PR: vector-retrieval-experiment findings + archive plan"
     status: pending
@@ -45,24 +42,25 @@ isProject: false
 
 ## Recommended execution authority
 
-| Slice                     | Recommended authority | Agent instruction                                      |
-| ------------------------- | --------------------- | ------------------------------------------------------ |
-| plan-review               | Plan-only PR          | Do not implement. Stop after opening the plan-only PR. |
-| doc-reconcile             | Open PR only          | Do not merge. Stop after opening the PR.               |
-| corpus-expansion          | Open PR only          | Do not merge. Stop after opening the PR.               |
-| retrieval-units           | Open PR only          | Do not merge. Stop after opening the PR.               |
-| db-foundation             | Open PR only          | Do not merge. Stop after opening the PR.               |
-| embeddings-adapter        | Open PR only          | Do not merge. Stop after opening the PR.               |
-| neon-deployment           | Open PR only          | Do not merge. Stop after opening the PR.               |
-| ingest-sync               | Open PR only          | Do not merge. Stop after opening the PR.               |
-| retrieve-cli              | Open PR only          | Do not merge. Stop after opening the PR.               |
-| retrieval-eval            | Open PR only          | Do not merge. Stop after opening the PR.               |
-| plan-closure              | Open PR only          | Do not merge. Stop after opening the PR.               |
-| corpus-coverage-expansion | Open PR only          | Do not merge. Stop after opening the PR.               |
+| Slice              | Recommended authority | Agent instruction                                      |
+| ------------------ | --------------------- | ------------------------------------------------------ |
+| plan-review        | Plan-only PR          | Do not implement. Stop after opening the plan-only PR. |
+| doc-reconcile      | Open PR only          | Do not merge. Stop after opening the PR.               |
+| corpus-expansion   | Open PR only          | Do not merge. Stop after opening the PR.               |
+| retrieval-units    | Open PR only          | Do not merge. Stop after opening the PR.               |
+| db-foundation      | Open PR only          | Do not merge. Stop after opening the PR.               |
+| embeddings-adapter | Open PR only          | Do not merge. Stop after opening the PR.               |
+| neon-deployment    | Open PR only          | Do not merge. Stop after opening the PR.               |
+| ingest-sync        | Open PR only          | Do not merge. Stop after opening the PR.               |
+| retrieve-cli       | Open PR only          | Do not merge. Stop after opening the PR.               |
+| retrieval-eval     | Open PR only          | Do not merge. Stop after opening the PR.               |
+| plan-closure       | Open PR only          | Do not merge. Stop after opening the PR.               |
 
 Repo default: **Open PR only** ([planning-standards.md](.cursor/standards/planning-standards.md)).
 
-**Execution order (remaining):** `retrieve-cli` → `retrieval-eval` → `plan-closure` → **`corpus-coverage-expansion`**. Do not expand OKF producers for full-site coverage until retrieval-unit granularity is evaluated on the bounded index. The ~35-unit ingested corpus is an **experiment index**, not the intended production assistant corpus.
+**Execution order (remaining):** `retrieve-cli` → `retrieval-eval` → `plan-closure`. Do not expand OKF producers for full-site coverage in this plan. The ~35-unit ingested corpus is an **experiment index**, not the production assistant corpus.
+
+**Follow-on milestone (separate plan):** [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) — start only after this experiment is archived. When `plan-closure` merges, every todo in _this_ plan is complete (no pending implementation slices in the archived file).
 
 ## Repository topology (default)
 
@@ -173,7 +171,7 @@ flowchart TD
 
 **Slice `corpus-expansion` (shipped):** bounded producers for **About**, **`experiment-measurement`**, and **`codenames-ai`** so eval exercises heterogeneous shapes without full-site ingestion.
 
-**Post-experiment `corpus-coverage-expansion`:** scheduled milestone for remaining content (see slice below). Ingestion machinery already supports new units; the open product decision is **what** to index and at **what granularity**.
+**Follow-on content scope:** [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md). Ingestion machinery already supports new units; the open product decision is **what** to index and at **what granularity**.
 
 ---
 
@@ -796,42 +794,15 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Files:** `docs/assistant/vector-retrieval-experiment.md`, move plan to `.cursor/plans/archive/`
 
-**Approach:** Answer closure questions with measured results from `retrieval-eval`; update architecture-direction "What we have learned so far". State explicitly that the ~35-unit pgvector index is a **bounded experiment corpus**, not the production assistant retrieval target. Point to **`corpus-coverage-expansion`** as the documented next milestone (ingestion pipeline is ready; content scope is not).
+**Approach:** Answer closure questions with measured results from `retrieval-eval`; update architecture-direction "What we have learned so far". State explicitly that the ~35-unit pgvector index is a **bounded experiment corpus**, not the production assistant retrieval target. Link [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) as the **next active plan** (ingestion pipeline is ready; content scope is deferred there).
 
 **Tests:** Docs-only
 
 **Depends on:** `retrieve-cli`, `retrieval-eval`, and all prior implementation slices merged
 
-**Does not include:** OKF producer expansion for full portfolio coverage (deferred to `corpus-coverage-expansion`)
+**Does not include:** OKF producer expansion for full portfolio coverage (follow-on plan above)
 
-**Stop:** Closure PR opened
-
----
-
-### Slice — `corpus-coverage-expansion`
-
-**Purpose:** Expand what the assistant indexes after retrieval quality and **retrieval-unit granularity** are validated on the bounded experiment corpus. Uses existing `okf:build` → `assistant:ingest` sync (new units embed + insert; unchanged units skip).
-
-**Not in scope for `retrieve-cli`, `retrieval-eval`, or `ingest-sync`:** this slice adds content and coverage; it does not change embedding model, vector schema, or ingest sync semantics unless eval proves granularity requires a deliberate schema/derivation change (document in findings first).
-
-**Planned work (staged inside this milestone or follow-on PRs within the slice):**
-
-| Area                         | Intent                                                                                                                                   |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Published technical articles | All published articles in the index, not only the current two `writing/` units                                                           |
-| Remaining portfolio content  | Producers for portfolio surfaces not yet represented (ecosystem, timeline, additional cases/repos as bounded)                            |
-| Long-document granularity    | Evaluate whether 1 OKF concept = 1 retrieval unit is too coarse for long articles; document decision before mass re-embed                |
-| Coverage tests               | Assert newly published / in-repo content paths are represented in OKF output (fail when content modules change without producer updates) |
-
-**Files (indicative):** OKF producers under `scripts/assistant/okf/`, `content/` module coverage, `tests/okf-normalization.test.ts` or dedicated coverage tests, optional eval case updates after re-ingest
-
-**Tests:** Producer + coverage tests; re-run `retrieval-eval` after ingest when eval fixtures change
-
-**Depends on:** **`plan-closure` merged** (experiment findings include retrieval-unit granularity recommendation)
-
-**Blocks:** Treating the experiment index as production-complete assistant corpus
-
-**Stop:** Expanded OKF build + ingest increases unit count beyond the experiment baseline; coverage tests guard drift; architecture-direction updated with production corpus scope
+**Stop:** Closure PR opened; **all frontmatter todos in this plan `completed`** (no pending implementation slices remain in the archived file)
 
 ---
 
@@ -856,7 +827,7 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 - ANN indexes (HNSW / IVFFlat) — exact search only in this experiment
 - Retrieval distance/confidence thresholds (observed in negative eval; implemented later)
 - Vercel API routes, public assistant endpoints
-- Full portfolio ingestion in experiment slices — deferred to post-experiment **`corpus-coverage-expansion`** (machinery exists; content scope is a separate milestone)
+- Full portfolio ingestion in this experiment — deferred to [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md)
 
 **Next experiment (out of scope for this plan):** question → retrieval → evidence assembly → OpenAI Responses API → grounded answer + citations
 
@@ -1064,25 +1035,7 @@ Prerequisites: all implementation slices merged and marked completed in frontmat
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: docs/assistant/vector-retrieval-experiment.md; verify slice todos; add # Shipped note; move plan to .cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md; mark plan-closure completed. Document that ~35 units are experiment-only and `corpus-coverage-expansion` is the next milestone (leave that todo pending or promote to a new active plan per planning standards).
+Deliverables: docs/assistant/vector-retrieval-experiment.md; verify all experiment slice todos completed; add # Shipped note; move plan to .cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md; mark plan-closure completed. Document ~35 units as experiment-only and link follow-on plan assistant-corpus-coverage-expansion.plan.md (remains active under .cursor/plans/ — not archived with this experiment).
 
-Verification: confirm all prerequisite implementation PRs are merged before archiving.
-```
-
-### corpus-coverage-expansion
-
-```text
-@.cursor/plans/assistant-vector-retrieval-experiment.plan.md
-
-Implement slice corpus-coverage-expansion only. Prerequisites: plan-closure merged (experiment findings include retrieval-unit granularity). Do not start before retrieve-cli and retrieval-eval are complete. Do not archive this plan until this slice is done if it remains the active execution plan after closure.
-
-Authority: Open PR only — implement and open the PR; do not merge.
-
-Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
-
-Deliverables: expanded OKF producers and coverage tests per plan slice table; re-ingest via npm run assistant:ingest; update architecture-direction with production corpus scope. Mark corpus-coverage-expansion completed in plan frontmatter in the same PR as the code when applicable.
-
-Do not: retrieve-cli/eval rewrites, answer generation, ANN indexes, or embedding model/schema changes unless findings mandate a dedicated migration slice.
-
-Verification: npm run okf:build; npm run assistant:ingest (when secrets configured); npm run test; npm run format:check.
+Verification: confirm all prerequisite implementation PRs are merged and every experiment todo except plan-closure is completed before archiving.
 ```
