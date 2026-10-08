@@ -37,7 +37,7 @@ isProject: false
 
 ## Prerequisites
 
-- Vector retrieval experiment **archived** (`.cursor/plans/archive/` + [docs/assistant/vector-retrieval-experiment.md](docs/assistant/vector-retrieval-experiment.md))
+- Vector retrieval experiment **archived** (`.cursor/plans/archive/` + [docs/assistant/vector-retrieval-experiment.md](../../../docs/assistant/vector-retrieval-experiment.md))
 - `structure-aware-chunking`, `retrieve-cli`, `retrieval-eval`, and `ingest-sync` merged on `main`
 
 **Ingestion is granularity-agnostic:** expand OKF concepts → `assistant:derive` (structure-aware) → `npm run assistant:ingest`. **Do not re-litigate 1:1 vs chunking** — structure-aware derivation is the production strategy established by the experiment.
@@ -49,7 +49,7 @@ isProject: false
 | corpus-coverage-expansion | Open PR only          | Do not merge. Stop after opening the PR. |
 | plan-closure              | Open PR only          | Do not merge. Stop after opening the PR. |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md)).
 
 ## Repository topology (default)
 
@@ -97,7 +97,7 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; PR base
 
 **Purpose:** Document corpus expansion outcomes and archive this plan.
 
-**Files:** update [docs/assistant/architecture-direction.md](docs/assistant/architecture-direction.md); move plan to `.cursor/plans/archive/`
+**Files:** update [docs/assistant/architecture-direction.md](../../../docs/assistant/architecture-direction.md); move plan to `.cursor/plans/archive/`
 
 **Depends on:** `corpus-coverage-expansion` merged
 
