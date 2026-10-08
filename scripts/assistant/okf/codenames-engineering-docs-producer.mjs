@@ -27,6 +27,9 @@ function extractSection(markdown, startHeading, endHeading) {
   }
   const contentStart = start + startHeading.length;
   const end = endHeading ? markdown.indexOf(endHeading, contentStart) : -1;
+  if (endHeading && end === -1) {
+    throw new Error(`End section not found: ${endHeading.trim()}`);
+  }
   const slice =
     end === -1
       ? markdown.slice(contentStart)
