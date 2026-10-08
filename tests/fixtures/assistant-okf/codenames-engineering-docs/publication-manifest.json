@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "deny",
+  "upstream_repo": "multipliers-dev/codenames-ai-guesser",
+  "sources": [
+    {
+      "file": "sources/ai-pipeline-outcome.md",
+      "upstream_path": "docs/ai-pipeline-outcome.md",
+      "sha256": "e96ce79979b2d6279a450cd6b554d3809c26e2df09a16292e39c8ecada332314"
+    },
+    {
+      "file": "sources/judge-ai-validation-flow.md",
+      "upstream_path": "docs/judge-ai-validation-flow.md",
+      "sha256": "5b714f95094a239d21d6e99bfa5f19a3467176263177a59873c4a86362670e88"
+    }
+  ]
+}

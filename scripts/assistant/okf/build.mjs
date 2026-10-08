@@ -21,6 +21,7 @@ import { produceProjectCaseConcepts } from "./project-case-producer.mjs";
 import { produceCareerInventoryConcepts } from "./career-inventory-producer.mjs";
 import { produceMarketplacePublicDocsConcepts } from "./marketplace-public-docs-producer.mjs";
 import { produceSavepointsPublicNotesConcepts } from "./savepoints-public-notes-producer.mjs";
+import { produceCodenamesEngineeringDocsConcepts } from "./codenames-engineering-docs-producer.mjs";
 import { produceRepoConcepts } from "./repo-producer.mjs";
 import { cleanGeneratedConcepts, writeConcepts } from "./writer.mjs";
 
@@ -50,7 +51,7 @@ generated:
 
 # Portfolio assistant OKF corpus
 
-Production-scoped bundle: portfolio cases and catalogs, flagship project cases, About, reviewed career-inventory snapshots, pinned cursor-team-marketplace public docs, reviewed Savepoints architecture excerpt, ecosystem inventory, pinned Renovate runbook, and full published DEV article bodies aligned with content/articles.ts.
+Production-scoped bundle: portfolio cases and catalogs, flagship project cases, About, reviewed career-inventory snapshots, pinned cursor-team-marketplace public docs, reviewed Savepoints architecture excerpt, pinned Codenames AI engineering docs (bounded sections), ecosystem inventory, pinned Renovate runbook, and full published DEV article bodies aligned with content/articles.ts.
 
 ${section("Portfolio concepts", grouped.portfolio)}
 
@@ -100,6 +101,7 @@ export function buildOkfCorpus({
     ...produceCareerInventoryConcepts(),
     ...produceMarketplacePublicDocsConcepts(),
     ...produceSavepointsPublicNotesConcepts(),
+    ...produceCodenamesEngineeringDocsConcepts(),
     ...produceRepoConcepts(FIXTURES_DIR),
     ...produceDevConcepts(),
   ];
