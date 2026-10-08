@@ -27,9 +27,9 @@ isProject: false
 
 **Goal:** Turn visitor questions into **grounded, attributable answers** using the indexed OKF corpus (101 concepts; 12/12 scored retrieval-eval positives on current index). **Generation quality and correctness first** — not visitor-facing chat UX.
 
-**Direction (design background):** [rag-generation-direction.md](../../../docs/assistant/rag-generation-direction.md)
+**Direction (design background):** [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md)
 
-**Prerequisites (shipped):** OKF + structure-aware derive/ingest/retrieve; cross-repository corpus + retrieval-eval — [cross-repository-corpus-eval-findings.md](../../../docs/assistant/cross-repository-corpus-eval-findings.md)
+**Prerequisites (shipped):** OKF + structure-aware derive/ingest/retrieve; cross-repository corpus + retrieval-eval — [cross-repository-corpus-eval-findings.md](../../docs/assistant/cross-repository-corpus-eval-findings.md)
 
 **Non-goals (milestone):** corpus expansion, retrieval-eval baseline changes, `app/api/`, chat UI, streaming, web search, LangChain, DB schema changes, automatic bulk generation.
 
@@ -153,7 +153,7 @@ Public API, chat UI, streaming, rate limits, neighbour expansion, tokenizer-exac
 
 - Grounded sample question with valid citations when secrets set.
 - Non-zero exit on `EvidenceBudgetExceeded`, validation failure, API errors.
-- Mocked `fetch` tests; docs in [assistant-database.md](../../../docs/assistant/assistant-database.md); `.env.example` for `ASSISTANT_GENERATION_MODEL`.
+- Mocked `fetch` tests; docs in [assistant-database.md](../../docs/assistant/assistant-database.md); `.env.example` for `ASSISTANT_GENERATION_MODEL`.
 
 **PR boundary:** CLI + chat adapter + docs; no generation-eval fixtures.
 
@@ -167,7 +167,7 @@ Public API, chat UI, streaming, rate limits, neighbour expansion, tokenizer-exac
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Goal:** `tests/assistant-generation-eval.test.ts`, fixtures, `scripts/assistant/generation/eval.mjs`, stub [generation-eval-findings.md](../../../docs/assistant/generation-eval-findings.md).
+**Goal:** `tests/assistant-generation-eval.test.ts`, fixtures, `scripts/assistant/generation/eval.mjs`, stub [generation-eval-findings.md](../../docs/assistant/generation-eval-findings.md).
 
 **Dependencies:** `generation-cli` merged.
 
@@ -175,7 +175,7 @@ Public API, chat UI, streaming, rate limits, neighbour expansion, tokenizer-exac
 
 - Deterministic: mock outputs → integrity + **support** scorers; mis-citation case (integrity pass, support fail).
 - Integration `skipIf` without secrets.
-- **Do not** modify [eval-cases.json](../../../tests/fixtures/assistant-retrieval/eval-cases.json).
+- **Do not** modify [eval-cases.json](../../tests/fixtures/assistant-retrieval/eval-cases.json).
 
 **PR boundary:** Eval harness + stub doc only.
 
@@ -203,7 +203,7 @@ Public API, chat UI, streaming, rate limits, neighbour expansion, tokenizer-exac
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Deliverables:** `# Shipped` note; move plan to `.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md`; update [architecture-direction.md](../../../docs/assistant/architecture-direction.md) and [rag-generation-direction.md](../../../docs/assistant/rag-generation-direction.md); mark `plan-closure` completed.
+**Deliverables:** `# Shipped` note; move plan to `.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md`; update [architecture-direction.md](../../docs/assistant/architecture-direction.md) and [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md); mark `plan-closure` completed.
 
 ---
 
