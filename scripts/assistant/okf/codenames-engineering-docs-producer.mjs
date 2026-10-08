@@ -5,7 +5,6 @@ import {
 } from "./constants.mjs";
 import {
   assertCodenamesPublicationIntegrity,
-  loadCodenamesPublicationManifest,
   readPinnedCodenamesSource,
 } from "./codenames-engineering-docs-manifest.mjs";
 
@@ -117,7 +116,6 @@ Related portfolio case: [Validation and outcomes](/portfolio/codenames-ai-b01-va
  */
 export function produceCodenamesEngineeringDocsConcepts() {
   assertCodenamesPublicationIntegrity();
-  loadCodenamesPublicationManifest();
 
   return [producePipelineOutcomeConcept(), produceValidationFlowConcept()].sort(
     (a, b) => a.id.localeCompare(b.id),

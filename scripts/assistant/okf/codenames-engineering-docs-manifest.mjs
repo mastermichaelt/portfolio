@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { FIXTURES_DIR } from "./constants.mjs";
+import { CODENAMES_REPO, FIXTURES_DIR } from "./constants.mjs";
 import { sha256File } from "./manifest.mjs";
 
 export const CODENAMES_ENGINEERING_DOCS_DIR = path.join(
@@ -71,6 +71,11 @@ export function assertCodenamesPublicationIntegrity() {
     !manifest.upstream_repo.includes("/")
   ) {
     throw new Error("Codenames manifest upstream_repo must be owner/repo");
+  }
+  if (manifest.upstream_repo !== CODENAMES_REPO) {
+    throw new Error(
+      `Codenames manifest upstream_repo must match CODENAMES_REPO (${CODENAMES_REPO})`,
+    );
   }
   if (!Array.isArray(manifest.sources) || manifest.sources.length === 0) {
     throw new Error(

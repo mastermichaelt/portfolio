@@ -3,7 +3,10 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { codenamesUpstreamResource } from "@/scripts/assistant/okf/constants.mjs";
+import {
+  CODENAMES_REPO,
+  codenamesUpstreamResource,
+} from "@/scripts/assistant/okf/constants.mjs";
 import { sha256File } from "@/scripts/assistant/okf/manifest.mjs";
 import {
   assertCodenamesPublicationIntegrity,
@@ -33,6 +36,77 @@ describe("codenames engineering docs publication boundary", () => {
 
   it("fails closed when publication integrity checks run", () => {
     expect(() => assertCodenamesPublicationIntegrity()).not.toThrow();
+  });
+
+  it("rejects manifest upstream_repo that does not match CODENAMES_REPO", () => {
+    const manifestBackup = fs.readFileSync(
+      CODENAMES_PUBLICATION_MANIFEST_PATH,
+      "utf8",
+    );
+    const manifest = loadCodenamesPublicationManifest();
+    const tampered = {
+      ...manifest,
+      upstream_repo: "multipliers-dev/wrong-repo",
+    };
+    fs.writeFileSync(
+      CODENAMES_PUBLICATION_MANIFEST_PATH,
+      `${JSON.stringify(tampered, null, 2)}\n`,
+    );
+    try {
+      expect(() => assertCodenamesPublicationIntegrity()).toThrow(
+        new RegExp(
+          `Codenames manifest upstream_repo must match CODENAMES_REPO \\(${CODENAMES_REPO}\\)`,
+        ),
+      );
+      expect(() => produceCodenamesEngineeringDocsConcepts()).toThrow(
+        /must match CODENAMES_REPO/,
+      );
+    } finally {
+      fs.writeFileSync(CODENAMES_PUBLICATION_MANIFEST_PATH, manifestBackup);
+    }
+  });
+
+  it("throws when validation-flow pinned source omits the section end delimiter", () => {
+    const validationSourcePath = path.join(
+      CODENAMES_SOURCES_DIR,
+      "judge-ai-validation-flow.md",
+    );
+    const manifestBackup = fs.readFileSync(
+      CODENAMES_PUBLICATION_MANIFEST_PATH,
+      "utf8",
+    );
+    const sourceBackup = fs.readFileSync(validationSourcePath, "utf8");
+
+    const tampered = sourceBackup.replace(
+      "\n---\n\n## Related mode: STRANGE\n",
+      "\n---\n\n## Continued notes\n",
+    );
+    fs.writeFileSync(validationSourcePath, tampered, "utf8");
+
+    const manifest = loadCodenamesPublicationManifest();
+    const updated = {
+      ...manifest,
+      sources: manifest.sources.map(
+        (entry: { file: string; upstream_path: string; sha256: string }) =>
+          entry.file === "sources/judge-ai-validation-flow.md"
+            ? { ...entry, sha256: sha256File(validationSourcePath) }
+            : entry,
+      ),
+    };
+    fs.writeFileSync(
+      CODENAMES_PUBLICATION_MANIFEST_PATH,
+      `${JSON.stringify(updated, null, 2)}\n`,
+    );
+
+    try {
+      expect(() => assertCodenamesPublicationIntegrity()).not.toThrow();
+      expect(() => produceCodenamesEngineeringDocsConcepts()).toThrow(
+        /End section not found:[\s\S]*Related mode: STRANGE/,
+      );
+    } finally {
+      fs.writeFileSync(validationSourcePath, sourceBackup, "utf8");
+      fs.writeFileSync(CODENAMES_PUBLICATION_MANIFEST_PATH, manifestBackup);
+    }
   });
 
   it("rejects orphan source markdown without publication approval", () => {
