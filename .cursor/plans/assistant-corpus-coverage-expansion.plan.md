@@ -13,7 +13,7 @@ isProject: false
 
 # Assistant corpus coverage expansion
 
-**Follow-on milestone** — not part of [assistant-vector-retrieval-experiment.plan.md](assistant-vector-retrieval-experiment.plan.md). That experiment validates retrieval machinery and **structure-aware 1:N retrieval units** on a bounded corpus; this plan expands **what** gets indexed (published articles, remaining portfolio surfaces) using the **same derivation strategy**.
+**Follow-on milestone** — not part of the archived [vector retrieval experiment](archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md) ([findings](../../docs/assistant/vector-retrieval-experiment.md)). That experiment validated retrieval machinery and **structure-aware 1:N retrieval units** on a bounded corpus; this plan expands **what** gets indexed (published articles, remaining portfolio surfaces) using the **same derivation strategy**.
 
 ## Prerequisites
 

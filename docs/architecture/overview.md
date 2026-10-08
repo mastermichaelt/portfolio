@@ -11,7 +11,7 @@ This repository serves four overlapping purposes:
 3. A **Next.js learning project** with a clean path to Postgres-backed persistence later
 4. A **foundation** for a future grounded portfolio chatbot
 
-The current milestone is a static content MVP on Vercel: home, projects, articles, about, and a live ecosystem map (orientation spine + operational workflow canvases). Database persistence stays later. Assistant **architecture direction** is documented under [`docs/assistant/`](../assistant/architecture-direction.md). **OKF normalization** and the **retrieval index pipeline** (`okf:build`, `assistant:derive`, `assistant:ingest`, `assistant:retrieve`) are dev-only CLI tooling; answer generation and chat UI are not implemented ([rag generation direction](../assistant/rag-generation-direction.md); [vector retrieval experiment](../../.cursor/plans/assistant-vector-retrieval-experiment.plan.md)).
+The current milestone is a static content MVP on Vercel: home, projects, articles, about, and a live ecosystem map (orientation spine + operational workflow canvases). Database persistence stays later. Assistant **architecture direction** is documented under [`docs/assistant/`](../assistant/architecture-direction.md). **OKF normalization** and the **retrieval index pipeline** (`okf:build`, `assistant:derive`, `assistant:ingest`, `assistant:retrieve`) are dev-only CLI tooling; answer generation and chat UI are not implemented ([rag generation direction](../assistant/rag-generation-direction.md); [vector retrieval experiment findings](../assistant/vector-retrieval-experiment.md)).
 
 ## Milestone progression
 

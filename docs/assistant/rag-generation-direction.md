@@ -8,7 +8,8 @@ related:
   - docs/assistant/architecture-direction.md
   - docs/assistant/assistant-database.md
   - docs/assistant/okf-normalization-experiment.md
-  - .cursor/plans/assistant-vector-retrieval-experiment.plan.md
+  - docs/assistant/vector-retrieval-experiment.md
+  - .cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md
 ---
 
 # RAG generation direction
@@ -154,7 +155,7 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 ## Evaluation: retrieval quality vs grounded answer quality
 
-**Current implementation (in progress).** The vector retrieval experiment adds a **retrieval-eval** slice: representative questions, expected `okf_concept_id` / optional `unit_id` / section metadata, ranking assertions, failure-mode notes — against the ingested index when `DATABASE_URL` is set.
+**Current implementation (shipped).** Retrieval-eval fixtures and harness exercise structure-aware retrieval on the ingested index when `DATABASE_URL` and `OPENAI_API_KEY` are set. See [vector-retrieval-experiment.md](./vector-retrieval-experiment.md).
 
 **Architectural direction (decision).** **Evaluate retrieval separately from grounded generation** until both subsystems exist. Mixing them early obscures whether failures are chunking, embedding, ranking, assembly, or hallucination.
 
