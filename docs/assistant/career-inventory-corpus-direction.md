@@ -7,12 +7,13 @@ updated: 2026-10-08
 related:
   - docs/assistant/architecture-direction.md
   - docs/assistant/rag-generation-direction.md
-  - .cursor/plans/assistant-career-inventory-corpus.plan.md
+  - .cursor/plans/assistant-cross-repository-corpus.plan.md
+  - .cursor/plans/archive/assistant-career-inventory-corpus-superseded.plan.md
 ---
 
 # Career inventory corpus direction
 
-The portfolio assistant indexes `content/about.ts` as public career narrative. That is **not** equivalent to indexing the **career inventory** in the private [`mastermichaelt/resumes`](https://github.com/mastermichaelt/resumes) repository. This note identifies canonical inventory layers, defines a **publication boundary**, and sketches an OKF producer — implementation is a separate plan slice ([assistant-career-inventory-corpus.plan.md](../../.cursor/plans/assistant-career-inventory-corpus.plan.md)).
+The portfolio assistant indexes `content/about.ts` as public career narrative. That is **not** equivalent to indexing the **career inventory** in the private [`mastermichaelt/resumes`](https://github.com/mastermichaelt/resumes) repository. This note identifies canonical inventory layers, defines a **publication boundary**, and sketches an OKF producer — implementation is slice `career-inventory-producer` in [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md) (supersedes the archived [career-only plan](../../.cursor/plans/archive/assistant-career-inventory-corpus-superseded.plan.md)).
 
 **Milestone placement:** address curated career-inventory indexing **before** visitor-facing RAG generation ([rag-generation-direction.md](./rag-generation-direction.md)). Retrieval-eval questions about Atlassian experimentation, engineering leadership, and developer infrastructure should hit inventory-backed evidence, not only condensed About copy.
 
@@ -41,9 +42,16 @@ Facts reference roles by id (e.g. `role: atlassian-em-2020`); roles provide chro
 
 ## Publication boundary (job-search vs public assistant)
 
-The resumes repository is **private** and mixes **public-evidence inventory** with **job-search operations**. The assistant corpus must not ingest the whole repo.
+The resumes repository is **private** and mixes **public-evidence inventory** with **job-search operations**. The assistant corpus must not ingest the whole repo. Use **two separate controls** (both default deny):
 
-**Never index (non-negotiable):**
+| Control                 | Question                               | Portfolio artifact (planned)                                                                                                                  |
+| ----------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Source eligibility**  | Which private files may be considered? | Committed source-eligibility manifest (explicit `facts/`, matching `roles/`, approved `meta/` paths only)                                     |
+| **Content publication** | What may visitors retrieve?            | Reviewed **public snapshots** + publication manifest (hashes, approved fact/field ids) under `tests/fixtures/assistant-okf/career-inventory/` |
+
+Allowlisting a source file does **not** authorize publishing its entire YAML. Producers emit OKF from **deterministic, reviewed snapshots** — not wholesale copies of approved private files. **`assistant:ingest` success does not imply publication approval**; publication is complete only when eligibility, manifest, and snapshots align in a merged portfolio PR.
+
+**Never eligible (non-negotiable):**
 
 - `applications/**` — `brief.yml`, `include.yml`, `research.md`, `lifecycle.yml`, `prep.yml`, communications
 - `applications/**/out/**` — generated résumé/PDF prose (variants, not canonical evidence)
@@ -51,13 +59,22 @@ The resumes repository is **private** and mixes **public-evidence inventory** wi
 - `exemplars/**` — editorial quality reference, not career evidence
 - Agent/planning paths under either repo
 
-**Index only with an explicit public allowlist** (to be committed in portfolio):
+**Source eligibility (default deny):**
 
-- Approved `facts/<id>.yml` ids (default: all inventory facts unless tagged otherwise in a future `assistant_public: false` convention)
-- Matching `roles/<id>.yml` for referenced roles
-- Selected `meta/` files with **PII stripped at producer** (e.g. omit phone; keep education/awards)
+- Allowlisted `facts/<id>.yml` only (not all 38 fact files)
+- `roles/<id>.yml` only for roles referenced by allowlisted facts (not all 21 roles)
+- Selected `meta/` paths only when explicitly listed
 
-Near-identical résumé variants must **not** create parallel OKF concepts — one vector line per inventory fact bundle, not per application slug.
+**Content publication (default deny):**
+
+- Only public-safe fields/excerpts promoted into snapshots after human review
+- Exclude private contact information, interview prep, recruiter feedback, performance-management detail, confidential business information, and unverified or strengthened claims
+- New files and new content in previously eligible sources require a fresh publication review — no automatic promotion
+- **Fail closed** if eligibility, publication manifest, or snapshot freshness cannot be verified
+
+**Provenance:** OKF may carry stable inventory fact ids for operator/debug use; visitor-facing bodies and `resource` URLs must not expose private repo paths or internal metadata.
+
+Near-identical résumé variants must **not** create parallel OKF concepts — one published line per reviewed inventory excerpt, not per application slug.
 
 ## OKF producer design (sketch)
 
@@ -65,16 +82,16 @@ Near-identical résumé variants must **not** create parallel OKF concepts — o
 
 **Granularity (recommended):**
 
-- One OKF concept per `facts/<id>.yml` — title from fact file `title`, body from structured fact entries (preserve ids for provenance; no claim strengthening).
-- Optional compact `career/role-<id>` concepts from `roles/*.yml` for date-range questions.
+- One OKF concept per **published** fact excerpt — title and body from reviewed snapshot content (preserve inventory ids for provenance; no claim strengthening).
+- Optional compact `career/role-<id>` concepts from published role excerpts for date-range questions.
 - Do **not** emit one concept per generated résumé or per application.
 
 **Cross-repo input strategy (CI-safe):**
 
-| Mode                                     | Use                                                                                                                                  |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **Pinned snapshot** (recommended for CI) | Copy approved YAML into `tests/fixtures/assistant-okf/career-inventory/` (or manifest hashes) — same pattern as DEV `published/*.md` |
-| **Sibling checkout**                     | `RESUMES_REPO_ROOT` for local `okf:build` when `../resumes` exists — optional ergonomics only                                        |
+| Mode                                  | Use                                                                                                                                                                                          |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pinned snapshot** (required for CI) | Commit **reviewed public excerpts** (not full private YAML) into `tests/fixtures/assistant-okf/career-inventory/` with publication manifest hashes — same discipline as DEV `published/*.md` |
+| **Sibling checkout**                  | `RESUMES_REPO_ROOT` for local `okf:build` when `../resumes` exists — optional ergonomics only                                                                                                |
 
 Portfolio CI must not depend on a private clone unless snapshots are committed or supplied as a gated secret artifact.
 

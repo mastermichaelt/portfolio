@@ -66,7 +66,7 @@ isProject: false
 - Assistant CLI pipeline on `main` (`okf:build`, `assistant:derive`, `assistant:ingest`, `assistant:retrieve`) — see [assistant-database.md](../../../docs/assistant/assistant-database.md)
 - [`tests/fixtures/assistant-retrieval/`](../../../tests/fixtures/assistant-retrieval/) — eval fixtures
 
-**Follow-on (shipped):** [`corpus-coverage-expansion.md`](../../../docs/assistant/corpus-coverage-expansion.md) / [archived plan](2026-10-08-assistant-corpus-coverage-expansion.plan.md). **Next active plan:** [`assistant-career-inventory-corpus.plan.md`](../../assistant-career-inventory-corpus.plan.md).
+**Follow-on (shipped):** [`corpus-coverage-expansion.md`](../../../docs/assistant/corpus-coverage-expansion.md) / [archived plan](2026-10-08-assistant-corpus-coverage-expansion.plan.md). **Next active plan:** [`assistant-cross-repository-corpus.plan.md`](../assistant-cross-repository-corpus.plan.md).
 
 ---
 
@@ -89,11 +89,11 @@ isProject: false
 | retrieval-eval           | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure             | Open PR only          | Do not merge. Stop after opening the PR.               |
 
-Repo default: **Open PR only** ([planning-standards.md](.cursor/standards/planning-standards.md)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md)).
 
 **Execution order (remaining):** `retrieve-cli` → **`structure-aware-chunking`** → `retrieval-eval` → `plan-closure`. **`ingest-sync` is granularity-agnostic** — do not add chunking there. Do not expand OKF producers for full-site coverage in this plan. Historical 1:1 derivation remains in Git history (`retrieval-units`); production retrieval uses structure-aware units after `structure-aware-chunking` + re-ingest.
 
-**Follow-on milestone (separate plan):** [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) — uses the retrieval-unit strategy validated here; start only after this experiment is archived. When `plan-closure` merges, every todo in _this_ plan is complete (no pending implementation slices in the archived file).
+**Follow-on milestone (separate plan):** [assistant-corpus-coverage-expansion.plan.md](2026-10-08-assistant-corpus-coverage-expansion.plan.md) — uses the retrieval-unit strategy validated here; start only after this experiment is archived. When `plan-closure` merges, every todo in _this_ plan is complete (no pending implementation slices in the archived file).
 
 ## Repository topology (default)
 
@@ -105,13 +105,13 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; branch 
 
 ### Documents inspected
 
-| Document                   | Path                                                                                             | Role                                           |
-| -------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
-| Architecture direction     | [docs/assistant/architecture-direction.md](docs/assistant/architecture-direction.md)             | Primary intended-system doc                    |
-| OKF experiment findings    | [docs/assistant/okf-normalization-experiment.md](docs/assistant/okf-normalization-experiment.md) | Shipped normalization evidence                 |
-| Prior art                  | [docs/assistant/prior-art.md](docs/assistant/prior-art.md)                                       | Historical reference (nyaomaru); not normative |
-| Site architecture overview | [docs/architecture/overview.md](docs/architecture/overview.md)                                   | Milestone 5 / Postgres note                    |
-| Product constraints        | [PRODUCT.md](PRODUCT.md)                                                                         | Static MVP, no chatbot yet                     |
+| Document                   | Path                                                                                                      | Role                                           |
+| -------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Architecture direction     | [docs/assistant/architecture-direction.md](../../../docs/assistant/architecture-direction.md)             | Primary intended-system doc                    |
+| OKF experiment findings    | [docs/assistant/okf-normalization-experiment.md](../../../docs/assistant/okf-normalization-experiment.md) | Shipped normalization evidence                 |
+| Prior art                  | [docs/assistant/prior-art.md](../../../docs/assistant/prior-art.md)                                       | Historical reference (nyaomaru); not normative |
+| Site architecture overview | [docs/architecture/overview.md](../../../docs/architecture/overview.md)                                   | Milestone 5 / Postgres note                    |
+| Product constraints        | [PRODUCT.md](../../../PRODUCT.md)                                                                         | Static MVP, no chatbot yet                     |
 
 ### Alignment assessment
 
@@ -121,20 +121,20 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; branch 
 - OKF is a **normalization/interchange boundary**, not canonical storage or the vector index
 - OKF concepts ≠ retrieval units; embeddings are **disposable projections** rebuildable from sources
 - Corpus-only semantic retrieval before generation; inspectable pipeline; provenance-backed citations (future)
-- Shipped OKF producers under [scripts/assistant/okf/](scripts/assistant/okf/); `npm run okf:build` → gitignored [generated/okf/](generated/okf/)
+- Shipped OKF producers under [scripts/assistant/okf/](../../../scripts/assistant/okf/); `npm run okf:build` → gitignored [generated/okf/](../../../generated/okf/)
 - No `app/api/` routes, no LangChain, no chat UI in current milestone
 
 **Conflicts / stale assumptions to reconcile**
 
-| Location                                                                                                       | Stale content                                                            | Required update                                                                                                                                                               |
-| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [architecture-direction.md](docs/assistant/architecture-direction.md) § "Simple semantic RAG first" (line 232) | **In-memory vector store first**; pgvector deferred                      | Supersede for this experiment: **Postgres + pgvector is the retrieval backbone**; in-memory is no longer the target for this slice family                                     |
-| [architecture-direction.md](docs/assistant/architecture-direction.md) (lines 248–254)                          | "Next experiment" still reads as OKF normalization                       | Mark OKF normalization **shipped**; next experiment is **vector retrieval**                                                                                                   |
-| [architecture-direction.md](docs/assistant/architecture-direction.md) (line 234)                               | LangChain as reasonable learning path                                    | Record **explicit non-use** for this experiment (per prompt); keep as historical hypothesis only if mentioned                                                                 |
-| [architecture-direction.md](docs/assistant/architecture-direction.md) "Current implementation"                 | Omits shipped OKF normalization                                          | Add OKF producers as current assistant infrastructure (dev tooling only)                                                                                                      |
-| [docs/architecture/overview.md](docs/architecture/overview.md) (line 14)                                       | "no assistant implementation yet"                                        | Split: OKF normalization shipped; retrieval/embeddings/chat still future                                                                                                      |
-| Neon references in overview / AGENTS.md                                                                        | Conflate site `PortfolioRepository` Postgres with assistant vector store | Clarify **two Postgres concerns**: (a) future site content persistence, (b) assistant embedding index (this experiment) — may share Neon provider, different schema/lifecycle |
-| [okf-normalization-experiment.md](docs/assistant/okf-normalization-experiment.md)                              | Ends at "retrieval-unit derivation [future]"                             | Add pointer to this experiment; preserve OKF-as-transient finding                                                                                                             |
+| Location                                                                                                                | Stale content                                                            | Required update                                                                                                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [architecture-direction.md](../../../docs/assistant/architecture-direction.md) § "Simple semantic RAG first" (line 232) | **In-memory vector store first**; pgvector deferred                      | Supersede for this experiment: **Postgres + pgvector is the retrieval backbone**; in-memory is no longer the target for this slice family                                     |
+| [architecture-direction.md](../../../docs/assistant/architecture-direction.md) (lines 248–254)                          | "Next experiment" still reads as OKF normalization                       | Mark OKF normalization **shipped**; next experiment is **vector retrieval**                                                                                                   |
+| [architecture-direction.md](../../../docs/assistant/architecture-direction.md) (line 234)                               | LangChain as reasonable learning path                                    | Record **explicit non-use** for this experiment (per prompt); keep as historical hypothesis only if mentioned                                                                 |
+| [architecture-direction.md](../../../docs/assistant/architecture-direction.md) "Current implementation"                 | Omits shipped OKF normalization                                          | Add OKF producers as current assistant infrastructure (dev tooling only)                                                                                                      |
+| [docs/architecture/overview.md](../../../docs/architecture/overview.md) (line 14)                                       | "no assistant implementation yet"                                        | Split: OKF normalization shipped; retrieval/embeddings/chat still future                                                                                                      |
+| Neon references in overview / AGENTS.md                                                                                 | Conflate site `PortfolioRepository` Postgres with assistant vector store | Clarify **two Postgres concerns**: (a) future site content persistence, (b) assistant embedding index (this experiment) — may share Neon provider, different schema/lifecycle |
+| [okf-normalization-experiment.md](../../../docs/assistant/okf-normalization-experiment.md)                              | Ends at "retrieval-unit derivation [future]"                             | Add pointer to this experiment; preserve OKF-as-transient finding                                                                                                             |
 
 **Documentation slice:** `doc-reconcile` (slice 1) updates the above **before** implementation slices that depend on pgvector as the chosen store. Do not erase OKF experiment history; add a new experiment findings doc at closure.
 
@@ -148,7 +148,7 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; branch 
 - Canonical knowledge remains at originating sources (`content/`, repos, published writing)
 - `PortfolioRepository` / pages do not depend on retrieval infrastructure
 - Assistant scripts live outside the Next.js app bundle (CLI/dev tooling pattern like `okf:build`)
-- Just-in-time multi-PR plan under `.cursor/plans/` using [_template.plan.md](.cursor/plans/_template.plan.md)
+- Just-in-time multi-PR plan under `.cursor/plans/` using [_template.plan.md](../_template.plan.md)
 - Vitest for unit/integration tests; coverage gate applies only to `repositories/**` today
 
 ### Established by this plan (non-negotiable)
@@ -206,7 +206,7 @@ flowchart TD
 
 **Retrieval-unit strategy:** slice `retrieval-units` shipped **1 OKF concept → 1 retrieval unit** to validate embeddings, ingest, and pgvector — preserved in Git history, **not** a retrieval strategy we maintain. **Structure-aware 1:N** (`structure-aware-chunking`) is the intended production approach.
 
-**Follow-on content scope:** [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md). Ingestion machinery is granularity-agnostic; expand OKF coverage and re-ingest with structure-aware derivation.
+**Follow-on content scope:** [assistant-corpus-coverage-expansion.plan.md](2026-10-08-assistant-corpus-coverage-expansion.plan.md). Ingestion machinery is granularity-agnostic; expand OKF coverage and re-ingest with structure-aware derivation.
 
 ---
 
@@ -252,7 +252,7 @@ Inspectable top-K evidence + provenance (CLI)
 
 ### Derivation input
 
-Read OKF concept files from `generated/okf/{portfolio,repo,writing,about}/**/*.md` (parse YAML frontmatter + body using existing [yaml.mjs](scripts/assistant/okf/yaml.mjs)).
+Read OKF concept files from `generated/okf/{portfolio,repo,writing,about}/**/*.md` (parse YAML frontmatter + body using existing [yaml.mjs](../../../scripts/assistant/okf/yaml.mjs)).
 
 ### Historical 1:1 derivation (shipped — slice `retrieval-units`)
 
@@ -315,14 +315,14 @@ Store `type`, `tags`, `resource`, `sources` relationally / JSON for filtering �
 
 ### Corpus expansion producer sketch (slice `corpus-expansion`)
 
-| Source module                                                                 | Producer module                                                        | Proposed OKF concepts (bounded)                                                     |
-| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| [content/about.ts](content/about.ts)                                          | `about-producer.mjs`                                                   | `about/summary` + one concept per experience/independent entry (`about/{entry.id}`) |
-| [content/project-cases.ts](content/project-cases.ts) `experiment-measurement` | `project-case-producer.mjs`                                            | `portfolio/experiment-measurement-case` + one concept per `CaseBlock`               |
-| [content/project-cases.ts](content/project-cases.ts) `codenames-ai`           | `project-case-producer.mjs`                                            | `portfolio/codenames-ai-case` + one concept per `CaseBlock`                         |
-| Existing Renovate corpus                                                      | [portfolio-producer.mjs](scripts/assistant/okf/portfolio-producer.mjs) | Unchanged                                                                           |
+| Source module                                                                          | Producer module                                                                 | Proposed OKF concepts (bounded)                                                     |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [content/about.ts](../../../content/about.ts)                                          | `about-producer.mjs`                                                            | `about/summary` + one concept per experience/independent entry (`about/{entry.id}`) |
+| [content/project-cases.ts](../../../content/project-cases.ts) `experiment-measurement` | `project-case-producer.mjs`                                                     | `portfolio/experiment-measurement-case` + one concept per `CaseBlock`               |
+| [content/project-cases.ts](../../../content/project-cases.ts) `codenames-ai`           | `project-case-producer.mjs`                                                     | `portfolio/codenames-ai-case` + one concept per `CaseBlock`                         |
+| Existing Renovate corpus                                                               | [portfolio-producer.mjs](../../../scripts/assistant/okf/portfolio-producer.mjs) | Unchanged                                                                           |
 
-**Do not mechanically reuse [portfolio-producer.mjs](scripts/assistant/okf/portfolio-producer.mjs) block logic for project cases.** That producer targets `SupportingCase` blocks (`SupportingProseBlock` / `SupportingArchitectureBlock` with `type`, `lead`, and architecture-specific fields). [content/project-cases.ts](content/project-cases.ts) uses `ProjectCase` + `CaseBlock` — a different shape.
+**Do not mechanically reuse [portfolio-producer.mjs](../../../scripts/assistant/okf/portfolio-producer.mjs) block logic for project cases.** That producer targets `SupportingCase` blocks (`SupportingProseBlock` / `SupportingArchitectureBlock` with `type`, `lead`, and architecture-specific fields). [content/project-cases.ts](../../../content/project-cases.ts) uses `ProjectCase` + `CaseBlock` — a different shape.
 
 #### Project-case producer (`project-case-producer.mjs`)
 
@@ -355,7 +355,7 @@ Do **not** call `proseBody()` from portfolio-producer (expects `lead`, not `head
 
 #### About producer (`about-producer.mjs`)
 
-Read [content/about.ts](content/about.ts) — a career-record page, not a block-structured case study.
+Read [content/about.ts](../../../content/about.ts) — a career-record page, not a block-structured case study.
 
 **OKF IDs:**
 
@@ -378,17 +378,17 @@ Do not invent block ids or split a single entry into multiple concepts unless ev
 
 #### Generated corpus hygiene (required in this slice)
 
-[writer.mjs](scripts/assistant/okf/writer.mjs) `cleanGeneratedConcepts` currently removes only `portfolio/`, `repo/`, `writing/`. **This slice must extend cleanup to every generated namespace**, including `about/`, so removed or renamed concepts cannot leave stale `.md` files.
+[writer.mjs](../../../scripts/assistant/okf/writer.mjs) `cleanGeneratedConcepts` currently removes only `portfolio/`, `repo/`, `writing/`. **This slice must extend cleanup to every generated namespace**, including `about/`, so removed or renamed concepts cannot leave stale `.md` files.
 
 Also update in the same slice:
 
-- [manifest.mjs](scripts/assistant/okf/manifest.mjs) `listConceptFiles` — include `about/`
-- [build.mjs](scripts/assistant/okf/build.mjs) `renderIndex` — add an About concepts section; wire new producers into `buildOkfCorpus`
-- [constants.mjs](scripts/assistant/okf/constants.mjs) — document new content-module inputs in manifest metadata if applicable
+- [manifest.mjs](../../../scripts/assistant/okf/manifest.mjs) `listConceptFiles` — include `about/`
+- [build.mjs](../../../scripts/assistant/okf/build.mjs) `renderIndex` — add an About concepts section; wire new producers into `buildOkfCorpus`
+- [constants.mjs](../../../scripts/assistant/okf/constants.mjs) — document new content-module inputs in manifest metadata if applicable
 
 Exclude from all producers: `CaseFigure.source` / inventory fact ids, ecosystem graph, timeline, production-line (unless eval gap remains after expansion).
 
-#### Corpus-expansion tests ([tests/okf-normalization.test.ts](tests/okf-normalization.test.ts))
+#### Corpus-expansion tests ([tests/okf-normalization.test.ts](../../../tests/okf-normalization.test.ts))
 
 Extend existing OKF tests with **specific** coverage for the failure modes above:
 
@@ -423,7 +423,7 @@ Changing embedding model or dimensionality is an **index/schema migration**: alt
 
 No answer generation, no chat completions.
 
-Update [.env.example](.env.example) with documented assistant vars (keys gitignored). Document the model/dimension migration constraint in architecture docs during `doc-reconcile`.
+Update [.env.example](../../../.env.example) with documented assistant vars (keys gitignored). Document the model/dimension migration constraint in architecture docs during `doc-reconcile`.
 
 ---
 
@@ -489,7 +489,7 @@ Do **not** add HNSW or IVFFlat in any slice of this experiment. Closure doc shou
 - `scripts/assistant/db/client.mjs` — `pg` Pool from `DATABASE_URL` (assistant retrieval only; no site `PortfolioRepository` coupling)
 - `scripts/assistant/db/migrate.mjs` — apply `db/migrations/*.sql` in order (provider-neutral; no localhost assumptions)
 - `scripts/assistant/db/verify.mjs` — schema verification CLI (`npm run assistant:db:verify`)
-- Operator runbook: [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md)
+- Operator runbook: [docs/assistant/assistant-database.md](../../../docs/assistant/assistant-database.md)
 
 **Deployment topology:**
 
@@ -517,7 +517,7 @@ Site `PortfolioRepository` persistence (future Milestone 4) remains a **separate
 3. Store the key only in gitignored `.env.local` (local) or runtime secrets (e.g. Cursor Cloud / CI when explicitly configured) as `OPENAI_API_KEY`. **Never commit** the key, key IDs, or secret values.
 4. Configure a modest **project budget** and **usage alerts** on `portfolio-assistant` before bulk ingest experiments.
 5. **Confirm model access:** run a one-off embeddings smoke (adapter or minimal API call) and verify `text-embedding-3-small` returns **1536** dimensions before the first full ingest. Fail closed if the project lacks Embeddings access or returns wrong dimensions.
-6. **Document** the steps above in the assistant operator runbook: [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md) (add an OpenAI section parallel to hosted Neon — credentials stay out of the repo). The `ingest-sync` slice owns this documentation deliverable alongside the ingest pipeline.
+6. **Document** the steps above in the assistant operator runbook: [docs/assistant/assistant-database.md](../../../docs/assistant/assistant-database.md) (add an OpenAI section parallel to hosted Neon — credentials stay out of the repo). The `ingest-sync` slice owns this documentation deliverable alongside the ingest pipeline.
 
 **Automation boundary:** If OpenAI project/key/budget actions require dashboard steps the agent cannot perform safely, stop and hand off exact human steps — do not invent credentials or commit placeholders.
 
@@ -716,7 +716,7 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Purpose:** Align architecture docs with Postgres+pgvector retrieval experiment before code builds on stale in-memory-first guidance.
 
-**Files:** [docs/assistant/architecture-direction.md](docs/assistant/architecture-direction.md), [docs/architecture/overview.md](docs/architecture/overview.md), [docs/assistant/okf-normalization-experiment.md](docs/assistant/okf-normalization-experiment.md) (pointer only)
+**Files:** [docs/assistant/architecture-direction.md](../../../docs/assistant/architecture-direction.md), [docs/architecture/overview.md](../../../docs/architecture/overview.md), [docs/assistant/okf-normalization-experiment.md](../../../docs/assistant/okf-normalization-experiment.md) (pointer only)
 
 **Approach:** Update sections listed in reconciliation table; add "Vector retrieval experiment (in progress)" subsection with target pipeline diagram; preserve prior in-memory hypothesis in changelog as superseded.
 
@@ -734,13 +734,13 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Files:**
 
-- New [scripts/assistant/okf/about-producer.mjs](scripts/assistant/okf/about-producer.mjs)
-- New [scripts/assistant/okf/project-case-producer.mjs](scripts/assistant/okf/project-case-producer.mjs) — **separate from** [portfolio-producer.mjs](scripts/assistant/okf/portfolio-producer.mjs); do not extend renovate producer for `CaseBlock` shapes
-- [scripts/assistant/okf/build.mjs](scripts/assistant/okf/build.mjs) — wire producers; extend index grouping
-- [scripts/assistant/okf/manifest.mjs](scripts/assistant/okf/manifest.mjs) — `listConceptFiles` includes `about/`
-- [scripts/assistant/okf/writer.mjs](scripts/assistant/okf/writer.mjs) — `cleanGeneratedConcepts` cleans `about/` (and any other new namespace) before rewrite
-- [scripts/assistant/okf/constants.mjs](scripts/assistant/okf/constants.mjs) — manifest input metadata for new content modules
-- [tests/okf-normalization.test.ts](tests/okf-normalization.test.ts)
+- New [scripts/assistant/okf/about-producer.mjs](../../../scripts/assistant/okf/about-producer.mjs)
+- New [scripts/assistant/okf/project-case-producer.mjs](../../../scripts/assistant/okf/project-case-producer.mjs) — **separate from** [portfolio-producer.mjs](../../../scripts/assistant/okf/portfolio-producer.mjs); do not extend renovate producer for `CaseBlock` shapes
+- [scripts/assistant/okf/build.mjs](../../../scripts/assistant/okf/build.mjs) — wire producers; extend index grouping
+- [scripts/assistant/okf/manifest.mjs](../../../scripts/assistant/okf/manifest.mjs) — `listConceptFiles` includes `about/`
+- [scripts/assistant/okf/writer.mjs](../../../scripts/assistant/okf/writer.mjs) — `cleanGeneratedConcepts` cleans `about/` (and any other new namespace) before rewrite
+- [scripts/assistant/okf/constants.mjs](../../../scripts/assistant/okf/constants.mjs) — manifest input metadata for new content modules
+- [tests/okf-normalization.test.ts](../../../tests/okf-normalization.test.ts)
 
 **Approach:**
 
@@ -777,7 +777,7 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Purpose:** Postgres + pgvector schema, portable migrations, local docker compose, connection helper, schema verification CLI.
 
-**Files:** `db/migrations/20261007100000_assistant_pgvector.sql`, `docker-compose.yml`, `scripts/assistant/db/*`, [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md), [.env.example](.env.example), `npm run assistant:db:migrate`, `npm run assistant:db:verify`
+**Files:** `db/migrations/20261007100000_assistant_pgvector.sql`, `docker-compose.yml`, `scripts/assistant/db/*`, [docs/assistant/assistant-database.md](../../../docs/assistant/assistant-database.md), [.env.example](../../../.env.example), `npm run assistant:db:migrate`, `npm run assistant:db:verify`
 
 **Approach:** `CREATE EXTENSION IF NOT EXISTS vector`; create `assistant_retrieval_units` with `vector(1536)`; btree filter indexes only — **no ANN index**; provider-neutral migration runner driven entirely by `DATABASE_URL` (no localhost assumptions in migration/database code); local Docker remains default dev path; document that the same migrations apply to hosted Neon in `neon-deployment`; schema verify command checks extension, migration state, table, `vector(1536)`, and absence of ANN indexes.
 
@@ -811,7 +811,7 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Prerequisite:** `db-foundation` merged (migrations + verify CLI exist).
 
-**Files:** [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md) (operator workflow — may be introduced in `db-foundation`, completed/verified here), optional architecture-direction clarification
+**Files:** [docs/assistant/assistant-database.md](../../../docs/assistant/assistant-database.md) (operator workflow — may be introduced in `db-foundation`, completed/verified here), optional architecture-direction clarification
 
 **Operator workflow (human/account actions):**
 
@@ -841,7 +841,7 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Operator prerequisites (human, before first live ingest acceptance):** Hosted Neon workflow complete (`neon-deployment`); OpenAI `portfolio-assistant` project, key, budget/alerts, and `text-embedding-3-small` smoke per [Operator prerequisite — OpenAI Embeddings API](#operator-prerequisite--openai-embeddings-api-first-live-ingestion).
 
-**Files:** `scripts/assistant/ingest.mjs`, optional `ingestion-runs` migration, `npm run assistant:ingest`, [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md) (OpenAI Embeddings API operator section — no secrets in repo)
+**Files:** `scripts/assistant/ingest.mjs`, optional `ingestion-runs` migration, `npm run assistant:ingest`, [docs/assistant/assistant-database.md](../../../docs/assistant/assistant-database.md) (OpenAI Embeddings API operator section — no secrets in repo)
 
 **Tests:** `tests/assistant-ingest.test.ts` — mock embeddings; verify skip on unchanged hash, update on change, delete orphan; integration path with real DB when `DATABASE_URL` set
 
@@ -921,7 +921,7 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Files:** `docs/assistant/vector-retrieval-experiment.md`, move plan to `.cursor/plans/archive/`
 
-**Approach:** Answer closure questions with measured results from `retrieval-eval` (structure-aware retrieval quality, failure modes, chunk-boundary lessons); update architecture-direction "What we have learned so far". State that the experiment corpus is **bounded**; structure-aware 1:N is the **production retrieval strategy** for follow-on indexing. Link [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) as the **next active plan**.
+**Approach:** Answer closure questions with measured results from `retrieval-eval` (structure-aware retrieval quality, failure modes, chunk-boundary lessons); update architecture-direction "What we have learned so far". State that the experiment corpus is **bounded**; structure-aware 1:N is the **production retrieval strategy** for follow-on indexing. Link [assistant-corpus-coverage-expansion.plan.md](2026-10-08-assistant-corpus-coverage-expansion.plan.md) as the **next active plan**.
 
 **Tests:** Docs-only
 
@@ -954,7 +954,7 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 - ANN indexes (HNSW / IVFFlat) — exact search only in this experiment
 - Retrieval distance/confidence thresholds (observed in negative eval; implemented later)
 - Vercel API routes, public assistant endpoints
-- Full portfolio ingestion in this experiment — deferred to [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) after archive
+- Full portfolio ingestion in this experiment — deferred to [assistant-corpus-coverage-expansion.plan.md](2026-10-08-assistant-corpus-coverage-expansion.plan.md) after archive
 - Generic retrieval chunking frameworks — structure-aware rules for this OKF corpus only (`structure-aware-chunking`)
 - Modifying canonical content or OKF normalization solely to accommodate retrieval chunking
 

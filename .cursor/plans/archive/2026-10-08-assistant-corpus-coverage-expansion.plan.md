@@ -27,17 +27,17 @@ isProject: false
 - [`tests/okf-content-coverage.test.ts`](../../../tests/okf-content-coverage.test.ts) — pinned `content/` module hashes
 - Retrieval pipeline on `main` (unchanged machinery) — [assistant-database.md](../../../docs/assistant/assistant-database.md)
 
-**Next active plan:** [`assistant-career-inventory-corpus.plan.md`](../../assistant-career-inventory-corpus.plan.md) — career inventory OKF producer before RAG generation.
+**Next active plan:** [`assistant-cross-repository-corpus.plan.md`](../assistant-cross-repository-corpus.plan.md) — cross-repository corpus (`career-inventory-producer` first) before RAG generation.
 
 ---
 
 # Assistant corpus coverage expansion
 
-**Follow-on milestone** — not part of the archived [vector retrieval experiment](archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md) ([findings](../../docs/assistant/vector-retrieval-experiment.md)). That experiment validated retrieval machinery and **structure-aware 1:N retrieval units** on a bounded corpus; this plan expands **what** gets indexed (published articles, remaining portfolio surfaces) using the **same derivation strategy**.
+**Follow-on milestone** — not part of the archived [vector retrieval experiment](2026-10-07-assistant-vector-retrieval-experiment.plan.md) ([findings](../../../docs/assistant/vector-retrieval-experiment.md)). That experiment validated retrieval machinery and **structure-aware 1:N retrieval units** on a bounded corpus; this plan expands **what** gets indexed (published articles, remaining portfolio surfaces) using the **same derivation strategy**.
 
 ## Prerequisites
 
-- Vector retrieval experiment **archived** (`.cursor/plans/archive/` + [docs/assistant/vector-retrieval-experiment.md](docs/assistant/vector-retrieval-experiment.md))
+- Vector retrieval experiment **archived** (`.cursor/plans/archive/` + [docs/assistant/vector-retrieval-experiment.md](../../../docs/assistant/vector-retrieval-experiment.md))
 - `structure-aware-chunking`, `retrieve-cli`, `retrieval-eval`, and `ingest-sync` merged on `main`
 
 **Ingestion is granularity-agnostic:** expand OKF concepts → `assistant:derive` (structure-aware) → `npm run assistant:ingest`. **Do not re-litigate 1:1 vs chunking** — structure-aware derivation is the production strategy established by the experiment.
@@ -49,7 +49,7 @@ isProject: false
 | corpus-coverage-expansion | Open PR only          | Do not merge. Stop after opening the PR. |
 | plan-closure              | Open PR only          | Do not merge. Stop after opening the PR. |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md)).
 
 ## Repository topology (default)
 
@@ -87,9 +87,9 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; PR base
 3. `npm run test -- tests/assistant-retrieval-eval.test.ts` on the re-ingested index.
 4. Record ranking regressions in corpus expansion findings; do not weaken eval fixtures until reviewed.
 
-**Follow-up (operational):** pinned `published/*.md` fixtures — distinguish missing slug, upstream body change, and stale fixture vs hub master; see [architecture-direction.md](../../docs/assistant/architecture-direction.md) (no live DEV fetch in OKF build).
+**Follow-up (operational):** pinned `published/*.md` fixtures — distinguish missing slug, upstream body change, and stale fixture vs hub master; see [architecture-direction.md](../../../docs/assistant/architecture-direction.md) (no live DEV fetch in OKF build).
 
-**Deferred (separate plan):** career inventory from `mastermichaelt/resumes` — not in this slice; see [assistant-career-inventory-corpus.plan.md](assistant-career-inventory-corpus.plan.md).
+**Deferred (separate plan):** cross-repository sources — [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md) + [cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md).
 
 ---
 
@@ -97,7 +97,7 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; PR base
 
 **Purpose:** Document corpus expansion outcomes and archive this plan.
 
-**Files:** update [docs/assistant/architecture-direction.md](docs/assistant/architecture-direction.md); move plan to `.cursor/plans/archive/`
+**Files:** update [docs/assistant/architecture-direction.md](../../../docs/assistant/architecture-direction.md); move plan to `.cursor/plans/archive/`
 
 **Depends on:** `corpus-coverage-expansion` merged
 

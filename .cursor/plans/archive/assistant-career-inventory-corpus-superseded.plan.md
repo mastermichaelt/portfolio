@@ -1,6 +1,6 @@
 ---
-name: Assistant career inventory corpus
-overview: Curate mastermichaelt/resumes career inventory (facts/roles/meta) into OKF with a public publication boundary — before RAG generation. Not resume variants or application packages.
+name: Assistant career inventory corpus (superseded)
+overview: "Superseded 2026-10-08 — not completed. Execute career inventory via assistant-cross-repository-corpus.plan.md (slice career-inventory-producer)."
 todos:
   - id: publication-policy-and-producer-design
     content: "Allowlist, snapshot strategy, OKF career/ namespace + source_class design doc"
@@ -14,11 +14,25 @@ todos:
 isProject: false
 ---
 
+# Superseded
+
+**Superseded 2026-10-08** — this plan was **not completed** and is **not** an active execution plan.
+
+| Item           | Resolution                                                                                                                                                                                                 |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Canonical plan | [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md)                                                                                                                  |
+| Career slice   | `career-inventory-producer` in the cross-repository plan                                                                                                                                                   |
+| Research       | [cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md), [career-inventory-corpus-direction.md](../../../docs/assistant/career-inventory-corpus-direction.md) |
+
+Do not execute slices from this file. Retained for historical context only.
+
+---
+
 # Assistant career inventory corpus
 
-**Prerequisite:** [corpus coverage expansion](../../docs/assistant/corpus-coverage-expansion.md) shipped ([#45](https://github.com/mastermichaelt/portfolio/pull/45)) with operator acceptance **completed** on the expanded index ([findings § Operational acceptance](../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance); [assistant-database.md](../../docs/assistant/assistant-database.md) §6).
+**Prerequisite:** [corpus coverage expansion](../../../docs/assistant/corpus-coverage-expansion.md) shipped ([#45](https://github.com/mastermichaelt/portfolio/pull/45)) with operator acceptance **completed** on the expanded index ([findings § Operational acceptance](../../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance); [assistant-database.md](../../../docs/assistant/assistant-database.md) §6).
 
-**Direction:** [docs/assistant/career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md)
+**Direction:** [docs/assistant/career-inventory-corpus-direction.md](../../../docs/assistant/career-inventory-corpus-direction.md)
 
 ## Recommended execution authority
 
@@ -43,7 +57,7 @@ Integration branch: `main`. Each slice from latest `origin/main`; PR base is `ma
 - Committed allowlist (fact ids + meta files approved for public assistant)
 - Snapshot sync rule (resumes → `tests/fixtures/assistant-okf/career-inventory/`)
 - `source_class: career` + `listConceptFiles` / derive-units wiring spec
-- Update [career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md) with decisions
+- Update [career-inventory-corpus-direction.md](../../../docs/assistant/career-inventory-corpus-direction.md) with decisions
 
 **Does not include:** full fact ingestion, embedding spend, eval fixture changes
 
@@ -66,6 +80,8 @@ Integration branch: `main`. Each slice from latest `origin/main`; PR base is `ma
 ---
 
 ## Agent prompts (copy/paste for Cursor)
+
+> **Historical only** — use prompts in [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md).
 
 ### publication-policy-and-producer-design
 
