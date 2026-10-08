@@ -1,6 +1,6 @@
 ---
 name: Assistant vector retrieval experiment
-overview: Multi-slice experiment to validate retrieval machinery (derive → embed → sync → retrieve → eval) over a bounded ~35-unit OKF corpus—not full portfolio coverage. Dual derivation modes (`concept` 1:1 baseline vs `structured` 1:N) with isolated eval databases before comparative retrieval-eval. Follow-on content scope in assistant-corpus-coverage-expansion.plan.md. Fixed text-embedding-3-small @ 1536, pgvector exact cosine—no answer generation, chat UI, LangChain/LlamaIndex, or ANN indexes.
+overview: Multi-slice experiment to validate retrieval machinery (derive → embed → sync → retrieve → eval) over a bounded OKF corpus—not full portfolio coverage. Shipped 1:1 derivation (`retrieval-units`) validated infrastructure; structure-aware 1:N is the intended production retrieval strategy (`structure-aware-chunking`). Follow-on content scope in assistant-corpus-coverage-expansion.plan.md. Fixed text-embedding-3-small @ 1536, pgvector exact cosine—no answer generation, chat UI, LangChain/LlamaIndex, or ANN indexes.
 todos:
   - id: plan-review
     content: "Plan-only PR — commit plan artifact; open PR for review; do not implement"
@@ -30,10 +30,10 @@ todos:
     content: "PR 8: Inspectable retrieval CLI with documented cosine distance semantics"
     status: pending
   - id: structure-aware-chunking
-    content: "PR 9: Dual derivation modes — concept (1:1 baseline) + structured (1:N); deterministic IDs, provenance; ingest-agnostic"
+    content: "PR 9: Structure-aware 1:N retrieval units (deterministic IDs, provenance, re-ingest via ingest-sync)"
     status: pending
   - id: retrieval-eval
-    content: "PR 10: Comparative eval on isolated DBs per mode — parent-concept relevance, ranking, specificity, failures"
+    content: "PR 10: Eval suite — parent concept, section/chunk, ranking, specificity, failure cases"
     status: pending
   - id: plan-closure
     content: "Docs-only PR: vector-retrieval-experiment findings + archive plan"
@@ -62,7 +62,7 @@ isProject: false
 
 Repo default: **Open PR only** ([planning-standards.md](.cursor/standards/planning-standards.md)).
 
-**Execution order (remaining):** `retrieve-cli` → **`structure-aware-chunking`** → `retrieval-eval` → `plan-closure`. **`ingest-sync` is granularity-agnostic** — do not add chunking there. Do not expand OKF producers for full-site coverage in this plan. The ~35-unit concept-level index (if ingested before chunking lands) is an experiment baseline, not the long-term retrieval strategy.
+**Execution order (remaining):** `retrieve-cli` → **`structure-aware-chunking`** → `retrieval-eval` → `plan-closure`. **`ingest-sync` is granularity-agnostic** — do not add chunking there. Do not expand OKF producers for full-site coverage in this plan. Historical 1:1 derivation remains in Git history (`retrieval-units`); production retrieval uses structure-aware units after `structure-aware-chunking` + re-ingest.
 
 **Follow-on milestone (separate plan):** [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) — uses the retrieval-unit strategy validated here; start only after this experiment is archived. When `plan-closure` merges, every todo in _this_ plan is complete (no pending implementation slices in the archived file).
 
@@ -133,15 +133,15 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; branch 
 
 ### Still to decide during implementation (flagged, not silently chosen)
 
-| Decision                                                               | Recommendation                                                                                                                                                                                | Resolve in slice                              |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Local Postgres vs Neon hosted index                                    | **Both:** `docker-compose.yml` for local dev/CI verification; **Neon** as explicit hosted assistant retrieval target (`neon-deployment` slice before ingest)                                  | `db-foundation` + `neon-deployment`           |
-| `pg` vs `postgres.js` driver                                           | `pg` (mature, straightforward migrations)                                                                                                                                                     | `db-foundation`                               |
-| Embedding representation                                               | **`text-embedding-3-small` @ 1536 dimensions** — fixed in schema; model change = migration + full re-embed                                                                                    | `db-foundation` + `embeddings-adapter`        |
-| Distance metric                                                        | Cosine via pgvector `<=>` operator                                                                                                                                                            | `retrieve-cli` + docs                         |
-| CI without `DATABASE_URL`                                              | Skip pgvector integration tests when unset; unit tests always run                                                                                                                             | `db-foundation`                               |
-| OKF→retrieval unit cardinality                                         | **1:1 shipped as infrastructure baseline** (`retrieval-units`); **structure-aware 1:N** for semantic search (`structure-aware-chunking`); eval compares both — chunking is not assumed to win | `structure-aware-chunking` + `retrieval-eval` |
-| Expanded OKF granularity for About/experiment-measurement/codenames-ai | Per-source producers with shape-correct body helpers (`CaseBlock.heading`, About entry bullets); shared infra only where fields match                                                         | `corpus-expansion`                            |
+| Decision                                                               | Recommendation                                                                                                                                                                            | Resolve in slice                       |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| Local Postgres vs Neon hosted index                                    | **Both:** `docker-compose.yml` for local dev/CI verification; **Neon** as explicit hosted assistant retrieval target (`neon-deployment` slice before ingest)                              | `db-foundation` + `neon-deployment`    |
+| `pg` vs `postgres.js` driver                                           | `pg` (mature, straightforward migrations)                                                                                                                                                 | `db-foundation`                        |
+| Embedding representation                                               | **`text-embedding-3-small` @ 1536 dimensions** — fixed in schema; model change = migration + full re-embed                                                                                | `db-foundation` + `embeddings-adapter` |
+| Distance metric                                                        | Cosine via pgvector `<=>` operator                                                                                                                                                        | `retrieve-cli` + docs                  |
+| CI without `DATABASE_URL`                                              | Skip pgvector integration tests when unset; unit tests always run                                                                                                                         | `db-foundation`                        |
+| OKF→retrieval unit cardinality                                         | **Structure-aware 1:N** for production retrieval (`structure-aware-chunking`); shipped 1:1 (`retrieval-units`) was infrastructure validation only — not maintained as a parallel strategy | `structure-aware-chunking`             |
+| Expanded OKF granularity for About/experiment-measurement/codenames-ai | Per-source producers with shape-correct body helpers (`CaseBlock.heading`, About entry bullets); shared infra only where fields match                                                     | `corpus-expansion`                     |
 
 ---
 
@@ -175,9 +175,9 @@ flowchart TD
 
 **Slice `corpus-expansion` (shipped):** bounded producers for **About**, **`experiment-measurement`**, and **`codenames-ai`** so eval exercises heterogeneous shapes without full-site ingestion.
 
-**Retrieval-unit strategy:** slice `retrieval-units` shipped **1 OKF concept → 1 retrieval unit** to unblock ingest and storage. That mapping is an **infrastructure shortcut**, not the target search granularity — see `structure-aware-chunking`.
+**Retrieval-unit strategy:** slice `retrieval-units` shipped **1 OKF concept → 1 retrieval unit** to validate embeddings, ingest, and pgvector — preserved in Git history, **not** a retrieval strategy we maintain. **Structure-aware 1:N** (`structure-aware-chunking`) is the intended production approach.
 
-**Follow-on content scope:** [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md). Ingestion machinery is granularity-agnostic; production **what** to index adopts the experiment's validated derivation strategy.
+**Follow-on content scope:** [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md). Ingestion machinery is granularity-agnostic; expand OKF coverage and re-ingest with structure-aware derivation.
 
 ---
 
@@ -225,31 +225,15 @@ Inspectable top-K evidence + provenance (CLI)
 
 Read OKF concept files from `generated/okf/{portfolio,repo,writing,about}/**/*.md` (parse YAML frontmatter + body using existing [yaml.mjs](scripts/assistant/okf/yaml.mjs)).
 
-### Baseline (shipped — slice `retrieval-units`)
+### Historical 1:1 derivation (shipped — slice `retrieval-units`)
 
-**1 OKF concept → 1 retrieval unit** with `unit_id = unit/{okf_concept_id}`. This unblocked derivation, ingest, and pgvector persistence. Treat as a **baseline for comparison**, not the long-term retrieval strategy.
+**1 OKF concept → 1 retrieval unit** with `unit_id = unit/{okf_concept_id}`. This validated derivation, ingest, and pgvector persistence. **Not maintained** as a production retrieval strategy — see structure-aware derivation below. Do not add dual derivation modes or parallel indexes solely to benchmark against 1:1.
 
-### Derivation modes (slice `structure-aware-chunking`)
+### Structure-aware derivation (slice `structure-aware-chunking` — production strategy)
 
-Derivation exposes two explicit modes. **`ingest-sync` does not choose a mode** — it syncs whatever unit set the active derivation mode emitted for the **target database** in that run.
+**`ingest-sync` syncs whatever `assistant:derive` emits** for the target `DATABASE_URL`; chunking lives in retrieval derivation only, not OKF normalization. After this slice merges: `okf:build` → `assistant:derive` → `assistant:ingest` on the authoritative assistant index (orphan cleanup retires obsolete `unit_id`s as today).
 
-| Mode             | Cardinality                | Role                                                                                                       |
-| ---------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **`concept`**    | 1 OKF concept → 1 unit     | **Reproducible baseline** — same behavior as shipped `retrieval-units` (`unit_id = unit/{okf_concept_id}`) |
-| **`structured`** | 1 OKF concept → 1..N units | **Structure-aware search granularity** — see rules below                                                   |
-
-**CLI contract (indicative):** `npm run assistant:derive -- --mode concept|structured` (default `concept` until structured lands). Ingest and eval select mode at derive time; **never assume re-ingest into one database can retain both arms** — orphan cleanup deletes `unit_id`s not in the derived set for that run.
-
-**Comparative eval isolation:** use **two separate Postgres databases** (local Docker test DBs and/or dedicated Neon branches), one per mode, with **identical** embedding model (`text-embedding-3-small`), dimensions (1536), retrieval SQL (`<=>`, exact search), and eval questions. Document operator env vars in [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md) (slice `retrieval-eval`), e.g.:
-
-- `ASSISTANT_EVAL_DATABASE_URL_CONCEPT` — migrated; ingested once under `--mode concept`; **retained** as the baseline snapshot for eval replays until OKF corpus or derivation rules change
-- `ASSISTANT_EVAL_DATABASE_URL_STRUCTURED` — migrated; ingested once under `--mode structured`
-
-**Do not** ingest both modes into the same authoritative index for side-by-side comparison. **Do not** change `ingest-sync` orphan-deletion semantics. Rebuilding a mode: `okf:build` → `assistant:derive --mode <mode>` → `assistant:ingest` with `DATABASE_URL` pointed at that mode’s database only.
-
-### `structured` mode rules
-
-**1 OKF concept → 1..N retrieval units**, independently of OKF concept boundaries where search quality benefits:
+**1 OKF concept → 1..N retrieval units** where appropriate:
 
 - **Short, semantically coherent** concepts may remain a **single** unit.
 - **Long or multi-topic** concepts split into **meaningful sections** using document structure: headings, paragraph boundaries, list blocks, and other semantic cues already present in OKF body markdown (including `CaseBlock.heading`, runbook section headings, article structure).
@@ -257,9 +241,9 @@ Derivation exposes two explicit modes. **`ingest-sync` does not choose a mode** 
 - **Do not** implement a generic, corpus-agnostic chunking framework; implement **structure-aware rules for this portfolio’s OKF shapes**.
 - **Do not** change canonical content modules or OKF producers/normalization to “fit” chunking — chunking lives in `scripts/assistant/retrieval/` only.
 
-**Per-chunk provenance (required on structured units):** `derivation_mode: "structured"`, parent `okf_concept_id`, canonical `resource` / `sources`, `section_heading` (when applicable), `chunk_index` / `chunk_count` (or equivalent), and stable `content_hash` over the chunk’s `text`. Concept-mode units set `derivation_mode: "concept"` (or omit when defaulting to concept).
+**Per-unit provenance (required):** parent `okf_concept_id`, canonical `resource` / `sources`, `section_heading` (when applicable), `chunk_index` / `chunk_count` (or equivalent when split), and stable `content_hash` over the unit’s `text`.
 
-**Deterministic IDs:** stable `unit_id` per chunk (suffix scheme derived from `okf_concept_id` + structural path + chunk index) so `ingest-sync` skip/upsert and **orphan cleanup** remove obsolete chunks when structured derivation changes. Reuse existing delete-stale semantics (`unit_id ∉ derived set`).
+**Deterministic IDs:** stable `unit_id` per unit — single-chunk concepts may use `unit/{okf_concept_id}`; multi-chunk concepts use `unit/{okf_concept_id}#…` suffix scheme (document in code + plan slice; stable across rebuilds). `ingest-sync` skip/upsert and **orphan cleanup** remove retired ids when derivation changes (`unit_id ∉ derived set`).
 
 ### Retrieval unit schema (in-memory / pre-persist)
 
@@ -277,17 +261,16 @@ Derivation exposes two explicit modes. **`ingest-sync` does not choose a mode** 
   tags: string[];
   text: string;              // embedding input
   content_hash: string;      // sha256 of canonical text
-  derivation_mode?: "concept" | "structured";
-  section_heading?: string;  // structured mode, when applicable
-  chunk_index?: number;      // structured mode
-  chunk_count?: number;      // structured mode
+  section_heading?: string;  // when split by structure
+  chunk_index?: number;
+  chunk_count?: number;
   metadata: Record<string, unknown>; // filterable facets (includes provenance fields above)
 }
 ```
 
 ### Stable `unit_id`
 
-Deterministic and URL-safe; **no hash in ID** (content changes via `content_hash`). Baseline: `unit/{okf_concept_id}`. Chunked: `unit/{okf_concept_id}#…` suffix scheme defined in `structure-aware-chunking` (document in code + plan slice; must be stable across rebuilds).
+Deterministic and URL-safe; **no hash in ID** (content changes via `content_hash`). Single-unit concepts: `unit/{okf_concept_id}`. Additional chunks: `unit/{okf_concept_id}#…` suffix scheme defined in `structure-aware-chunking` (document in code; stable across rebuilds).
 
 ### Embedding text composition
 
@@ -586,54 +569,54 @@ Optional flags: `--top-k 5`, `--filter-source-class portfolio`, `--json`.
 
 New: `tests/assistant-retrieval-eval.test.ts` + `tests/fixtures/assistant-retrieval/eval-cases.json`
 
-**Comparative design (slice `retrieval-eval`):** for each fixture question, run **identical** top-K retrieval against **two isolated databases** — one ingested under `concept` mode, one under `structured` mode — with the same embedding model (`text-embedding-3-small`, 1536) and exact cosine search. **Do not assume chunking always improves results.** Report relevance, ranking, evidence specificity, and failure cases (over-splitting, wrong section, baseline wins). Closure doc summarizes which strategy ships for production indexing.
+**Design (slice `retrieval-eval`):** evaluate **structure-aware retrieval** on the ingested assistant index (`DATABASE_URL`) after `structure-aware-chunking` + re-ingest. Use representative questions and expected evidence — not a formal 1:1 vs chunked comparison. Goals: find retrieval weaknesses, tune chunk boundaries, and record failure modes (over-splitting, missing context, wrong section, irrelevant matches).
 
-**Fair comparison (required):** structured mode produces **more rows per parent concept**; eval must not treat “more unit hits” as automatic relevance wins.
-
-| Metric                   | How to compare fairly                                                                                                                                                                                                                                       |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Parent relevance**     | Primary pass signal: at least one hit in top-K whose `okf_concept_id` matches `expected_parent_concepts` (same question, same K, both modes)                                                                                                                |
-| **Ranking**              | Compare **rank of the first parent-concept hit** (1-based), not rank of an arbitrary chunk                                                                                                                                                                  |
-| **Evidence specificity** | Optional per case: under `structured` only, assert `section_heading` / chunk `unit_id` matches `expected_sections` or `expected_unit_any_of` when the question targets a subsection; under `concept`, specificity is satisfied when the parent concept hits |
-| **Failure modes**        | Record cases where structured loses parent relevance, ranks worse, or wins relevance but returns the wrong section                                                                                                                                          |
+| Dimension            | What to measure                                                                   |
+| -------------------- | --------------------------------------------------------------------------------- |
+| **Parent relevance** | Correct parent `okf_concept_id` appears in top-K                                  |
+| **Section / chunk**  | Relevant `unit_id` or `section_heading` when the question targets a subsection    |
+| **Ranking**          | Rank of first acceptable parent hit; optional `min_parent_rank` / `min_unit_rank` |
+| **Specificity**      | Top hit is the right evidence, not merely the right concept                       |
+| **Failures**         | Document misses, over-splitting, and negative-query inspection outcomes           |
 
 ### Eval fixture contract
 
-Fixtures are **mode-aware** but **parent-concept anchored**. Matchers resolve persisted rows via `unit_id`, `okf_concept_id`, and structured provenance fields — not “every expected result is `unit/{okf_concept_id}`”.
+Matchers use **`okf_concept_id`**, **`unit_id`** (including chunked `unit/{okf_concept_id}#…` ids), and **section metadata** — not the assumption that every acceptable hit is `unit/{okf_concept_id}`.
 
 **Per-case fields:**
 
-| Field                      | Required           | Purpose                                                                                                                       |
-| -------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| `id`                       | yes                | Stable case id                                                                                                                |
-| `question`                 | yes                | Embed + retrieve text (same for both modes)                                                                                   |
-| `kind`                     | yes                | `positive` \| `negative_inspection` \| `corpus_gap`                                                                           |
-| `top_k`                    | yes                | Identical K for concept and structured runs                                                                                   |
-| `expected_parent_concepts` | yes for `positive` | OKF concept ids (no `unit/` prefix) — **primary relevance** for both modes                                                    |
-| `expected_unit_any_of`     | optional           | Exact `unit_id` or prefix globs — **concept mode** exact unit checks and **structured** chunk checks when specificity matters |
-| `expected_sections`        | optional           | Section heading substrings (structured arm) when the question targets a block/heading                                         |
-| `min_parent_rank`          | optional           | Max acceptable rank (1-based) for first parent-concept hit                                                                    |
-| `min_unit_rank`            | optional           | Max acceptable rank for `expected_unit_any_of` match (structured specificity)                                                 |
+| Field                      | Required           | Purpose                                                                     |
+| -------------------------- | ------------------ | --------------------------------------------------------------------------- |
+| `id`                       | yes                | Stable case id                                                              |
+| `question`                 | yes                | Embed + retrieve text                                                       |
+| `kind`                     | yes                | `positive` \| `negative_inspection` \| `corpus_gap`                         |
+| `top_k`                    | yes                | Top-K for assertions                                                        |
+| `expected_parent_concepts` | yes for `positive` | OKF concept ids (no `unit/` prefix) — parent-level relevance                |
+| `expected_unit_any_of`     | optional           | Exact `unit_id` or prefix globs for chunk-level specificity                 |
+| `expected_sections`        | optional           | Section heading substrings when the question targets a block/heading        |
+| `min_parent_rank`          | optional           | Max acceptable rank (1-based) for first parent-concept hit                  |
+| `min_unit_rank`            | optional           | Max acceptable rank for `expected_unit_any_of` match                        |
+| `require_specificity`      | optional           | When true, section/unit expectations are required for pass, not parent-only |
 
 **Matching rules:**
 
 - **Parent relevance:** map each retrieved row to `okf_concept_id`; match `expected_parent_concepts` (exact id equality).
-- **Unit / chunk specificity:** prefix glob or exact match on `unit_id`; for structured chunks, `unit_id` uses the `#…` suffix scheme — do not require concept-only ids in structured arm unless the case is single-chunk.
-- **Negative inspection:** no parent expectations; capture distances and titles for both modes for manual/soft review.
+- **Unit / chunk specificity:** prefix glob or exact match on `unit_id`; chunked units use the `#…` suffix scheme.
+- **Negative inspection:** no parent expectations; capture distances and titles for manual/soft review.
 
 ### Refined eval cases (post corpus expansion)
 
-Parent concepts are authoritative for cross-mode relevance; `expected_unit_any_of` refines concept-mode units or structured chunks where helpful.
+Parent concepts anchor relevance; `expected_unit_any_of` and `expected_sections` refine chunk-level expectations where needed.
 
-| Question                                                              | `expected_parent_concepts`                                                                                             | Notes / optional specificity                                             |
-| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| What experimentation infrastructure did Michael work on at Atlassian? | `portfolio/experiment-measurement-b04-onboarding`, `about/atlassian-swe-2024`, `portfolio/experiment-measurement-case` | optional units for onboarding block                                      |
-| Has Michael managed engineers?                                        | `about/atlassian-em-2020`                                                                                              |                                                                          |
-| Why did Michael return to individual-contributor engineering?         | `about/summary`                                                                                                        |                                                                          |
-| What experience does Michael have with attribution?                   | `portfolio/experiment-measurement-b01-attribution`, `about/atlassian-em-2020`                                          | `expected_sections` may name attribution block heading in structured arm |
-| What has Michael built with AI?                                       | `portfolio/codenames-ai-case`, `portfolio/codenames-ai-b01-validation`, `about/codenames-ai`                           |                                                                          |
-| What developer infrastructure has Michael worked on?                  | prefix families via multiple parent ids or globs on `expected_unit_any_of` for renovate portfolio + repo concepts      |                                                                          |
-| What has Michael written about agent memory?                          | _(none — `kind: corpus_gap`)_                                                                                          | document weak/absent evidence                                            |
+| Question                                                              | `expected_parent_concepts`                                                                                             | Notes / optional specificity                                |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| What experimentation infrastructure did Michael work on at Atlassian? | `portfolio/experiment-measurement-b04-onboarding`, `about/atlassian-swe-2024`, `portfolio/experiment-measurement-case` | optional units for onboarding block                         |
+| Has Michael managed engineers?                                        | `about/atlassian-em-2020`                                                                                              |                                                             |
+| Why did Michael return to individual-contributor engineering?         | `about/summary`                                                                                                        |                                                             |
+| What experience does Michael have with attribution?                   | `portfolio/experiment-measurement-b01-attribution`, `about/atlassian-em-2020`                                          | `expected_sections` / chunk `unit_id` for attribution block |
+| What has Michael built with AI?                                       | `portfolio/codenames-ai-case`, `portfolio/codenames-ai-b01-validation`, `about/codenames-ai`                           |                                                             |
+| What developer infrastructure has Michael worked on?                  | prefix families via multiple parent ids or globs on `expected_unit_any_of` for renovate portfolio + repo concepts      |                                                             |
+| What has Michael written about agent memory?                          | _(none — `kind: corpus_gap`)_                                                                                          | document weak/absent evidence                               |
 
 Example fixture entry:
 
@@ -657,11 +640,10 @@ Example fixture entry:
 
 ### Positive eval assertions (avoid brittle floats)
 
-- **Both modes:** at least one top-K hit matches `expected_parent_concepts` within `top_k`; optional `min_parent_rank`
-- **Concept mode (optional tighten):** `expected_unit_any_of` when the case should assert the 1:1 unit id
-- **Structured mode (optional):** `expected_sections` and/or `expected_unit_any_of` for subsection specificity — failures here do not override a parent-relevance pass unless the case marks specificity as required
-- Eval harness runs the case twice (concept DB URL, structured DB URL); emit paired results for comparison
-- Skip entire eval suite when eval database URLs and/or `OPENAI_API_KEY` unset (prefer skip + manual gate for this experiment)
+- At least one top-K hit matches `expected_parent_concepts` within `top_k`; optional `min_parent_rank`
+- When `require_specificity` or unit/section fields are set: assert `expected_unit_any_of` and/or `expected_sections` within `top_k`; optional `min_unit_rank`
+- Emit per-case diagnostics (ranks, matched ids, headings) to guide chunk-boundary improvements
+- Skip entire eval suite when `DATABASE_URL` and/or `OPENAI_API_KEY` unset (prefer skip + manual gate for this experiment)
 
 ### Negative / out-of-corpus eval (inspect scores, do not assert absence)
 
@@ -687,7 +669,7 @@ are the results obviously irrelevant to the question?
 
 **Architectural follow-on (closure doc, not implemented here):** does grounded answer generation need a **retrieval confidence / distance threshold** before passing evidence to an LLM?
 
-Run after **both** eval databases are migrated and ingested (one ingest per mode, one database each) in dev/CI-with-secrets.
+Run after structure-aware corpus is ingested to the assistant index (`assistant:ingest` with `DATABASE_URL`) in dev/CI-with-secrets.
 
 ---
 
@@ -752,9 +734,9 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Files:** `scripts/assistant/retrieval/derive-units.mjs`, `scripts/assistant/retrieval/unit-schema.mjs` (JSDoc typedefs), `npm run assistant:derive` (inspect JSON to stdout or `generated/retrieval-units.json` gitignored)
 
-**Approach:** Parse OKF corpus; emit unit objects with `content_hash`; **1:1 mapping (baseline)** — superseded for search by `structure-aware-chunking`, not by changing this slice’s shipped behavior retroactively.
+**Approach:** Parse OKF corpus; emit unit objects with `content_hash`; **1:1 mapping** — infrastructure validation only; production retrieval moves to structure-aware derivation in `structure-aware-chunking` (this slice’s shipped behavior stays in Git history).
 
-**Tests:** `tests/assistant-retrieval-units.test.ts` — deterministic IDs/hashes, required provenance fields, counts match OKF concepts (baseline contract)
+**Tests:** `tests/assistant-retrieval-units.test.ts` — deterministic IDs/hashes, required provenance fields, counts match OKF concepts (historical 1:1 contract; chunking tests land in `structure-aware-chunking`)
 
 **Depends on:** `corpus-expansion`
 
@@ -860,48 +842,46 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 ### Slice — `structure-aware-chunking`
 
-**Purpose:** Add **`structured` derivation mode** (structure-aware 1:N) while **retaining `concept` mode** as the reproducible 1:1 baseline — without changing OKF normalization or `ingest-sync` orphan-deletion semantics.
+**Purpose:** Implement **structure-aware 1:N retrieval-unit derivation** as the production strategy — without changing OKF normalization or `ingest-sync` semantics.
 
-**Files (indicative):** `scripts/assistant/retrieval/` (extend `derive-units.mjs` with `--mode concept|structured`; update unit schema/metadata), `npm run assistant:derive`, tests under `tests/assistant-retrieval-units.test.ts` or dedicated chunking tests
+**Files (indicative):** `scripts/assistant/retrieval/` (extend `derive-units.mjs`; update unit schema/metadata), `npm run assistant:derive`, tests under `tests/assistant-retrieval-units.test.ts` or dedicated chunking tests
 
 **Approach:**
 
-- **`concept` mode:** unchanged 1:1 behavior (`unit/{okf_concept_id}`) — default for backward compatibility.
-- **`structured` mode:** corpus-specific splitting per [Derivation modes](#derivation-modes-slice-structure-aware-chunking) (headings, paragraphs, semantic boundaries; token caps as safeguards).
-- Preserve parent `okf_concept_id`, canonical source, section heading, chunk position, and `sources` provenance on structured units; set `derivation_mode` on emitted units.
-- Deterministic `unit_id` + `content_hash` per chunk; obsolete chunk IDs removed on re-ingest **for that database** via existing orphan cleanup.
-- Document how operators build the **concept baseline database** vs **structured database** for eval (separate URLs; do not alternate modes in one authoritative index for comparison).
+- Replace derivation output with structure-aware rules per [Structure-aware derivation](#structure-aware-derivation-slice-structure-aware-chunking--production-strategy) (headings, paragraphs, semantic boundaries; token caps as safeguards).
+- Preserve parent `okf_concept_id`, canonical source, section heading, chunk position, and `sources` provenance on each unit.
+- Deterministic `unit_id` + `content_hash` per unit; obsolete ids removed on re-ingest via existing orphan cleanup.
+- Re-ingest authoritative assistant index after merge (`okf:build` → `assistant:derive` → `assistant:ingest`).
 
-**Tests:** `concept` mode golden output stable vs today; deterministic structured IDs/hashes across rebuilds; short concept → 1 structured unit; long/multi-section concept → multiple structured units; chunk metadata present; no OKF producer output changes for the same `okf:build`.
+**Tests:** Deterministic IDs/hashes across rebuilds; short concept → 1 unit; long/multi-section concept → multiple units; chunk metadata present; no OKF producer output changes for the same `okf:build`.
 
 **Depends on:** `retrieve-cli` merged
 
-**Does not include:** `ingest-sync` semantic changes, dual-mode rows in one DB, embedding model/schema change, ANN indexes, LangChain/LlamaIndex, OKF producer edits, generative answers, generic chunking framework, comparative eval harness (slice `retrieval-eval`)
+**Does not include:** `ingest-sync` semantic changes, dual derivation modes for benchmarking, parallel 1:1 indexes, embedding model/schema change, ANN indexes, LangChain/LlamaIndex, OKF producer edits, generative answers, generic chunking framework, eval harness (slice `retrieval-eval`)
 
-**Stop:** `assistant:derive --mode structured` emits >1 unit for at least one bounded-corpus long concept; `assistant:derive --mode concept` still emits 1:1 baseline; ingest against a **dedicated** structured DB succeeds with correct orphan behavior; tests green
+**Stop:** `assistant:derive` emits structure-aware units (>1 unit for at least one bounded-corpus long concept); `assistant:ingest` syncs with correct orphan behavior; tests green
 
 ---
 
 ### Slice — `retrieval-eval`
 
-**Purpose:** Representative question suite with top-K assertions; **compare `concept` vs `structured` derivation** on **isolated databases** without destructive interference.
+**Purpose:** Representative question suite with top-K assertions against **structure-aware** ingested index — surface weaknesses and guide chunk-boundary tuning.
 
-**Files:** `tests/fixtures/assistant-retrieval/eval-cases.json`, `tests/assistant-retrieval-eval.test.ts`, [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md) (eval DB URLs, build/replay steps for each mode)
+**Files:** `tests/fixtures/assistant-retrieval/eval-cases.json`, `tests/assistant-retrieval-eval.test.ts`
 
 **Approach:**
 
-- Migrate and ingest **`ASSISTANT_EVAL_DATABASE_URL_CONCEPT`** with `derive --mode concept` + `assistant:ingest`; retain as baseline snapshot until corpus/derivation changes.
-- Migrate and ingest **`ASSISTANT_EVAL_DATABASE_URL_STRUCTURED`** with `derive --mode structured` + `assistant:ingest`.
-- For each fixture: same `question`, same `top_k`, same embedding model — run retrieve against each DB; assert per [Eval fixture contract](#eval-fixture-contract) (parent relevance, optional unit/section specificity, ranking).
-- Report paired results (concept vs structured): relevance, `min_parent_rank`, specificity failures, cases where baseline wins. Negative inspection (nuclear-reactor) captures distances for both modes. No `must_not_include`. **Do not treat chunking as automatically superior.**
+- Prerequisites: `structure-aware-chunking` merged and corpus re-ingested on `DATABASE_URL`.
+- For each fixture: run retrieve; assert per [Eval fixture contract](#eval-fixture-contract) (parent concept, optional section/chunk specificity, ranking).
+- Record failure modes: over-splitting, missing context, wrong section, irrelevant top hits. Negative inspection (nuclear-reactor) captures distances; no `must_not_include`.
 
-**Tests:** Self-contained eval test file; skipped without eval DB URLs + `OPENAI_API_KEY`
+**Tests:** Self-contained eval test file; skipped without `DATABASE_URL` + `OPENAI_API_KEY`
 
-**Depends on:** `structure-aware-chunking` merged (**both** `concept` and `structured` modes available in derivation)
+**Depends on:** `structure-aware-chunking` merged and structure-aware corpus ingested
 
-**Does not include:** changing `ingest-sync` orphan semantics, ingesting both modes into one comparison index, answer generation
+**Does not include:** comparative 1:1 vs chunked eval, dual derivation modes, separate eval databases, answer generation
 
-**Stop:** Eval output documents baseline vs structured comparison per case with actionable pass/fail, fair parent-concept metrics, and noted failure modes; operator doc explains build/retain/replay for each eval database
+**Stop:** Eval output documents per-case pass/fail, parent/chunk diagnostics, and actionable failure notes for derivation tuning
 
 ---
 
@@ -911,7 +891,7 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Files:** `docs/assistant/vector-retrieval-experiment.md`, move plan to `.cursor/plans/archive/`
 
-**Approach:** Answer closure questions with measured results from `retrieval-eval` (including **baseline vs structure-aware chunking**); update architecture-direction "What we have learned so far". State explicitly that the ~35-unit pgvector index is a **bounded experiment corpus**, not the production assistant retrieval target. Record the chosen production retrieval-unit strategy and link [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) as the **next active plan**.
+**Approach:** Answer closure questions with measured results from `retrieval-eval` (structure-aware retrieval quality, failure modes, chunk-boundary lessons); update architecture-direction "What we have learned so far". State that the experiment corpus is **bounded**; structure-aware 1:N is the **production retrieval strategy** for follow-on indexing. Link [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) as the **next active plan**.
 
 **Tests:** Docs-only
 
@@ -957,8 +937,8 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 - **Eval depends on OpenAI + Postgres in dev** — acceptable for learning experiment; CI remains green via skips
 - **Agent-memory question may lack corpus evidence** — record as retrieval gap, not a test failure to paper over
 - **Embedding cost** — small corpus; ingest skip logic keeps reruns cheap; chunking increases unit count — monitor on re-ingest
-- **Chunking may not beat baseline** — `retrieval-eval` must report cases where 1:1 concept units win; use parent-concept metrics so extra structured units do not inflate scores; do not force chunking in closure narrative
-- **Orphan cleanup vs comparative eval** — alternating modes in one database destroys the other arm’s index; eval uses isolated DBs per mode (documented in `retrieval-eval`)
+- **Chunk boundaries need iteration** — `retrieval-eval` failure cases feed back into derivation tuning; eval is diagnostic, not a proof that chunking beats 1:1
+- **Re-ingest after derivation changes** — orphan cleanup retires old `unit_id`s; plan eval runs against the current structure-aware index only
 - **Do not import assistant scripts into `app/`** — keeps static Vercel deploy secret-free
 
 ---
@@ -1136,11 +1116,11 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: dual derivation modes — concept (1:1 baseline) and structured (1:N) via assistant:derive --mode; deterministic unit_id, content_hash, provenance metadata on structured units; tests; document separate eval DB ingest (do not replace baseline in authoritative index). Mark structure-aware-chunking completed in plan frontmatter in this PR.
+Deliverables: structure-aware 1:N retrieval-unit derivation (deterministic unit_id, content_hash, provenance metadata); tests; re-ingest via assistant:ingest on DATABASE_URL documented in PR. Mark structure-aware-chunking completed in plan frontmatter in this PR.
 
-Do not: ingest-sync semantic changes, dual-mode single-database comparative eval, OKF producer/normalization edits, embedding model or vector(1536) schema changes, ANN indexes, LangChain/LlamaIndex, generic chunking frameworks, generative answers, or retrieval-eval harness.
+Do not: ingest-sync semantic changes, dual derivation modes for benchmarking, OKF producer/normalization edits, embedding model or vector(1536) schema changes, ANN indexes, LangChain/LlamaIndex, generic chunking frameworks, generative answers, or retrieval-eval harness.
 
-Verification: npm run okf:build; npm run assistant:derive -- --mode concept; npm run assistant:derive -- --mode structured; npm run test; npm run format:check.
+Verification: npm run okf:build; npm run assistant:derive; npm run test; npm run format:check; npm run assistant:ingest when secrets configured.
 ```
 
 ### retrieval-eval
@@ -1148,17 +1128,17 @@ Verification: npm run okf:build; npm run assistant:derive -- --mode concept; npm
 ```text
 @.cursor/plans/assistant-vector-retrieval-experiment.plan.md
 
-Implement slice retrieval-eval only. Prerequisites: structure-aware-chunking merged (concept + structured derivation modes). Do not start plan-closure. Do not archive the plan.
+Implement slice retrieval-eval only. Prerequisites: structure-aware-chunking merged and structure-aware corpus ingested on DATABASE_URL. Do not start plan-closure. Do not archive the plan.
 
 Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: parent-concept-anchored eval fixtures; harness runs each case against ASSISTANT_EVAL_DATABASE_URL_CONCEPT and ASSISTANT_EVAL_DATABASE_URL_STRUCTURED (isolated ingests per mode); fair relevance/ranking/specificity comparison; operator docs in docs/assistant/assistant-database.md for build/retain/replay; negative nuclear-reactor inspection (distances, no must_not_include). Mark retrieval-eval completed in plan frontmatter in this PR.
+Deliverables: eval fixtures per plan (parent concepts, chunked unit_ids, sections); harness asserts structure-aware retrieval quality and records failure modes; negative nuclear-reactor inspection (distances, no must_not_include). Mark retrieval-eval completed in plan frontmatter in this PR.
 
-Do not: ingest both modes into one DB, change ingest-sync orphan semantics, answer generation, ANN indexes, or plan archive.
+Do not: comparative 1:1 vs chunked eval, dual derivation modes, separate eval databases, answer generation, ANN indexes, or plan archive.
 
-Verification: npm run test (with eval DB URLs + OPENAI_API_KEY when running eval integration); npm run format:check.
+Verification: npm run test (with DATABASE_URL + OPENAI_API_KEY when running eval integration); npm run format:check.
 ```
 
 ### plan-closure
@@ -1174,7 +1154,7 @@ Prerequisites: all implementation slices merged and marked completed in frontmat
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: docs/assistant/vector-retrieval-experiment.md (include baseline vs chunking verdict); verify all experiment slice todos completed; add # Shipped note; move plan to .cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md; mark plan-closure completed. Document ~35 units as experiment-only; link follow-on plan assistant-corpus-coverage-expansion.plan.md (remains active under .cursor/plans/ — not archived with this experiment) with the chosen retrieval-unit strategy.
+Deliverables: docs/assistant/vector-retrieval-experiment.md (structure-aware eval results, failure modes, chunk-boundary lessons); verify all experiment slice todos completed; add # Shipped note; move plan to .cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md; mark plan-closure completed. Link follow-on plan assistant-corpus-coverage-expansion.plan.md (remains active under .cursor/plans/ — not archived with this experiment).
 
 Verification: confirm all prerequisite implementation PRs are merged and every experiment todo except plan-closure is completed before archiving.
 ```
