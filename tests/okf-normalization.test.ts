@@ -30,7 +30,7 @@ import { splitFrontmatter } from "@/scripts/assistant/okf/yaml.mjs";
 import { projectCases } from "@/content/project-cases";
 
 const FIXTURES_ROOT = path.join(process.cwd(), FIXTURES_DIR);
-const EXPECTED_CONCEPT_COUNT = 98;
+const EXPECTED_CONCEPT_COUNT = 99;
 
 function parseFrontmatterType(frontmatterYaml: string | null): string {
   expect(frontmatterYaml).toBeTruthy();

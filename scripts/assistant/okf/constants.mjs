@@ -20,9 +20,16 @@ export const REPO_RUNBOOK_RESOURCE =
 export const CURSOR_TEAM_MARKETPLACE_REPO =
   "multipliers-dev/cursor-team-marketplace";
 
+export const SAVEPOINTS_REPO = "multipliers-dev/savepoints";
+
 /** Visitor-facing link to a pinned upstream markdown file on GitHub. */
 export function marketplaceUpstreamResource(upstreamPath) {
   return `https://github.com/${CURSOR_TEAM_MARKETPLACE_REPO}/blob/main/${upstreamPath}`;
+}
+
+/** Visitor-facing link to Savepoints upstream architecture note on GitHub. */
+export function savepointsUpstreamResource(upstreamPath) {
+  return `https://github.com/${SAVEPOINTS_REPO}/blob/main/${upstreamPath}`;
 }
 
 export const EXPERIMENT_FINDINGS_DOC =

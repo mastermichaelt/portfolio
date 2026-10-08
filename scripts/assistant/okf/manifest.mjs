@@ -107,6 +107,13 @@ export function buildNormalizationManifest({
           "tests/fixtures/assistant-okf/marketplace-public-docs/snapshots/*.md",
         ],
       },
+      savepoints_public_notes: {
+        kind: "reviewed Savepoints architecture excerpt",
+        paths: [
+          "tests/fixtures/assistant-okf/savepoints-public-notes/publication-manifest.json",
+          "tests/fixtures/assistant-okf/savepoints-public-notes/snapshots/*.md",
+        ],
+      },
       fixtures: buildFixtureInputs(fixtureRoot),
     },
     outputs: {

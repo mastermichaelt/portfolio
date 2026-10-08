@@ -26,7 +26,7 @@ import {
   readOkfConceptFile,
 } from "@/scripts/assistant/retrieval/parse-okf-concept.mjs";
 
-const EXPECTED_CONCEPT_COUNT = 98;
+const EXPECTED_CONCEPT_COUNT = 99;
 
 describe("OKF frontmatter parsing", () => {
   it("parses nested sources, tags, and generated blocks", () => {
