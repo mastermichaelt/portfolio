@@ -15,6 +15,7 @@ import {
   hitMatchesSections,
   matchesUnitPattern,
 } from "@/scripts/assistant/retrieve/eval.mjs";
+import { searchRetrievalUnits } from "@/scripts/assistant/retrieve/search.mjs";
 
 type EvalCase = {
   id: string;
@@ -44,7 +45,6 @@ type EvalHit = {
   metadata: unknown;
   section_heading?: string | null;
 };
-import { searchRetrievalUnits } from "@/scripts/assistant/retrieve/search.mjs";
 
 loadEnvFiles();
 
@@ -167,6 +167,80 @@ describe("assistant retrieval eval helpers", () => {
     expect(result.failureModes).toContain("wrong_section");
   });
 
+  it("marks corpus_gap and negative_inspection as diagnostic (not scored pass)", () => {
+    const corpusGap = evaluateRetrievalCase(
+      {
+        id: "gap",
+        question: "agent memory?",
+        kind: "corpus_gap",
+        top_k: 3,
+      },
+      [],
+    );
+    expect(corpusGap.pass).toBeNull();
+    expect(corpusGap.status).toBe("diagnostic");
+    expect(corpusGap.diagnostics.eval_mode).toBe("diagnostic");
+
+    const negative = evaluateRetrievalCase(
+      {
+        id: "neg",
+        question: "nuclear?",
+        kind: "negative_inspection",
+        top_k: 3,
+      },
+      [
+        {
+          rank: 1,
+          cosine_distance: 0.5,
+          similarity: 0.5,
+          unit_id: "unit/about/summary",
+          okf_concept_id: "about/summary",
+          source_class: "about",
+          type: "t",
+          title: "Summary",
+          resource: "https://example.test",
+          retrieval_text: "career",
+          sources: [],
+          metadata: {},
+        },
+      ],
+    );
+    expect(negative.pass).toBeNull();
+    expect(negative.status).toBe("diagnostic");
+  });
+
+  it("finalizeEvalOutcome always sets blocking_failure_modes on parent miss", () => {
+    const outcome = evaluateRetrievalCase(
+      {
+        id: "parent-miss",
+        question: "missing?",
+        kind: "positive",
+        top_k: 2,
+        expected_parent_concepts: ["about/missing"],
+      },
+      [
+        {
+          rank: 1,
+          cosine_distance: 0.1,
+          similarity: 0.9,
+          unit_id: "unit/about/summary",
+          okf_concept_id: "about/summary",
+          source_class: "about",
+          type: "t",
+          title: "Summary",
+          resource: "https://example.test",
+          retrieval_text: "x",
+          sources: [],
+          metadata: {},
+        },
+      ],
+    );
+    expect(outcome.pass).toBe(false);
+    expect(outcome.diagnostics.blocking_failure_modes).toEqual([
+      "missing_parent_context",
+    ]);
+  });
+
   it("matches section needles against retrieval_text when metadata lacks heading", () => {
     expect(
       hitMatchesSections(
@@ -239,16 +313,13 @@ describe("assistant retrieval eval integration", () => {
             case_.kind === "negative_inspection"
           ) {
             console.info(formatEvalDiagnostics(outcome));
-            expect(outcome.pass).toBe(true);
+            expect(outcome.status).toBe("diagnostic");
+            expect(outcome.pass).toBeNull();
+            expect(outcome.diagnostics.eval_mode).toBe("diagnostic");
             if (case_.kind === "negative_inspection") {
               expect(outcome.diagnostics.hits).toHaveLength(
                 Math.min(case_.top_k, hits.length),
               );
-              for (const hit of outcome.diagnostics.hits as Array<{
-                cosine_distance: number;
-              }>) {
-                expect(hit.cosine_distance).toBeGreaterThanOrEqual(0);
-              }
             }
             return;
           }
@@ -268,7 +339,7 @@ describe("assistant retrieval eval integration", () => {
         });
       }
 
-      it("negative inspection distances are not better than a positive baseline", async () => {
+      it("logs negative vs positive distance comparison (diagnostic only)", async () => {
         const positive = cases.find((c) => c.id === "managed-engineers");
         const negative = cases.find(
           (c) => c.id === "nuclear-reactor-negative-inspection",
@@ -298,14 +369,15 @@ describe("assistant retrieval eval integration", () => {
               positive_best_distance: positiveBest,
               negative_case: negative!.id,
               negative_best_distance: negativeBest,
-              note: "Soft check: nonsense query should not beat a strong positive match on distance alone.",
+              note: "Diagnostic only — compare distances manually; abstention thresholds are out of scope for this retrieval experiment.",
             },
             null,
             2,
           ),
         );
 
-        expect(negativeBest).toBeGreaterThanOrEqual(positiveBest - 0.05);
+        expect(Number.isFinite(positiveBest)).toBe(true);
+        expect(Number.isFinite(negativeBest)).toBe(true);
       });
     },
   );

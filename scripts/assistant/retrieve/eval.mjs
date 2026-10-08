@@ -114,6 +114,22 @@ export function firstUnitPatternMatch(hits, patterns) {
 }
 
 /**
+ * @param {boolean | null} pass `null` for diagnostic-only cases (not scored pass/fail).
+ * @param {string[]} failureModes
+ * @param {Record<string, unknown>} diagnostics
+ */
+export function finalizeEvalOutcome(pass, failureModes, diagnostics) {
+  const blockingFailureModes = failureModes.filter(
+    (mode) => !mode.startsWith("optional_"),
+  );
+  diagnostics.failure_modes = failureModes;
+  diagnostics.blocking_failure_modes = blockingFailureModes;
+  /** @type {"pass" | "fail" | "diagnostic"} */
+  const status = pass === null ? "diagnostic" : pass ? "pass" : "fail";
+  return { pass, failureModes, diagnostics, status };
+}
+
+/**
  * @param {EvalCase} case_
  * @param {EvalHit[]} hits
  */
@@ -152,38 +168,37 @@ export function evaluateRetrievalCase(case_, hits) {
         hit.okf_concept_id.includes("savepoint")
       );
     });
+    diagnostics.eval_mode = "diagnostic";
     diagnostics.corpus_gap = {
-      note: "Corpus gap case — weak or absent dedicated agent-memory writing is expected.",
+      note: "Diagnostic only — records whether top-K contains dedicated agent-memory evidence. Does not assert retrieval abstention (that belongs to grounded generation / thresholding later).",
       memory_related_hits: memorySignals.map((hit) => hit.unit_id),
     };
-    return { pass: true, failureModes, diagnostics };
+    return finalizeEvalOutcome(null, failureModes, diagnostics);
   }
 
   if (case_.kind === "negative_inspection") {
+    diagnostics.eval_mode = "diagnostic";
     diagnostics.negative_inspection = {
-      note: "Inspect distances and titles — vector search always returns top-K; do not assert unit absence.",
+      note: "Diagnostic only — capture distances and titles for manual review. Vector search always returns top-K; this is not a negative-query pass/fail and does not assert unit absence.",
       best_distance: topHits[0]?.cosine_distance ?? null,
       best_similarity: topHits[0]?.similarity ?? null,
     };
-    return { pass: true, failureModes, diagnostics };
+    return finalizeEvalOutcome(null, failureModes, diagnostics);
   }
 
   const expectedParents = case_.expected_parent_concepts ?? [];
   if (expectedParents.length === 0) {
-    return {
-      pass: false,
-      failureModes: ["invalid_fixture"],
-      diagnostics: {
-        ...diagnostics,
-        error: "positive case requires expected_parent_concepts",
-      },
-    };
+    failureModes.push("invalid_fixture");
+    return finalizeEvalOutcome(false, failureModes, {
+      ...diagnostics,
+      error: "positive case requires expected_parent_concepts",
+    });
   }
 
   const parentMatch = firstParentMatch(topHits, expectedParents);
   if (!parentMatch) {
     failureModes.push("missing_parent_context");
-    return { pass: false, failureModes, diagnostics };
+    return finalizeEvalOutcome(false, failureModes, diagnostics);
   }
 
   diagnostics.parent_match = {
@@ -252,14 +267,9 @@ export function evaluateRetrievalCase(case_, hits) {
     }
   }
 
-  const blockingFailureModes = failureModes.filter(
-    (mode) => !mode.startsWith("optional_"),
-  );
-  diagnostics.failure_modes = failureModes;
-  diagnostics.blocking_failure_modes = blockingFailureModes;
-
-  const pass = blockingFailureModes.length === 0;
-  return { pass, failureModes, diagnostics };
+  const pass =
+    failureModes.filter((mode) => !mode.startsWith("optional_")).length === 0;
+  return finalizeEvalOutcome(pass, failureModes, diagnostics);
 }
 
 /**

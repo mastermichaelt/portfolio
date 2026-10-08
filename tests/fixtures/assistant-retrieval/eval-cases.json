@@ -42,7 +42,9 @@
         "unit/portfolio/experiment-measurement-b01-attribution"
       ],
       "expected_sections": ["Attribution"],
-      "min_parent_rank": 3
+      "require_specificity": true,
+      "min_parent_rank": 3,
+      "min_unit_rank": 3
     },
     {
       "id": "ai-built",
@@ -70,8 +72,7 @@
         "unit/portfolio/renovate-governance*",
         "unit/repo/renovate-workflow*"
       ],
-      "min_parent_rank": 5,
-      "notes": "Unit globs are diagnostic when renovate chunks miss top-K; parent match on agent-infra or renovate concepts is the pass bar."
+      "min_parent_rank": 5
     },
     {
       "id": "agent-memory-corpus-gap",
