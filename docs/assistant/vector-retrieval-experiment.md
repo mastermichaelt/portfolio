@@ -8,14 +8,15 @@ related:
   - docs/assistant/okf-normalization-experiment.md
   - docs/assistant/rag-generation-direction.md
   - .cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md
-  - .cursor/plans/assistant-corpus-coverage-expansion.plan.md
+  - .cursor/plans/archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md
+  - docs/assistant/corpus-coverage-expansion.md
 ---
 
 # Vector retrieval experiment findings
 
 Multi-slice experiment validating **derive → embed → sync → retrieve → eval** over a **bounded** OKF corpus (~35 concepts → **61 structure-aware retrieval units** on the reference ingested index). This document records evidence and architectural conclusions. It is not a runtime specification.
 
-**Next active plan:** [assistant-corpus-coverage-expansion.plan.md](../../.cursor/plans/assistant-corpus-coverage-expansion.plan.md) — expand OKF producers and re-ingest using the same structure-aware derivation strategy.
+**Follow-on (shipped):** [corpus-coverage-expansion.md](./corpus-coverage-expansion.md) — production portfolio OKF scope on the same structure-aware pipeline. **Next active plan:** [assistant-career-inventory-corpus.plan.md](../../.cursor/plans/assistant-career-inventory-corpus.plan.md).
 
 ## Experiment conclusion
 
@@ -154,8 +155,8 @@ Chat UI, answer generation, LangChain/LlamaIndex, Pinecone-style SaaS, ANN index
 
 ## Related artifacts
 
-| Artifact                | Location                                                                                                                                                               |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Archived execution plan | [.cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md](../../.cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md) |
-| Follow-on coverage plan | [.cursor/plans/assistant-corpus-coverage-expansion.plan.md](../../.cursor/plans/assistant-corpus-coverage-expansion.plan.md)                                           |
-| Eval fixtures README    | [tests/fixtures/assistant-retrieval/README.md](../../tests/fixtures/assistant-retrieval/README.md)                                                                     |
+| Artifact                     | Location                                                                                                                                                               |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Archived execution plan      | [.cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md](../../.cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md) |
+| Follow-on coverage (shipped) | [corpus-coverage-expansion.md](./corpus-coverage-expansion.md); archived [plan](../../.cursor/plans/archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md)    |
+| Eval fixtures README         | [tests/fixtures/assistant-retrieval/README.md](../../tests/fixtures/assistant-retrieval/README.md)                                                                     |

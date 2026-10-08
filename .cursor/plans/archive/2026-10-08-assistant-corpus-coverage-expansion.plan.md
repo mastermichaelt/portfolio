@@ -1,14 +1,34 @@
 ---
 name: Assistant corpus coverage expansion
-overview: Follow-on to the vector retrieval experiment — expand OKF producers and coverage tests for production portfolio content. Reuses okf:build, structure-aware retrieval-unit derivation, and assistant:ingest from the archived experiment. Start only after experiment closure; do not reopen 1:1 vs 1:N mapping.
+overview: Follow-on to the vector retrieval experiment — expanded OKF producers and coverage tests for production portfolio content; structure-aware derive + ingest unchanged. Shipped 2026-10-08; archived after plan-closure.
 todos:
   - id: corpus-coverage-expansion
     content: "Expand OKF producers, coverage tests, re-ingest with structure-aware derivation"
     status: completed
   - id: plan-closure
     content: "Docs-only PR: corpus expansion findings + archive plan"
-    status: pending
+    status: completed
 isProject: false
+---
+
+# Shipped
+
+**Archived 2026-10-08.**
+
+| Slice                     | Delivered                                                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| corpus-coverage-expansion | [#45](https://github.com/mastermichaelt/portfolio/pull/45) — production OKF scope, content coverage tests                                    |
+| plan-closure              | This PR — [corpus-coverage-expansion.md](../../../docs/assistant/corpus-coverage-expansion.md), verify todos, `# Shipped` note, archive plan |
+
+**Durable artifacts (remain active):**
+
+- [`docs/assistant/corpus-coverage-expansion.md`](../../../docs/assistant/corpus-coverage-expansion.md) — expansion findings and operator acceptance
+- [`docs/assistant/architecture-direction.md`](../../../docs/assistant/architecture-direction.md) — production OKF corpus scope
+- [`tests/okf-content-coverage.test.ts`](../../../tests/okf-content-coverage.test.ts) — pinned `content/` module hashes
+- Retrieval pipeline on `main` (unchanged machinery) — [assistant-database.md](../../../docs/assistant/assistant-database.md)
+
+**Next active plan:** [`assistant-career-inventory-corpus.plan.md`](../../assistant-career-inventory-corpus.plan.md) — career inventory OKF producer before RAG generation.
+
 ---
 
 # Assistant corpus coverage expansion
