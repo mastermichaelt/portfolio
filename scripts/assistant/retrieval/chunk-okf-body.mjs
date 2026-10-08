@@ -2,6 +2,7 @@
  * Structure-aware OKF body chunking for retrieval-unit derivation.
  *
  * Splits on markdown ATX headings (`#`–`###`) already present in OKF bodies.
+ * Heading and paragraph boundaries are ignored inside fenced code blocks (``` or ~~~).
  * Paragraph boundaries split oversized sections (token safeguard only).
  *
  * Oversized-section behavior:
@@ -32,6 +33,46 @@ const HEADING_RE = /^(#{1,3})\s+(.+)$/;
 function fenceMarkerOnLine(line) {
   const match = /^(```+|~~~+)(\s.*)?$/.exec(line.trim());
   return match ? match[1] : null;
+}
+
+/**
+ * @typedef {object} FenceState
+ * @property {boolean} inFence
+ * @property {string | null} openFenceMarker
+ */
+
+/**
+ * @returns {FenceState}
+ */
+function createFenceState() {
+  return { inFence: false, openFenceMarker: null };
+}
+
+/**
+ * Update fence state when `line` is a fence opener/closer. Returns whether the
+ * line is a fence marker (content lines should still be retained).
+ *
+ * @param {FenceState} state
+ * @param {string} line
+ * @returns {boolean}
+ */
+function applyFenceLine(state, line) {
+  const fenceMarker = fenceMarkerOnLine(line);
+  if (!fenceMarker) {
+    return false;
+  }
+  if (!state.inFence) {
+    state.inFence = true;
+    state.openFenceMarker = fenceMarker;
+  } else if (
+    state.openFenceMarker &&
+    fenceMarker[0] === state.openFenceMarker[0] &&
+    fenceMarker.length >= 3
+  ) {
+    state.inFence = false;
+    state.openFenceMarker = null;
+  }
+  return true;
 }
 
 /**
@@ -79,6 +120,7 @@ export function splitBodyIntoHeadingSections(body) {
   /** @type {string[]} */
   let currentLines = [];
   let currentHeading = null;
+  const fence = createFenceState();
 
   const flush = () => {
     const sectionBody = currentLines.join("\n").trim();
@@ -92,7 +134,12 @@ export function splitBodyIntoHeadingSections(body) {
   };
 
   for (const line of lines) {
-    const match = HEADING_RE.exec(line);
+    if (applyFenceLine(fence, line)) {
+      currentLines.push(line);
+      continue;
+    }
+
+    const match = !fence.inFence ? HEADING_RE.exec(line) : null;
     if (match) {
       flush();
       currentHeading = match[2].trim();
@@ -126,9 +173,7 @@ export function splitBodyIntoParagraphs(body) {
   const paragraphs = [];
   /** @type {string[]} */
   let current = [];
-  let inFence = false;
-  /** @type {string | null} */
-  let openFenceMarker = null;
+  const fence = createFenceState();
 
   const flush = () => {
     const text = current.join("\n").trim();
@@ -139,24 +184,12 @@ export function splitBodyIntoParagraphs(body) {
   };
 
   for (const line of lines) {
-    const fenceMarker = fenceMarkerOnLine(line);
-    if (fenceMarker) {
-      if (!inFence) {
-        inFence = true;
-        openFenceMarker = fenceMarker;
-      } else if (
-        openFenceMarker &&
-        fenceMarker[0] === openFenceMarker[0] &&
-        fenceMarker.length >= 3
-      ) {
-        inFence = false;
-        openFenceMarker = null;
-      }
+    if (applyFenceLine(fence, line)) {
       current.push(line);
       continue;
     }
 
-    if (!inFence && line.trim() === "") {
+    if (!fence.inFence && line.trim() === "") {
       flush();
       continue;
     }

@@ -127,6 +127,26 @@ Beta body.`;
     expect(new Set(bodies).size).toBe(bodies.length);
   });
 
+  it("does not split on headings inside fenced code blocks", () => {
+    const body = `## Section
+
+Before fence.
+
+\`\`\`
+# Example
+still inside
+\`\`\`
+
+After.`;
+
+    const chunks = chunkOkfBody(body);
+    expect(chunks.some((chunk) => chunk.partKey === "example")).toBe(false);
+    const section = chunks.find((chunk) => chunk.partKey === "section");
+    expect(section).toBeTruthy();
+    expect(section!.body).toContain("# Example");
+    expect(section!.body).toContain("After.");
+  });
+
   it("keeps fenced code blocks as one paragraph despite internal blank lines", () => {
     const body = `Before code.
 
