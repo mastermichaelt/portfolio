@@ -5,9 +5,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-vi.mock("next/font/google", () => ({
-  IBM_Plex_Sans: () => ({ variable: "--font-body" }),
-  IBM_Plex_Mono: () => ({ variable: "--font-mono" }),
+vi.mock("@/lib/fonts", () => ({
+  ibmPlexSans: { variable: "--font-body" },
+  ibmPlexMono: { variable: "--font-mono" },
 }));
 
 vi.mock("@/lib/portfolio", () => ({
