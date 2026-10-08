@@ -19,6 +19,7 @@ import { produceEcosystemConcepts } from "./ecosystem-producer.mjs";
 import { producePortfolioConcepts } from "./portfolio-producer.mjs";
 import { produceProjectCaseConcepts } from "./project-case-producer.mjs";
 import { produceCareerInventoryConcepts } from "./career-inventory-producer.mjs";
+import { produceMarketplacePublicDocsConcepts } from "./marketplace-public-docs-producer.mjs";
 import { produceRepoConcepts } from "./repo-producer.mjs";
 import { cleanGeneratedConcepts, writeConcepts } from "./writer.mjs";
 
@@ -29,6 +30,7 @@ function renderIndex(conceptPaths) {
     writing: conceptPaths.filter((entry) => entry.startsWith("writing/")),
     about: conceptPaths.filter((entry) => entry.startsWith("about/")),
     career: conceptPaths.filter((entry) => entry.startsWith("career/")),
+    tooling: conceptPaths.filter((entry) => entry.startsWith("tooling/")),
   };
 
   const section = (title, paths) => {
@@ -47,13 +49,15 @@ generated:
 
 # Portfolio assistant OKF corpus
 
-Production-scoped bundle: portfolio cases and catalogs, flagship project cases, About, reviewed career-inventory snapshots, ecosystem inventory, pinned Renovate runbook, and full published DEV article bodies aligned with content/articles.ts.
+Production-scoped bundle: portfolio cases and catalogs, flagship project cases, About, reviewed career-inventory snapshots, pinned cursor-team-marketplace public docs, ecosystem inventory, pinned Renovate runbook, and full published DEV article bodies aligned with content/articles.ts.
 
 ${section("Portfolio concepts", grouped.portfolio)}
 
 ${section("About concepts", grouped.about)}
 
 ${section("Career inventory concepts", grouped.career)}
+
+${section("Tooling concepts", grouped.tooling)}
 
 ${section("Repository concepts", grouped.repo)}
 
@@ -70,6 +74,7 @@ function formatGeneratedCorpus(corpusRoot) {
     path.join(corpusRoot, "about"),
     path.join(corpusRoot, "repo"),
     path.join(corpusRoot, "writing"),
+    path.join(corpusRoot, "tooling"),
   ];
   execSync(
     `npx prettier --write ${targets.map((entry) => JSON.stringify(entry)).join(" ")}`,
@@ -92,6 +97,7 @@ export function buildOkfCorpus({
     ...produceEcosystemConcepts(),
     ...produceAboutConcepts(),
     ...produceCareerInventoryConcepts(),
+    ...produceMarketplacePublicDocsConcepts(),
     ...produceRepoConcepts(FIXTURES_DIR),
     ...produceDevConcepts(),
   ];

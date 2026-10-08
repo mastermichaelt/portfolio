@@ -36,7 +36,14 @@ export function buildFixtureInputs(fixtureRoot = FIXTURES_DIR) {
 
 export function listConceptFiles(corpusRoot = CORPUS_ROOT) {
   const concepts = [];
-  for (const dir of ["portfolio", "repo", "writing", "about", "career"]) {
+  for (const dir of [
+    "portfolio",
+    "repo",
+    "writing",
+    "about",
+    "career",
+    "tooling",
+  ]) {
     const absoluteDir = path.join(corpusRoot, dir);
     if (!fs.existsSync(absoluteDir)) continue;
     for (const file of fs.readdirSync(absoluteDir).sort()) {
@@ -91,6 +98,13 @@ export function buildNormalizationManifest({
           "tests/fixtures/assistant-okf/career-inventory/source-eligibility.json",
           "tests/fixtures/assistant-okf/career-inventory/publication-manifest.json",
           "tests/fixtures/assistant-okf/career-inventory/snapshots/*.md",
+        ],
+      },
+      marketplace_public_docs: {
+        kind: "pinned cursor-team-marketplace public documentation",
+        paths: [
+          "tests/fixtures/assistant-okf/marketplace-public-docs/publication-manifest.json",
+          "tests/fixtures/assistant-okf/marketplace-public-docs/snapshots/*.md",
         ],
       },
       fixtures: buildFixtureInputs(fixtureRoot),

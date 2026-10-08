@@ -26,7 +26,7 @@ import {
   readOkfConceptFile,
 } from "@/scripts/assistant/retrieval/parse-okf-concept.mjs";
 
-const EXPECTED_CONCEPT_COUNT = 94;
+const EXPECTED_CONCEPT_COUNT = 98;
 
 describe("OKF frontmatter parsing", () => {
   it("parses nested sources, tags, and generated blocks", () => {
@@ -201,6 +201,9 @@ describe("retrieval unit derivation", () => {
     expect(sourceClassFromConceptId("career/admin-hub-experimentation")).toBe(
       "career",
     );
+    expect(
+      sourceClassFromConceptId("tooling/cursor-team-marketplace-overview"),
+    ).toBe("tooling");
   });
 
   it("throws when an OKF concept yields zero retrieval units", () => {
@@ -304,9 +307,14 @@ tags:
           expect(source.title.length).toBeGreaterThan(0);
           expect(source.resource.length).toBeGreaterThan(0);
         }
-        expect(["portfolio", "repo", "writing", "about", "career"]).toContain(
-          unit.source_class,
-        );
+        expect([
+          "portfolio",
+          "repo",
+          "writing",
+          "about",
+          "career",
+          "tooling",
+        ]).toContain(unit.source_class);
 
         if (unit.unit_id.includes("#")) {
           expect(unit.chunk_index).toBeTypeOf("number");

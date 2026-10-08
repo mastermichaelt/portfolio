@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: marketplace-public-docs
     content: "Marketplace README + engineering docs only (no SKILL summaries unless eval gap)"
-    status: pending
+    status: completed
   - id: savepoints-public-notes
     content: "Reviewed Savepoints architecture excerpt → OKF; full note only after publication review"
     status: pending

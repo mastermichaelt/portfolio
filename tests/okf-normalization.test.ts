@@ -23,13 +23,14 @@ import {
   produceProjectCaseConcepts,
 } from "@/scripts/assistant/okf/project-case-producer.mjs";
 import { produceCareerInventoryConcepts } from "@/scripts/assistant/okf/career-inventory-producer.mjs";
+import { produceMarketplacePublicDocsConcepts } from "@/scripts/assistant/okf/marketplace-public-docs-producer.mjs";
 import { produceRepoConcepts } from "@/scripts/assistant/okf/repo-producer.mjs";
 import { renderConcept } from "@/scripts/assistant/okf/writer.mjs";
 import { splitFrontmatter } from "@/scripts/assistant/okf/yaml.mjs";
 import { projectCases } from "@/content/project-cases";
 
 const FIXTURES_ROOT = path.join(process.cwd(), FIXTURES_DIR);
-const EXPECTED_CONCEPT_COUNT = 94;
+const EXPECTED_CONCEPT_COUNT = 98;
 
 function parseFrontmatterType(frontmatterYaml: string | null): string {
   expect(frontmatterYaml).toBeTruthy();
@@ -54,6 +55,7 @@ describe("OKF producers", () => {
     const repo = produceRepoConcepts(FIXTURES_ROOT);
     const dev = produceDevConcepts();
     const career = produceCareerInventoryConcepts();
+    const tooling = produceMarketplacePublicDocsConcepts();
 
     expect(portfolio).toHaveLength(30);
     expect(projectCase).toHaveLength(11);
@@ -62,6 +64,7 @@ describe("OKF producers", () => {
     expect(repo.length).toBeGreaterThanOrEqual(5);
     expect(dev).toHaveLength(30);
     expect(career).toHaveLength(5);
+    expect(tooling).toHaveLength(4);
 
     expect(
       portfolio.every((concept) => concept.id.startsWith("portfolio/")),
@@ -82,6 +85,9 @@ describe("OKF producers", () => {
       true,
     );
     expect(career.every((concept) => concept.id.startsWith("career/"))).toBe(
+      true,
+    );
+    expect(tooling.every((concept) => concept.id.startsWith("tooling/"))).toBe(
       true,
     );
 
@@ -178,6 +184,9 @@ describe("OKF normalization build", () => {
         true,
       );
       expect(conceptPaths.some((entry) => entry.startsWith("career/"))).toBe(
+        true,
+      );
+      expect(conceptPaths.some((entry) => entry.startsWith("tooling/"))).toBe(
         true,
       );
 

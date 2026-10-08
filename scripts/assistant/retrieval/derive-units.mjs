@@ -27,7 +27,8 @@ export function sourceClassFromConceptId(okfConceptId) {
     prefix === "repo" ||
     prefix === "writing" ||
     prefix === "about" ||
-    prefix === "career"
+    prefix === "career" ||
+    prefix === "tooling"
   ) {
     return prefix;
   }
