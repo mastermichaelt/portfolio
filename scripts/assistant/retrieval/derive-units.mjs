@@ -8,6 +8,7 @@ import { pathToFileURL } from "node:url";
 import { CORPUS_ROOT, OKF_VERSION } from "../okf/constants.mjs";
 import { listConceptFiles, sha256String } from "../okf/manifest.mjs";
 
+import { chunkOkfBody, unitIdForChunk } from "./chunk-okf-body.mjs";
 import { readOkfConceptFile } from "./parse-okf-concept.mjs";
 
 /** @typedef {import("./unit-schema.mjs").RetrievalUnit} RetrievalUnit */
@@ -42,30 +43,61 @@ export function composeRetrievalText(title, body) {
 }
 
 /**
+ * Structure-aware 1:N derivation from one parsed OKF concept.
+ *
+ * @param {ReturnType<typeof readOkfConceptFile>} concept
+ * @param {string} okfVersion
+ * @returns {RetrievalUnit[]}
+ */
+export function deriveUnitsFromConcept(concept, okfVersion = OKF_VERSION) {
+  const okfConceptId = concept.okf_concept_id.replace(/^generated\/okf\//, "");
+  const bodyChunks = chunkOkfBody(concept.body);
+  const chunkCount = bodyChunks.length;
+
+  return bodyChunks.map((chunk, chunkIndex) => {
+    const text = composeRetrievalText(concept.title, chunk.body);
+    const sectionHeading = chunk.sectionHeading ?? undefined;
+
+    return {
+      unit_id: unitIdForChunk(okfConceptId, bodyChunks, chunkIndex),
+      okf_concept_id: okfConceptId,
+      okf_version: okfVersion,
+      source_class: sourceClassFromConceptId(okfConceptId),
+      type: concept.type,
+      title: concept.title,
+      resource: concept.resource,
+      sources: concept.sources,
+      tags: concept.tags,
+      text,
+      content_hash: sha256String(text),
+      section_heading: sectionHeading,
+      chunk_index: chunkCount > 1 ? chunkIndex : undefined,
+      chunk_count: chunkCount > 1 ? chunkCount : undefined,
+      metadata: {
+        generated: concept.generated,
+        section_heading: sectionHeading ?? null,
+        chunk_index: chunkCount > 1 ? chunkIndex : null,
+        chunk_count: chunkCount > 1 ? chunkCount : null,
+        part_key: chunkCount > 1 ? chunk.partKey : null,
+      },
+    };
+  });
+}
+
+/**
+ * @deprecated Use deriveUnitsFromConcept — returns the first unit only (single-chunk concepts).
  * @param {ReturnType<typeof readOkfConceptFile>} concept
  * @param {string} okfVersion
  * @returns {RetrievalUnit}
  */
 export function deriveUnitFromConcept(concept, okfVersion = OKF_VERSION) {
-  const okfConceptId = concept.okf_concept_id.replace(/^generated\/okf\//, "");
-  const text = composeRetrievalText(concept.title, concept.body);
-
-  return {
-    unit_id: `unit/${okfConceptId}`,
-    okf_concept_id: okfConceptId,
-    okf_version: okfVersion,
-    source_class: sourceClassFromConceptId(okfConceptId),
-    type: concept.type,
-    title: concept.title,
-    resource: concept.resource,
-    sources: concept.sources,
-    tags: concept.tags,
-    text,
-    content_hash: sha256String(text),
-    metadata: {
-      generated: concept.generated,
-    },
-  };
+  const units = deriveUnitsFromConcept(concept, okfVersion);
+  if (units.length !== 1) {
+    throw new Error(
+      `deriveUnitFromConcept expects a single-chunk concept, received ${units.length} chunks for ${units[0]?.okf_concept_id}`,
+    );
+  }
+  return units[0];
 }
 
 /**
@@ -81,7 +113,7 @@ export function readOkfVersion(corpusRoot) {
 }
 
 /**
- * Derive retrieval units from an OKF corpus directory (1:1 with concepts).
+ * Derive retrieval units from an OKF corpus directory (structure-aware 1:N).
  *
  * @param {object} [options]
  * @param {string} [options.corpusRoot]
@@ -95,11 +127,11 @@ export function deriveRetrievalUnits({ corpusRoot = CORPUS_ROOT } = {}) {
   const conceptPaths = listConceptFiles(absoluteCorpusRoot);
 
   return conceptPaths
-    .map((relativePath) => {
+    .flatMap((relativePath) => {
       const okfConceptId = relativePath.replace(/\.md$/, "");
       const absolutePath = path.join(absoluteCorpusRoot, relativePath);
       const concept = readOkfConceptFile(absolutePath, okfConceptId);
-      return deriveUnitFromConcept(concept, okfVersion);
+      return deriveUnitsFromConcept(concept, okfVersion);
     })
     .sort((left, right) => left.unit_id.localeCompare(right.unit_id));
 }
@@ -140,6 +172,7 @@ export function printHelp() {
   console.log(`Usage: npm run assistant:derive [--write] [--corpus <path>] [--out <file>]
 
 Derive stable retrieval units from an OKF corpus (default: ${CORPUS_ROOT}/).
+Structure-aware 1:N chunking uses OKF markdown headings and paragraph safeguards.
 
 Options:
   --write           Write JSON to ${RETRIEVAL_UNITS_OUTPUT} (gitignored under /generated/)

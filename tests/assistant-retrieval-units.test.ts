@@ -9,9 +9,14 @@ import { listConceptFiles } from "@/scripts/assistant/okf/manifest.mjs";
 import { renderConcept } from "@/scripts/assistant/okf/writer.mjs";
 import { producePortfolioConcepts } from "@/scripts/assistant/okf/portfolio-producer.mjs";
 import {
+  chunkOkfBody,
+  slugifyHeading,
+  unitIdForChunk,
+} from "@/scripts/assistant/retrieval/chunk-okf-body.mjs";
+import {
   composeRetrievalText,
   deriveRetrievalUnits,
-  deriveUnitFromConcept,
+  deriveUnitsFromConcept,
   sourceClassFromConceptId,
 } from "@/scripts/assistant/retrieval/derive-units.mjs";
 import {
@@ -56,6 +61,58 @@ tags:
   });
 });
 
+describe("structure-aware OKF body chunking", () => {
+  it("slugifies section headings for stable unit_id suffixes", () => {
+    expect(slugifyHeading("The review gate was right")).toBe(
+      "the-review-gate-was-right",
+    );
+  });
+
+  it("keeps short single-section bodies as one chunk", () => {
+    const chunks = chunkOkfBody("One paragraph.\n\nSecond paragraph.");
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0]!.partKey).toBe("intro");
+  });
+
+  it("splits on markdown headings into multiple chunks", () => {
+    const body = `Intro paragraph.
+
+## Alpha section
+
+Alpha body.
+
+## Beta section
+
+Beta body.`;
+
+    const chunks = chunkOkfBody(body);
+    expect(chunks.length).toBeGreaterThanOrEqual(3);
+    expect(chunks.some((chunk) => chunk.partKey === "intro")).toBe(true);
+    expect(chunks.some((chunk) => chunk.partKey === "alpha-section")).toBe(
+      true,
+    );
+    expect(chunks.some((chunk) => chunk.partKey === "beta-section")).toBe(true);
+  });
+
+  it("assigns unit_id without hash for a single chunk", () => {
+    const chunks = chunkOkfBody("Only content.");
+    expect(unitIdForChunk("writing/sample", chunks, 0)).toBe(
+      "unit/writing/sample",
+    );
+  });
+
+  it("assigns hashed unit_id suffixes when multiple chunks exist", () => {
+    const chunks = chunkOkfBody(`## One\n\nA.\n\n## Two\n\nB.`);
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(unitIdForChunk("writing/sample", chunks, 0)).toBe(
+      "unit/writing/sample#one",
+    );
+    expect(unitIdForChunk("writing/sample", chunks, 1)).toMatch(
+      /^unit\/writing\/sample#/,
+    );
+  });
+});
+
 describe("retrieval unit derivation", () => {
   it("maps source_class from OKF concept namespace", () => {
     expect(sourceClassFromConceptId("portfolio/renovate-governance-case")).toBe(
@@ -74,7 +131,10 @@ describe("retrieval unit derivation", () => {
 
   it("builds deterministic unit_id and content_hash from concept content", () => {
     const concept = producePortfolioConcepts()[0];
-    const rendered = renderConcept(concept);
+    const rendered = renderConcept({
+      ...concept,
+      body: "Short cohesive body without section headings.",
+    });
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "okf-unit-"));
     const conceptPath = path.join(tempRoot, `${concept.id}.md`);
 
@@ -84,20 +144,23 @@ describe("retrieval unit derivation", () => {
 
       const parsed = readOkfConceptFile(conceptPath, concept.id);
 
-      const first = deriveUnitFromConcept(parsed, "0.2");
-      const second = deriveUnitFromConcept(parsed, "0.2");
+      const first = deriveUnitsFromConcept(parsed, "0.2");
+      const second = deriveUnitsFromConcept(parsed, "0.2");
 
-      expect(first.unit_id).toBe(`unit/${concept.id}`);
-      expect(first.okf_concept_id).toBe(concept.id);
-      expect(first.content_hash).toBe(second.content_hash);
-      expect(first.text).toBe(composeRetrievalText(parsed.title, parsed.body));
-      expect(first.text.startsWith(`${parsed.title}\n\n`)).toBe(true);
+      expect(first).toHaveLength(1);
+      expect(first[0]!.unit_id).toBe(`unit/${concept.id}`);
+      expect(first[0]!.okf_concept_id).toBe(concept.id);
+      expect(first[0]!.content_hash).toBe(second[0]!.content_hash);
+      expect(first[0]!.text).toBe(
+        composeRetrievalText(parsed.title, parsed.body),
+      );
+      expect(first[0]!.text.startsWith(`${parsed.title}\n\n`)).toBe(true);
     } finally {
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   });
 
-  it("derives one unit per OKF concept with required provenance fields", () => {
+  it("derives structure-aware units with required provenance fields", () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "okf-derive-"));
 
     try {
@@ -110,11 +173,13 @@ describe("retrieval unit derivation", () => {
       const conceptPaths = listConceptFiles(tempRoot);
       const units = deriveRetrievalUnits({ corpusRoot: tempRoot });
 
-      expect(units).toHaveLength(EXPECTED_CONCEPT_COUNT);
-      expect(units).toHaveLength(conceptPaths.length);
+      expect(conceptPaths).toHaveLength(EXPECTED_CONCEPT_COUNT);
+      expect(units.length).toBeGreaterThan(EXPECTED_CONCEPT_COUNT);
+
+      const conceptIds = new Set(units.map((unit) => unit.okf_concept_id));
+      expect(conceptIds.size).toBe(EXPECTED_CONCEPT_COUNT);
 
       for (const unit of units) {
-        expect(unit.unit_id).toBe(`unit/${unit.okf_concept_id}`);
         expect(unit.okf_version).toBe("0.2");
         expect(unit.type.length).toBeGreaterThan(0);
         expect(unit.title.length).toBeGreaterThan(0);
@@ -130,6 +195,12 @@ describe("retrieval unit derivation", () => {
         expect(["portfolio", "repo", "writing", "about"]).toContain(
           unit.source_class,
         );
+
+        if (unit.unit_id.includes("#")) {
+          expect(unit.chunk_index).toBeTypeOf("number");
+          expect(unit.chunk_count).toBeGreaterThan(1);
+          expect(unit.metadata.chunk_count).toBe(unit.chunk_count);
+        }
       }
 
       const attribution = units.find(
@@ -140,6 +211,29 @@ describe("retrieval unit derivation", () => {
       expect(attribution).toBeTruthy();
       expect(attribution!.tags).toContain("attribution");
       expect(attribution!.text).toContain("Attribution");
+      expect(attribution!.unit_id).toBe(
+        "unit/portfolio/experiment-measurement-b01-attribution",
+      );
+
+      const articleChunks = units.filter(
+        (unit) =>
+          unit.okf_concept_id ===
+          "writing/evidence-driven-dependency-upgrades-article",
+      );
+      expect(articleChunks.length).toBeGreaterThan(1);
+      expect(
+        articleChunks.some(
+          (unit) =>
+            unit.section_heading === "The review gate was right" ||
+            unit.unit_id.includes("the-review-gate-was-right"),
+        ),
+      ).toBe(true);
+
+      const ladderChunks = units.filter(
+        (unit) =>
+          unit.okf_concept_id === "repo/renovate-workflow-operator-ladder",
+      );
+      expect(ladderChunks.length).toBeGreaterThan(1);
     } finally {
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
