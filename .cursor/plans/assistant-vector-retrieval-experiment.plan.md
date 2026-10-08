@@ -34,7 +34,7 @@ todos:
     status: completed
   - id: retrieval-eval
     content: "PR 10: Eval suite — parent concept, section/chunk, ranking, specificity, failure cases"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR: vector-retrieval-experiment findings + archive plan"
     status: pending
