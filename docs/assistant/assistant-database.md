@@ -65,13 +65,24 @@ If an appropriately isolated assistant project already exists, reuse it; do not 
 
 **Recommended hosted target (Multipliers Dev org):**
 
-| Setting        | Value                 | Rationale                                     |
-| -------------- | --------------------- | --------------------------------------------- |
-| Project name   | `portfolio-assistant` | Distinct from Savepoints and site persistence |
-| Region         | `aws-ap-southeast-2`  | Align with operator region; adjust if needed  |
-| Postgres major | 16                    | Matches local `docker-compose` (`pg16`) image |
-| Database name  | `portfolio_assistant` | Matches local Docker default database name    |
-| Branch         | `main` (default)      | Migrations apply to the primary branch        |
+| Setting        | Value                 | Rationale                                                                   |
+| -------------- | --------------------- | --------------------------------------------------------------------------- |
+| Project name   | `portfolio-assistant` | Distinct from Savepoints and site persistence                               |
+| Region         | `aws-ap-southeast-2`  | Align with operator region; adjust if needed                                |
+| Postgres major | 16                    | Matches local `docker-compose` (`pg16`) image                               |
+| Database name  | `portfolio_assistant` | Matches local Docker default database name                                  |
+| Branch         | Project default       | See **Resolve the target branch** below — name is not fixed across projects |
+
+**Resolve the target branch** (`BRANCH_NAME`) before copying connection strings or running `neonctl`. Neon assigns a default root branch per project; common examples include `production` or `main`, but the name is **not** guaranteed.
+
+- **Neon Console:** open the project → **Branches** (or the branch selector on **Dashboard** / **Connect**) and note the default branch you will migrate.
+- **Neon CLI:** list branches and read the default from project metadata, for example:
+
+  ```bash
+  neonctl branches list --project-id PROJECT_ID
+  ```
+
+Use that branch name everywhere below as `BRANCH_NAME`. `assistant:db:migrate` and `assistant:db:verify` apply to whichever database the connection string points at — direct and pooled strings must target the **same** `BRANCH_NAME` during deployment.
 
 ### 1. Provision or select a Neon target
 
@@ -81,6 +92,7 @@ If an appropriately isolated assistant project already exists, reuse it; do not 
 2. **Create project** (or open the existing `portfolio-assistant` project).
 3. Set region and Postgres version per the table above; name the initial database `portfolio_assistant` when prompted.
 4. Confirm pgvector is supported on the project (Neon enables the `vector` extension via SQL migrations — no separate toggle required for this experiment).
+5. Note the project's default branch name from **Branches** or **Connect** (for example `production` on some projects) — this is your `BRANCH_NAME` for migrate/verify.
 
 **Optional: Neon CLI** (`neonctl`, after `neonctl auth`)
 
@@ -103,15 +115,17 @@ From the project **Connect** UI or `neonctl connection-string`:
 | **Migrations** (`assistant:db:migrate`)                       | Direct / non-pooled | DDL and `CREATE EXTENSION vector`; use `sslmode=require` (or `verify-full` if your driver documents it) |
 | **Runtime** (future `assistant:ingest`, `assistant:retrieve`) | Pooled              | Acceptable for read/write ingest and similarity queries                                                 |
 
-`neonctl` examples (replace `PROJECT_ID` with the Neon project id from the console):
+`neonctl` examples (replace `PROJECT_ID` and `BRANCH_NAME` — use the branch you resolved above, not a hardcoded name):
 
 ```bash
-# Direct — migrations and verify
-neonctl connection-string main --project-id PROJECT_ID --database-name portfolio_assistant --pooled false --ssl require
+# Direct — migrations and verify (same BRANCH_NAME as deployment acceptance)
+neonctl connection-string BRANCH_NAME --project-id PROJECT_ID --database-name portfolio_assistant --pooled false --ssl require
 
-# Pooled — optional for later ingest/retrieve sessions
-neonctl connection-string main --project-id PROJECT_ID --database-name portfolio_assistant --pooled --ssl require
+# Pooled — optional for later ingest/retrieve sessions (same BRANCH_NAME)
+neonctl connection-string BRANCH_NAME --project-id PROJECT_ID --database-name portfolio_assistant --pooled --ssl require
 ```
+
+From **Connect**, pick the same branch in the UI before copying the direct or pooled string.
 
 Store URLs only in gitignored `.env` / `.env.local`, shell `export`, Cursor Cloud **Runtime Secrets**, or another secrets manager — **never** commit them or paste them into PR descriptions.
 
@@ -140,11 +154,13 @@ For day-to-day local development, keep Docker as the default in `.env.local` and
 
 ### 4. Apply repository migrations
 
+Ensure `DATABASE_URL` is the **direct** connection string for `BRANCH_NAME` on `portfolio_assistant` (the branch you identified in step 0 / Connect). Then:
+
 ```bash
 npm run assistant:db:migrate
 ```
 
-This runs the same portable migration runner used for local Docker. All DDL comes from `db/migrations/*.sql`.
+This runs the same portable migration runner used for local Docker. All DDL comes from `db/migrations/*.sql` and is recorded on that branch's database only.
 
 ### 5. Verify schema
 
