@@ -1,6 +1,6 @@
 ---
 name: Assistant cross-repository corpus
-overview: Discover and selectively ingest high-value professional knowledge from sibling repositories into the existing OKF → derive → ingest pipeline — before RAG generation. Deterministic producers first; explicit publication boundaries.
+overview: Cross-repository OKF producers, publication boundaries, and retrieval-eval expansion — shipped 2026-10-08; archived after plan-closure.
 todos:
   - id: cross-repo-source-inventory
     content: "Plan-only — source inventory, extraction recommendation, eval matrix (docs)"
@@ -25,19 +25,46 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR — cross-repo findings, archive plan"
-    status: pending
+    status: completed
 isProject: false
+---
+
+# Shipped
+
+**Archived 2026-10-08.**
+
+| Slice                            | Delivered                                                                                                                                                                                 |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| cross-repo-source-inventory      | [#46](https://github.com/mastermichaelt/portfolio/pull/46) — plan + [cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md)                  |
+| corpus-expansion-acceptance-gate | Operator acceptance (2026-10-08) — [corpus-coverage-expansion.md](../../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance)                                            |
+| career-inventory-producer        | [#48](https://github.com/mastermichaelt/portfolio/pull/48) — eligibility/publication manifests, career snapshots, `career/` OKF                                                           |
+| marketplace-public-docs          | [#49](https://github.com/mastermichaelt/portfolio/pull/49) — pinned marketplace engineering docs → `tooling/`                                                                             |
+| savepoints-public-notes          | [#50](https://github.com/mastermichaelt/portfolio/pull/50) — reviewed Savepoints architecture excerpt                                                                                     |
+| codenames-engineering-docs       | [#51](https://github.com/mastermichaelt/portfolio/pull/51) — bounded Codenames `docs/` sections → `repo/`                                                                                 |
+| retrieval-eval-expansion         | [#52](https://github.com/mastermichaelt/portfolio/pull/52) — eval fixtures + [cross-repository-corpus-eval-findings.md](../../../docs/assistant/cross-repository-corpus-eval-findings.md) |
+| plan-closure                     | This PR — verify todos, `# Shipped` note, archive plan                                                                                                                                    |
+
+**Durable artifacts (remain active):**
+
+- [cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md) — source inventory and decisions
+- [career-inventory-corpus-direction.md](../../../docs/assistant/career-inventory-corpus-direction.md) — publication boundary design
+- [cross-repository-corpus-eval-findings.md](../../../docs/assistant/cross-repository-corpus-eval-findings.md) — post-expansion retrieval-eval acceptance (**12/12** positives, **6/6** baseline regression)
+- Cross-repo OKF producers and pinned fixtures under `scripts/assistant/okf/` and `tests/fixtures/assistant-okf/`
+- [`tests/assistant-retrieval-eval.test.ts`](../../../tests/assistant-retrieval-eval.test.ts) and [`eval-cases.json`](../../../tests/fixtures/assistant-retrieval/eval-cases.json)
+
+**Next milestone:** generative assistant (evidence assembly, citations, abstention) — [rag-generation-direction.md](../../../docs/assistant/rag-generation-direction.md) (direction doc only; no active `.cursor/plans/` execution plan yet).
+
 ---
 
 # Assistant cross-repository corpus
 
 **Goal:** Improve retrieval evidence for career depth, agent tooling, and independent projects **without** replacing the shipped retrieval stack (OKF, structure-aware units, `text-embedding-3-small`, pgvector ingest, retrieval-eval).
 
-**Inventory (research):** [docs/assistant/cross-repository-source-inventory.md](../../docs/assistant/cross-repository-source-inventory.md)
+**Inventory (research):** [docs/assistant/cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md)
 
-**Prerequisites (completed 2026-10-08):** PR [#45](https://github.com/mastermichaelt/portfolio/pull/45) corpus expansion merged; PR [#47](https://github.com/mastermichaelt/portfolio/pull/47) corpus-expansion plan-closure merged; operator acceptance recorded in [corpus-coverage-expansion.md](../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance) (**89** OKF concepts, **209** retrieval units; ingest **148** inserted / **5** updated / **56** skipped / **0** deleted; retrieval-eval **18/18** with **6/6** scored positives).
+**Prerequisites (completed 2026-10-08):** PR [#45](https://github.com/mastermichaelt/portfolio/pull/45) corpus expansion merged; PR [#47](https://github.com/mastermichaelt/portfolio/pull/47) corpus-expansion plan-closure merged; operator acceptance recorded in [corpus-coverage-expansion.md](../../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance) (**89** OKF concepts, **209** retrieval units; ingest **148** inserted / **5** updated / **56** skipped / **0** deleted; retrieval-eval **18/18** with **6/6** scored positives).
 
-**Supersedes:** [assistant-career-inventory-corpus-superseded.plan.md](archive/assistant-career-inventory-corpus-superseded.plan.md) (career work lives as `career-inventory-producer` slice here).
+**Supersedes:** [assistant-career-inventory-corpus-superseded.plan.md](assistant-career-inventory-corpus-superseded.plan.md) (career work lives as `career-inventory-producer` slice here).
 
 ## Decisions (locked — PR #46 review)
 
@@ -51,14 +78,14 @@ isProject: false
 
 ## Status: shipped vs pending vs new
 
-| Item                                                                                                | State                                                                                                                                           |
-| --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vector retrieval experiment + structure-aware chunking                                              | **Shipped** on `main`                                                                                                                           |
-| PR [#45](https://github.com/mastermichaelt/portfolio/pull/45) portfolio corpus (~89 concepts)       | **Shipped** on `main`                                                                                                                           |
-| Post-merge ingest + `tests/assistant-retrieval-eval.test.ts` on expanded index                      | **Completed** (2026-10-08) — [corpus-coverage-expansion.md](../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance)           |
-| Corpus coverage expansion plan-closure ([#47](https://github.com/mastermichaelt/portfolio/pull/47)) | **Shipped** — archived [2026-10-08-assistant-corpus-coverage-expansion.plan.md](archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md) |
-| Cross-repo sources (resumes, marketplace, savepoints, …)                                            | **Pending** — this plan (`career-inventory-producer` first)                                                                                     |
-| RAG generation / chat UI                                                                            | **Out of scope** — after corpus + eval                                                                                                          |
+| Item                                                                                                | State                                                                                                                                                                            |
+| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vector retrieval experiment + structure-aware chunking                                              | **Shipped** on `main`                                                                                                                                                            |
+| PR [#45](https://github.com/mastermichaelt/portfolio/pull/45) portfolio corpus (~89 concepts)       | **Shipped** on `main`                                                                                                                                                            |
+| Post-merge ingest + `tests/assistant-retrieval-eval.test.ts` on expanded index                      | **Completed** (2026-10-08) — [corpus-coverage-expansion.md](../../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance)                                         |
+| Corpus coverage expansion plan-closure ([#47](https://github.com/mastermichaelt/portfolio/pull/47)) | **Shipped** — archived [2026-10-08-assistant-corpus-coverage-expansion.plan.md](2026-10-08-assistant-corpus-coverage-expansion.plan.md)                                          |
+| Cross-repo sources (resumes, marketplace, savepoints, …)                                            | **Shipped** (2026-10-08) — PRs [#48](https://github.com/mastermichaelt/portfolio/pull/48)–[#52](https://github.com/mastermichaelt/portfolio/pull/52); eval findings linked above |
+| RAG generation / chat UI                                                                            | **Out of scope** — after corpus + eval                                                                                                                                           |
 
 ## Architectural extension (minimal)
 
@@ -115,7 +142,7 @@ Approving a private `resumes` source file does **not** authorize publishing its 
 | retrieval-eval-expansion         | Open PR only                 | Do not merge                     |
 | plan-closure                     | Open PR only                 | Do not merge                     |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md)).
 
 ## Repository topology
 
@@ -125,13 +152,13 @@ Integration branch: `main`. Each implementation slice from latest `origin/main`;
 
 ### Slice — `cross-repo-source-inventory`
 
-**Status:** Completed in this research pass ([cross-repository-source-inventory.md](../../docs/assistant/cross-repository-source-inventory.md)).
+**Status:** Completed in this research pass ([cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md)).
 
 ---
 
 ### Slice — `corpus-expansion-acceptance-gate`
 
-**Status:** **Completed** (2026-10-08). Canonical acceptance record: [corpus-coverage-expansion.md § Operational acceptance](../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance). Do **not** repeat ingest for this gate — proceed to `career-inventory-producer` when ready.
+**Status:** **Completed** (2026-10-08). Canonical acceptance record: [corpus-coverage-expansion.md § Operational acceptance](../../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance). Do **not** repeat ingest for this gate — proceed to `career-inventory-producer` when ready.
 
 **Type:** Operator prerequisite (not an agent implementation PR). Historical steps:
 
@@ -159,7 +186,7 @@ Integration branch: `main`. Each implementation slice from latest `origin/main`;
 
 **Depends on:** `corpus-expansion-acceptance-gate` (**required**)
 
-**Design:** [career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md)
+**Design:** [career-inventory-corpus-direction.md](../../../docs/assistant/career-inventory-corpus-direction.md)
 
 ---
 
@@ -232,7 +259,7 @@ Add **positive** cases (draft — tune `expected_parent_concepts` after first in
 
 **Acceptance criteria (retrieval-eval harness):**
 
-The fixture file has **eight** cases: **six** `kind: positive` (scored) and **two** diagnostic (`agent-memory-corpus-gap` → `corpus_gap`; `nuclear-reactor-negative-inspection` → `negative_inspection`). Diagnostics are **not** pass/fail — the harness records observations only ([`assistant-retrieval-eval.test.ts`](../../tests/assistant-retrieval-eval.test.ts)).
+The fixture file has **eight** cases: **six** `kind: positive` (scored) and **two** diagnostic (`agent-memory-corpus-gap` → `corpus_gap`; `nuclear-reactor-negative-inspection` → `negative_inspection`). Diagnostics are **not** pass/fail — the harness records observations only ([`assistant-retrieval-eval.test.ts`](../../../tests/assistant-retrieval-eval.test.ts)).
 
 - **Regression:** all **six existing positive** cases must pass on the expanded index after each corpus-changing merge + re-ingest.
 - **Diagnostics:** preserve both diagnostic cases; record observations (e.g. `memory_related_hits`, top-K inspection) in findings — do not treat diagnostic output as regression failure.

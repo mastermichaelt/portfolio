@@ -27,7 +27,7 @@ isProject: false
 - [`tests/okf-content-coverage.test.ts`](../../../tests/okf-content-coverage.test.ts) — pinned `content/` module hashes
 - Retrieval pipeline on `main` (unchanged machinery) — [assistant-database.md](../../../docs/assistant/assistant-database.md)
 
-**Next active plan:** [`assistant-cross-repository-corpus.plan.md`](../assistant-cross-repository-corpus.plan.md) — cross-repository corpus (`career-inventory-producer` first) before RAG generation.
+**Follow-on (shipped):** [2026-10-08-assistant-cross-repository-corpus.plan.md](2026-10-08-assistant-cross-repository-corpus.plan.md) — cross-repository corpus before RAG generation.
 
 ---
 
@@ -89,7 +89,7 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; PR base
 
 **Follow-up (operational):** pinned `published/*.md` fixtures — distinguish missing slug, upstream body change, and stale fixture vs hub master; see [architecture-direction.md](../../../docs/assistant/architecture-direction.md) (no live DEV fetch in OKF build).
 
-**Deferred (separate plan):** cross-repository sources — [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md) + [cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md).
+**Follow-on (shipped):** cross-repository sources — [2026-10-08-assistant-cross-repository-corpus.plan.md](2026-10-08-assistant-cross-repository-corpus.plan.md) + [cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md).
 
 ---
 

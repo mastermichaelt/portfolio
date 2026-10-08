@@ -1,6 +1,6 @@
 ---
 name: Assistant career inventory corpus (superseded)
-overview: "Superseded 2026-10-08 — not completed. Execute career inventory via assistant-cross-repository-corpus.plan.md (slice career-inventory-producer)."
+overview: "Superseded 2026-10-08 — career inventory shipped via archived cross-repository corpus plan (slice career-inventory-producer, PR #48)."
 todos:
   - id: publication-policy-and-producer-design
     content: "Allowlist, snapshot strategy, OKF career/ namespace + source_class design doc"
@@ -20,7 +20,7 @@ isProject: false
 
 | Item           | Resolution                                                                                                                                                                                                 |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Canonical plan | [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md)                                                                                                                  |
+| Canonical plan | [2026-10-08-assistant-cross-repository-corpus.plan.md](2026-10-08-assistant-cross-repository-corpus.plan.md) (shipped)                                                                                     |
 | Career slice   | `career-inventory-producer` in the cross-repository plan                                                                                                                                                   |
 | Research       | [cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md), [career-inventory-corpus-direction.md](../../../docs/assistant/career-inventory-corpus-direction.md) |
 
@@ -81,7 +81,7 @@ Integration branch: `main`. Each slice from latest `origin/main`; PR base is `ma
 
 ## Agent prompts (copy/paste for Cursor)
 
-> **Historical only** — use prompts in [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md).
+> **Historical only** — see shipped prompts in [2026-10-08-assistant-cross-repository-corpus.plan.md](2026-10-08-assistant-cross-repository-corpus.plan.md).
 
 ### publication-policy-and-producer-design
 
