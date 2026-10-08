@@ -1,6 +1,6 @@
 ---
 name: Assistant vector retrieval experiment
-overview: Multi-slice experiment to add retrieval-unit derivation, OpenAI embeddings, Postgres+pgvector persistence, idempotent ingestion/sync, and an inspectable retrieval CLI over a bounded expanded OKF corpus—without answer generation, chat UI, or RAG frameworks.
+overview: Multi-slice experiment to validate retrieval machinery (derive → embed → sync → retrieve → eval) over a bounded ~35-unit OKF corpus—not full portfolio coverage. Follow-on content scope lives in assistant-corpus-coverage-expansion.plan.md (separate plan). No answer generation, chat UI, or RAG frameworks in this plan.
 todos:
   - id: plan-review
     content: "Plan-only PR — commit plan artifact; open PR for review; do not implement"
@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: ingest-sync
     content: "PR 7: Idempotent ingest pipeline (upsert/skip/delete stale, ingestion run metadata)"
-    status: pending
+    status: completed
   - id: retrieve-cli
     content: "PR 8: Inspectable retrieval CLI with documented cosine distance semantics"
     status: pending
@@ -57,6 +57,10 @@ isProject: false
 | plan-closure       | Open PR only          | Do not merge. Stop after opening the PR.               |
 
 Repo default: **Open PR only** ([planning-standards.md](.cursor/standards/planning-standards.md)).
+
+**Execution order (remaining):** `retrieve-cli` → `retrieval-eval` → `plan-closure`. Do not expand OKF producers for full-site coverage in this plan. The ~35-unit ingested corpus is an **experiment index**, not the production assistant corpus.
+
+**Follow-on milestone (separate plan):** [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) — start only after this experiment is archived. When `plan-closure` merges, every todo in _this_ plan is complete (no pending implementation slices in the archived file).
 
 ## Repository topology (default)
 
@@ -163,9 +167,11 @@ flowchart TD
   okf -.-> units --> embed --> pg --> retrieve
 ```
 
-**Shipped OKF corpus today:** 15 concepts (Renovate portfolio case + repo runbook fixture + DEV article fixture).
+**Experiment index today:** ~35 retrieval units (1:1 with OKF concepts) after slice `corpus-expansion` — Renovate + About + selected project cases + pinned repo/DEV fixtures. **Not** full portfolio coverage.
 
-**Corpus expansion prerequisite:** add bounded producers for **About**, **`experiment-measurement` project case**, and **`codenames-ai` project case** so evaluation can exercise heterogeneous shapes without full-site ingestion.
+**Slice `corpus-expansion` (shipped):** bounded producers for **About**, **`experiment-measurement`**, and **`codenames-ai`** so eval exercises heterogeneous shapes without full-site ingestion.
+
+**Follow-on content scope:** [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md). Ingestion machinery already supports new units; the open product decision is **what** to index and at **what granularity**.
 
 ---
 
@@ -788,13 +794,15 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Files:** `docs/assistant/vector-retrieval-experiment.md`, move plan to `.cursor/plans/archive/`
 
-**Approach:** Answer closure questions with measured results from `retrieval-eval`; update architecture-direction "What we have learned so far"
+**Approach:** Answer closure questions with measured results from `retrieval-eval`; update architecture-direction "What we have learned so far". State explicitly that the ~35-unit pgvector index is a **bounded experiment corpus**, not the production assistant retrieval target. Link [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) as the **next active plan** (ingestion pipeline is ready; content scope is deferred there).
 
 **Tests:** Docs-only
 
-**Depends on:** all implementation slices merged
+**Depends on:** `retrieve-cli`, `retrieval-eval`, and all prior implementation slices merged
 
-**Stop:** Closure PR opened
+**Does not include:** OKF producer expansion for full portfolio coverage (follow-on plan above)
+
+**Stop:** Closure PR opened; **all frontmatter todos in this plan `completed`** (no pending implementation slices remain in the archived file)
 
 ---
 
@@ -819,9 +827,9 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 - ANN indexes (HNSW / IVFFlat) — exact search only in this experiment
 - Retrieval distance/confidence thresholds (observed in negative eval; implemented later)
 - Vercel API routes, public assistant endpoints
-- Full portfolio ingestion (ecosystem, timeline, all articles/repos)
+- Full portfolio ingestion in this experiment — deferred to [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md)
 
-**Next experiment (out of scope):** question → retrieval → evidence assembly → OpenAI Responses API → grounded answer + citations
+**Next experiment (out of scope for this plan):** question → retrieval → evidence assembly → OpenAI Responses API → grounded answer + citations
 
 ---
 
@@ -1027,7 +1035,7 @@ Prerequisites: all implementation slices merged and marked completed in frontmat
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: docs/assistant/vector-retrieval-experiment.md; verify slice todos; add # Shipped note; move plan to .cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md; mark plan-closure completed.
+Deliverables: docs/assistant/vector-retrieval-experiment.md; verify all experiment slice todos completed; add # Shipped note; move plan to .cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md; mark plan-closure completed. Document ~35 units as experiment-only and link follow-on plan assistant-corpus-coverage-expansion.plan.md (remains active under .cursor/plans/ — not archived with this experiment).
 
-Verification: confirm all prerequisite implementation PRs are merged before archiving.
+Verification: confirm all prerequisite implementation PRs are merged and every experiment todo except plan-closure is completed before archiving.
 ```
