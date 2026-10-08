@@ -197,14 +197,17 @@ Exclude unless explicitly allowlisted and reviewed:
 
 ---
 
-## Unresolved decisions
+## Decisions (PR #46 review — locked)
 
-1. **Career fact allowlist:** all 38 facts vs explicit `assistant_public` flags per file.
-2. **Savepoints:** full `architecture-direction.md` vs excerpted “public thesis” concept set.
-3. **Marketplace:** docs-only vs include abbreviated SKILL frontmatter.
-4. **Snapshot cadence:** manual hub/resumes sync vs future automation (no live fetch in CI).
-5. **New `source_class`:** `career` vs map career concepts under `about` (prefer distinct `career/` for filtering).
-6. **Whether PR #45 merges before or in parallel with career-inventory slice** (recommended: merge #45 + operator eval first).
+| #   | Decision           | Resolution                                                                                                                                                                                                                    |
+| --- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Career allowlist   | **Explicit per-file allowlist, default deny.** Do not automatically ingest all 38 facts and 21 roles. Only allowlisted `facts/<id>.yml` and matching `roles/<id>.yml` (plus approved `meta/`) enter OKF.                      |
+| 2   | Savepoints         | **Reviewed architecture excerpt first.** Promote to the full `notes/architecture-direction.md` only after a publication-suitability review.                                                                                   |
+| 3   | Marketplace        | **Public README and engineering docs first** (`README.md`, `docs/engineering-invariants.md`, `plugins/team-harness/docs/layers.md`, optionally `versioning.md`). **Defer SKILL summaries** unless retrieval eval shows a gap. |
+| 4   | OKF `source_class` | Introduce **`source_class: career`** and **`career/`** namespace. Career evidence is a distinct retrieval category from About presentation (`about/`).                                                                        |
+| 5   | Merge order        | **Merge PR #45 first.** Complete ingestion and retrieval evaluation (`corpus-expansion-acceptance-gate`) before `career-inventory-producer`.                                                                                  |
+
+**Still open (operational):** snapshot cadence — manual hub/resumes → portfolio fixture sync with manifest hashes; no live fetch in CI until a dedicated automation slice.
 
 ---
 

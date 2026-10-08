@@ -9,13 +9,13 @@ todos:
     content: "Operator — merge PR #45, re-ingest ~209 units, retrieval-eval, corpus-expansion plan-closure"
     status: pending
   - id: career-inventory-producer
-    content: "Allowlist + pinned snapshots + career/ OKF producer + coverage tests + re-ingest"
+    content: "Explicit per-file allowlist (default deny) + snapshots + career/ + source_class career"
     status: pending
   - id: marketplace-public-docs
-    content: "Curated cursor-team-marketplace public docs → OKF tooling/ concepts"
+    content: "Marketplace README + engineering docs only (no SKILL summaries unless eval gap)"
     status: pending
   - id: savepoints-public-notes
-    content: "Reviewed savepoints notes architecture → OKF (agent memory gap)"
+    content: "Reviewed Savepoints architecture excerpt → OKF; full note only after publication review"
     status: pending
   - id: codenames-engineering-docs
     content: "Bounded codenames docs (AI pipeline, validation) → OKF"
@@ -36,6 +36,16 @@ isProject: false
 **Inventory (research):** [docs/assistant/cross-repository-source-inventory.md](../../docs/assistant/cross-repository-source-inventory.md)
 
 **Supersedes:** [assistant-career-inventory-corpus.plan.md](assistant-career-inventory-corpus.plan.md) (career work lives as `career-inventory-producer` slice here).
+
+## Decisions (locked — PR #46 review)
+
+| Decision         | Resolution                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| Career allowlist | Explicit per-file allowlist, **default deny** (not all 38 facts / 21 roles)                |
+| Savepoints       | **Reviewed excerpt** first; full `architecture-direction.md` only after publication review |
+| Marketplace      | README + public engineering docs first; **defer SKILL summaries** unless eval shows a gap  |
+| OKF taxonomy     | **`career/`** namespace + **`source_class: career`** (distinct from `about/`)              |
+| Merge order      | **PR #45 merged** + operator ingest/eval **before** career producer                        |
 
 ## Status: shipped vs pending vs new
 
@@ -104,10 +114,10 @@ Integration branch: `main`. Each implementation slice from latest `origin/main`;
 1. Merge PR #45.
 2. `npm run assistant:ingest` on intended `DATABASE_URL`.
 3. Confirm ~209 units indexed; record ingest summary.
-4. `npm run test -- tests/assistant-retrieval-eval.test.ts`.
+4. `npm run test -- tests/assistant-retrieval-eval.test.ts` — require all **six** existing `kind: positive` cases to pass; **record observations** for the two diagnostic cases (`corpus_gap`, `negative_inspection`) — they are not scored pass/fail.
 5. Complete [assistant-corpus-coverage-expansion.plan.md](assistant-corpus-coverage-expansion.plan.md) `plan-closure`.
 
-**Stop:** Document results before starting `career-inventory-producer`.
+**Stop:** Document results before starting `career-inventory-producer`. **Hard prerequisite** — do not start career producer until this gate completes.
 
 ---
 
@@ -117,15 +127,15 @@ Integration branch: `main`. Each implementation slice from latest `origin/main`;
 
 **Deliverables:**
 
-- Committed public allowlist (`facts/`, `roles/`, `meta/` subset)
-- Pinned snapshots under `tests/fixtures/assistant-okf/career-inventory/`
-- `career-inventory-producer.mjs` + `source_class: career`
-- Coverage tests (snapshot hashes)
+- Committed **explicit per-file allowlist** (default deny) — only approved `facts/<id>.yml`, matching `roles/<id>.yml`, and approved `meta/` paths
+- Pinned snapshots under `tests/fixtures/assistant-okf/career-inventory/` for allowlisted files only
+- `career-inventory-producer.mjs` emitting **`career/`** concepts with **`source_class: career`**
+- Coverage tests (allowlist ↔ snapshot parity + content hashes)
 - Re-ingest; note unit count delta
 
-**Does not include:** `applications/**`, `out/`, `stories/`, per-application variants
+**Does not include:** bulk ingest of all 38 facts / 21 roles; `applications/**`, `out/`, `stories/`, per-application variants
 
-**Depends on:** `corpus-expansion-acceptance-gate` (recommended)
+**Depends on:** `corpus-expansion-acceptance-gate` (**required**)
 
 **Design:** [career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md)
 
@@ -137,7 +147,7 @@ Integration branch: `main`. Each implementation slice from latest `origin/main`;
 
 **Source repo:** `multipliers-dev/cursor-team-marketplace` (verified name).
 
-**Deliverables:** Pinned public paths only — `README.md`, `docs/engineering-invariants.md`, `plugins/team-harness/docs/layers.md` (and optionally `versioning.md`); OKF `tooling/` or `repo/` namespace; no bulk `SKILL.md` without review.
+**Deliverables:** Pinned public paths only — `README.md`, `docs/engineering-invariants.md`, `plugins/team-harness/docs/layers.md` (and optionally `versioning.md`); OKF `tooling/` namespace. **Do not** ingest `SKILL.md` bodies in this slice unless a later retrieval-eval gap is documented.
 
 **Depends on:** `career-inventory-producer` merged (recommended ordering, not hard)
 
@@ -147,9 +157,11 @@ Integration branch: `main`. Each implementation slice from latest `origin/main`;
 
 **Purpose:** Address retrieval-eval `agent-memory-corpus-gap` with approved public architecture notes.
 
-**Deliverables:** Human-reviewed excerpt or full `notes/architecture-direction.md` (+ optional `savepoints-6-pager.md` summary concept); exclude `.cursor/plans/` and hook implementation detail.
+**Deliverables:** **Human-reviewed excerpt** of `notes/architecture-direction.md` as pinned fixture(s) → OKF concept(s). Full note only in a follow-up after explicit publication-suitability review. Optional separate summary from `savepoints-6-pager.md` only if reviewed. Exclude `.cursor/plans/` and hook implementation detail.
 
 **Depends on:** publication review sign-off
+
+**Eval follow-up:** after this slice merges and index is re-ingested, **`retrieval-eval-expansion`** must **reclassify** `agent-memory-corpus-gap` from `corpus_gap` to a scored **`positive`** case (or replace it with `savepoints-architecture`) — do not leave it indefinitely as a known coverage gap once Savepoints evidence is indexed.
 
 ---
 
@@ -170,10 +182,11 @@ Integration branch: `main`. Each implementation slice from latest `origin/main`;
 **Deliverables:**
 
 - New fixture cases (see below) added to `tests/fixtures/assistant-retrieval/eval-cases.json`
-- Run eval on fully re-ingested index; document pass/fail in findings doc
+- **Reclassify** `agent-memory-corpus-gap` when `savepoints-public-notes` is indexed (see above)
+- Run eval on fully re-ingested index; document results in findings doc
 - Adjust fixtures only after reviewing ranking competition (do not weaken baselines preemptively)
 
-**Depends on:** prior source slices merged and re-ingested
+**Depends on:** prior source slices merged and re-ingested (at minimum `savepoints-public-notes` before reclassifying agent-memory case)
 
 ---
 
@@ -195,11 +208,14 @@ Add **positive** cases (draft — tune `expected_parent_concepts` after first in
 | `savepoints-architecture`       | What is Savepoints and how does capture review work?                 | `tooling/savepoints-architecture-direction` (or chosen id)                   |
 | `codenames-validation-pipeline` | How does Codenames AI validate LLM outputs?                          | `repo/codenames-ai-validation-flow`, `portfolio/codenames-ai-b01-validation` |
 
-**Acceptance criteria:**
+**Acceptance criteria (retrieval-eval harness):**
 
-- All **pre-existing** eval cases remain passing on the expanded index (regression baseline).
-- New cases pass **or** failures are recorded with parent-rank diagnostics and corpus-gap classification — fixtures updated only in a follow-up PR with rationale.
-- `corpus_gap` and `negative_inspection` cases unchanged in intent.
+The fixture file has **eight** cases: **six** `kind: positive` (scored) and **two** diagnostic (`agent-memory-corpus-gap` → `corpus_gap`; `nuclear-reactor-negative-inspection` → `negative_inspection`). Diagnostics are **not** pass/fail — the harness records observations only ([`assistant-retrieval-eval.test.ts`](../../tests/assistant-retrieval-eval.test.ts)).
+
+- **Regression:** all **six existing positive** cases must pass on the expanded index after each corpus-changing merge + re-ingest.
+- **Diagnostics:** preserve both diagnostic cases; record observations (e.g. `memory_related_hits`, top-K inspection) in findings — do not treat diagnostic output as regression failure.
+- **New positives:** draft cases below pass **or** failures are documented with parent-rank diagnostics; fixture edits only in a follow-up PR with rationale.
+- **After Savepoints indexed:** reclassify `agent-memory-corpus-gap` to `positive` with `expected_parent_concepts` for Savepoints OKF concepts — remove permanent `corpus_gap` status for agent memory once evidence exists.
 
 ---
 
@@ -214,7 +230,7 @@ Prerequisites: PR #45 merged to main.
 
 Run: npm run assistant:ingest; confirm unit count ~209; npm run test -- tests/assistant-retrieval-eval.test.ts.
 
-Report pass/fail and ingest summary. Then execute assistant-corpus-coverage-expansion plan-closure (docs-only archive PR) if eval acceptable.
+Acceptance: all six existing kind: positive cases pass; record observations for corpus_gap and negative_inspection (not scored pass/fail). Report ingest summary + eval summary. Then execute assistant-corpus-coverage-expansion plan-closure (docs-only archive PR) if positives pass.
 
 Mark corpus-expansion-acceptance-gate completed in assistant-cross-repository-corpus.plan.md only if your scope includes plan frontmatter update in that closure PR.
 ```
@@ -228,7 +244,7 @@ Implement slice career-inventory-producer only. Prerequisite: corpus-expansion-a
 
 Authority: Open PR only — do not merge. Topology: origin/main; base main.
 
-Use docs/assistant/cross-repository-source-inventory.md and career-inventory-corpus-direction.md. Deterministic YAML producer + allowlist + pinned snapshots only. Extend pipeline (career/ namespace, source_class) without replacing ingest/derive.
+Use docs/assistant/cross-repository-source-inventory.md and career-inventory-corpus-direction.md. Explicit per-file allowlist (default deny — not all facts/roles). Deterministic YAML producer + pinned snapshots only. career/ namespace + source_class: career. Do not start until corpus-expansion-acceptance-gate is complete.
 
 Mark career-inventory-producer completed in plan frontmatter in the same PR.
 ```
@@ -248,7 +264,7 @@ Mark marketplace-public-docs completed in frontmatter in the same PR.
 ```text
 @.cursor/plans/assistant-cross-repository-corpus.plan.md
 
-Implement slice savepoints-public-notes only. Authority: Open PR only. Human-reviewed public notes only; exclude .cursor/plans and hooks.
+Implement slice savepoints-public-notes only. Authority: Open PR only. Reviewed architecture excerpt as pinned fixture first; full architecture-direction.md only if publication review approves. Exclude .cursor/plans and hooks.
 
 Mark savepoints-public-notes completed in frontmatter in the same PR.
 ```
@@ -268,7 +284,7 @@ Mark codenames-engineering-docs completed in frontmatter in the same PR.
 ```text
 @.cursor/plans/assistant-cross-repository-corpus.plan.md
 
-Implement slice retrieval-eval-expansion only. Authority: Open PR only. Add eval cases per plan; run against re-ingested index; document results. Do not weaken existing cases without documented regression analysis.
+Implement slice retrieval-eval-expansion only. Authority: Open PR only. Add eval cases per plan; reclassify agent-memory-corpus-gap to positive after savepoints-public-notes is indexed; require six baseline positives to pass; preserve diagnostics with recorded observations. Do not weaken fixtures without documented regression analysis.
 
 Mark retrieval-eval-expansion completed in frontmatter in the same PR.
 ```

@@ -51,10 +51,10 @@ The resumes repository is **private** and mixes **public-evidence inventory** wi
 - `exemplars/**` — editorial quality reference, not career evidence
 - Agent/planning paths under either repo
 
-**Index only with an explicit public allowlist** (to be committed in portfolio):
+**Index only with an explicit public allowlist** (to be committed in portfolio) — **default deny:**
 
-- Approved `facts/<id>.yml` ids (default: all inventory facts unless tagged otherwise in a future `assistant_public: false` convention)
-- Matching `roles/<id>.yml` for referenced roles
+- Allowlisted `facts/<id>.yml` ids only (do **not** ingest all 38 fact files by default)
+- Matching `roles/<id>.yml` only for roles referenced by allowlisted facts (not all 21 roles wholesale)
 - Selected `meta/` files with **PII stripped at producer** (e.g. omit phone; keep education/awards)
 
 Near-identical résumé variants must **not** create parallel OKF concepts — one vector line per inventory fact bundle, not per application slug.
