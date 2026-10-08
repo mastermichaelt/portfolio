@@ -52,6 +52,11 @@ export function composeRetrievalText(title, body) {
 export function deriveUnitsFromConcept(concept, okfVersion = OKF_VERSION) {
   const okfConceptId = concept.okf_concept_id.replace(/^generated\/okf\//, "");
   const bodyChunks = chunkOkfBody(concept.body);
+  if (bodyChunks.length === 0) {
+    throw new Error(
+      `OKF concept produced zero retrieval units (refusing silent drop): ${okfConceptId}`,
+    );
+  }
   const chunkCount = bodyChunks.length;
 
   return bodyChunks.map((chunk, chunkIndex) => {

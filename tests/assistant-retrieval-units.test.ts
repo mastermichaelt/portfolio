@@ -127,25 +127,36 @@ Beta body.`;
     expect(new Set(bodies).size).toBe(bodies.length);
   });
 
-  it("does not split on headings inside fenced code blocks", () => {
-    const body = `## Section
+  it.each([
+    ["backtick", "```"],
+    ["tilde", "~~~"],
+  ])(
+    "keeps ATX headings inside %s fences in the parent section chunk with content preserved",
+    (_label, fence) => {
+      const fencedBlock = `${fence}
+### Fenced heading inside code
+unique-token-${fence}
+${fence}`;
+      const body = `## Parent section
 
-Before fence.
+Prologue before fence.
 
-\`\`\`
-# Example
-still inside
-\`\`\`
+${fencedBlock}
 
-After.`;
+Epilogue after fence.`;
 
-    const chunks = chunkOkfBody(body);
-    expect(chunks.some((chunk) => chunk.partKey === "example")).toBe(false);
-    const section = chunks.find((chunk) => chunk.partKey === "section");
-    expect(section).toBeTruthy();
-    expect(section!.body).toContain("# Example");
-    expect(section!.body).toContain("After.");
-  });
+      const chunks = chunkOkfBody(body);
+      expect(chunks).toHaveLength(1);
+      expect(chunks[0]!.partKey).toBe("parent-section");
+      expect(chunks[0]!.sectionHeading).toBe("Parent section");
+      expect(chunks[0]!.body).toContain("### Fenced heading inside code");
+      expect(chunks[0]!.body).toContain(`unique-token-${fence}`);
+      expect(chunks[0]!.body).toContain("Epilogue after fence.");
+      expect(
+        chunks.some((chunk) => chunk.partKey.includes("fenced-heading")),
+      ).toBe(false);
+    },
+  );
 
   it("keeps fenced code blocks as one paragraph despite internal blank lines", () => {
     const body = `Before code.
@@ -187,6 +198,44 @@ describe("retrieval unit derivation", () => {
       ),
     ).toBe("writing");
     expect(sourceClassFromConceptId("about/summary")).toBe("about");
+  });
+
+  it("throws when an OKF concept yields zero retrieval units", () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "okf-empty-"));
+    const conceptId = "about/empty-body-fixture";
+    const conceptPath = path.join(tempRoot, `${conceptId}.md`);
+
+    try {
+      fs.mkdirSync(path.dirname(conceptPath), { recursive: true });
+      fs.writeFileSync(
+        conceptPath,
+        `---
+type: About Experience
+title: Empty body fixture
+resource: "https://michaeltruong.ai/about"
+sources:
+  -
+    id: "about-page"
+    title: About
+    resource: "https://michaeltruong.ai/about"
+generated:
+  by: "test"
+tags:
+  - about
+---
+
+   
+`,
+        "utf8",
+      );
+
+      const parsed = readOkfConceptFile(conceptPath, conceptId);
+      expect(() => deriveUnitsFromConcept(parsed)).toThrow(
+        /OKF concept produced zero retrieval units.*about\/empty-body-fixture/,
+      );
+    } finally {
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
   });
 
   it("builds deterministic unit_id and content_hash from concept content", () => {
