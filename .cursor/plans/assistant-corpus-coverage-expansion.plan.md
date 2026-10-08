@@ -69,6 +69,8 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; PR base
 
 **Follow-up (operational):** pinned `published/*.md` fixtures — distinguish missing slug, upstream body change, and stale fixture vs hub master; see [architecture-direction.md](../../docs/assistant/architecture-direction.md) (no live DEV fetch in OKF build).
 
+**Deferred (separate plan):** career inventory from `mastermichaelt/resumes` — not in this slice; see [assistant-career-inventory-corpus.plan.md](assistant-career-inventory-corpus.plan.md).
+
 ---
 
 ### Slice — `plan-closure`
