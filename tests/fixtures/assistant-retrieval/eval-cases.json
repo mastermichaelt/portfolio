@@ -1,5 +1,13 @@
 {
   "version": 1,
+  "baseline_positive_ids": [
+    "experimentation-infrastructure",
+    "managed-engineers",
+    "return-to-ic",
+    "attribution-experience",
+    "ai-built",
+    "developer-infrastructure"
+  ],
   "cases": [
     {
       "id": "experimentation-infrastructure",
@@ -75,10 +83,61 @@
       "min_parent_rank": 5
     },
     {
+      "id": "admin-hub-experimentation",
+      "question": "What did Michael do with Admin Hub and experimentation at Atlassian?",
+      "kind": "positive",
+      "top_k": 5,
+      "expected_parent_concepts": [
+        "career/admin-hub-experimentation",
+        "about/atlassian-swe-2024"
+      ],
+      "min_parent_rank": 5
+    },
+    {
+      "id": "cross-flow-attribution-depth",
+      "question": "What was the Cross Flow attribution formula and why did it matter?",
+      "kind": "positive",
+      "top_k": 5,
+      "expected_parent_concepts": ["career/cross-flow-experiment-measurement"],
+      "min_parent_rank": 5
+    },
+    {
+      "id": "cursor-team-marketplace",
+      "question": "What is the Cursor Team Marketplace and what does it provide?",
+      "kind": "positive",
+      "top_k": 5,
+      "expected_parent_concepts": ["tooling/cursor-team-marketplace-overview"],
+      "min_parent_rank": 3
+    },
+    {
+      "id": "savepoints-architecture",
+      "question": "What is Savepoints and how does capture review work?",
+      "kind": "positive",
+      "top_k": 5,
+      "expected_parent_concepts": ["tooling/savepoints-architecture-direction"],
+      "min_parent_rank": 3
+    },
+    {
+      "id": "codenames-validation-pipeline",
+      "question": "How does Codenames AI validate LLM outputs?",
+      "kind": "positive",
+      "top_k": 5,
+      "expected_parent_concepts": [
+        "repo/codenames-ai-validation-flow",
+        "portfolio/codenames-ai-b01-validation"
+      ],
+      "min_parent_rank": 5
+    },
+    {
       "id": "agent-memory-corpus-gap",
       "question": "What has Michael written about agent memory?",
-      "kind": "corpus_gap",
-      "top_k": 5
+      "kind": "positive",
+      "top_k": 10,
+      "expected_parent_concepts": [
+        "tooling/savepoints-architecture-direction",
+        "career/savepoints-durable-capture"
+      ],
+      "min_parent_rank": 10
     },
     {
       "id": "nuclear-reactor-negative-inspection",

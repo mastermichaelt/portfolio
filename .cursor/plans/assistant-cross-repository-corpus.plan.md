@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: retrieval-eval-expansion
     content: "Add eval cases + acceptance criteria; run on expanded index; document regressions"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR — cross-repo findings, archive plan"
     status: pending

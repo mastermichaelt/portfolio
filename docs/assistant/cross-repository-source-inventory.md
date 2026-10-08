@@ -207,18 +207,18 @@ Exclude unless explicitly eligible and publication-reviewed:
 
 ## Visitor questions → sources (evaluation matrix)
 
-| Question theme                           | Answerable today (PR #45 corpus)?                | Missing source                                                                             |
-| ---------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| Atlassian experimentation infrastructure | Partial (`experiment-measurement` case, `about`) | `facts/admin-hub-experimentation`, `cross-flow-experiment-measurement`, `loom-acquisition` |
-| Engineering leadership depth             | Partial (`about/atlassian-em-2020`)              | `facts/em-*`, `em-growth-delivery`, role scope                                             |
-| Attribution / measurement                | Partial (one case block)                         | Cross-flow fact metrics                                                                    |
-| Return to IC                             | Partial (`about/summary`)                        | Career narrative facts (optional)                                                          |
-| AI products built                        | Good (Codenames case + writing)                  | —                                                                                          |
-| Developer infrastructure / Renovate      | Good (case + repo fixture)                       | —                                                                                          |
-| Cursor Team Marketplace / agent harness  | **Weak** (ecosystem mention only)                | marketplace README + layers.md                                                             |
-| Savepoints / agent memory                | **Gap** (eval `corpus_gap`)                      | `savepoints/notes/architecture-direction.md` (+ fact bundle)                               |
-| Editorial pipeline                       | Good (supporting case + articles)                | Optional hub `editorial-workflow.md`                                                       |
-| Nuclear reactors (negative)              | N/A                                              | negative_inspection only                                                                   |
+| Question theme                           | Answerable today (PR #45 corpus)?                | Missing source                                                                                                              |
+| ---------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Atlassian experimentation infrastructure | Partial (`experiment-measurement` case, `about`) | `facts/admin-hub-experimentation`, `cross-flow-experiment-measurement`, `loom-acquisition`                                  |
+| Engineering leadership depth             | Partial (`about/atlassian-em-2020`)              | `facts/em-*`, `em-growth-delivery`, role scope                                                                              |
+| Attribution / measurement                | Partial (one case block)                         | Cross-flow fact metrics                                                                                                     |
+| Return to IC                             | Partial (`about/summary`)                        | Career narrative facts (optional)                                                                                           |
+| AI products built                        | Good (Codenames case + writing)                  | —                                                                                                                           |
+| Developer infrastructure / Renovate      | Good (case + repo fixture)                       | —                                                                                                                           |
+| Cursor Team Marketplace / agent harness  | **Indexed** (tooling OKF)                        | Eval `cursor-team-marketplace` — see [cross-repository-corpus-eval-findings.md](./cross-repository-corpus-eval-findings.md) |
+| Savepoints / agent memory                | **Indexed** (tooling + career OKF)               | Eval `savepoints-architecture`, `agent-memory-corpus-gap` (reclassified positive) — same findings doc                       |
+| Editorial pipeline                       | Good (supporting case + articles)                | Optional hub `editorial-workflow.md`                                                                                        |
+| Nuclear reactors (negative)              | N/A                                              | negative_inspection only                                                                                                    |
 
 ---
 
