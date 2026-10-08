@@ -81,15 +81,17 @@ function loadEvalCases(): EvalCase[] {
   return loadEvalFixture().cases;
 }
 
-function loadBaselinePositiveIds(): string[] {
+/** Fixture `baseline_positive_ids` is documentation only — must match the immutable constant. */
+function assertFixtureBaselineMatchesConstant() {
   const fromFixture = loadEvalFixture().baseline_positive_ids;
-  if (fromFixture?.length) {
-    return fromFixture;
-  }
-  return [...BASELINE_POSITIVE_IDS];
+  expect(fromFixture).toEqual([...BASELINE_POSITIVE_IDS]);
 }
 
 describe("assistant retrieval eval helpers", () => {
+  it("fixture baseline_positive_ids matches immutable regression set", () => {
+    assertFixtureBaselineMatchesConstant();
+  });
+
   it("matches unit_id prefix globs and exact ids", () => {
     expect(
       matchesUnitPattern(
@@ -337,11 +339,12 @@ describe("assistant retrieval eval integration", () => {
       });
 
       it("regression: six baseline positive cases pass on expanded index", async () => {
-        const baselineIds = new Set(loadBaselinePositiveIds());
+        assertFixtureBaselineMatchesConstant();
+        const baselineIds = new Set<string>(BASELINE_POSITIVE_IDS);
         const baselineCases = cases.filter((case_) =>
           baselineIds.has(case_.id),
         );
-        expect(baselineCases).toHaveLength(baselineIds.size);
+        expect(baselineCases).toHaveLength(BASELINE_POSITIVE_IDS.length);
 
         const failures: string[] = [];
         for (const case_ of baselineCases) {

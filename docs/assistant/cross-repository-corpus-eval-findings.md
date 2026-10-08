@@ -8,12 +8,12 @@
 
 Command: `npm run test -- tests/assistant-retrieval-eval.test.ts`
 
-| Result                  | Detail                                                                                               |
-| ----------------------- | ---------------------------------------------------------------------------------------------------- |
-| Vitest                  | All tests passed (helpers + integration when `DATABASE_URL` and `OPENAI_API_KEY` set)                |
-| **Baseline regression** | **6/6** pre-expansion positive ids in `baseline_positive_ids` passed                                 |
-| **Scored positives**    | **12/12** `kind: positive` cases passed on the cross-repo expanded index                             |
-| **Diagnostics**         | **1** case: `nuclear-reactor-negative-inspection` (`negative_inspection`) — observations logged only |
+| Result                  | Detail                                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Vitest                  | All tests passed (helpers + integration when `DATABASE_URL` and `OPENAI_API_KEY` set)                                           |
+| **Baseline regression** | **6/6** pre-expansion positives (`BASELINE_POSITIVE_IDS` in `assistant-retrieval-eval.test.ts`; fixture list must match) passed |
+| **Scored positives**    | **12/12** `kind: positive` cases passed on the cross-repo expanded index                                                        |
+| **Diagnostics**         | **1** case: `nuclear-reactor-negative-inspection` (`negative_inspection`) — observations logged only                            |
 
 Fixtures: [`tests/fixtures/assistant-retrieval/eval-cases.json`](../../tests/fixtures/assistant-retrieval/eval-cases.json)
 
@@ -21,7 +21,7 @@ Fixtures: [`tests/fixtures/assistant-retrieval/eval-cases.json`](../../tests/fix
 
 Previously `corpus_gap` (no Savepoints OKF in corpus). After `savepoints-public-notes` indexing, reclassified to **`positive`** with parents `tooling/savepoints-architecture-direction` and `career/savepoints-durable-capture`.
 
-**Ranking competition (not weakened):** On the ingested index, the question _"What has Michael written about agent memory?"_ still ranks agent-portability writing above Savepoints in top-9. Dedicated Savepoints architecture units first appear at **parent rank 10** (`tooling/savepoints-architecture-direction`, cosine distance ~0.63). The fixture uses `top_k: 10` and `min_parent_rank: 10` to score evidence presence without lowering expectations for the six baseline cases.
+**Corpus presence vs default top-K:** This case proves Savepoints OKF is **indexable and retrievable** for an agent-memory phrasing — not that a default top-5 (or chat-sized) retrieval would surface it. On the ingested index, agent-portability writing still dominates ranks 1–9; `tooling/savepoints-architecture-direction` first appears at **parent rank 10** (cosine distance ~0.63). The fixture uses `top_k: 10` and `min_parent_rank: 10` accordingly. **Known limitation:** ranking improvements for this question belong to a later phase; do not treat a pass here as reliable agent-memory Q&A at production `top_k`.
 
 ### New positive cases (cross-repo coverage)
 
