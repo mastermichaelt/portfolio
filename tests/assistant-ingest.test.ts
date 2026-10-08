@@ -4,10 +4,8 @@ import path from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import {
-  createPool,
-  resolveAssistantDatabaseUrl,
-} from "@/scripts/assistant/db/client.mjs";
+import { createPool } from "@/scripts/assistant/db/client.mjs";
+import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
 import { runMigrations } from "@/scripts/assistant/db/migrate.mjs";
 import { EXPECTED_EMBEDDING_DIMENSIONS } from "@/scripts/assistant/embeddings/index-config.mjs";
 import { readOkfBundleSha256 } from "@/scripts/assistant/ingest/manifest.mjs";
@@ -19,8 +17,16 @@ import {
 import { formatVectorLiteral } from "@/scripts/assistant/ingest/vector-format.mjs";
 import { sha256String } from "@/scripts/assistant/okf/manifest.mjs";
 
-const databaseUrl = resolveAssistantDatabaseUrl();
-const hasDatabase = Boolean(databaseUrl);
+let ingestTestDatabaseUrl: string | undefined;
+try {
+  ingestTestDatabaseUrl = resolveAssistantIngestTestDatabaseUrl();
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  throw new Error(
+    `Misconfigured ASSISTANT_TEST_DATABASE_URL for ingest integration tests: ${message}`,
+  );
+}
+const hasIngestTestDatabase = Boolean(ingestTestDatabaseUrl);
 
 const TEST_PREFIX = "test-ingest";
 const TEST_UNIT_IDS = [`unit/${TEST_PREFIX}/alpha`, `unit/${TEST_PREFIX}/beta`];
@@ -113,92 +119,95 @@ describe("assistant ingest helpers", () => {
 });
 
 describe("assistant ingest sync", () => {
-  it("documents integration skip when DATABASE_URL is unset", () => {
-    if (!hasDatabase) {
+  it("documents integration skip when ASSISTANT_TEST_DATABASE_URL is unset", () => {
+    if (!hasIngestTestDatabase) {
       console.info(
-        "assistant ingest integration tests skipped: DATABASE_URL not set",
+        "assistant ingest integration tests skipped: ASSISTANT_TEST_DATABASE_URL not set (use a dedicated *_test database — never DATABASE_URL)",
       );
     }
     expect(true).toBe(true);
   });
 
-  describe.skipIf(!hasDatabase)("with DATABASE_URL", () => {
-    /** @type {import("pg").Pool} */
-    let pool: import("pg").Pool;
+  describe.skipIf(!hasIngestTestDatabase)(
+    "with ASSISTANT_TEST_DATABASE_URL",
+    () => {
+      /** @type {import("pg").Pool} */
+      let pool: import("pg").Pool;
 
-    beforeAll(async () => {
-      pool = createPool(databaseUrl!);
-      await runMigrations(pool, { log: () => {} });
-      await pool.query(
-        `DELETE FROM assistant_retrieval_units WHERE unit_id = ANY($1::text[])`,
-        [TEST_UNIT_IDS],
-      );
-    });
-
-    afterAll(async () => {
-      await pool.query(
-        `DELETE FROM assistant_retrieval_units WHERE unit_id = ANY($1::text[])`,
-        [TEST_UNIT_IDS],
-      );
-      await pool.end();
-    });
-
-    it("inserts, skips unchanged, updates on hash change, and deletes stale units", async () => {
-      const alpha = makeTestUnit("alpha", "alpha v1");
-      const beta = makeTestUnit("beta", "beta v1");
-      const stale = makeTestUnit("stale", "stale v1");
-
-      const embedCalls: string[][] = [];
-      const embedTexts = async (texts: string[]) => {
-        embedCalls.push(texts);
-        return texts.map((_, index) => fakeVector(index + 1));
-      };
-
-      await runIngestSync(pool, [alpha, beta, stale], {
-        okfBundleSha256: "test-bundle-1",
-        embeddingModel: "text-embedding-3-small",
-        embedTexts,
-        log: () => {},
+      beforeAll(async () => {
+        pool = createPool(ingestTestDatabaseUrl!);
+        await runMigrations(pool, { log: () => {} });
+        await pool.query(
+          `DELETE FROM assistant_retrieval_units WHERE unit_id = ANY($1::text[])`,
+          [TEST_UNIT_IDS],
+        );
       });
 
-      expect(embedCalls).toHaveLength(1);
-      expect(embedCalls[0]).toHaveLength(3);
-
-      const afterFirst = await loadExistingUnitFingerprints(pool);
-      expect(afterFirst.has(alpha.unit_id)).toBe(true);
-      expect(afterFirst.has(stale.unit_id)).toBe(true);
-
-      embedCalls.length = 0;
-      const second = await runIngestSync(pool, [alpha, beta], {
-        okfBundleSha256: "test-bundle-2",
-        embeddingModel: "text-embedding-3-small",
-        embedTexts,
-        log: () => {},
+      afterAll(async () => {
+        await pool.query(
+          `DELETE FROM assistant_retrieval_units WHERE unit_id = ANY($1::text[])`,
+          [TEST_UNIT_IDS],
+        );
+        await pool.end();
       });
 
-      expect(second.counts.skipped).toBe(2);
-      expect(second.counts.deleted).toBe(1);
-      expect(embedCalls).toHaveLength(0);
+      it("inserts, skips unchanged, updates on hash change, and deletes stale units", async () => {
+        const alpha = makeTestUnit("alpha", "alpha v1");
+        const beta = makeTestUnit("beta", "beta v1");
+        const stale = makeTestUnit("stale", "stale v1");
 
-      const alphaChanged = makeTestUnit("alpha", "alpha v2");
-      embedCalls.length = 0;
-      const third = await runIngestSync(pool, [alphaChanged, beta], {
-        okfBundleSha256: "test-bundle-3",
-        embeddingModel: "text-embedding-3-small",
-        embedTexts,
-        log: () => {},
+        const embedCalls: string[][] = [];
+        const embedTexts = async (texts: string[]) => {
+          embedCalls.push(texts);
+          return texts.map((_, index) => fakeVector(index + 1));
+        };
+
+        await runIngestSync(pool, [alpha, beta, stale], {
+          okfBundleSha256: "test-bundle-1",
+          embeddingModel: "text-embedding-3-small",
+          embedTexts,
+          log: () => {},
+        });
+
+        expect(embedCalls).toHaveLength(1);
+        expect(embedCalls[0]).toHaveLength(3);
+
+        const afterFirst = await loadExistingUnitFingerprints(pool);
+        expect(afterFirst.has(alpha.unit_id)).toBe(true);
+        expect(afterFirst.has(stale.unit_id)).toBe(true);
+
+        embedCalls.length = 0;
+        const second = await runIngestSync(pool, [alpha, beta], {
+          okfBundleSha256: "test-bundle-2",
+          embeddingModel: "text-embedding-3-small",
+          embedTexts,
+          log: () => {},
+        });
+
+        expect(second.counts.skipped).toBe(2);
+        expect(second.counts.deleted).toBe(1);
+        expect(embedCalls).toHaveLength(0);
+
+        const alphaChanged = makeTestUnit("alpha", "alpha v2");
+        embedCalls.length = 0;
+        const third = await runIngestSync(pool, [alphaChanged, beta], {
+          okfBundleSha256: "test-bundle-3",
+          embeddingModel: "text-embedding-3-small",
+          embedTexts,
+          log: () => {},
+        });
+
+        expect(third.counts.skipped).toBe(1);
+        expect(third.counts.updated).toBe(1);
+        expect(embedCalls).toHaveLength(1);
+        expect(embedCalls[0]).toEqual([alphaChanged.text]);
+
+        const row = await pool.query(
+          `SELECT content_hash FROM assistant_retrieval_units WHERE unit_id = $1`,
+          [alphaChanged.unit_id],
+        );
+        expect(row.rows[0]?.content_hash).toBe(alphaChanged.content_hash);
       });
-
-      expect(third.counts.skipped).toBe(1);
-      expect(third.counts.updated).toBe(1);
-      expect(embedCalls).toHaveLength(1);
-      expect(embedCalls[0]).toEqual([alphaChanged.text]);
-
-      const row = await pool.query(
-        `SELECT content_hash FROM assistant_retrieval_units WHERE unit_id = $1`,
-        [alphaChanged.unit_id],
-      );
-      expect(row.rows[0]?.content_hash).toBe(alphaChanged.content_hash);
-    });
-  });
+    },
+  );
 });

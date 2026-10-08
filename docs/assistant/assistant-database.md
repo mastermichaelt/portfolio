@@ -49,7 +49,9 @@ The initial migration enables pgvector and creates `assistant_retrieval_units` w
    npm run assistant:db:verify
    ```
 
-Integration tests in `tests/assistant-db.test.ts` use the same `DATABASE_URL` and skip when unset.
+Integration tests in `tests/assistant-db.test.ts` use `DATABASE_URL` and skip when unset.
+
+**Ingest sync integration tests** (`tests/assistant-ingest.test.ts`) run full-corpus `runIngestSync()` semantics (including stale-row deletes). They use **`ASSISTANT_TEST_DATABASE_URL` only** — never `DATABASE_URL`. The database name must end in `_test` (for example `portfolio_assistant_test` on local Docker). Tests refuse Neon hosts unless `ASSISTANT_TEST_ALLOW_NEON=1` is set explicitly. Do not point ingest integration tests at the dev or hosted retrieval index.
 
 ## Hosted Neon deployment (operator workflow)
 

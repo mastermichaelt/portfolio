@@ -14,3 +14,5 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    volumes:
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
