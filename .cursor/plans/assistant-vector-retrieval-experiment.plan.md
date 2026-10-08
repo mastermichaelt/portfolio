@@ -343,16 +343,16 @@ This experiment indexes **`text-embedding-3-small` at 1536 dimensions**. That pa
 
 Changing embedding model or dimensionality is an **index/schema migration**: alter or recreate the vector column, rebuild the derived store from canonical sources, and re-embed everything. Do not imply that env vars can swap models/dimensions interchangeably while the schema stays `vector(1536)`.
 
-| Concern       | Approach                                                                                                                                                                                            |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Provider      | OpenAI Embeddings API via `fetch` or minimal official SDK (add only if justified)                                                                                                                   |
-| Config        | `OPENAI_API_KEY`; optional `ASSISTANT_EMBEDDING_MODEL` **validated at startup** against the supported index config (default and only supported value for this experiment: `text-embedding-3-small`) |
-| Dimensions    | **1536 — constant**, matching `vector(1536)` in migration; not a separate env knob                                                                                                                  |
-| Batching      | Batch requests (e.g. 32–64 texts) with size guard                                                                                                                                                   |
-| Retries       | Transient errors: limited exponential backoff                                                                                                                                                       |
-| Invalidation  | Store `embedding_model` on each row; re-embed when `content_hash` changes or when index representation changes (migration)                                                                          |
-| Skip re-embed | Ingest compares `(content_hash, embedding_model)` before calling API                                                                                                                                |
-| Startup guard | Fail fast if configured model ≠ supported index model, or if API returns wrong dimension count                                                                                                      |
+| Concern       | Approach                                                                                                                                                                                                                                                                                      |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Provider      | OpenAI Embeddings API via `fetch` or minimal official SDK (add only if justified)                                                                                                                                                                                                             |
+| Config        | `OPENAI_API_KEY` (project-scoped key for OpenAI project `portfolio-assistant` — see operator prerequisite); optional `ASSISTANT_EMBEDDING_MODEL` **validated at startup** against the supported index config (default and only supported value for this experiment: `text-embedding-3-small`) |
+| Dimensions    | **1536 — constant**, matching `vector(1536)` in migration; not a separate env knob                                                                                                                                                                                                            |
+| Batching      | Batch requests (e.g. 32–64 texts) with size guard                                                                                                                                                                                                                                             |
+| Retries       | Transient errors: limited exponential backoff                                                                                                                                                                                                                                                 |
+| Invalidation  | Store `embedding_model` on each row; re-embed when `content_hash` changes or when index representation changes (migration)                                                                                                                                                                    |
+| Skip re-embed | Ingest compares `(content_hash, embedding_model)` before calling API                                                                                                                                                                                                                          |
+| Startup guard | Fail fast if configured model ≠ supported index model, or if API returns wrong dimension count                                                                                                                                                                                                |
 
 No answer generation, no chat completions.
 
@@ -434,6 +434,27 @@ Do **not** add HNSW or IVFFlat in any slice of this experiment. Closure doc shou
 Site `PortfolioRepository` persistence (future Milestone 4) remains a **separate** connection config and migration lifecycle even if both use Neon as provider.
 
 **CI:** integration tests run when `DATABASE_URL` is set; otherwise skip with explicit message (keeps default CI green). Neon is not required in CI.
+
+---
+
+## Operator prerequisite — OpenAI Embeddings API (first live ingestion)
+
+**Not a new architecture component or PR slice.** Same experiment boundaries: `text-embedding-3-small`, `vector(1536)`, existing embeddings adapter, and schema unchanged. Required before the **first live** `npm run assistant:ingest` that calls the OpenAI Embeddings API (unit tests with mocked `fetch` remain unchanged; CI does not need a key).
+
+**Separation from Codenames:** Create or select a dedicated OpenAI API **project** named `portfolio-assistant`. Do not reuse the OpenAI **Default** project (or its keys) used by Codenames AI — separate billing, usage visibility, and blast radius.
+
+**Operator workflow (human/account actions):**
+
+1. In the OpenAI platform, create or select the `portfolio-assistant` API project.
+2. Generate a **project-scoped** API key with access to the **Embeddings** API (not a personal or org-wide key tied to another project).
+3. Store the key only in gitignored `.env.local` (local) or runtime secrets (e.g. Cursor Cloud / CI when explicitly configured) as `OPENAI_API_KEY`. **Never commit** the key, key IDs, or secret values.
+4. Configure a modest **project budget** and **usage alerts** on `portfolio-assistant` before bulk ingest experiments.
+5. **Confirm model access:** run a one-off embeddings smoke (adapter or minimal API call) and verify `text-embedding-3-small` returns **1536** dimensions before the first full ingest. Fail closed if the project lacks Embeddings access or returns wrong dimensions.
+6. **Document** the steps above in the assistant operator runbook: [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md) (add an OpenAI section parallel to hosted Neon — credentials stay out of the repo). The `ingest-sync` slice owns this documentation deliverable alongside the ingest pipeline.
+
+**Automation boundary:** If OpenAI project/key/budget actions require dashboard steps the agent cannot perform safely, stop and hand off exact human steps — do not invent credentials or commit placeholders.
+
+**Pairs with:** hosted Neon prerequisite (`neon-deployment`) — first persistent ingest needs both `DATABASE_URL` (assistant retrieval) and `OPENAI_API_KEY` (`portfolio-assistant` project).
 
 ---
 
@@ -709,7 +730,7 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Depends on:** `db-foundation` merged
 
-**Blocks:** `ingest-sync` (hosted persistent index must exist before first real ingest to Neon)
+**Blocks:** First **live** ingest to hosted Neon (`ingest-sync` acceptance) — hosted persistent index must exist before first real embed+upsert run against Neon
 
 **Stop:** Neon assistant database migrated and verified; operator workflow documented
 
@@ -719,13 +740,15 @@ Archive plan to `.cursor/plans/archive/` per repo convention.
 
 **Purpose:** End-to-end `okf:build → derive → embed → upsert → delete stale`.
 
-**Files:** `scripts/assistant/ingest.mjs`, optional `ingestion-runs` migration, `npm run assistant:ingest`
+**Operator prerequisites (human, before first live ingest acceptance):** Hosted Neon workflow complete (`neon-deployment`); OpenAI `portfolio-assistant` project, key, budget/alerts, and `text-embedding-3-small` smoke per [Operator prerequisite — OpenAI Embeddings API](#operator-prerequisite--openai-embeddings-api-first-live-ingestion).
+
+**Files:** `scripts/assistant/ingest.mjs`, optional `ingestion-runs` migration, `npm run assistant:ingest`, [docs/assistant/assistant-database.md](docs/assistant/assistant-database.md) (OpenAI Embeddings API operator section — no secrets in repo)
 
 **Tests:** `tests/assistant-ingest.test.ts` — mock embeddings; verify skip on unchanged hash, update on change, delete orphan; integration path with real DB when `DATABASE_URL` set
 
 **Depends on:** `retrieval-units`, `db-foundation`, `embeddings-adapter`, **`neon-deployment`** (hosted Neon assistant index migrated and verified)
 
-**Stop:** Repeatable ingest with skip counts logged against hosted Neon (local Docker remains valid for dev)
+**Stop:** Repeatable ingest with skip counts logged against hosted Neon (local Docker remains valid for dev); operator runbook documents OpenAI setup; first live ingest verification uses `DATABASE_URL` + `OPENAI_API_KEY` from `portfolio-assistant` only after model-access smoke passes
 
 ---
 
@@ -942,17 +965,17 @@ Verification: npm run test; npm run typecheck; npm run lint; npm run format:chec
 ```text
 @.cursor/plans/assistant-vector-retrieval-experiment.plan.md
 
-Implement slice ingest-sync only. Prerequisites: retrieval-units, db-foundation, embeddings-adapter, neon-deployment merged. Do not start retrieve-cli or later slices. Do not archive the plan.
+Implement slice ingest-sync only. Prerequisites: retrieval-units, db-foundation, embeddings-adapter, neon-deployment merged. Before first live assistant:ingest acceptance, operator completes OpenAI portfolio-assistant project setup per plan section "Operator prerequisite — OpenAI Embeddings API (first live ingestion)" (dedicated project, project-scoped Embeddings key in .env.local/secrets as OPENAI_API_KEY, budget/alerts, text-embedding-3-small smoke — no committed credentials). Do not start retrieve-cli or later slices. Do not archive the plan.
 
 Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: idempotent assistant:ingest pipeline (derive → embed → upsert → delete stale), ingestion run metadata, tests. Mark ingest-sync completed in plan frontmatter in this PR.
+Deliverables: idempotent assistant:ingest pipeline (derive → embed → upsert → delete stale), ingestion run metadata, tests; document OpenAI operator workflow in docs/assistant/assistant-database.md (parallel to Neon section; never commit keys or secret values). Mark ingest-sync completed in plan frontmatter in this PR.
 
-Do not: retrieve CLI, eval suite, chat UI, or answer generation.
+Do not: retrieve CLI, eval suite, chat UI, answer generation, or changes to embedding model, vector schema, or slice boundaries.
 
-Verification: npm run assistant:ingest (with DATABASE_URL + OPENAI_API_KEY); npm run test; npm run format:check.
+Verification: npm run assistant:ingest (with DATABASE_URL + OPENAI_API_KEY from portfolio-assistant after model smoke); npm run test; npm run format:check.
 ```
 
 ### retrieve-cli
