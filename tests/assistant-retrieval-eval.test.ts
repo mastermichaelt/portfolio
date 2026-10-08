@@ -58,11 +58,35 @@ const fixturePath = path.join(
   "tests/fixtures/assistant-retrieval/eval-cases.json",
 );
 
-function loadEvalCases(): EvalCase[] {
-  const raw = JSON.parse(fs.readFileSync(fixturePath, "utf8")) as {
+const BASELINE_POSITIVE_IDS = [
+  "experimentation-infrastructure",
+  "managed-engineers",
+  "return-to-ic",
+  "attribution-experience",
+  "ai-built",
+  "developer-infrastructure",
+] as const;
+
+function loadEvalFixture(): {
+  cases: EvalCase[];
+  baseline_positive_ids?: string[];
+} {
+  return JSON.parse(fs.readFileSync(fixturePath, "utf8")) as {
     cases: EvalCase[];
+    baseline_positive_ids?: string[];
   };
-  return raw.cases;
+}
+
+function loadEvalCases(): EvalCase[] {
+  return loadEvalFixture().cases;
+}
+
+function loadBaselinePositiveIds(): string[] {
+  const fromFixture = loadEvalFixture().baseline_positive_ids;
+  if (fromFixture?.length) {
+    return fromFixture;
+  }
+  return [...BASELINE_POSITIVE_IDS];
 }
 
 describe("assistant retrieval eval helpers", () => {
@@ -310,6 +334,28 @@ describe("assistant retrieval eval integration", () => {
           `SELECT COUNT(*)::int AS count FROM assistant_retrieval_units`,
         );
         expect(result.rows[0]?.count).toBeGreaterThan(0);
+      });
+
+      it("regression: six baseline positive cases pass on expanded index", async () => {
+        const baselineIds = new Set(loadBaselinePositiveIds());
+        const baselineCases = cases.filter((case_) =>
+          baselineIds.has(case_.id),
+        );
+        expect(baselineCases).toHaveLength(baselineIds.size);
+
+        const failures: string[] = [];
+        for (const case_ of baselineCases) {
+          const [queryEmbedding] = await embedTexts([case_.question]);
+          const hits = await searchRetrievalUnits(pool, {
+            queryEmbedding,
+            topK: case_.top_k,
+          });
+          const outcome = evaluateRetrievalCase(case_, hits as EvalHit[]);
+          if (!outcome.pass) {
+            failures.push(`${case_.id}: ${formatEvalFailureMessage(outcome)}`);
+          }
+        }
+        expect(failures, failures.join("\n\n")).toHaveLength(0);
       });
 
       for (const case_ of cases) {

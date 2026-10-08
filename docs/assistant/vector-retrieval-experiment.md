@@ -103,16 +103,16 @@ Harness: `tests/assistant-retrieval-eval.test.ts`, fixtures `tests/fixtures/assi
 
 **Reference run (2026-10-08, local ingested index, 61 units):**
 
-| Case id                               | Kind                | Scored result | Notes                                                                                                                    |
-| ------------------------------------- | ------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `experimentation-infrastructure`      | positive            | Pass          | Parent `about/atlassian-swe-2024` at rank 2 (within `min_parent_rank` 5)                                                 |
-| `managed-engineers`                   | positive            | Pass          | Parent `about/atlassian-em-2020` at rank 1                                                                               |
-| `return-to-ic`                        | positive            | Pass          | Parent `about/summary` at rank 1                                                                                         |
-| `attribution-experience`              | positive            | Pass          | Specificity enforced — parent + unit + section "Attribution"                                                             |
-| `ai-built`                            | positive            | Pass          | Parent `about/codenames-ai` at rank 1                                                                                    |
-| `developer-infrastructure`            | positive            | Pass          | Parent `about/agent-infra` at rank 1; `optional_unit_miss` for Renovate/repo unit globs (non-blocking)                   |
-| `agent-memory-corpus-gap`             | corpus_gap          | Diagnostic    | No dedicated agent-memory/Savepoints evidence in top-K (`memory_related_hits: []`) — **corpus gap**, not harness failure |
-| `nuclear-reactor-negative-inspection` | negative_inspection | Diagnostic    | Top hit `about/summary`; best cosine distance **0.72** vs **0.54** for `managed-engineers` positive baseline             |
+| Case id                               | Kind                             | Scored result  | Notes                                                                                                                                 |
+| ------------------------------------- | -------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `experimentation-infrastructure`      | positive                         | Pass           | Parent `about/atlassian-swe-2024` at rank 2 (within `min_parent_rank` 5)                                                              |
+| `managed-engineers`                   | positive                         | Pass           | Parent `about/atlassian-em-2020` at rank 1                                                                                            |
+| `return-to-ic`                        | positive                         | Pass           | Parent `about/summary` at rank 1                                                                                                      |
+| `attribution-experience`              | positive                         | Pass           | Specificity enforced — parent + unit + section "Attribution"                                                                          |
+| `ai-built`                            | positive                         | Pass           | Parent `about/codenames-ai` at rank 1                                                                                                 |
+| `developer-infrastructure`            | positive                         | Pass           | Parent `about/agent-infra` at rank 1; `optional_unit_miss` for Renovate/repo unit globs (non-blocking)                                |
+| `agent-memory-corpus-gap`             | positive (2026-10-08 cross-repo) | Pass (rank 10) | Reclassified after Savepoints OKF indexed; see [cross-repository-corpus-eval-findings.md](./cross-repository-corpus-eval-findings.md) |
+| `nuclear-reactor-negative-inspection` | negative_inspection              | Diagnostic     | Top hit `about/summary`; best cosine distance **0.72** vs **0.54** for `managed-engineers` positive baseline                          |
 
 ### Failure modes (harness vocabulary)
 
@@ -127,7 +127,7 @@ Harness: `tests/assistant-retrieval-eval.test.ts`, fixtures `tests/fixtures/assi
 
 **Negative-query lesson:** Vector search **always** returns top-K. Unsupported questions still surface career-summary-like units; distance gaps vs positive cases are modest on this corpus — **retrieval distance thresholds** belong to grounded generation ([rag-generation-direction.md](./rag-generation-direction.md)), not this retrieval slice.
 
-**Corpus-gap lesson:** Questions about topics not in the bounded corpus (e.g. agent memory / Savepoints writing) may return loosely related "agent" or "elsewhere" chunks — record as coverage gap; abstention is out of scope here.
+**Corpus-gap lesson (historical):** Before Savepoints OKF, agent-memory questions had no dedicated evidence in top-K (`corpus_gap` diagnostic). After cross-repo indexing, `agent-memory-corpus-gap` is a scored positive with tight rank bounds — see [cross-repository-corpus-eval-findings.md](./cross-repository-corpus-eval-findings.md). Abstention remains out of scope for retrieval eval.
 
 ## Dedicated vector DB vs Postgres
 
