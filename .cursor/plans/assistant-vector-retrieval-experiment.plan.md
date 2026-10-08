@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: embeddings-adapter
     content: "PR 5: Thin OpenAI embeddings adapter (batching, retries, fixed index config validation)"
-    status: pending
+    status: completed
   - id: neon-deployment
     content: "PR 6: Hosted Neon assistant retrieval index — operator workflow, migrate + verify on Neon (no ingest)"
     status: completed
