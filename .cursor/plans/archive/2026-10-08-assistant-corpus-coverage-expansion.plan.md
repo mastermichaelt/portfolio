@@ -89,7 +89,7 @@ Integration branch: `main`. Each slice starts from latest `origin/main`; PR base
 
 **Follow-up (operational):** pinned `published/*.md` fixtures — distinguish missing slug, upstream body change, and stale fixture vs hub master; see [architecture-direction.md](../../docs/assistant/architecture-direction.md) (no live DEV fetch in OKF build).
 
-**Deferred (separate plan):** cross-repository sources — [assistant-cross-repository-corpus.plan.md](assistant-cross-repository-corpus.plan.md) + [cross-repository-source-inventory.md](../../docs/assistant/cross-repository-source-inventory.md).
+**Deferred (separate plan):** cross-repository sources — [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md) + [cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md).
 
 ---
 

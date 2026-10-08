@@ -66,14 +66,14 @@ Legend: **Coverage** = already represented in OKF (possibly thin). **Priority** 
 
 ### `mastermichaelt/resumes` (private — local verified)
 
-| Path / surface                                      | Knowledge                                                                                                                                | OKF coverage                       | Gap                                                                              | Canonical?                    | Public?                          | Recommendation                              | Method                                                                             | Priority |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------- | ----------------------------- | -------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------- | -------- |
-| `facts/*.yml` (38 files)                            | Thematic evidence: metrics, scope, tech, outcomes                                                                                        | **None**                           | **Major** — Atlassian depth, Savepoints, Loom, admin hub, cross-flow attribution | **Canonical career evidence** | Private; selective public export | **Include** via allowlist + snapshots       | Deterministic YAML producer → `career/`                                            | **P0**   |
-| `roles/*.yml` (21)                                  | Employment timeline                                                                                                                      | Partial via `about/*` bullets only | Date/title/org detail                                                            | Canonical                     | Private                          | **Include** (compact role concepts)         | Deterministic YAML                                                                 | P0       |
-| `meta/education.yml`, `awards.yml`                  | Education, awards                                                                                                                        | None                               | Minor                                                                            | Canonical                     | Mostly public                    | **Include** (strip PII)                     | Deterministic                                                                      | P1       |
-| `meta/profile.yml`                                  | Contact, links                                                                                                                           | Partial in site profile            | Phone/email                                                                      | Canonical                     | Partial                          | **Strip PII**; links only if already public | Deterministic                                                                      | P1       |
-| `applications/**`, `out/`, `stories/`, `exemplars/` | Job search, interview, editorial refs                                                                                                    | None                               | Must stay out                                                                    | Derived / non-evidence        | Private                          | **Exclude**                                 | —                                                                                  | —        |
-| Example fact gaps vs About/cases                    | `admin-hub-experimentation`, `cross-flow-experiment-measurement`, `loom-acquisition`, `em-growth-delivery`, `savepoints-durable-capture` | Not in OKF                         | Explains eval reliance on thin `about/` + one case block                         | Canonical                     | Review per fact                  | **First snapshot set**                      | See [career-inventory-corpus-direction.md](./career-inventory-corpus-direction.md) | P0       |
+| Path / surface                                      | Knowledge                                                                                                                                | OKF coverage                       | Gap                                                                              | Canonical?                    | Public?                          | Recommendation                                                                                                                 | Method                                                                             | Priority |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------- | ----------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | -------- |
+| `facts/*.yml` (38 files)                            | Thematic evidence: metrics, scope, tech, outcomes                                                                                        | **None**                           | **Major** — Atlassian depth, Savepoints, Loom, admin hub, cross-flow attribution | **Canonical career evidence** | Private; selective public export | **Eligible only** via source allowlist; **publish** reviewed excerpts in snapshots → `career/`                                 | Snapshot-backed deterministic producer (not wholesale YAML copy)                   | **P0**   |
+| `roles/*.yml` (21)                                  | Employment timeline                                                                                                                      | Partial via `about/*` bullets only | Date/title/org detail                                                            | Canonical                     | Private                          | **Eligible only** for `roles/<id>.yml` tied to allowlisted facts (not all 21); **publish** reviewed role excerpts in snapshots | Same — snapshot-backed; compact role concepts optional                             | P0       |
+| `meta/education.yml`, `awards.yml`                  | Education, awards                                                                                                                        | None                               | Minor                                                                            | Canonical                     | Mostly public                    | **Eligible** if on meta allowlist; **publish** reviewed public-safe fields only                                                | Snapshot-backed                                                                    | P1       |
+| `meta/profile.yml`                                  | Contact, links                                                                                                                           | Partial in site profile            | Phone/email                                                                      | Canonical                     | Partial                          | **Default exclude** contact fields; links only if already public and explicitly published in snapshot                          | Snapshot-backed; no phone/email in corpus                                          | P1       |
+| `applications/**`, `out/`, `stories/`, `exemplars/` | Job search, interview, editorial refs                                                                                                    | None                               | Must stay out                                                                    | Derived / non-evidence        | Private                          | **Exclude**                                                                                                                    | —                                                                                  | —        |
+| Example fact gaps vs About/cases                    | `admin-hub-experimentation`, `cross-flow-experiment-measurement`, `loom-acquisition`, `em-growth-delivery`, `savepoints-durable-capture` | Not in OKF                         | Explains eval reliance on thin `about/` + one case block                         | Canonical                     | Review per fact                  | **First snapshot set**                                                                                                         | See [career-inventory-corpus-direction.md](./career-inventory-corpus-direction.md) | P0       |
 
 ### `multipliers-dev/cursor-team-marketplace` (public — local verified)
 
@@ -161,7 +161,7 @@ Prefer **one OKF concept per canonical fact bundle**; use `sources:` chains for 
 | **B. LLM-assisted extraction** | Heterogeneous PDFs, slack exports, unschema’d notes                                                  | **Defer** — no such sources in priority tier; high publication risk                      |
 | **C. Hybrid**                  | Deterministic discovery + allowlist; LLM only with human-reviewed intermediate JSON committed to git | **Only if** a later source fails deterministic parsing **and** passes publication review |
 
-Embeddings remain the **separate** semantic index stage (`assistant:ingest`). Do not conflate embedding with knowledge extraction.
+Embeddings remain the **separate** semantic index stage (`assistant:ingest`). Do not conflate embedding with knowledge extraction or with **content publication approval** — ingest runs only on OKF derived from approved public snapshots.
 
 **LLM-generated intermediate artifacts:** if ever used, store under `generated/` or gitignored scratch only; **do not ingest** until reviewed and promoted to pinned fixtures or YAML snapshots in portfolio.
 
@@ -169,16 +169,35 @@ Embeddings remain the **separate** semantic index stage (`assistant:ingest`). Do
 
 ## Publication and security boundaries (default deny)
 
-Exclude unless explicitly allowlisted and reviewed:
+### Career inventory — two controls (`resumes`)
+
+| Control                    | Purpose                                                            | Default                                                                                     |
+| -------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| **1. Source eligibility**  | Which private files may be considered when preparing corpus inputs | **Deny** — explicit per-path allowlist only (`facts/`, matching `roles/`, approved `meta/`) |
+| **2. Content publication** | What text may appear in the portfolio retrieval corpus             | **Deny** — only human-reviewed, public-safe facts or excerpts in **committed snapshots**    |
+
+Eligibility for a source file does **not** authorize copying its full contents. Producers in CI read **pinned public snapshots**, not live private checkouts.
+
+**Always exclude from published snapshot text (non-exhaustive):**
+
+- Private contact information (phone, personal email, addresses)
+- Interview preparation (`prep.yml`, `stories/`, application research, lifecycle notes)
+- Recruiter feedback, compensation, performance-management detail
+- Confidential employer or business information
+- Unverified claims or prose that strengthens beyond reviewed evidence
+
+**Change control:** new inventory files and new content inside previously eligible files do **not** become public until eligibility, publication manifest, and snapshots are updated in a reviewed portfolio PR. Coverage tests **fail closed** when manifests and snapshot hashes diverge.
+
+**Provenance:** retain stable inventory ids for operator alignment; **visitor-facing** OKF bodies and `resource` URLs must not expose private repository paths or internal job-search metadata.
+
+### Cross-repo defaults
+
+Exclude unless explicitly eligible and publication-reviewed:
 
 - Secrets, credentials, `.env*`, tokens, connection strings
-- `resumes/applications/**`, `research.md`, `prep.yml`, `lifecycle.yml`, `stories/`
-- Recruiter correspondence, compensation, interview debriefs
-- Phone/email not already on public site; internal employer confidential detail
+- `resumes/applications/**`, generated `out/`, `exemplars/`
 - `.cursor/plans/`, `.agents/`, agent skills as operational runbooks (marketplace: public skills still **curated**, not bulk)
-- Unverified or inferred claims (assistant must not strengthen beyond source text)
-
-**Private repos (`resumes`):** require **committed allowlist + pinned snapshot PR** in portfolio; human review gate before public index.
+- Unverified or inferred claims (assistant must not strengthen beyond published source text)
 
 **Visitor citations:** `resource` URLs should be **public** (site, DEV, public GitHub paths). Do not expose private repo URLs in OKF `resource` fields; use portfolio or public doc URLs as citation surface where needed.
 
@@ -203,13 +222,13 @@ Exclude unless explicitly allowlisted and reviewed:
 
 ## Decisions (PR #46 review — locked)
 
-| #   | Decision           | Resolution                                                                                                                                                                                                                     |
-| --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Career allowlist   | **Explicit per-file allowlist, default deny.** Do not automatically ingest all 38 facts and 21 roles. Only allowlisted `facts/<id>.yml` and matching `roles/<id>.yml` (plus approved `meta/`) enter OKF.                       |
-| 2   | Savepoints         | **Reviewed architecture excerpt first.** Promote to the full `notes/architecture-direction.md` only after a publication-suitability review.                                                                                    |
-| 3   | Marketplace        | **Public README and engineering docs first** (`README.md`, `docs/engineering-invariants.md`, `plugins/team-harness/docs/layers.md`, optionally `versioning.md`). **Defer SKILL summaries** unless retrieval eval shows a gap.  |
-| 4   | OKF `source_class` | Introduce **`source_class: career`** and **`career/`** namespace. Career evidence is a distinct retrieval category from About presentation (`about/`).                                                                         |
-| 5   | Merge order        | **PR #45 + operator ingest/eval complete** (2026-10-08). Next implementation slice: `career-inventory-producer` in [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md). |
+| #   | Decision           | Resolution                                                                                                                                                                                                                                                                                                                                                                |
+| --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Career publication | **Two controls:** (1) **source eligibility** — explicit per-file allowlist, default deny (not all 38 facts / 21 roles); (2) **content publication** — only reviewed public-safe excerpts in pinned snapshots (not wholesale private files). **`career/`** + **`source_class: career`**. Fail closed on manifest/snapshot mismatch; ingest success ≠ publication approval. |
+| 2   | Savepoints         | **Reviewed architecture excerpt first.** Promote to the full `notes/architecture-direction.md` only after a publication-suitability review.                                                                                                                                                                                                                               |
+| 3   | Marketplace        | **Public README and engineering docs first** (`README.md`, `docs/engineering-invariants.md`, `plugins/team-harness/docs/layers.md`, optionally `versioning.md`). **Defer SKILL summaries** unless retrieval eval shows a gap.                                                                                                                                             |
+| 4   | OKF `source_class` | Introduce **`source_class: career`** and **`career/`** namespace. Career evidence is a distinct retrieval category from About presentation (`about/`).                                                                                                                                                                                                                    |
+| 5   | Merge order        | **PR #45 + operator ingest/eval complete** (2026-10-08). Next implementation slice: `career-inventory-producer` in [assistant-cross-repository-corpus.plan.md](../../.cursor/plans/assistant-cross-repository-corpus.plan.md).                                                                                                                                            |
 
 **Still open (operational):** snapshot cadence — manual hub/resumes → portfolio fixture sync with manifest hashes; no live fetch in CI until a dedicated automation slice.
 

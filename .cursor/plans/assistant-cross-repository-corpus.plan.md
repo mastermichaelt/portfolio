@@ -9,7 +9,7 @@ todos:
     content: "Operator — merge PR #45, re-ingest ~209 units, retrieval-eval, corpus-expansion plan-closure"
     status: completed
   - id: career-inventory-producer
-    content: "Explicit per-file allowlist (default deny) + snapshots + career/ + source_class career"
+    content: "Source eligibility + content publication manifests, reviewed public snapshots, career/ + source_class career"
     status: pending
   - id: marketplace-public-docs
     content: "Marketplace README + engineering docs only (no SKILL summaries unless eval gap)"
@@ -41,13 +41,13 @@ isProject: false
 
 ## Decisions (locked — PR #46 review)
 
-| Decision         | Resolution                                                                                            |
-| ---------------- | ----------------------------------------------------------------------------------------------------- |
-| Career allowlist | Explicit per-file allowlist, **default deny** (not all 38 facts / 21 roles)                           |
-| Savepoints       | **Reviewed excerpt** first; full `architecture-direction.md` only after publication review            |
-| Marketplace      | README + public engineering docs first; **defer SKILL summaries** unless eval shows a gap             |
-| OKF taxonomy     | **`career/`** namespace + **`source_class: career`** (distinct from `about/`)                         |
-| Merge order      | **PR #45 + operator ingest/eval complete** — `career-inventory-producer` is next implementation slice |
+| Decision              | Resolution                                                                                                                                                                                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Career publication    | **Two controls:** (1) **source eligibility** — explicit per-file allowlist, default deny; (2) **content publication** — only reviewed public-safe excerpts in pinned snapshots (not wholesale private files). **`career/`** + **`source_class: career`** unchanged |
+| Savepoints            | **Reviewed excerpt** first; full `architecture-direction.md` only after publication review                                                                                                                                                                         |
+| Marketplace           | README + public engineering docs first; **defer SKILL summaries** unless eval shows a gap                                                                                                                                                                          |
+| Ingest vs publication | **Publication approval is upstream of OKF.** `assistant:ingest` success does **not** imply publication approval; producers read **committed public snapshots** only in CI                                                                                          |
+| Merge order           | **PR #45 + operator ingest/eval complete** — `career-inventory-producer` is next implementation slice                                                                                                                                                              |
 
 ## Status: shipped vs pending vs new
 
@@ -63,14 +63,34 @@ isProject: false
 ## Architectural extension (minimal)
 
 ```text
-allowlist + publication review (portfolio repo)
+source eligibility (file allowlist, default deny)
         ↓
-deterministic cross-repo producers (new) ──→ existing okf:build
+content publication (reviewed public-safe excerpts → pinned snapshots + manifests)
         ↓
-existing assistant:derive → assistant:ingest → pgvector
+deterministic cross-repo producers (read snapshots only in CI) ──→ existing okf:build
+        ↓
+existing assistant:derive → assistant:ingest → pgvector  (ingest ≠ publication approval)
         ↓
 retrieval-eval (+ new cases) — regression baselines preserved
 ```
+
+### Career inventory — publication boundary (two controls)
+
+Approving a private `resumes` source file does **not** authorize publishing its entire contents.
+
+| Control                    | Question                                              | Default                                                                             | Portfolio artifacts (planned)                                                                                                                  |
+| -------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Source eligibility**  | Which private files may be considered as inputs?      | **Deny** — only explicit `facts/`, `roles/`, `meta/` paths on a committed allowlist | Source-eligibility manifest (paths + optional role ids tied to allowlisted facts)                                                              |
+| **2. Content publication** | What public-safe text may enter the retrieval corpus? | **Deny** — only human-reviewed excerpts promoted to pinned snapshots                | Public snapshot files under `tests/fixtures/assistant-okf/career-inventory/` + publication manifest (snapshot hashes, approved fact/field ids) |
+
+**Rules:**
+
+- Produce **deterministic, reviewed public snapshots** — do not copy allowlisted private YAML wholesale into OKF bodies.
+- **Exclude** from published snapshot text: private contact information, interview preparation (`prep`, `stories`, applications), recruiter feedback, performance-management detail, confidential employer/business information, and unverified or strengthened claims.
+- **Provenance:** OKF may record stable inventory ids (e.g. fact id) for operator/debug alignment; **visitor-facing** `resource` URLs and concept bodies must not expose private repository paths or internal job-search metadata.
+- **No auto-expansion:** new files and new fields in previously eligible sources do **not** become public until both controls are updated and snapshots refreshed.
+- **Fail closed:** if eligibility, publication manifest, or snapshot freshness cannot be verified (hash mismatch, missing approval row, orphan snapshot), `okf:build` / coverage tests **stop** — do not silently ingest partial or stale private content.
+- **Separation:** embedding and `assistant:ingest` run only on OKF already derived from **approved snapshots**; a green ingest is evidence of pipeline health, not a substitute for publication review.
 
 - **Stable IDs:** `career/<fact-id>`, `tooling/<doc-slug>`, `repo/<project>-<section>` — extend `listConceptFiles`, `cleanGeneratedConcepts`, `sourceClassFromConceptId` as needed.
 - **Incremental updates:** unchanged `content_hash` → ingest skip; removed concepts → stale `unit_id` delete (existing sync).
@@ -129,13 +149,13 @@ Integration branch: `main`. Each implementation slice from latest `origin/main`;
 
 **Deliverables:**
 
-- Committed **explicit per-file allowlist** (default deny) — only approved `facts/<id>.yml`, matching `roles/<id>.yml`, and approved `meta/` paths
-- Pinned snapshots under `tests/fixtures/assistant-okf/career-inventory/` for allowlisted files only
-- `career-inventory-producer.mjs` emitting **`career/`** concepts with **`source_class: career`**
-- Coverage tests (allowlist ↔ snapshot parity + content hashes)
-- Re-ingest; note unit count delta
+- **Source eligibility** manifest — default deny; explicit paths only (allowlisted `facts/<id>.yml`, `roles/<id>.yml` referenced by those facts, approved `meta/` — not all 38 facts / 21 roles)
+- **Content publication** manifest + **reviewed public snapshots** under `tests/fixtures/assistant-okf/career-inventory/` (deterministic excerpt format — not full private file copies)
+- `career-inventory-producer.mjs` reading **snapshots only** (CI-safe), emitting **`career/`** concepts with **`source_class: career`**
+- Coverage tests — eligibility ↔ publication manifest ↔ snapshot hashes; **fail closed** on mismatch or unapproved content
+- Re-ingest only after publication artifacts merge; note unit count delta (ingest success does not retroactively approve publication)
 
-**Does not include:** bulk ingest of all 38 facts / 21 roles; `applications/**`, `out/`, `stories/`, per-application variants
+**Does not include:** live private-repo fetch in CI; wholesale YAML mirroring; `applications/**`, `out/`, `stories/`, interview prep, recruiter notes; embedding or ingest as a publication approval step
 
 **Depends on:** `corpus-expansion-acceptance-gate` (**required**)
 
@@ -238,7 +258,7 @@ Implement slice career-inventory-producer only. Prerequisite: corpus-expansion-a
 
 Authority: Open PR only — do not merge. Topology: origin/main; base main.
 
-Use docs/assistant/cross-repository-source-inventory.md and career-inventory-corpus-direction.md. Explicit per-file allowlist (default deny — not all facts/roles). Deterministic YAML producer + pinned snapshots only. career/ namespace + source_class: career.
+Use docs/assistant/cross-repository-source-inventory.md and career-inventory-corpus-direction.md. Implement source eligibility + content publication (reviewed public snapshots, fail closed). Producer reads snapshots only — not wholesale private files. career/ namespace + source_class: career. Ingest does not imply publication approval.
 
 Mark career-inventory-producer completed in plan frontmatter in the same PR.
 ```

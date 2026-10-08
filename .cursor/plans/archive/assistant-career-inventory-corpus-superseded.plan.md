@@ -18,11 +18,11 @@ isProject: false
 
 **Superseded 2026-10-08** — this plan was **not completed** and is **not** an active execution plan.
 
-| Item           | Resolution                                                                                                                                                                                           |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Canonical plan | [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md)                                                                                                            |
-| Career slice   | `career-inventory-producer` in the cross-repository plan                                                                                                                                             |
-| Research       | [cross-repository-source-inventory.md](../../docs/assistant/cross-repository-source-inventory.md), [career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md) |
+| Item           | Resolution                                                                                                                                                                                                 |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Canonical plan | [assistant-cross-repository-corpus.plan.md](../assistant-cross-repository-corpus.plan.md)                                                                                                                  |
+| Career slice   | `career-inventory-producer` in the cross-repository plan                                                                                                                                                   |
+| Research       | [cross-repository-source-inventory.md](../../../docs/assistant/cross-repository-source-inventory.md), [career-inventory-corpus-direction.md](../../../docs/assistant/career-inventory-corpus-direction.md) |
 
 Do not execute slices from this file. Retained for historical context only.
 
@@ -30,9 +30,9 @@ Do not execute slices from this file. Retained for historical context only.
 
 # Assistant career inventory corpus
 
-**Prerequisite:** [corpus coverage expansion](../../docs/assistant/corpus-coverage-expansion.md) shipped ([#45](https://github.com/mastermichaelt/portfolio/pull/45)) with operator acceptance **completed** on the expanded index ([findings § Operational acceptance](../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance); [assistant-database.md](../../docs/assistant/assistant-database.md) §6).
+**Prerequisite:** [corpus coverage expansion](../../../docs/assistant/corpus-coverage-expansion.md) shipped ([#45](https://github.com/mastermichaelt/portfolio/pull/45)) with operator acceptance **completed** on the expanded index ([findings § Operational acceptance](../../../docs/assistant/corpus-coverage-expansion.md#operational-acceptance); [assistant-database.md](../../../docs/assistant/assistant-database.md) §6).
 
-**Direction:** [docs/assistant/career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md)
+**Direction:** [docs/assistant/career-inventory-corpus-direction.md](../../../docs/assistant/career-inventory-corpus-direction.md)
 
 ## Recommended execution authority
 
@@ -57,7 +57,7 @@ Integration branch: `main`. Each slice from latest `origin/main`; PR base is `ma
 - Committed allowlist (fact ids + meta files approved for public assistant)
 - Snapshot sync rule (resumes → `tests/fixtures/assistant-okf/career-inventory/`)
 - `source_class: career` + `listConceptFiles` / derive-units wiring spec
-- Update [career-inventory-corpus-direction.md](../../docs/assistant/career-inventory-corpus-direction.md) with decisions
+- Update [career-inventory-corpus-direction.md](../../../docs/assistant/career-inventory-corpus-direction.md) with decisions
 
 **Does not include:** full fact ingestion, embedding spend, eval fixture changes
 
