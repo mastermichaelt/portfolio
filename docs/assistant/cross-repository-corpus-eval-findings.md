@@ -45,3 +45,4 @@ Do not weaken `expected_parent_concepts`, `min_parent_rank`, or `require_specifi
 
 - [corpus-coverage-expansion.md § Operational acceptance](./corpus-coverage-expansion.md#operational-acceptance) — pre-cross-repo baseline (6 scored positives + 2 diagnostics)
 - [vector-retrieval-experiment.md](./vector-retrieval-experiment.md) — harness vocabulary and historical reference run
+- [rag-generation-direction.md](./rag-generation-direction.md) § Field report follow-ons — direction only; this doc retains **observed** ranks and distances

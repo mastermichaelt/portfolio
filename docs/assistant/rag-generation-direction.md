@@ -2,8 +2,8 @@
 title: Portfolio assistant — RAG generation direction
 subtitle: Design considerations between retrieval and grounded answers (not implemented)
 status: draft
-version: 0.2.0
-updated: 2026-10-08
+version: 0.2.1
+updated: 2026-10-12
 related:
   - docs/assistant/architecture-direction.md
   - docs/assistant/assistant-database.md
@@ -115,6 +115,8 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 **Open decision.** Whether to include OKF frontmatter fields in the model context or only `retrieval_text` + citation registry.
 
+**Open decision (after generation ships).** Whether assembly should drop weak hits or require sufficiency checks before calling the model — the active milestone still uses `full_parent` / budget rules without post-retrieval filtering ([grounded RAG plan](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md)).
+
 ---
 
 ## Provenance and citations through to answers
@@ -176,6 +178,14 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 **Proposed design option.** Keep retrieval-eval as the regression gate for derivation/chunking changes; add answer-eval later that **consumes** frozen evidence packets where possible so assembly + generation can be tested without re-embedding.
 
+### Field report follow-ons (2026-10)
+
+Observed behaviour is recorded in [cross-repository-corpus-eval-findings.md](./cross-repository-corpus-eval-findings.md) and [vector-retrieval-experiment.md](./vector-retrieval-experiment.md). **Not active plan scope** — three compact follow-ons when justified by the next milestone:
+
+1. **Retrieval diagnostics** — Keep expected-parent **rank** and **cosine distance** per fixture as the corpus/index evolves; treat rank movement after corpus growth as diagnostic, not automatic regression. If correct parents routinely fall **outside generation top-K** (e.g. Savepoints at parent rank 10 while retrieve CLI default is 5), investigate **wider candidate retrieval** and **reranking** into the evidence budget before adopting new retrieval stacks.
+2. **Evidence sufficiency** — Similarity can return related passages without answerability (`nuclear-reactor-negative-inspection`). Compare positive vs negative_inspection distances as exploration only; **do not** assume a fixed distance threshold. Validate **insufficient-evidence** handling and **citation support** in generation-eval ([grounded RAG plan](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md)); retrieval-eval baseline stays unchanged.
+3. **End-to-end evaluation** — Reuse representative questions across layers with different assertions. Exercise the **RAG service top-K (10)** and default **assembly**, not retrieve CLI default K=5 alone, alongside answer correctness and citation support.
+
 ---
 
 ## Relationship to the active vector retrieval experiment
@@ -192,5 +202,6 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 | Date       | Change                                                                                                                                                                         |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-10-12 | Field report follow-ons: retrieval diagnostics, evidence sufficiency, end-to-end eval (trimmed catalogue)                                                                      |
 | 2026-10-08 | Initial draft: retrieval/generation boundary, evidence assembly options, parent-context expansion as proposed (not mandated), budgets, citations, abstention, split evaluation |
 | 2026-10-08 | Link active grounded-RAG execution plan; record locked assembly/citation/budget decisions for milestone                                                                        |

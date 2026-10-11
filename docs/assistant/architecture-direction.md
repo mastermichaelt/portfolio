@@ -2,8 +2,8 @@
 title: Portfolio assistant architecture direction
 subtitle: Another view over published knowledge — not a site redesign
 status: draft
-version: 0.4.0
-updated: 2026-10-08
+version: 0.4.1
+updated: 2026-10-12
 related:
   - docs/assistant/prior-art.md
   - docs/assistant/rag-generation-direction.md
@@ -376,7 +376,7 @@ These are **not** scheduled slices. They name areas future experiments may touch
 - Possible grounding or refusal policy **after** behaviour is observed
 - **Corpus + external retrieval** — after corpus-only RAG behaviour is understood, evaluate whether live web retrieval improves questions requiring current, comparative, or external context while preserving clear provenance between canonical corpus evidence and transient external evidence
 - **Context-aware retrieval** — after basic corpus retrieval is understood, evaluate whether the visitor's current portfolio context should influence retrieval (e.g. `/about` for career context, `/projects/savepoints` biasing toward Savepoints evidence, an article route making that article particularly relevant; landing page remains global corpus search). Current page or interaction context may become an additional retrieval signal without making the assistant incapable of retrieving relevant evidence elsewhere in the corpus. Not part of initial RAG; no filtering, metadata schemas, routing algorithms, or weighting strategies prescribed here.
-- **Retrieval + answer evaluation** — after real retrieval behaviour exists, evolve from manual inspection toward repeatable evaluation cases built from observed questions. Potential evidence per case: question, expected/relevant evidence, retrieved units, retrieval ranking/signals, generated answer, citations, comparison with existing ChatGPT + web baseline where useful. No evaluation framework, metrics suite, test schema, or vendor selection yet.
+- **Retrieval + answer evaluation** — after real retrieval behaviour exists, evolve from manual inspection toward repeatable evaluation cases built from observed questions. Potential evidence per case: question, expected/relevant evidence, retrieved units, retrieval ranking/signals, generated answer, citations, comparison with existing ChatGPT + web baseline where useful. Field-report follow-ons (rank/distance diagnostics, evidence sufficiency, generation-aligned eval) live in [rag-generation-direction.md](./rag-generation-direction.md) — not a technique catalogue in this note. No evaluation framework, metrics suite, test schema, or vendor selection yet.
 - **Public assistant hardening** — once the assistant is a public portfolio feature, evaluate production concerns based on observed behaviour and usage: streaming response UX, rate limiting / abuse protection, latency, token/model cost, reliability / failure behaviour, provider/model fallback if justified. No Redis, queues, rate-limit providers, fallback architecture, or infrastructure prescribed yet. **Streaming / SSE** — server-to-client answer streaming is a natural future experiment (SSE or framework-provided streaming primitives not committed yet): portfolio UX benefit (visitors read before generation completes) and systems-learning exercise (long-lived HTTP, incremental delivery, disconnects, cancellation, proxies/timeouts, failure behaviour). Delivery of generated output to the browser is separate from retrieval itself.
 
 Directional sequencing only — not a roadmap or fixed phases:
@@ -441,6 +441,7 @@ later experiments as justified:
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                 |
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-12 | Point field-report follow-ons to rag-generation-direction (avoid duplicating hypotheses in this note)                                                                                                                                                                                                                  |
 | 2026-10-08 | Shipped cross-repository corpus ([cross-repository-source-inventory.md](./cross-repository-source-inventory.md), [archived plan](../../.cursor/plans/archive/2026-10-08-assistant-cross-repository-corpus.plan.md), [eval findings](./cross-repository-corpus-eval-findings.md)); superseded career-only plan archived |
 | 2026-10-08 | Archived [corpus coverage expansion](../../.cursor/plans/archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md) — findings [corpus-coverage-expansion.md](./corpus-coverage-expansion.md); operator acceptance completed 2026-10-08                                                                           |
 | 2026-10-08 | Documented career inventory corpus gap and direction ([career-inventory-corpus-direction.md](./career-inventory-corpus-direction.md)) — resumes `facts/`/`roles/` before RAG generation; execution via cross-repository plan                                                                                           |
