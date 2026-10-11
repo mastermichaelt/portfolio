@@ -2,8 +2,8 @@
 title: Portfolio assistant — RAG generation direction
 subtitle: Design considerations between retrieval and grounded answers (not implemented)
 status: draft
-version: 0.2.0
-updated: 2026-10-08
+version: 0.2.1
+updated: 2026-10-12
 related:
   - docs/assistant/architecture-direction.md
   - docs/assistant/assistant-database.md
@@ -115,6 +115,18 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 **Open decision.** Whether to include OKF frontmatter fields in the model context or only `retrieval_text` + citation registry.
 
+**Experimental hypothesis (field discussion, 2026-10).** Retrieval top-K is a **candidate set**, not a mandate to stuff every hit into the model context. Future assembly may apply **post-retrieval filtering** (relevance to the question, parent deduplication, diversity so one theme does not crowd out a more specific parent), then **context-sufficiency** checks before generation. **Semantically related** passages can still be **insufficient evidence** to support a factual answer — especially for out-of-corpus questions that nevertheless neighbour-match ([cross-repository-corpus-eval-findings.md](./cross-repository-corpus-eval-findings.md)). The active milestone still assembles from retrieval hits under `full_parent` / budget rules; selective dropping of weak hits is **not** in [grounded RAG plan](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md) scope unless a later experiment proves it.
+
+---
+
+## Retrieval quality experiments (not active plan scope)
+
+**Current implementation.** Single-stage exact pgvector cosine search; optional `--filter-source-class`; retrieve CLI default **top-K 5**; generation service default **top-K 10** (locked in active plan). No reranker, hybrid lexical index, or ANN.
+
+**Experimental hypothesis.** When fixture or visitor failures show **recall@K** gaps (e.g. correct parent at rank 10 while production K is 5), investigate **wider first-stage retrieval** followed by a smaller evidence set — via reranking, stricter assembly, or both. Candidate techniques (vendor-agnostic until justified): **cross-encoder** or **LLM-based reranking**, **hybrid keyword + vector** retrieval, **parent-level diversity** so related chunks from one narrative do not exclude a more specific OKF concept. Compare **recall, ranking quality (expected rank), latency, and cost** on the bounded corpus before any dependency or infra commitment.
+
+**Experimental hypothesis.** Compare cosine-distance **distributions** for scored positives vs `negative_inspection` fixtures; use as exploratory signal only — **do not assume** a single global distance threshold reliably separates answerable from unanswerable questions without generation-level abstention experiments.
+
 ---
 
 ## Provenance and citations through to answers
@@ -156,6 +168,8 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 **Architectural direction.** Distinguish **“no hits”** from **“weak hits”** from **“hits that do not answer the question”** — the last case may require answer-level evaluation, not retrieval alone.
 
+**Experimental hypothesis (field discussion, 2026-10).** **Insufficient-evidence handling** and abstention should be validated against real generation on negatives (e.g. unrelated topics that still retrieve neighbours) and on **weak-rank positives**, not inferred from retrieval distance alone. **Citation support** (whether claims in the answer are backed by the evidence packet) belongs in generation-eval per the active plan; claim-level judging remains a hypothesis until fixtures and reviewers exist.
+
 ---
 
 ## Evaluation: retrieval quality vs grounded answer quality
@@ -176,6 +190,19 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 **Proposed design option.** Keep retrieval-eval as the regression gate for derivation/chunking changes; add answer-eval later that **consumes** frozen evidence packets where possible so assembly + generation can be tested without re-embedding.
 
+**Experimental hypothesis (field discussion, 2026-10).** Extend retrieval diagnostics without widening the active plan’s **unchanged retrieval-eval baseline**:
+
+| Signal                                                     | Role                                                                                                                                   |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Expected-parent **rank** + **cosine_distance** per fixture | Trend across corpus/index revisions; rank can move when the corpus grows while distances stay stable                                   |
+| Rank movement after ingest                                 | **Diagnostic** — investigate before weakening `min_parent_rank` or expected parents                                                    |
+| Retrieval at **generation K** and assembly mode            | Separate optional cases or operator runs — retrieval-eval defaults (CLI K=5) do not prove behaviour at generation K=10 + `full_parent` |
+| End-to-end fixtures                                        | Same natural-language questions as retrieval cases, but assert answer/citation/abstention properties                                   |
+
+**Active plan alignment.** [Grounded RAG generation](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md) adds **generation-eval** (`citation support`, abstention, injection, assembly-mode comparison) and explicitly leaves **retrieval-eval unchanged**. LLM-as-judge in required CI, new golden corpora, and production trace pipelines remain **out of milestone scope** unless a future plan slice adopts them after observed failures.
+
+**Experimental hypothesis.** After the assistant is visitor-facing, compare offline retrieval/answer-eval improvements to **product outcomes** (successful questions, thumbs-up/down or equivalent) when volume warrants — optional classification of failure modes from stored traces (retrieval miss vs assembly vs unsupported generation), plus latency and token cost, without prescribing dashboards or SLOs here.
+
 ---
 
 ## Relationship to the active vector retrieval experiment
@@ -190,7 +217,8 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 ## Changelog
 
-| Date       | Change                                                                                                                                                                         |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-10-08 | Initial draft: retrieval/generation boundary, evidence assembly options, parent-context expansion as proposed (not mandated), budgets, citations, abstention, split evaluation |
-| 2026-10-08 | Link active grounded-RAG execution plan; record locked assembly/citation/budget decisions for milestone                                                                        |
+| Date       | Change                                                                                                                                                                                              |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-12 | Field-report discussion: post-retrieval filtering/sufficiency, two-stage/rerank/hybrid/diversity hypotheses, rank-distance diagnostics, generation-aligned retrieval eval, product feedback options |
+| 2026-10-08 | Initial draft: retrieval/generation boundary, evidence assembly options, parent-context expansion as proposed (not mandated), budgets, citations, abstention, split evaluation                      |
+| 2026-10-08 | Link active grounded-RAG execution plan; record locked assembly/citation/budget decisions for milestone                                                                                             |
