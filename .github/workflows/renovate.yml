@@ -24,3 +24,5 @@ jobs:
         env:
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           RENOVATE_ONBOARDING: false
+          # Temporary: diagnose "Repository has changed during renovation - aborting" (exit 6)
+          LOG_LEVEL: debug
