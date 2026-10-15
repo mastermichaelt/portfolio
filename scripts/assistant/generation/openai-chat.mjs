@@ -10,19 +10,118 @@ export const OPENAI_CHAT_COMPLETIONS_URL =
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 
 /**
+ * End-to-end budget for one chat completion call (all attempts, retries, and body reads).
+ *
+ * @param {number} requestTimeoutMs
+ */
+export function createChatRequestDeadline(requestTimeoutMs) {
+  const startedAt = Date.now();
+
+  const remainingMs = () =>
+    Math.max(0, requestTimeoutMs - (Date.now() - startedAt));
+
+  const assertRemaining = () => {
+    if (remainingMs() <= 0) {
+      throw new Error(
+        `OpenAI chat request timed out after ${requestTimeoutMs}ms`,
+      );
+    }
+  };
+
+  return {
+    remainingMs,
+    assertRemaining,
+    /**
+     * @param {number} ms
+     */
+    async sleep(ms) {
+      assertRemaining();
+      const waitMs = Math.min(ms, remainingMs());
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+      assertRemaining();
+    },
+    /**
+     * @param {FetchFn} fetchFn
+     * @param {string} url
+     * @param {RequestInit} init
+     */
+    async fetch(fetchFn, url, init) {
+      assertRemaining();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), remainingMs());
+      try {
+        return await fetchFn(url, { ...init, signal: controller.signal });
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          throw new Error(
+            `OpenAI chat request timed out after ${requestTimeoutMs}ms`,
+          );
+        }
+        throw error;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    },
+    /**
+     * @param {Response} response
+     */
+    async readJson(response) {
+      assertRemaining();
+      const budgetMs = remainingMs();
+      const payload = await Promise.race([
+        response.json(),
+        new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(
+              new Error(
+                `OpenAI chat request timed out after ${requestTimeoutMs}ms`,
+              ),
+            );
+          }, budgetMs);
+        }),
+      ]);
+      assertRemaining();
+      return payload;
+    },
+    /**
+     * @param {Response} response
+     */
+    async readText(response) {
+      assertRemaining();
+      const budgetMs = remainingMs();
+      const text = await Promise.race([
+        response.text(),
+        new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(
+              new Error(
+                `OpenAI chat request timed out after ${requestTimeoutMs}ms`,
+              ),
+            );
+          }, budgetMs);
+        }),
+      ]);
+      assertRemaining();
+      return text;
+    },
+  };
+}
+
+/**
  * @param {Response} response
+ * @param {ReturnType<typeof createChatRequestDeadline>} deadline
  * @returns {Promise<string>}
  */
-async function readErrorBody(response) {
+async function readErrorBody(response, deadline) {
   try {
-    const json = await response.json();
+    const json = await deadline.readJson(response);
     if (json && typeof json.error?.message === "string") {
       return json.error.message;
     }
     return JSON.stringify(json);
   } catch {
     try {
-      return await response.text();
+      return await deadline.readText(response);
     } catch {
       return response.statusText || "Unknown error";
     }
@@ -116,36 +215,21 @@ export async function requestChatCompletionJson(options) {
   const maxRetries = options.maxRetries ?? 3;
   const baseRetryDelayMs = options.baseRetryDelayMs ?? 200;
 
+  const deadline = createChatRequestDeadline(requestTimeoutMs);
+
   let attempt = 0;
   while (true) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
-
-    let response;
-    try {
-      response = await fetchFn(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body,
-        signal: controller.signal,
-      });
-    } catch (error) {
-      clearTimeout(timeout);
-      if (error instanceof Error && error.name === "AbortError") {
-        throw new Error(
-          `OpenAI chat request timed out after ${requestTimeoutMs}ms`,
-        );
-      }
-      throw error;
-    } finally {
-      clearTimeout(timeout);
-    }
+    const response = await deadline.fetch(fetchFn, url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body,
+    });
 
     if (response.ok) {
-      const payload = await response.json();
+      const payload = await deadline.readJson(response);
       const parsed = parseChatCompletionResponse(payload);
 
       if (parsed.finishReason === "length") {
@@ -170,7 +254,7 @@ export async function requestChatCompletionJson(options) {
       };
     }
 
-    const detail = await readErrorBody(response);
+    const detail = await readErrorBody(response, deadline);
     const retryable = RETRYABLE_STATUS.has(response.status);
     if (!retryable || attempt >= maxRetries) {
       throw new Error(
@@ -179,7 +263,7 @@ export async function requestChatCompletionJson(options) {
     }
 
     const delayMs = baseRetryDelayMs * 2 ** attempt;
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    await deadline.sleep(delayMs);
     attempt += 1;
   }
 }

@@ -179,7 +179,16 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   if (options.json) {
-    console.log(JSON.stringify(response, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          ...response,
+          diagnostics: result.diagnostics,
+        },
+        null,
+        2,
+      ),
+    );
     return;
   }
 

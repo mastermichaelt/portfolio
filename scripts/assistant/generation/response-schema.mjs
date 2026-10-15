@@ -73,7 +73,6 @@ export const ABSTENTION_REASONS = /** @type {const} */ ([
  * @typedef {AssistantModelGenerationResponse & {
  *   answer_text: string,
  *   citations: AssistantCitation[],
- *   diagnostics?: AssistantGenerationDiagnostics,
  * }} AssistantGenerationResponse
  */
 

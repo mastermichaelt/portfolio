@@ -249,20 +249,20 @@ Requires `DATABASE_URL` (retrieval index) and `OPENAI_API_KEY` (`portfolio-assis
 | `--no-retrieval`              | Skip retrieval (model-only / eval baseline)                                      |
 | `--json`                      | Full structured response (claims, derived `answer_text`, citations, diagnostics) |
 
-**Response contract:** the model returns canonical `claims[]` + `support_level` + `abstained` / `abstention_reason`. The service derives `answer_text` and deduped `citations[]` and runs deterministic citation-integrity checks. Overlong or truncated (`finish_reason=length`) model JSON is rejected — not post-truncated.
+**Response contract:** the model returns canonical `claims[]` + `support_level` + `abstained` / `abstention_reason`. The service derives `answer_text` and deduped `citations[]` and runs deterministic citation-integrity checks. URL allowlisting applies only to `evidence_supported` / `evidence_inferred` claim text; `general_knowledge` and `uncertain` segments are not required to use evidence URLs. Overlong or truncated (`finish_reason=length`) model JSON is rejected — not post-truncated. Internal diagnostics are returned only on the service result (CLI `--json` merges them for operators; API slice will strip).
 
 **Resource bounds** (optional env overrides — see `.env.example`):
 
-| Variable                                       | Default (dev) | Role                                                              |
-| ---------------------------------------------- | ------------- | ----------------------------------------------------------------- |
-| `ASSISTANT_GENERATION_MODEL`                   | `gpt-4o-mini` | Chat model                                                        |
-| `ASSISTANT_GENERATION_TOP_K`                   | `10`          | Generation retrieve K                                             |
-| `ASSISTANT_EVIDENCE_CHARACTER_BUDGET`          | `120000`      | Evidence packet char cap (`EvidenceBudgetExceeded` when exceeded) |
-| `ASSISTANT_GENERATION_PROMPT_TOKEN_BUDGET`     | `28000`       | Heuristic prompt cap (chars ÷ 4)                                  |
-| `ASSISTANT_GENERATION_MAX_OUTPUT_TOKENS`       | `2048`        | Chat `max_tokens`                                                 |
-| `ASSISTANT_GENERATION_TIMEOUT_MS`              | `120000`      | End-to-end chat request timeout                                   |
-| `ASSISTANT_GENERATION_MAX_QUESTION_LENGTH`     | `4000`        | Question validation                                               |
-| `ASSISTANT_GENERATION_MAX_RESPONSE_JSON_CHARS` | `24000`       | Reject overlong model JSON                                        |
+| Variable                                       | Default (dev) | Role                                                                                |
+| ---------------------------------------------- | ------------- | ----------------------------------------------------------------------------------- |
+| `ASSISTANT_GENERATION_MODEL`                   | `gpt-4o-mini` | Chat model                                                                          |
+| `ASSISTANT_GENERATION_TOP_K`                   | `10`          | Generation retrieve K                                                               |
+| `ASSISTANT_EVIDENCE_CHARACTER_BUDGET`          | `120000`      | Evidence packet char cap (`EvidenceBudgetExceeded` when exceeded)                   |
+| `ASSISTANT_GENERATION_PROMPT_TOKEN_BUDGET`     | `28000`       | Heuristic prompt cap (chars ÷ 4)                                                    |
+| `ASSISTANT_GENERATION_MAX_OUTPUT_TOKENS`       | `2048`        | Chat `max_tokens`                                                                   |
+| `ASSISTANT_GENERATION_TIMEOUT_MS`              | `120000`      | End-to-end OpenAI chat budget (all attempts, retry backoff, and response body read) |
+| `ASSISTANT_GENERATION_MAX_QUESTION_LENGTH`     | `4000`        | Question validation                                                                 |
+| `ASSISTANT_GENERATION_MAX_RESPONSE_JSON_CHARS` | `24000`       | Reject overlong model JSON                                                          |
 
 Implementation entrypoint: `scripts/assistant/generation/run-generation.mjs` (imported by `scripts/assistant/answer.mjs`; future API route must call the same service).
 

@@ -661,6 +661,29 @@ describe("assistant generation prompt templates", () => {
 });
 
 describe("assistant generation structural validation", () => {
+  it("allows external URLs in general_knowledge claims without evidence allowlist", async () => {
+    const packet = await assembleEvidencePacket({
+      matchedHits: [hit(1, "unit/a#intro", "a", "Alpha")],
+      assemblyMode: "top_k_only",
+      characterBudget: 10_000,
+    });
+
+    const result = validateStructuralModelResponse(
+      {
+        claims: [
+          {
+            text: "See https://developer.mozilla.org/en-US/docs/Web/HTTP for HTTP basics.",
+            attribution: "general_knowledge",
+          },
+        ],
+        support_level: "none",
+        abstained: false,
+      },
+      packet,
+    );
+    expect(result.valid).toBe(true);
+  });
+
   it("requires citations for evidence_supported claims", async () => {
     const packet = await assembleEvidencePacket({
       matchedHits: [hit(1, "unit/a#intro", "a", "Alpha")],

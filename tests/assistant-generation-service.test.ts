@@ -5,7 +5,10 @@ import {
   GenerationParseError,
   GenerationValidationError,
 } from "@/scripts/assistant/generation/errors.mjs";
-import { requestChatCompletionJson } from "@/scripts/assistant/generation/openai-chat.mjs";
+import {
+  createChatRequestDeadline,
+  requestChatCompletionJson,
+} from "@/scripts/assistant/generation/openai-chat.mjs";
 import { runRagGeneration } from "@/scripts/assistant/generation/run-generation.mjs";
 import { validateAndNormalizeQuestion } from "@/scripts/assistant/generation/validate-query.mjs";
 import { parseAnswerArgs } from "@/scripts/assistant/answer.mjs";
@@ -77,6 +80,51 @@ describe("assistant generation CLI args", () => {
 });
 
 describe("OpenAI chat adapter", () => {
+  it("enforces end-to-end timeout across retry attempts", async () => {
+    const fetch = vi.fn(async () => {
+      return new Response(
+        JSON.stringify({ error: { message: "rate limit" } }),
+        {
+          status: 429,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    });
+
+    const started = Date.now();
+    await expect(
+      requestChatCompletionJson({
+        system: "sys",
+        user: "user",
+        apiKey: "test-key",
+        requestTimeoutMs: 400,
+        maxRetries: 10,
+        baseRetryDelayMs: 300,
+        fetch,
+      }),
+    ).rejects.toThrow(/timed out after 400ms/);
+
+    expect(Date.now() - started).toBeLessThan(900);
+    expect(fetch.mock.calls.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("bounds successful response body reads by the remaining deadline", async () => {
+    const deadline = createChatRequestDeadline(50);
+    const response = new Response(
+      new ReadableStream({
+        start(controller) {
+          setTimeout(() => {
+            controller.enqueue(new TextEncoder().encode('{"slow":true}'));
+            controller.close();
+          }, 200);
+        },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+
+    await expect(deadline.readJson(response)).rejects.toThrow(/timed out/);
+  });
+
   it("rejects overlong model JSON before parse", async () => {
     const longContent = `{"claims":[{"text":"${"a".repeat(50)}","attribution":"general_knowledge"}],"support_level":"none","abstained":false}`;
     const padded = longContent.padEnd(500, " ");
@@ -188,11 +236,11 @@ describe("runRagGeneration service", () => {
 
     expect(result.response?.claims).toHaveLength(2);
     expect(result.response?.answer_text).toContain("HTTP is stateless");
+    expect(result.diagnostics.attribution_counts?.general_knowledge).toBe(1);
     expect(result.response?.citations).toEqual([
       { evidence_id: "E1", unit_id: "unit/a#intro" },
     ]);
     expect(result.diagnostics.generation_latency_ms).toBeTypeOf("number");
-    expect(result.diagnostics.attribution_counts?.general_knowledge).toBe(1);
   });
 
   it("rejects malformed JSON from the model", async () => {

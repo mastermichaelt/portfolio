@@ -117,12 +117,19 @@ export function validateStructuralModelResponse(model, packet) {
   }
 
   const approvedUrls = collectApprovedEvidenceUrls(packet);
-  const unapprovedUrls = findUnapprovedUrlsInAnswer(
-    publicResponse.answer_text,
-    approvedUrls,
-  );
-  for (const url of unapprovedUrls) {
-    errors.push(`answer_text references URL not in evidence packet: ${url}`);
+  for (const [index, claim] of model.claims.entries()) {
+    if (
+      claim.attribution !== "evidence_supported" &&
+      claim.attribution !== "evidence_inferred"
+    ) {
+      continue;
+    }
+    const unapprovedUrls = findUnapprovedUrlsInAnswer(claim.text, approvedUrls);
+    for (const url of unapprovedUrls) {
+      errors.push(
+        `claims[${index}] references URL not in evidence packet: ${url}`,
+      );
+    }
   }
 
   return { valid: errors.length === 0, errors };

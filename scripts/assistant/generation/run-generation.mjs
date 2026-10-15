@@ -205,7 +205,6 @@ export async function runRagGeneration(options) {
 
     const response = buildPublicGenerationResponse(parsedModel.value);
     diagnostics.attribution_counts = countAttributions(response.claims);
-    response.diagnostics = diagnostics;
 
     return { response, packet, diagnostics };
   } finally {
