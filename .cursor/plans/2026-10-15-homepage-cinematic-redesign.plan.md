@@ -12,7 +12,7 @@ todos:
     content: "PR: isolated hero + first scroll transition; screenshot + browser review; iterate composition/type/motion/lighting"
     status: pending
   - id: content-and-architecture
-    content: "PR: domain/homepage.ts + content/homepage.ts + app/page.tsx typecheck alignment + architecture doc (merge-safe; no orphaned schema)"
+    content: "PR: domain/content + app/page.tsx alignment + architecture doc; preserve home DOM contracts or update Playwright in same PR"
     status: pending
   - id: full-homepage-implement
     content: "PR(s): complete homepage + required Playwright e2e/happy-path updates in the same PR(s) that change / behavior"
@@ -260,15 +260,15 @@ flowchart LR
   assess --> concepts --> select --> proto --> arch --> ship --> harden
 ```
 
-| Phase | Frontmatter todo            | Goal                                      |
-| ----- | --------------------------- | ----------------------------------------- |
-| **0** | (this document)             | Repository assessment + planning envelope |
-| **A** | `creative-three-concepts`   | Three concepts + storyboards              |
-| **B** | `creative-direction-select` | One chosen concept + written rationale    |
-| **C** | `visual-prototype`          | Hero + first scroll transition, reviewed  |
-| **D** | `content-and-architecture`  | Domain, content, typecheck-safe wiring    |
-| **E** | `full-homepage-implement`   | Complete `/` + required e2e in same PR(s) |
-| **F** | `production-hardening`      | Perf + optional analytics/OKF             |
+| Phase | Frontmatter todo            | Goal                                           |
+| ----- | --------------------------- | ---------------------------------------------- |
+| **0** | (this document)             | Repository assessment + planning envelope      |
+| **A** | `creative-three-concepts`   | Three concepts + storyboards                   |
+| **B** | `creative-direction-select` | One chosen concept + written rationale         |
+| **C** | `visual-prototype`          | Hero + first scroll transition, reviewed       |
+| **D** | `content-and-architecture`  | Domain, content, wiring; merge-safe `/` markup |
+| **E** | `full-homepage-implement`   | Complete `/` + required e2e in same PR(s)      |
+| **F** | `production-hardening`      | Perf + optional analytics/OKF                  |
 
 **Canonical plan path:** [`.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md`](.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md).
 
@@ -413,13 +413,20 @@ flowchart LR
 
 1. Redefine [`domain/homepage.ts`](domain/homepage.ts) (e.g. scroll chapters with minimal copy fields + contextual `links[]`).
 2. Author [`content/homepage.ts`](content/homepage.ts) from resume-aligned narrative; inventory-grounded ([`resumes/`](file:///Users/michaeltruong/code/resumes)).
-3. Update [`app/page.tsx`](app/page.tsx) (and tests) so types and repository wiring align — may be minimal/static chapter markup without final GSAP choreography.
+3. Update [`app/page.tsx`](app/page.tsx) (and unit tests) so types and repository wiring align — may be minimal/static chapter markup without final GSAP choreography.
 4. Architecture note in `docs/experiments/` (or plan appendix): server markup vs client choreography file map, WebGL bundle boundary, `matchMedia` branches, data attributes for a11y escapes, chapter SEO headings.
 5. Update [`tests/static-portfolio-repository.test.ts`](tests/static-portfolio-repository.test.ts) and [`tests/content-foundation.test.ts`](tests/content-foundation.test.ts) for the new shape.
 
-**Non-goals:** Full scroll choreography, deleting legacy `home2` CSS, or Playwright rewrites (those ship with `full-homepage-implement` when `/` behavior changes).
+**Merge-safe homepage markup rule:** This slice **must either**:
 
-**Acceptance:** `main` passes typecheck and unit tests with new homepage model; no orphaned `HomepageChannel` / matrix types still referenced from `app/page.tsx`.
+- **Preserve** existing homepage DOM contracts exercised by current Playwright specs (`.home2-*`, `[data-method-reveal]`, happy-path home selectors), **or**
+- **Update** every affected Playwright test in the **same PR** when [`app/page.tsx`](app/page.tsx) markup or visitor-facing `/` structure changes.
+
+No visitor-facing behavior or markup change may defer required regression coverage to `full-homepage-implement`.
+
+**Non-goals:** Full scroll choreography, deleting legacy `home2` CSS, or cinematic GSAP/WebGL behavior (those ship with `full-homepage-implement`).
+
+**Acceptance:** `main` passes typecheck and unit tests with new homepage model; no orphaned `HomepageChannel` / matrix types still referenced from `app/page.tsx`; CI Playwright passes on the PR branch (unchanged DOM or e2e updated in this PR).
 
 **Verification:**
 
@@ -428,6 +435,7 @@ flowchart LR
 - [ ] `npm run format:check`
 - [ ] `npm run test` / `npm run test:coverage`
 - [ ] `npm run build`
+- [ ] `npm run test:e2e` (after `npm run build`; required because this slice may modify `app/page.tsx`)
 - [ ] GitHub PR base branch is `main`
 
 **Dependencies:** `visual-prototype` exit criteria met (stakeholder sign-off).
@@ -447,9 +455,9 @@ flowchart LR
 
 **Goal:** Replace Homepage 2: [`app/page.tsx`](app/page.tsx), [`app/styles/home.css`](app/styles/home.css), new [`components/home/*`](components/home/) choreography per architecture. Retain shell, metadata patterns, `id="content"`. Remove legacy [`MethodReveal`](components/home/MethodReveal.tsx) matrix coupling.
 
-**Required in the same PR(s) that change `/` behavior:**
+**Required in the same PR(s) that change `/` behavior** (including any e2e not already updated in `content-and-architecture`):
 
-- Rewrite or replace [`e2e/home-method-reveal.spec.ts`](e2e/home-method-reveal.spec.ts) and home sections of [`e2e/happy-path.spec.ts`](e2e/happy-path.spec.ts) for new DOM/contracts
+- Rewrite or replace [`e2e/home-method-reveal.spec.ts`](e2e/home-method-reveal.spec.ts) and home sections of [`e2e/happy-path.spec.ts`](e2e/happy-path.spec.ts) for the **final** cinematic DOM/contracts
 - Playwright coverage for no-JS settled floor, `prefers-reduced-motion`, focus/print escapes where applicable, client nav remount (GSAP `useGSAP` revert)
 
 May span multiple merge-safe PRs only if **each** PR is shippable (including its e2e delta); prefer a single narrative launch when possible.
@@ -597,9 +605,9 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: domain/homepage.ts, content/homepage.ts, app/page.tsx + tests typecheck-aligned, architecture doc. Mark content-and-architecture completed in plan frontmatter in this PR.
+Deliverables: domain/homepage.ts, content/homepage.ts, app/page.tsx + tests typecheck-aligned, architecture doc. If app/page.tsx markup changes, preserve existing home DOM contracts or update all affected Playwright tests in this PR (no deferral to full-homepage-implement). Mark content-and-architecture completed in plan frontmatter in this PR.
 
-Verification: lint, typecheck, format:check, test:coverage, build per slice Verification.
+Verification: lint, typecheck, format:check, test:coverage, build, test:e2e per slice Verification.
 ```
 
 ### full-homepage-implement
