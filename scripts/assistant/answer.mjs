@@ -155,7 +155,10 @@ export async function main(argv = process.argv.slice(2)) {
     sourceClass: options.sourceClass,
     noRetrieval: options.noRetrieval,
     dryRunRetrieval: options.dryRunRetrieval,
+    executionContext: "cli",
   });
+
+  await result.flushTelemetry();
 
   if (options.dryRunRetrieval) {
     const payload = {

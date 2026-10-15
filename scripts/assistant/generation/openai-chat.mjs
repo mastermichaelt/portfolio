@@ -249,14 +249,24 @@ export async function requestChatCompletionJson(options) {
       if (parsed.finishReason === "length") {
         throw new GenerationParseError(
           "Model output exceeded max_output_tokens (finish_reason=length)",
-          { finish_reason: parsed.finishReason },
+          {
+            failure_category: "output_truncated",
+            finish_reason: parsed.finishReason,
+            max_output_tokens: maxOutputTokens,
+            completion_tokens: parsed.usage.completion_tokens,
+          },
         );
       }
 
       if (parsed.content.length > maxModelResponseJsonChars) {
         throw new GenerationParseError(
           `Model JSON response exceeds max size (${parsed.content.length} > ${maxModelResponseJsonChars} chars)`,
-          { length: parsed.content.length, max: maxModelResponseJsonChars },
+          {
+            failure_category: "output_too_large",
+            length: parsed.content.length,
+            max: maxModelResponseJsonChars,
+            max_output_tokens: maxOutputTokens,
+          },
         );
       }
 
