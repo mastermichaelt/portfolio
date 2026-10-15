@@ -10,6 +10,34 @@ export const OPENAI_CHAT_COMPLETIONS_URL =
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 
 /**
+ * @template T
+ * @param {Promise<T>} promise
+ * @param {number} budgetMs
+ * @param {number} requestTimeoutMs
+ * @returns {Promise<T>}
+ */
+function raceWithReadDeadline(promise, budgetMs, requestTimeoutMs) {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(
+        new Error(`OpenAI chat request timed out after ${requestTimeoutMs}ms`),
+      );
+    }, budgetMs);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
+}
+
+/**
  * End-to-end budget for one chat completion call (all attempts, retries, and body reads).
  *
  * @param {number} requestTimeoutMs
@@ -68,18 +96,11 @@ export function createChatRequestDeadline(requestTimeoutMs) {
     async readJson(response) {
       assertRemaining();
       const budgetMs = remainingMs();
-      const payload = await Promise.race([
+      const payload = await raceWithReadDeadline(
         response.json(),
-        new Promise((_, reject) => {
-          setTimeout(() => {
-            reject(
-              new Error(
-                `OpenAI chat request timed out after ${requestTimeoutMs}ms`,
-              ),
-            );
-          }, budgetMs);
-        }),
-      ]);
+        budgetMs,
+        requestTimeoutMs,
+      );
       assertRemaining();
       return payload;
     },
@@ -89,18 +110,11 @@ export function createChatRequestDeadline(requestTimeoutMs) {
     async readText(response) {
       assertRemaining();
       const budgetMs = remainingMs();
-      const text = await Promise.race([
+      const text = await raceWithReadDeadline(
         response.text(),
-        new Promise((_, reject) => {
-          setTimeout(() => {
-            reject(
-              new Error(
-                `OpenAI chat request timed out after ${requestTimeoutMs}ms`,
-              ),
-            );
-          }, budgetMs);
-        }),
-      ]);
+        budgetMs,
+        requestTimeoutMs,
+      );
       assertRemaining();
       return text;
     },
