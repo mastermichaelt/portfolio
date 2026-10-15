@@ -15,10 +15,10 @@ todos:
     content: "PR: generation eval harness — citation support, abstention, injection, assembly-mode comparison; retrieval-eval unchanged"
     status: pending
   - id: generation-api
-    content: "PR: Next.js server API route — thin adapter over shared service; validation, rate limits, timeouts, safe errors; no client secrets"
+    content: "PR: Next.js server API route — thin adapter over shared service; validation, rate limits, public answer + allowlisted usage object, safe errors; no client secrets"
     status: pending
   - id: generation-ui
-    content: "PR: dedicated /assistant page + nav entry — accessible UI (intro, suggested questions, claims[], citations); reusable components; no floating widget"
+    content: "PR: dedicated /assistant page + nav — claims[], citations, compact per-answer token usage footer; reusable components; no floating widget"
     status: pending
   - id: operational-acceptance
     content: "Manual verification gate — local + deployed E2E on michaeltruong.ai; operator sign-off before public-ready"
@@ -41,6 +41,8 @@ isProject: false
 
 **Plan amendment (2026-10-16, initial UI placement):** Ship the milestone assistant on a **dedicated `/assistant` route** with a **primary navigation entry** — a deliberate portfolio destination, not a site-wide floating chat widget. Interaction components must stay **reusable** for a future homepage integration; **AI-first homepage composition is deferred** (documented in [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md)). This amendment does not expand `generation-ui` into a homepage redesign.
 
+**Plan amendment (2026-10-16, visitor-visible token usage):** Expose **OpenAI-reported** model and token counts to visitors on successful `/assistant` answers (compact usage footer). The **`generation-api`** slice returns an explicit, allowlisted `usage` object alongside the public answer; **`generation-ui`** renders it using portfolio design conventions informed by [Codenames AI](https://codenames-ai.com) per-turn token display (muted secondary typography, locale-formatted counts, omit when unavailable). **Server-side PostHog** telemetry (operator tooling) remains independent — no duplicate browser analytics for tokens. Internal `diagnostics` stay server/CLI-only.
+
 This document amends the active plan in place; do not fork a competing plan.
 
 **Direction (design background):** [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md)
@@ -53,21 +55,22 @@ This document amends the active plan in place; do not fork a competing plan.
 
 Preserve unless a future plan amendment explicitly revises them.
 
-| Topic                  | Decision                                                                                                                                                                                                                                                                                    |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Chat model             | `gpt-4o-mini` default (`ASSISTANT_GENERATION_MODEL` override); **native fetch** Chat Completions (mirror embeddings adapter); no LangChain/LlamaIndex                                                                                                                                       |
-| Shared service         | **One** RAG generation implementation: query validation → retrieve → assemble → generate → parse → citation integrity → abstention/diagnostics. **`assistant:answer` CLI and App Router API route are thin adapters** — no shell-out, no duplicate generation paths                         |
-| Default assembly       | **Bounded full-parent** at **OKF concept** boundary (`okf_concept_id`); Postgres-backed parent units                                                                                                                                                                                        |
-| Eval baseline assembly | `top_k_only` (non-default for operators/eval)                                                                                                                                                                                                                                               |
-| Generation retrieve K  | Default **10** (`--top-k` / service default); retrieve CLI default **5** unchanged                                                                                                                                                                                                          |
-| Budget                 | Truncate **unmatched** chunks only, or **`EvidenceBudgetExceeded`** — never silently drop top-K matched units                                                                                                                                                                               |
-| Generation philosophy  | **Evidence-aware** — general technical knowledge allowed; **personal/professional facts about Michael** require corpus grounding or explicit uncertainty; model-declared attribution is observable output, not proof of internal reasoning                                                  |
-| Citations              | **Integrity** (deterministic: `evidence_id`, `unit_id`, approved URLs) in contract + runtime; **support** and **attribution accuracy** (semantic) in generation-eval only — structural validity ≠ factual support                                                                           |
-| Response contract      | Model: ordered nonempty **`claims[]`** + **`support_level`** (evidence coverage) + **`abstained`** / **`abstention_reason`** when refusing; service derives **`answer_text`** and deduped **`citations[]`** — see [Contract amendment (generation-cli)](#contract-amendment-generation-cli) |
-| Resource bounds        | Configurable evidence char budget (120k = **dev default**), approximate prompt token cap, max output tokens, timeouts, max question/body size — no tokenizer-exact budgeting this milestone                                                                                                 |
-| Eval baselines         | **`no_retrieval`** (model-only), **`top_k_only`**, **`full_parent`** — `no_retrieval` is eval-only, not production architecture                                                                                                                                                             |
-| Index + corpus         | **Neon pgvector** + existing operator-controlled `okf:build` → `assistant:ingest` workflow; no automatic corpus updates                                                                                                                                                                     |
-| Deployment target      | **michaeltruong.ai** (Vercel production); server-only `DATABASE_URL`, `OPENAI_API_KEY`, and generation config                                                                                                                                                                               |
+| Topic                  | Decision                                                                                                                                                                                                                                                                                                |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chat model             | `gpt-4o-mini` default (`ASSISTANT_GENERATION_MODEL` override); **native fetch** Chat Completions (mirror embeddings adapter); no LangChain/LlamaIndex                                                                                                                                                   |
+| Shared service         | **One** RAG generation implementation: query validation → retrieve → assemble → generate → parse → citation integrity → abstention/diagnostics. **`assistant:answer` CLI and App Router API route are thin adapters** — no shell-out, no duplicate generation paths                                     |
+| Default assembly       | **Bounded full-parent** at **OKF concept** boundary (`okf_concept_id`); Postgres-backed parent units                                                                                                                                                                                                    |
+| Eval baseline assembly | `top_k_only` (non-default for operators/eval)                                                                                                                                                                                                                                                           |
+| Generation retrieve K  | Default **10** (`--top-k` / service default); retrieve CLI default **5** unchanged                                                                                                                                                                                                                      |
+| Budget                 | Truncate **unmatched** chunks only, or **`EvidenceBudgetExceeded`** — never silently drop top-K matched units                                                                                                                                                                                           |
+| Generation philosophy  | **Evidence-aware** — general technical knowledge allowed; **personal/professional facts about Michael** require corpus grounding or explicit uncertainty; model-declared attribution is observable output, not proof of internal reasoning                                                              |
+| Citations              | **Integrity** (deterministic: `evidence_id`, `unit_id`, approved URLs) in contract + runtime; **support** and **attribution accuracy** (semantic) in generation-eval only — structural validity ≠ factual support                                                                                       |
+| Response contract      | Model: ordered nonempty **`claims[]`** + **`support_level`** (evidence coverage) + **`abstained`** / **`abstention_reason`** when refusing; service derives **`answer_text`** and deduped **`citations[]`** — see [Contract amendment (generation-cli)](#contract-amendment-generation-cli)             |
+| Visitor-visible usage  | **`generation-api`** returns allowlisted **`usage`** (`model`, OpenAI `prompt_tokens`, `completion_tokens`, optional `total_tokens`) on **successful** responses only; omit fields when unavailable — **never** coerce missing counts to zero; **no** prompt/evidence/diagnostics in the client payload |
+| Resource bounds        | Configurable evidence char budget (120k = **dev default**), approximate prompt token cap, max output tokens, timeouts, max question/body size — no tokenizer-exact budgeting this milestone                                                                                                             |
+| Eval baselines         | **`no_retrieval`** (model-only), **`top_k_only`**, **`full_parent`** — `no_retrieval` is eval-only, not production architecture                                                                                                                                                                         |
+| Index + corpus         | **Neon pgvector** + existing operator-controlled `okf:build` → `assistant:ingest` workflow; no automatic corpus updates                                                                                                                                                                                 |
+| Deployment target      | **michaeltruong.ai** (Vercel production); server-only `DATABASE_URL`, `OPENAI_API_KEY`, and generation config                                                                                                                                                                                           |
 
 ## Recommended execution authority
 
@@ -233,7 +236,7 @@ Resource controls are **server-side**; the browser is untrusted.
 - **Per-client limits** — IP- or fingerprint-based request budget (e.g. requests per minute/hour/day) enforced in the API route or edge middleware compatible with **Vercel Fluid Compute** (multiple instances). **Do not rely solely on in-memory counters** — use a **durable shared store** (e.g. Vercel KV / Upstash Redis, or Postgres-backed counters on the assistant DB) so limits hold across instances and cold starts.
 - **Global safeguards** — OpenAI project budget/alerts (existing operator practice); optional daily cap on generation calls logged in durable store; fail closed with a safe public error when limits trip.
 - **Request bounds** — max question length, max JSON body size, server timeouts aligned with platform limits (Node Fluid Compute default duration).
-- **Response bounds** — never return raw evidence packets, embedding vectors, SQL errors, stack traces, or API keys; map `EvidenceBudgetExceeded` and validation failures to stable client messages.
+- **Response bounds** — never return raw evidence packets, embedding vectors, SQL errors, stack traces, or API keys; map `EvidenceBudgetExceeded` and validation failures to stable client messages. **Allowlisted exception:** public **`usage`** token fields on successful generation (see `generation-api`); not internal `diagnostics`, budgets, or utilization percentages.
 - **Secrets** — `DATABASE_URL`, `OPENAI_API_KEY`, and generation overrides **server-only** (Vercel env); never `NEXT_PUBLIC_*` for credentials.
 
 **Runtime:** App Router route on default **Node.js** runtime (Fluid Compute); no Edge-only APIs required for pgvector access. Document deployment env in [assistant-database.md](../../docs/assistant/assistant-database.md) when `generation-api` lands.
@@ -338,15 +341,41 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 - Server-only secrets and configuration.
 - **Rate limiting** and usage controls per [Public deployment requirements](#public-deployment-requirements-api--production).
 - Timeouts and safe error mapping for clients.
+- **Public response envelope** — separate the visitor answer from optional usage metadata (illustrative shape; reconcile field names with the shipped `AssistantGenerationResponse` contract):
+
+```json
+{
+  "answer": {
+    "claims": [],
+    "answer_text": "...",
+    "citations": [],
+    "support_level": "full",
+    "abstained": false
+  },
+  "usage": {
+    "model": "gpt-4o-mini",
+    "prompt_tokens": 1842,
+    "completion_tokens": 326,
+    "total_tokens": 2168
+  }
+}
+```
+
+- **`usage` sourcing** — populate from **OpenAI Chat Completions `usage`** returned by the shared service (`prompt_tokens`, `completion_tokens`, `total_tokens`, resolved `model`). Do **not** expose approximate prompt-budget estimates, `output_token_utilization`, or other heuristic diagnostics.
+- **`usage` allowlist** — only `model`, `prompt_tokens`, `completion_tokens`, and `total_tokens` may appear in the client payload. Each field is **optional** when unavailable; **omit** the field or the entire `usage` object — do **not** send `0` as a placeholder for missing OpenAI counts.
+- **Failure responses** — stable error codes/messages only; **no** `usage` on failed, timed-out, truncated, or partial generations.
+- **Diagnostics boundary** — `runRagGeneration` `diagnostics` (latencies, attribution counts, internal budgets) remain **server/operator-only**; the API adapter maps the allowlisted subset into `usage` for successful responses only.
 - Tests: route handler unit tests with mocked service; no live keys in CI.
 
 **Dependencies:** `generation-cli` merged (`generation-eval` may land in parallel only if merge-safe; prefer **eval after CLI**, **API after CLI**).
 
 **Acceptance:**
 
-- Route returns public-safe JSON (`claims[]`, derived `answer_text`, derived `citations[]`, `support_level`, `abstained`, `abstention_reason` when applicable, stable error codes); **no** raw evidence packets, embeddings, or internal diagnostics unless explicitly safe.
+- Successful `200` responses return `answer` with public-safe fields (`claims[]`, derived `answer_text`, derived `citations[]`, `support_level`, `abstained`, `abstention_reason` when applicable) plus allowlisted `usage` when OpenAI usage is available.
+- Handler tests assert **no** raw evidence packets, embeddings, prompts, secrets, stack traces, or full `diagnostics` in JSON; negative test for disallowed diagnostic keys.
+- Handler tests assert missing OpenAI usage omits `usage` or individual fields without zero-filling.
 - Service integration test or handler test proves no duplicate generation implementation.
-- Document production env vars and limits in assistant-database or dedicated assistant API doc section.
+- Document production env vars, response envelope, and limits in assistant-database or dedicated assistant API doc section.
 
 **PR boundary:** API route + server wiring + tests + docs; no UI slice work.
 
@@ -366,10 +395,11 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 - **Route:** `app/assistant/page.tsx` (or equivalent App Router page) at `/assistant`.
 - **Discovery:** Add a discoverable entry in **primary site navigation** (e.g. extend [lib/nav.ts](../../lib/nav.ts) / [SiteHeader.tsx](../../components/SiteHeader.tsx) — label TBD in implementation, e.g. “Assistant”).
-- **Page content:** Concise introduction explaining what visitors can ask; a small curated **suggested-questions** set; question input; loading states; answer rendering from canonical **`claims[]`** (attribution + per-claim citations; same shape as API); **clickable evidence citations** (public URLs from citation metadata); error surfaces; abstention and **`uncertain`** / qualification messaging when `abstained` or attribution warrants it; **safe rendering** of model-generated text (no raw HTML injection). Do not render a divergent prose path from `answer_text` alone.
-- **Component architecture:** Extract reusable assistant interaction components (input, message/claim list, citation links, suggested prompts, status states) so the same experience can later integrate into the homepage **without rebuilding** — **homepage integration is out of scope for this slice**.
+- **Page content:** Concise introduction explaining what visitors can ask; a small curated **suggested-questions** set; question input; loading states; answer rendering from canonical **`claims[]`** (attribution + per-claim citations; same shape as API `answer`); **clickable evidence citations** (public URLs from citation metadata); error surfaces; abstention and **`uncertain`** / qualification messaging when `abstained` or attribution warrants it; **safe rendering** of model-generated text (no raw HTML injection). Do not render a divergent prose path from `answer_text` alone.
+- **Per-answer usage footer (successful generations only):** Compact, visually secondary line beneath the answer and citations — model display name + input/output token counts from API `usage` (actual OpenAI-reported values). Example copy pattern: `GPT-4o mini · 1,842 input tokens · 326 output tokens`. Use `toLocaleString()` (or equivalent) for readability. **Reference (behaviour, not a shared component):** Codenames AI shows per-turn usage inline in clue history (`clue-history__tokens` — smaller muted type, `· N tokens` suffix, richer breakdown in `title` + `sr-only`; omits the block when `usage` is absent; cumulative game badge uses pill styling). Portfolio should adapt those conventions to [design-system.md](../../docs/design-system.md) tokens — secondary/muted text, responsive wrapping on narrow viewports, `cursor: help` optional for expanded detail in `title` only.
+- **Component architecture:** Extract reusable assistant interaction components (input, message/claim list, citation links, suggested prompts, status states, **usage footer**) so the same experience can later integrate into the homepage **without rebuilding** — **homepage integration is out of scope for this slice**.
 
-**Non-goals:** Site-wide **floating chat widget**; homepage replacement or redesign; cinematic homepage work; thread history or conversational memory; streaming; new design system; heavy chat framework dependencies; agentic tool execution; retrieval or generation architecture changes; eval harness changes.
+**Non-goals:** Site-wide **floating chat widget**; homepage replacement or redesign; cinematic homepage work; thread history or conversational memory; streaming; new design system; heavy chat framework dependencies; agentic tool execution; retrieval or generation architecture changes; eval harness changes; **browser PostHog events** for token usage; displaying prompt budgets, max output ceilings, utilization %, retries, or internal diagnostics; **estimated** token counts presented as actual usage; usage footers on failed/incomplete answers.
 
 **Dependencies:** `generation-api` merged (or same PR only if truly merge-safe — **prefer separate PR**).
 
@@ -379,8 +409,9 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 - **`/assistant`** is live in the app router and reachable on production after deploy; **primary nav** includes a clear link to it.
 - Page feels like part of the portfolio (tokens, spacing, typography, existing components) — not a third-party chat embed.
-- Full interaction loop: intro → suggested question or typed question → loading → **`claims[]`** rendering with claim-level attribution → clickable citations → API errors and abstention/uncertainty copy handled gracefully.
-- Uses existing tokens/components ([design-system.md](../../docs/design-system.md)); calls API route only; no secrets in client bundle.
+- Full interaction loop: intro → suggested question or typed question → loading → **`claims[]`** rendering with claim-level attribution → clickable citations → **usage footer when API returns `usage`** → API errors and abstention/uncertainty copy handled gracefully (no usage footer on errors).
+- Usage footer uses **only** API `usage` fields; gracefully omits the footer or individual metrics when absent; never shows `0` for missing counts; does not show `total_tokens` alone if input/output are required for the chosen layout (prefer input + output when available).
+- Uses existing tokens/components ([design-system.md](../../docs/design-system.md)); calls API route only; no secrets in client bundle; **no** client-side PostHog capture for generation tokens (server telemetry remains operator-facing).
 - Reusable assistant components are structured for future homepage embedding (no floating widget).
 - Basic a11y: labels, focus order, keyboard use, `prefers-reduced-motion` respect; responsive layout (mobile + desktop).
 - Playwright or component tests where practical; manual mobile check documented in PR.
@@ -402,7 +433,7 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 **Procedure (expanded):**
 
 - **Local:** ~12–15 `assistant:answer` runs (`full_parent`); 3–4 `top_k_only` and 2–3 `no_retrieval` eval comparisons; tokens, resource bounds, `EvidenceBudgetExceeded`, citation-support and attribution spot checks.
-- **Deployed:** E2E on production/preview — evidence-backed vs general-knowledge answers, citation links, abstention on unsupported personal questions, **rate limit** and quota behavior, timeout/error surfaces, mobile layout, latency and cost sanity.
+- **Deployed:** E2E on production/preview — evidence-backed vs general-knowledge answers, citation links, abstention on unsupported personal questions, **per-answer token usage footer** on successful responses, **rate limit** and quota behavior, timeout/error surfaces (no misleading usage on failures), mobile layout, latency and cost sanity.
 - **Cost:** confirm OpenAI project budget/alerts; note observed usage band against configured max tokens and rate limits.
 - **Sign-off:** explicit operator approval recorded in findings (no fabricated metrics).
 
@@ -467,7 +498,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: Next.js server API route calling the shared RAG generation service (no CLI shell-out); request validation, durable rate limiting strategy, timeouts, safe client errors; tests + deployment docs. Mark generation-api completed in plan frontmatter in this PR.
+Deliverables: Next.js server API route calling the shared RAG generation service (no CLI shell-out); request validation, durable rate limiting strategy, timeouts, safe client errors; public response envelope with allowlisted usage object on success (OpenAI-reported tokens only; diagnostics stay server-side); tests + deployment docs. Mark generation-api completed in plan frontmatter in this PR.
 
 Verification: npm run test; npm run lint; npm run typecheck; npm run format:check; manual route test against local dev with server env vars.
 ```
@@ -483,7 +514,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: dedicated /assistant page on michaeltruong.ai with primary-nav entry; standalone responsive accessible assistant UI (intro, suggested questions, input, loading/errors, canonical claims[] rendering with attribution, clickable citations, abstention/uncertainty messaging, safe text rendering) using existing portfolio design conventions; reusable assistant interaction components (no site-wide floating chat widget; no homepage redesign — future homepage integration is deferred). Client calls generation API only. Mark generation-ui completed in plan frontmatter in this PR.
+Deliverables: dedicated /assistant page on michaeltruong.ai with primary-nav entry; standalone responsive accessible assistant UI (intro, suggested questions, input, loading/errors, canonical claims[] rendering with attribution, clickable citations, compact per-answer token usage footer on success, abstention/uncertainty messaging, safe text rendering) using existing portfolio design conventions (Codenames AI token-display patterns as behavioural reference only); reusable assistant interaction components (no site-wide floating chat widget; no homepage redesign — future homepage integration is deferred). Client calls generation API only; no browser PostHog token events. Mark generation-ui completed in plan frontmatter in this PR.
 
 Non-goals: homepage replacement, cinematic homepage, streaming, chat memory/history, agentic tools, new design system, heavy chat framework, retrieval architecture changes.
 
