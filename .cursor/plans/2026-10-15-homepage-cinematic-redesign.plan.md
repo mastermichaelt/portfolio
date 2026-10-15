@@ -209,12 +209,12 @@ Home styles: [`app/styles/home.css`](app/styles/home.css) (breakpoint `--home2-b
 
 ### Replace / restructure (your stated direction)
 
-| Asset                                                                                     | Verdict                                                                                                                                                                               |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`domain/homepage.ts`](domain/homepage.ts) + [`content/homepage.ts`](content/homepage.ts) | **Replace schema** — move from matrix/channels/continuity/routes to scroll-chapter narrative model (beats, optional inline CTAs to `/projects`, `/articles`, `/about`, `/ecosystem`). |
-| [`app/page.tsx`](app/page.tsx) markup                                                     | **Replace** section structure; keep repository fetch pattern and home `metadata`.                                                                                                     |
-| [`components/home/MethodReveal.tsx`](components/home/MethodReveal.tsx)                    | **Replace** with new client choreography (or multiple scene components).                                                                                                              |
-| [`app/styles/home.css`](app/styles/home.css)                                              | **Replace** (large delete/rename acceptable; avoid breaking global tokens in [`app/styles/tokens.css`](app/styles/tokens.css)).                                                       |
+| Asset                                                                                     | Verdict                                                                                                                                                                                                                                                                                                                                                           |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`domain/homepage.ts`](domain/homepage.ts) + [`content/homepage.ts`](content/homepage.ts) | **Replace schema** — move from matrix/channels/continuity/routes to scroll-chapter narrative model (beats, optional inline CTAs to `/projects`, `/articles`, `/about`, `/ecosystem`).                                                                                                                                                                             |
+| [`app/page.tsx`](app/page.tsx) markup                                                     | **Replace** section structure; keep repository fetch pattern and home `metadata`.                                                                                                                                                                                                                                                                                 |
+| [`components/home/MethodReveal.tsx`](components/home/MethodReveal.tsx)                    | **Two-slice replacement (not one PR):** `content-and-architecture` removes matrix-era `MethodReveal` usage from production `/` and ships **static** chapter markup only — **no cinematic GSAP in Phase D**. `full-homepage-implement` introduces the final GSAP scroll choreography (new client module(s) per architecture doc).                                  |
+| [`app/styles/home.css`](app/styles/home.css)                                              | **Slice-owned styling:** `content-and-architecture` adds static scroll-chapter layout styles for the SSR floor. `full-homepage-implement` adds cinematic motion styling and removes obsolete legacy homepage rules (e.g. `.home2-matrix`, route grid) superseded by the new home. Do not break global tokens in [`app/styles/tokens.css`](app/styles/tokens.css). |
 
 ### Preserve or reuse
 
@@ -469,6 +469,12 @@ Docs-only slices (`creative-three-concepts`, `plan-closure`) and the **human gat
 
 **Goal:** Layer **cinematic** GSAP/WebGL choreography and visual refinement on the **static** home shipped in `content-and-architecture`: [`app/styles/home.css`](app/styles/home.css) motion styling, new [`components/home/*`](components/home/) client choreography per architecture. Retain shell, metadata patterns, `id="content"`. Do not re-open domain/content unless a merge-safe fix is required.
 
+**Deliver in this slice (same PR unless noted):**
+
+1. Cinematic GSAP/WebGL choreography and visual refinement on `/` per architecture and prototype sign-off.
+2. Motion styling and cleanup of obsolete legacy homepage CSS superseded by the new experience.
+3. **Prototype teardown at launch:** remove the temporary `visual-prototype` experiment route (e.g. `/experiments/home-hero-prototype`), its dedicated assets, and prototype-only Playwright coverage — unless that route was **deliberately promoted** into the production architecture (document in PR if retained).
+
 **Required in the same PR(s) that introduce runtime behavior or DOM changes:**
 
 - Update Playwright (and any unit tests) for **cinematic** contracts: scroll choreography, optional WebGL, no-JS settled floor, `prefers-reduced-motion`, focus/print escapes, client nav remount (GSAP `useGSAP` revert)
@@ -476,7 +482,7 @@ Docs-only slices (`creative-three-concepts`, `plan-closure`) and the **human gat
 
 May span multiple merge-safe PRs only if **each** PR is shippable (including its e2e delta); prefer a single narrative launch when possible.
 
-**Acceptance:** Cinematic homepage matches architecture and prototype sign-off; CI e2e job passes on the PR branch with motion/a11y coverage from this slice.
+**Acceptance:** Cinematic homepage matches architecture and prototype sign-off; CI e2e job passes on the PR branch with motion/a11y coverage from this slice; no orphaned visual-prototype experiment route, assets, or prototype-only tests remain on `main` unless explicitly promoted and documented.
 
 **Verification:**
 
@@ -635,7 +641,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: cinematic GSAP/WebGL choreography and visual refinement on static home from content-and-architecture; update Playwright/unit tests for motion and DOM this slice introduces (same PR). Mark full-homepage-implement completed in plan frontmatter in this PR.
+Deliverables: cinematic GSAP/WebGL choreography and visual refinement on static home from content-and-architecture; remove visual-prototype experiment route, related assets, and prototype-only tests unless deliberately promoted into production; update Playwright/unit tests for motion and DOM this slice introduces (same PR). Mark full-homepage-implement completed in plan frontmatter in this PR.
 
 Verification: lint, typecheck, format:check, test:coverage, build, test:e2e per slice Verification.
 ```
