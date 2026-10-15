@@ -3,7 +3,9 @@ import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
 
 /**
- * Singularity Wake visual prototype (Concept D, scenes I–II).
+ * Singularity Wake visual prototype (Concept D, scenes I–II only).
+ * Scene III (Passage / tunnel opening) is intentionally deferred — see
+ * `SingularityPrototype` module doc.
  *
  * **SSR floor:** With JavaScript disabled or under `prefers-reduced-motion`, the
  * route renders resolved hero copy and a center amber mark (desktop) or static

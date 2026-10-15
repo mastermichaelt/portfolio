@@ -10,6 +10,7 @@ import {
   armSingularityScroll,
   sceneAtProgress,
 } from "./singularity-choreography";
+import { sceneLabelAtProgress } from "./singularity-visual-rig";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -27,6 +28,10 @@ export interface SingularityPrototypeProps {
 /**
  * Singularity Wake visual prototype — Scene I (Point) + Scene II (Wake) only.
  *
+ * **Not in this PR:** Scene III (Passage) tunnel opening — particle boundary
+ * deformation and wall-riding copy remain for a later slice; current WebGL
+ * proves vortex + camera dive on a static torus-like point cloud.
+ *
  * SSR floor (no JS / reduced motion): resolved copy + center amber mark; no pin,
  * no canvas. Motion arms only under `(prefers-reduced-motion: no-preference)` on
  * desktop-wide viewports; mobile uses static plates (concept §6).
@@ -38,10 +43,20 @@ export function SingularityPrototype({
 }: SingularityPrototypeProps) {
   const rootRef = useRef<HTMLElement>(null);
   const progressRef = useRef(0);
-  const [progress, setProgress] = useState(0);
+  const sceneLabelRef = useRef<HTMLParagraphElement>(null);
   const [showCanvas, setShowCanvas] = useState(false);
 
-  const { scene, local } = sceneAtProgress(progress);
+  const applyProgress = (p: number) => {
+    progressRef.current = p;
+    const root = rootRef.current;
+    if (root) {
+      const { scene } = sceneAtProgress(p);
+      root.dataset.singularityScene = scene;
+      root.dataset.singularityProgress = p.toFixed(4);
+    }
+    const label = sceneLabelRef.current;
+    if (label) label.textContent = sceneLabelAtProgress(p);
+  };
 
   useGSAP(
     () => {
@@ -71,10 +86,7 @@ export function SingularityPrototype({
             setShowCanvas(true);
             teardownScroll = armSingularityScroll(root, {
               scrollVh: 420,
-              onProgress: (p) => {
-                progressRef.current = p;
-                setProgress(p);
-              },
+              onProgress: applyProgress,
             });
             return;
           }
@@ -98,7 +110,8 @@ export function SingularityPrototype({
     <article
       ref={rootRef}
       className="sw-proto"
-      data-singularity-scene={scene}
+      data-singularity-scene="point"
+      data-singularity-progress="0.0000"
       aria-label="Singularity Wake cinematic prototype"
     >
       <p className="sw-proto__banner">
@@ -137,10 +150,12 @@ export function SingularityPrototype({
             <p className="sw-proto__kicker">{name}</p>
             <h1 className="sw-proto__title">{title}</h1>
             <p className="sw-proto__lead">{lead}</p>
-            <p className="sw-proto__scene-label" data-sw-scene-label="">
-              {scene === "point"
-                ? "Scene I — Point"
-                : `Scene II — Wake · ${Math.round(local * 100)}%`}
+            <p
+              ref={sceneLabelRef}
+              className="sw-proto__scene-label"
+              data-sw-scene-label=""
+            >
+              Scene I — Point
             </p>
           </div>
         </div>

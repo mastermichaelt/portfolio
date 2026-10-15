@@ -70,8 +70,16 @@ export function armSingularityScroll(
   scope.dataset.singularityProto = "armed";
   options.onProgress(0);
 
+  const st = tween.scrollTrigger;
+  if (st) {
+    scope.dataset.singularityScrollStart = String(st.start);
+    scope.dataset.singularityScrollEnd = String(st.end);
+  }
+
   return () => {
     delete scope.dataset.singularityProto;
+    delete scope.dataset.singularityScrollStart;
+    delete scope.dataset.singularityScrollEnd;
     tween.scrollTrigger?.kill();
     tween.kill();
   };

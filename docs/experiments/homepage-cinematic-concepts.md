@@ -1,6 +1,6 @@
 # Homepage cinematic concepts
 
-**Status:** **Concept D — Singularity Wake** selected (`creative-direction-select` complete, 2026-10-16). **Visual prototype** at `/experiments/home-hero-prototype` (Scene I–II; see slice `visual-prototype` in [plan](../../.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md)).  
+**Status:** **Concept D — Singularity Wake** selected (`creative-direction-select` complete, 2026-10-16). **Visual prototype** at `/experiments/home-hero-prototype` implements **Scene I–II only** (Point → Wake vortex; not Scene III Passage / tunnel deformation yet). Playwright clips at fixed scroll progress: `e2e/singularity-prototype.spec.ts-snapshots/` (Linux canonical for CI). Plan: [visual-prototype](../../.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md).  
 **Plan:** [`.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md`](../../.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md)  
 **Polish references:** [webfueled.dev](https://webfueled.dev) (scroll confidence, typographic scale over cinematic stills); [GetLayers — New Era](https://www.getlayers.ai/layer/new-era) (particle/WebGL scroll spectacle — see inspection below)  
 **Motion runtime (implementation):** GSAP + ScrollTrigger only ([`AGENTS.md`](../../AGENTS.md)); R3F/three/shaders as render layers synced to ScrollTrigger timelines, never a second scroll system.

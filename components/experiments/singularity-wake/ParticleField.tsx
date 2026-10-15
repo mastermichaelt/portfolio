@@ -4,8 +4,11 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, type RefObject } from "react";
 import type { Group } from "three";
 import { AdditiveBlending } from "three";
-import { sceneAtProgress } from "./singularity-choreography";
 import { createSingularityParticleGeometry } from "./create-particle-geometry";
+import { rigAtProgress } from "./singularity-visual-rig";
+
+/** Scroll-coupled shimmer (not time-integrated) so scrub rewind is pixel-stable. */
+const AMBIENT_DRIFT_AMPLITUDE = 0.028;
 
 export function ParticleField({
   progressRef,
@@ -16,30 +19,28 @@ export function ParticleField({
 
   const geometry = useMemo(() => createSingularityParticleGeometry(), []);
 
-  useFrame((state, delta) => {
+  useFrame(({ camera }) => {
     const group = groupRef.current;
     if (!group) return;
 
     const progress = progressRef.current ?? 0;
-    const { scene, local } = sceneAtProgress(progress);
+    const rig = rigAtProgress(progress);
+    const ambient = Math.sin(progress * 42.7) * AMBIENT_DRIFT_AMPLITUDE;
 
-    const birth = scene === "point" ? 0.08 + local * 0.92 : 1;
-    const turbulence = scene === "wake" ? local : local * 0.25;
-    const dive = scene === "wake" ? local : 0;
+    group.rotation.set(rig.rotationX, rig.rotationY + ambient, rig.rotationZ);
+    group.scale.setScalar(rig.scale);
+    group.position.set(
+      rig.groupPosition.x,
+      rig.groupPosition.y,
+      rig.groupPosition.z,
+    );
 
-    group.rotation.y += delta * (0.15 + turbulence * 1.4);
-    group.rotation.x = 0.25 + turbulence * 0.9;
-    group.rotation.z = Math.sin(progress * Math.PI * 2) * 0.12;
-
-    const scale = birth * (1 + turbulence * 0.35);
-    group.scale.setScalar(scale);
-    group.position.z = dive * 1.6;
-    group.position.y = -dive * 0.35;
-
-    const cam = state.camera;
-    cam.position.z = 5.2 - dive * 2.2;
-    cam.position.y = -0.12 + dive * 0.45;
-    cam.position.x = Math.sin(progress * Math.PI) * 0.22;
+    const cam = camera;
+    cam.position.set(
+      rig.cameraPosition.x,
+      rig.cameraPosition.y,
+      rig.cameraPosition.z,
+    );
     cam.lookAt(0, 0, 0);
   });
 
