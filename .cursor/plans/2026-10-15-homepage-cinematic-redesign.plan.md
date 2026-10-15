@@ -3,7 +3,7 @@ name: Homepage cinematic redesign
 overview: Repository assessment and engineering guardrails for replacing Homepage 2 with a cinematic scroll narrative—preceded by a substantial creative phase (three Impeccable-backed concepts, direction selection, visual prototype) before content model or full implementation.
 todos:
   - id: creative-three-concepts
-    content: "Plan-only or docs PR: three distinct cinematic concepts + storyboards (Impeccable + scroll-craft methodology); GSAP/WebGL/CSS split per concept; webfueled.dev polish bar"
+    content: "Docs PR: three distinct cinematic concepts + storyboards (Impeccable + scroll-craft methodology); GSAP/WebGL/CSS split per concept; webfueled.dev polish bar"
     status: pending
   - id: creative-direction-select
     content: "Human gate: select one concept (record decision + rationale in plan or docs/experiments/)"
@@ -12,13 +12,13 @@ todos:
     content: "PR: isolated hero + first scroll transition; screenshot + browser review; iterate composition/type/motion/lighting"
     status: pending
   - id: content-and-architecture
-    content: "PR: finalize domain/homepage.ts, content, choreography architecture, SSR/a11y floor spec from chosen direction"
+    content: "PR: domain/homepage.ts + content/homepage.ts + app/page.tsx typecheck alignment + architecture doc (merge-safe; no orphaned schema)"
     status: pending
   - id: full-homepage-implement
-    content: "PR(s): complete homepage per architecture; GSAP ScrollTrigger authoritative; lazy WebGL only if prototype proved it"
+    content: "PR(s): complete homepage + required Playwright e2e/happy-path updates in the same PR(s) that change / behavior"
     status: pending
   - id: production-hardening
-    content: "PR: e2e/regression, reduced-motion/no-JS/print, performance budget, optional OKF corpus + PostHog chapter events"
+    content: "PR: performance budget, Lighthouse spot-check, optional OKF corpus + PostHog chapter events (e2e not deferred here)"
     status: pending
   - id: plan-closure
     content: "Docs-only PR: # Shipped note, archive plan under .cursor/plans/archive/, mark plan-closure completed"
@@ -28,19 +28,35 @@ isProject: false
 
 # Homepage cinematic redesign
 
-Repository assessment (below) is **Phase 0 — frozen findings**. All implementation flows through **Phases A → F** in [Execution sequence (revised)](#execution-sequence-revised).
+**Goal:** Replace Homepage 2 with a cinematic scroll narrative after creative direction, prototype validation, and merge-safe staged implementation. Repository assessment below is **Phase 0 — frozen findings**; executable work follows the [slices](#execution-slices) in order.
 
 ## Recommended execution authority
 
-| Slice                       | Authority    | Agent instruction                                                         |
-| --------------------------- | ------------ | ------------------------------------------------------------------------- |
-| `creative-three-concepts`   | Plan-only PR | Design doc only; no production homepage or schema changes. Stop after PR. |
-| `creative-direction-select` | Human gate   | Record decision; no agent implementation.                                 |
-| `visual-prototype`          | Open PR only | Hero + first transition only. Stop after PR.                              |
-| `content-and-architecture`  | Open PR only | After prototype approval. Stop after PR.                                  |
-| `full-homepage-implement`   | Open PR only | After architecture merged. Stop after PR.                                 |
-| `production-hardening`      | Open PR only | E2E + hardening. Stop after PR.                                           |
-| `plan-closure`              | Open PR only | Docs-only archive. Stop after PR.                                         |
+| Slice                       | Recommended authority | Agent instruction                                      |
+| --------------------------- | --------------------- | ------------------------------------------------------ |
+| `creative-three-concepts`   | Open PR only          | Do not merge. Stop after opening the PR.               |
+| `creative-direction-select` | Human gate            | Human decision only; agents do not execute this slice. |
+| `visual-prototype`          | Open PR only          | Do not merge. Stop after opening the PR.               |
+| `content-and-architecture`  | Open PR only          | Do not merge. Stop after opening the PR.               |
+| `full-homepage-implement`   | Open PR only          | Do not merge. Stop after opening the PR.               |
+| `production-hardening`      | Open PR only          | Do not merge. Stop after opening the PR.               |
+| `plan-closure`              | Open PR only          | Do not merge. Stop after opening the PR.               |
+
+Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+
+Per-slice rationale and verification details are in each slice section below.
+
+## Repository topology (default)
+
+Multi-slice plans stack **execution order**, not Git branches. Integration branch: **`main`**.
+
+**Before each implementation slice:** `git fetch` → fresh branch from `origin/main`.
+
+**Before opening a PR:** branch contains **only** that slice’s changes; prior-slice work is on `main`, not via branch ancestry.
+
+**After opening a PR:** PR base is `main`; diff has no prior-slice work except through merged `main`.
+
+On mismatch: stop; do not continue on that PR.
 
 ---
 
@@ -228,9 +244,9 @@ Cross-check claims against sibling [`resumes/`](file:///Users/michaeltruong/code
 
 ---
 
-## Execution sequence (revised)
+## Execution overview
 
-Engineering guardrails above (SSR floor, reduced motion, focus/print escapes, SEO, shell nav, `useGSAP` lifecycle, tests) apply to **all** implementation phases. **Do not** finalize [`domain/homepage.ts`](domain/homepage.ts), [`content/homepage.ts`](content/homepage.ts), or production route markup until **after** creative direction selection and visual prototype validation.
+Engineering guardrails above (SSR floor, reduced motion, focus/print escapes, SEO, shell nav, `useGSAP` lifecycle, tests) apply to **all** implementation slices. **Do not** finalize [`domain/homepage.ts`](domain/homepage.ts), [`content/homepage.ts`](content/homepage.ts), or production route markup until **after** `creative-direction-select` and `visual-prototype` exit criteria pass.
 
 ```mermaid
 flowchart LR
@@ -244,21 +260,35 @@ flowchart LR
   assess --> concepts --> select --> proto --> arch --> ship --> harden
 ```
 
-| Phase | Goal                     | Primary output                                 | Authority                              |
-| ----- | ------------------------ | ---------------------------------------------- | -------------------------------------- |
-| **0** | Baseline (this document) | Shared facts, constraints, preservation        | Done                                   |
-| **A** | Creative direction       | Three concepts + storyboards                   | Plan-only or docs PR                   |
-| **B** | Direction selection      | One chosen concept + written rationale         | Human gate                             |
-| **C** | Visual prototype         | Hero + first scroll transition, reviewed       | Open PR only                           |
-| **D** | Content + architecture   | Domain, content, motion/WebGL split, a11y spec | Open PR only                           |
-| **E** | Full homepage            | Complete `/` experience                        | Open PR only (may split if merge-safe) |
-| **F** | Hardening                | E2E, perf, optional analytics/OKF              | Open PR only                           |
+| Phase | Frontmatter todo            | Goal                                      |
+| ----- | --------------------------- | ----------------------------------------- |
+| **0** | (this document)             | Repository assessment + planning envelope |
+| **A** | `creative-three-concepts`   | Three concepts + storyboards              |
+| **B** | `creative-direction-select` | One chosen concept + written rationale    |
+| **C** | `visual-prototype`          | Hero + first scroll transition, reviewed  |
+| **D** | `content-and-architecture`  | Domain, content, typecheck-safe wiring    |
+| **E** | `full-homepage-implement`   | Complete `/` + required e2e in same PR(s) |
+| **F** | `production-hardening`      | Perf + optional analytics/OKF             |
 
-**Canonical plan path:** [`.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md`](.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md) — agent prompts and frontmatter todos reference this file.
+**Canonical plan path:** [`.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md`](.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md).
 
 ---
 
-### Phase A — Creative direction and storyboard (three concepts)
+## Execution slices
+
+### Slice — `creative-three-concepts`
+
+**Recommended authority:** Open PR only
+
+**Rationale:**
+
+- Creative deliverable is a design doc under `docs/` (and optional static comps), not production homepage code
+- Must land for human review before prototype or schema work
+- Merge-safe alone: no route or type contract changes
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Goal:** Produce **three genuinely distinct** cinematic homepage concepts per the creative requirements below (Impeccable + scroll-craft methodology, webfueled.dev polish bar, GSAP/WebGL/CSS split per concept).
 
 **Tools and references**
 
@@ -278,27 +308,58 @@ flowchart LR
 7. **Technology split table** — per major beat, label effects as **GSAP/ScrollTrigger**, **WebGL (R3F/three)**, or **HTML/CSS**; justify WebGL rows with “what DOM cannot do convincingly.”
 8. **Assessment matrix** — rate each concept on **visual impact**, **originality**, **implementation complexity**, and **performance risk** (qualitative: low / medium / high + one-line rationale).
 
-**Explicit non-goals for Phase A:** no production changes to [`app/page.tsx`](app/page.tsx), no new content schema, no npm dependencies.
+**Explicit non-goals:** no production changes to [`app/page.tsx`](app/page.tsx), no [`domain/homepage.ts`](domain/homepage.ts) / [`content/homepage.ts`](content/homepage.ts) schema changes, no new npm dependencies.
 
-**Recommended authority:** **Plan-only PR** (design doc + optional static comps only) or docs-only PR.
+**Acceptance:**
 
----
+- `docs/experiments/homepage-cinematic-concepts.md` (or equivalent committed path named in PR) contains three named concepts with all eight deliverable bullets per concept
+- No changes under `app/`, `components/home/`, `domain/homepage.ts`, or `content/homepage.ts`
 
-### Phase B — Select creative direction
+**Verification:**
 
-Human decision: pick **one** concept (or a disciplined hybrid with written rules). Record:
-
-- Chosen concept id and link to storyboard section.
-- What was rejected and why (one paragraph).
-- Whether WebGL is **in** or **out** for v1, and which centerpiece must be proven in prototype.
-
-No implementation PR until this gate is explicit in the design doc or plan frontmatter note.
+- [ ] `npm run format:check` (docs-only PR)
+- [ ] PR diff limited to `docs/**`, `.cursor/**` as needed, and plan frontmatter todo `creative-three-concepts` → `completed`
+- [ ] GitHub PR base branch is `main`
 
 ---
 
-### Phase C — Visual prototype milestone
+### Slice — `creative-direction-select`
 
-**Goal:** one **visually convincing** hero scene plus the **first scroll transition** into chapter 2 — enough to judge composition, type, lighting/atmosphere, and motion craft before building the full page.
+**Recommended authority:** Human gate
+
+**Rationale:**
+
+- Creative direction is a product decision, not an agent implementation slice
+- Blocks `visual-prototype` until recorded
+
+**Agent instruction:** Human decision only; agents do not execute this slice.
+
+**Goal:** Pick **one** concept (or a disciplined hybrid with written rules) after `creative-three-concepts` merges.
+
+**Record in** `docs/experiments/homepage-cinematic-concepts.md` (or a dated amendment in this plan):
+
+- Chosen concept id and link to storyboard section
+- What was rejected and why (one paragraph)
+- Whether WebGL is **in** or **out** for v1, and which centerpiece must be proven in prototype
+
+**Acceptance:** Written decision exists before any `visual-prototype` branch work begins.
+
+**Verification:** Human sign-off; optionally mark `creative-direction-select` `completed` in plan frontmatter via a small docs-only PR when recording the decision.
+
+---
+
+### Slice — `visual-prototype`
+
+**Recommended authority:** Open PR only
+
+**Rationale:**
+
+- Validates composition, motion, and optional WebGL before schema and full homepage investment
+- Isolated scope limits blast radius if direction is wrong
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Goal:** One **visually convincing** hero scene plus the **first scroll transition** into chapter 2 — enough to judge composition, type, lighting/atmosphere, and motion craft before building the full page.
 
 **Scope**
 
@@ -313,44 +374,157 @@ No implementation PR until this gate is explicit in the design doc or plan front
 - **Browser-based:** interactive pass at 1280×800 and ~390×844; reduced-motion on; keyboard tab through hero CTAs/links.
 - **Iteration loop:** at least one revision cycle on composition, typography, lighting/material (if WebGL), easing, and transition timing — capture deltas in PR description or design doc appendix.
 
-**Exit criteria:** stakeholder sign-off that the prototype matches the selected concept’s ambition; performance acceptable on mid-tier laptop and phone (no sustained jank on scroll); WebGL either validated or explicitly cut with fallback art direction.
+**Exit criteria:** Stakeholder sign-off that the prototype matches the selected concept’s ambition; performance acceptable on mid-tier laptop and phone (no sustained jank on scroll); WebGL either validated or explicitly cut with fallback art direction.
 
-**Recommended authority:** Open PR only.
+**Acceptance:**
+
+- Hero + first transition implemented per chosen concept technology split
+- Screenshot + browser review documented in PR (desktop + mobile; reduced-motion pass)
+- SSR floor for prototype beats documented; experiment route clearly non-production or removed before launch
+
+**Verification:**
+
+- [ ] `npm run lint`
+- [ ] `npm run typecheck`
+- [ ] `npm run format:check`
+- [ ] `npm run test` / `npm run test:coverage`
+- [ ] `npm run build`
+- [ ] Manual: scroll review at 1280×800 and ~390×844 per slice review checklist
+- [ ] GitHub PR base branch is `main`
+
+**Dependencies:** `creative-three-concepts` merged; `creative-direction-select` recorded.
 
 ---
 
-### Phase D — Finalize content model and technical architecture
+### Slice — `content-and-architecture`
 
-Only after Phase C exit:
+**Recommended authority:** Open PR only
+
+**Rationale:**
+
+- [`app/page.tsx`](app/page.tsx) already consumes `Homepage` types — schema-only PRs break `npm run typecheck` and violate merge-safe contract rules
+- Architecture doc must exist before full homepage choreography lands
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Goal:** Finalize content model, inventory-grounded copy, and technical architecture **in one merge-safe PR** that keeps `main` typecheck-green.
+
+**Deliver in this slice:**
 
 1. Redefine [`domain/homepage.ts`](domain/homepage.ts) (e.g. scroll chapters with minimal copy fields + contextual `links[]`).
 2. Author [`content/homepage.ts`](content/homepage.ts) from resume-aligned narrative; inventory-grounded ([`resumes/`](file:///Users/michaeltruong/code/resumes)).
-3. Architecture note in plan or `docs/experiments/`: server markup vs client choreography file map, WebGL bundle boundary, `matchMedia` branches, data attributes for a11y escapes, chapter SEO headings.
-4. Update repository unit tests for new shape (no full page UI required in this slice if prototype already proves motion — optional split).
+3. Update [`app/page.tsx`](app/page.tsx) (and tests) so types and repository wiring align — may be minimal/static chapter markup without final GSAP choreography.
+4. Architecture note in `docs/experiments/` (or plan appendix): server markup vs client choreography file map, WebGL bundle boundary, `matchMedia` branches, data attributes for a11y escapes, chapter SEO headings.
+5. Update [`tests/static-portfolio-repository.test.ts`](tests/static-portfolio-repository.test.ts) and [`tests/content-foundation.test.ts`](tests/content-foundation.test.ts) for the new shape.
 
-**Recommended authority:** Open PR only.
+**Non-goals:** Full scroll choreography, deleting legacy `home2` CSS, or Playwright rewrites (those ship with `full-homepage-implement` when `/` behavior changes).
+
+**Acceptance:** `main` passes typecheck and unit tests with new homepage model; no orphaned `HomepageChannel` / matrix types still referenced from `app/page.tsx`.
+
+**Verification:**
+
+- [ ] `npm run lint`
+- [ ] `npm run typecheck`
+- [ ] `npm run format:check`
+- [ ] `npm run test` / `npm run test:coverage`
+- [ ] `npm run build`
+- [ ] GitHub PR base branch is `main`
+
+**Dependencies:** `visual-prototype` exit criteria met (stakeholder sign-off).
 
 ---
 
-### Phase E — Implement complete homepage
+### Slice — `full-homepage-implement`
 
-Replace Homepage 2: [`app/page.tsx`](app/page.tsx), [`app/styles/home.css`](app/styles/home.css), new [`components/home/*`](components/home/) choreography per architecture. Retain shell, metadata patterns, `id="content"`. Remove legacy [`MethodReveal`](components/home/MethodReveal.tsx) matrix coupling.
+**Recommended authority:** Open PR only
 
-May span multiple merge-safe PRs (e.g. static chapters first + choreography second) only if each PR is shippable; prefer single narrative launch when possible.
+**Rationale:**
 
-**Recommended authority:** Open PR only.
+- Ships the visitor-facing `/` experience; must not leave CI red on required Playwright gates
+- Merge-safe rule: tests for behavior this PR introduces ship **in the same PR**, not deferred to `production-hardening`
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Goal:** Replace Homepage 2: [`app/page.tsx`](app/page.tsx), [`app/styles/home.css`](app/styles/home.css), new [`components/home/*`](components/home/) choreography per architecture. Retain shell, metadata patterns, `id="content"`. Remove legacy [`MethodReveal`](components/home/MethodReveal.tsx) matrix coupling.
+
+**Required in the same PR(s) that change `/` behavior:**
+
+- Rewrite or replace [`e2e/home-method-reveal.spec.ts`](e2e/home-method-reveal.spec.ts) and home sections of [`e2e/happy-path.spec.ts`](e2e/happy-path.spec.ts) for new DOM/contracts
+- Playwright coverage for no-JS settled floor, `prefers-reduced-motion`, focus/print escapes where applicable, client nav remount (GSAP `useGSAP` revert)
+
+May span multiple merge-safe PRs only if **each** PR is shippable (including its e2e delta); prefer a single narrative launch when possible.
+
+**Acceptance:** Production homepage matches architecture; CI e2e job passes on the PR branch.
+
+**Verification:**
+
+- [ ] `npm run lint`
+- [ ] `npm run typecheck`
+- [ ] `npm run format:check`
+- [ ] `npm run test` / `npm run test:coverage`
+- [ ] `npm run build`
+- [ ] `npm run test:e2e` (after `npm run build`; home specs exercised)
+- [ ] GitHub PR base branch is `main`
+
+**Dependencies:** `content-and-architecture` merged.
 
 ---
 
-### Phase F — Production hardening and regression testing
+### Slice — `production-hardening`
 
-- Rewrite [`e2e/home-method-reveal.spec.ts`](e2e/home-method-reveal.spec.ts) and home sections of [`e2e/happy-path.spec.ts`](e2e/happy-path.spec.ts).
-- Playwright: no-JS, `prefers-reduced-motion`, print/CSS escapes, client nav remount (GSAP revert).
-- Performance: bundle size, lazy WebGL, ScrollTrigger count, Lighthouse spot-check.
-- Optional: PostHog chapter/CTA events; OKF producer if homepage copy enters retrieval scope.
-- **plan-closure** docs PR per [planning standards](.cursor/standards/planning-standards.md).
+**Recommended authority:** Open PR only
 
-**Recommended authority:** Open PR only.
+**Rationale:**
+
+- Optional polish and operator-facing follow-ups after the homepage ships
+- Does **not** carry required e2e rewrites deferred from `full-homepage-implement`
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Goal:** Performance and optional analytics/corpus follow-ups once `/` is live on the branch.
+
+**Scope:**
+
+- Bundle size review, lazy WebGL verification, ScrollTrigger count sanity check, Lighthouse spot-check
+- Optional: PostHog chapter/CTA events; OKF producer + ingest if homepage copy enters retrieval scope
+
+**Non-goals:** Deferring homepage Playwright rewrites that belong in `full-homepage-implement`.
+
+**Acceptance:** Documented perf notes in PR; optional integrations merge-safe alone.
+
+**Verification:**
+
+- [ ] `npm run lint`
+- [ ] `npm run typecheck`
+- [ ] `npm run format:check`
+- [ ] `npm run test` / `npm run test:coverage`
+- [ ] `npm run build`
+- [ ] `npm run test:e2e` when PR touches runtime paths (otherwise note N/A in PR)
+- [ ] GitHub PR base branch is `main`
+
+**Dependencies:** `full-homepage-implement` merged.
+
+---
+
+## Plan closure (docs-only PR)
+
+**Recommended authority:** Open PR only
+
+**Rationale:**
+
+- Docs-only archival; human review of closure checklist
+- No application behavior changes
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+After the last implementation slice merges, open a final docs-only closure PR:
+
+1. Verify all implementation todos are already `completed` (or `cancelled`); fix stragglers only.
+2. Add a `# Shipped` closure note at the top of the plan body (date, merged PR links, deferred work).
+3. Move this file to `.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md`.
+4. Mark `plan-closure` `completed` and update agent prompt references to the archived path.
+
+Do not archive inside implementation PRs.
 
 ---
 
@@ -362,17 +536,121 @@ Separate plan per [architecture-direction.md](docs/assistant/architecture-direct
 
 ## Agent prompts (copy/paste for Cursor)
 
-- **creative-three-concepts:** "Execute slice `creative-three-concepts` from `@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md` only. Do not change production homepage code or `domain/`/`content/` homepage schema. Deliver three distinct cinematic concepts per Phase A (Impeccable + scroll-craft methodology, webfueled.dev polish bar, GSAP/WebGL/CSS table per concept). Verify gsap-skills plugin globally. Plan-only or docs PR; stop after opening PR. Mark todo completed in plan frontmatter. Do not start prototype or implementation slices."
+Use a **fresh Agent-mode chat** per slice. Each frontmatter todo has exactly one `### <todo-id>` heading below.
 
-- **visual-prototype:** "Execute slice `visual-prototype` from `@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md` only. Prerequisite: Phase B direction recorded. Build hero + first scroll transition for chosen concept; GSAP authoritative; WebGL only if selected. Screenshot + browser review per Phase C. Open PR only; do not merge. Mark todo completed. Do not finalize full homepage or content model."
+### creative-three-concepts
 
-- **content-and-architecture:** "Execute slice `content-and-architecture` from plan only. Prerequisite: Phase C prototype approved. Finalize domain/content and technical architecture doc; no full page unless merge-safe. Open PR only. Mark todo completed."
+```text
+@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
 
-- **full-homepage-implement:** "Execute slice `full-homepage-implement` from plan only. Prerequisite: Phase D merged. Implement complete `/` per architecture; preserve SSR/a11y/SEO/shell. Open PR only. Mark todo completed."
+Implement slice creative-three-concepts only. Do not start visual-prototype, content-and-architecture, full-homepage-implement, production-hardening, or plan-closure. Do not archive the plan.
 
-- **production-hardening:** "Execute slice `production-hardening` from plan only. E2E and hardening per Phase F. Open PR only. Mark todo completed."
+Authority: Open PR only — implement and open the PR; do not merge.
 
-- **plan-closure:** "Docs-only closure for homepage cinematic plan: verify todos, # Shipped note, move to `.cursor/plans/archive/`, mark `plan-closure` completed."
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: docs/experiments/homepage-cinematic-concepts.md (or equivalent) with three distinct concepts per slice section. No app/, domain/homepage.ts, or content/homepage.ts changes. Mark creative-three-concepts completed in plan frontmatter in this PR.
+
+Verification: format:check; PR diff scope per slice Acceptance; read gsap-scrolltrigger + gsap-react skills globally before motion storyboarding.
+```
+
+### creative-direction-select
+
+```text
+@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+
+Human gate creative-direction-select only. Do not start visual-prototype or later slices until the decision is recorded.
+
+Authority: Human gate — human decision only; agents do not execute this slice unless asked to record the decision in a docs-only PR.
+
+Topology: n/a for human decision; if recording via PR, start from latest origin/main; PR base must be main.
+
+Deliverables: chosen concept id, rejection rationale, WebGL in/out for v1 documented in docs/experiments/homepage-cinematic-concepts.md. Mark creative-direction-select completed in plan frontmatter when recording merges.
+
+Verification: Phase B acceptance in slice section satisfied before any visual-prototype branch.
+```
+
+### visual-prototype
+
+```text
+@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+
+Implement slice visual-prototype only. Prerequisite: creative-three-concepts merged and creative-direction-select recorded. Do not start content-and-architecture, full-homepage-implement, production-hardening, or plan-closure. Do not archive the plan.
+
+Authority: Open PR only — implement and open the PR; do not merge.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: hero + first scroll transition per chosen concept; GSAP ScrollTrigger authoritative; WebGL only if selected. Screenshot + browser review in PR. Mark visual-prototype completed in plan frontmatter in this PR.
+
+Verification: lint, typecheck, format:check, test:coverage, build; manual scroll review per slice Verification.
+```
+
+### content-and-architecture
+
+```text
+@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+
+Implement slice content-and-architecture only. Prerequisite: visual-prototype exit criteria met. Do not start full-homepage-implement, production-hardening, or plan-closure. Do not archive the plan.
+
+Authority: Open PR only — implement and open the PR; do not merge.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: domain/homepage.ts, content/homepage.ts, app/page.tsx + tests typecheck-aligned, architecture doc. Mark content-and-architecture completed in plan frontmatter in this PR.
+
+Verification: lint, typecheck, format:check, test:coverage, build per slice Verification.
+```
+
+### full-homepage-implement
+
+```text
+@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+
+Implement slice full-homepage-implement only. Prerequisite: content-and-architecture merged. Do not start production-hardening or plan-closure. Do not archive the plan.
+
+Authority: Open PR only — implement and open the PR; do not merge.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: complete / homepage per architecture; required Playwright e2e updates in the same PR(s) that change / behavior. Mark full-homepage-implement completed in plan frontmatter in this PR.
+
+Verification: lint, typecheck, format:check, test:coverage, build, test:e2e per slice Verification.
+```
+
+### production-hardening
+
+```text
+@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+
+Implement slice production-hardening only. Prerequisite: full-homepage-implement merged. Do not start plan-closure. Do not archive the plan.
+
+Authority: Open PR only — implement and open the PR; do not merge.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: perf budget notes; optional PostHog/OKF follow-ups per slice Scope. Mark production-hardening completed in plan frontmatter in this PR.
+
+Verification: lint, typecheck, format:check, test:coverage, build; test:e2e when runtime paths change.
+```
+
+### plan-closure
+
+```text
+@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+
+Execute only plan-closure.
+
+Authority: Open PR only — docs-only archive PR; do not merge.
+
+Prerequisites: all implementation slices merged and already marked completed in frontmatter.
+
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: verify slice todos, add # Shipped note, move plan to .cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md, mark plan-closure completed, update agent prompt references to the archived path.
+
+Verification: confirm all prerequisite implementation PRs are merged and slice todos are completed before archiving.
+```
 
 ---
 
@@ -381,6 +659,6 @@ Separate plan per [architecture-direction.md](docs/assistant/architecture-direct
 - **Creative risk:** three weak variants wastes Phase C; Impeccable must enforce distinct axes/families, not density tweaks.
 - **Prototype risk:** approving prototype without mobile + reduced-motion review repeats scroll-craft-era a11y gaps.
 - **Bundle size:** R3F + `three` is a major step up; prototype must justify it; code-split and measure `npm run build` if adopted.
-- **CI:** Any non-docs path change runs Playwright e2e ([AGENTS.md](AGENTS.md)); home redesign must update e2e in the same PRs that change behavior.
+- **CI:** Any non-docs path change runs Playwright e2e ([AGENTS.md](AGENTS.md)); `full-homepage-implement` must update e2e in the same PR(s) that change `/` — not `production-hardening`.
 - **Breakpoint drift:** Header uses 921px; home matrix uses 820px — new design should document a single breakpoint story.
 - **Ecosystem:** Removed from home grid but still valid deep link; weave into narrative where “developer infrastructure / workflows” beats need it.
