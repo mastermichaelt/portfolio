@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: visual-prototype
     content: "PR: isolated hero + first scroll transition; merge-safe e2e if runtime changes; production / smoke if experiment-only route"
-    status: pending
+    status: completed
   - id: content-and-architecture
     content: "PR: PostHog cinematic-homepage flag + server eval; legacy home default; new static narrative home behind flag; dual Playwright coverage"
     status: pending
