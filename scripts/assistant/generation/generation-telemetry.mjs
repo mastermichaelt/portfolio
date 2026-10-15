@@ -178,15 +178,22 @@ export function createGenerationTelemetry(options = {}) {
       };
 
       try {
-        await Promise.race([
-          Promise.all(batch.map((item) => sendOne(item))),
-          new Promise((_, reject) => {
-            setTimeout(
-              () => reject(new Error("telemetry flush timeout")),
-              config.flushTimeoutMs,
-            );
-          }),
-        ]);
+        await new Promise((resolve, reject) => {
+          const timeoutId = setTimeout(() => {
+            reject(new Error("telemetry flush timeout"));
+          }, config.flushTimeoutMs);
+
+          Promise.all(batch.map((item) => sendOne(item))).then(
+            (value) => {
+              clearTimeout(timeoutId);
+              resolve(value);
+            },
+            (error) => {
+              clearTimeout(timeoutId);
+              reject(error);
+            },
+          );
+        });
       } catch {
         // Fail open — do not affect CLI exit code.
       }
