@@ -2,7 +2,7 @@
 title: Portfolio assistant — RAG generation direction
 subtitle: Design considerations between retrieval and grounded answers (not implemented)
 status: draft
-version: 0.2.2
+version: 0.2.3
 updated: 2026-10-16
 related:
   - docs/assistant/architecture-direction.md
@@ -129,7 +129,7 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 - **Parent-level** — canonical `resource` for the OKF concept,
 - **Source-chain** — entries from OKF `sources[]` when the answer spans multiple originating sources.
 
-**Architectural direction (milestone).** Emit **structured citations** tied to **claims or segments** (`evidence_supported`, `evidence_inferred`, `general_knowledge`, `uncertain`) so evaluators and UI can see which statements cite the packet — a detached citation list alone is insufficient for support measurement.
+**Architectural direction (milestone).** The model emits an ordered nonempty **`claims[]`** as the canonical answer; the service derives flat `answer_text` and a deduplicated top-level `citations[]` union. Each claim carries `attribution` (`evidence_supported`, `evidence_inferred`, `general_knowledge`, `uncertain`) and optional per-claim citations — evaluators and UI use the same representation.
 
 **Proposed design option.** Map citation ids → portfolio routes and external URLs in the renderer.
 
@@ -156,7 +156,9 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 **Architectural direction (milestone).** Distinguish abstention triggers: no hits; irrelevant evidence; partial evidence; general technical (may answer without abstaining); unsupported personal; conflicting evidence. Abstention is **not** required solely because retrieval is thin for a general engineering explanation.
 
-**Open decision.** Threshold values and whether some abstention paths are **fail-closed** (no LLM call) vs **qualified answer** (LLM with `uncertain` / `support_level: none`).
+**Architectural direction (milestone).** **`support_level`** measures **evidence coverage** only (a general-knowledge answer may be `none`). **`abstained`** + **`abstention_reason`** are separate — set only when the assistant actually refuses or explains a gap, not when the answer simply does not cite retrieval.
+
+**Open decision.** Threshold values and whether some abstention paths are **fail-closed** (no LLM call) vs **qualified answer** (LLM with `uncertain` claims and `abstained: false`).
 
 **Open decision.** Relationship between retrieval-eval pass/fail and production abstention (evaluation metric vs runtime policy).
 
@@ -206,6 +208,7 @@ Observed behaviour is recorded in [cross-repository-corpus-eval-findings.md](./c
 
 | Date       | Change                                                                                                                                                                                    |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-16 | Canonical `claims[]` with service-derived `answer_text`/`citations[]`; abstention orthogonal to `support_level`; reject overlong structured JSON (plan contract tightening)               |
 | 2026-10-16 | Evidence-aware generation, claim-level attribution, three-way generation eval (`no_retrieval` / `top_k_only` / `full_parent`); align abstention and evaluation with active plan amendment |
 | 2026-10-12 | Field report follow-ons: retrieval diagnostics, evidence sufficiency, end-to-end eval (trimmed catalogue)                                                                                 |
 | 2026-10-08 | Initial draft: retrieval/generation boundary, evidence assembly options, parent-context expansion as proposed (not mandated), budgets, citations, abstention, split evaluation            |

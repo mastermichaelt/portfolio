@@ -35,7 +35,11 @@ isProject: false
 
 **Plan amendment (2026-10-08):** Milestone scope expanded from dev-only `assistant:answer` to **server-backed deployment**. PR #55 (plan) and PR #56 (`generation-contract`) are merged.
 
-**Plan amendment (2026-10-16):** Generation philosophy revised from **evidence-only** to **evidence-aware generation with observable attribution**. The model may use general knowledge where appropriate; the milestone measures how retrieval contributes to answer quality and keeps personal/professional facts strongly corpus-grounded. Minimal **contract extension** (claim-level attribution) lands in **`generation-cli`** (no separate contract-only slice unless implementation reveals a hard boundary). This document amends the active plan in place; do not fork a competing plan.
+**Plan amendment (2026-10-16):** Generation philosophy revised from **evidence-only** to **evidence-aware generation with observable attribution**. The model may use general knowledge where appropriate; the milestone measures how retrieval contributes to answer quality and keeps personal/professional facts strongly corpus-grounded. Minimal **contract extension** (claim-level attribution) lands in **`generation-cli`** (no separate contract-only slice unless implementation reveals a hard boundary).
+
+**Plan amendment (2026-10-16, contract tightening):** **`claims[]` is the canonical model output** — the service derives `answer_text` and top-level `citations[]`; **`support_level`** measures evidence coverage only (orthogonal to abstention); **`abstention_reason`** is set only when the assistant actually abstains; overlong structured model output is **rejected**, not truncated post-generation.
+
+This document amends the active plan in place; do not fork a competing plan.
 
 **Direction (design background):** [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md)
 
@@ -47,21 +51,21 @@ isProject: false
 
 Preserve unless a future plan amendment explicitly revises them.
 
-| Topic                  | Decision                                                                                                                                                                                                                                                            |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Chat model             | `gpt-4o-mini` default (`ASSISTANT_GENERATION_MODEL` override); **native fetch** Chat Completions (mirror embeddings adapter); no LangChain/LlamaIndex                                                                                                               |
-| Shared service         | **One** RAG generation implementation: query validation → retrieve → assemble → generate → parse → citation integrity → abstention/diagnostics. **`assistant:answer` CLI and App Router API route are thin adapters** — no shell-out, no duplicate generation paths |
-| Default assembly       | **Bounded full-parent** at **OKF concept** boundary (`okf_concept_id`); Postgres-backed parent units                                                                                                                                                                |
-| Eval baseline assembly | `top_k_only` (non-default for operators/eval)                                                                                                                                                                                                                       |
-| Generation retrieve K  | Default **10** (`--top-k` / service default); retrieve CLI default **5** unchanged                                                                                                                                                                                  |
-| Budget                 | Truncate **unmatched** chunks only, or **`EvidenceBudgetExceeded`** — never silently drop top-K matched units                                                                                                                                                       |
-| Generation philosophy  | **Evidence-aware** — general technical knowledge allowed; **personal/professional facts about Michael** require corpus grounding or explicit uncertainty; model-declared attribution is observable output, not proof of internal reasoning                          |
-| Citations              | **Integrity** (deterministic: `evidence_id`, `unit_id`, approved URLs) in contract + runtime; **support** and **attribution accuracy** (semantic) in generation-eval only — structural validity ≠ factual support                                                   |
-| Response contract      | **`answer_text`** + **`claims[]`** (attribution per claim/segment) + revised **`support_level`** semantics + optional **`abstention_reason`** when abstaining — see [Contract amendment (generation-cli)](#contract-amendment-generation-cli)                       |
-| Resource bounds        | Configurable evidence char budget (120k = **dev default**), approximate prompt token cap, max output tokens, timeouts, max question/body size — no tokenizer-exact budgeting this milestone                                                                         |
-| Eval baselines         | **`no_retrieval`** (model-only), **`top_k_only`**, **`full_parent`** — `no_retrieval` is eval-only, not production architecture                                                                                                                                     |
-| Index + corpus         | **Neon pgvector** + existing operator-controlled `okf:build` → `assistant:ingest` workflow; no automatic corpus updates                                                                                                                                             |
-| Deployment target      | **michaeltruong.ai** (Vercel production); server-only `DATABASE_URL`, `OPENAI_API_KEY`, and generation config                                                                                                                                                       |
+| Topic                  | Decision                                                                                                                                                                                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chat model             | `gpt-4o-mini` default (`ASSISTANT_GENERATION_MODEL` override); **native fetch** Chat Completions (mirror embeddings adapter); no LangChain/LlamaIndex                                                                                                                                       |
+| Shared service         | **One** RAG generation implementation: query validation → retrieve → assemble → generate → parse → citation integrity → abstention/diagnostics. **`assistant:answer` CLI and App Router API route are thin adapters** — no shell-out, no duplicate generation paths                         |
+| Default assembly       | **Bounded full-parent** at **OKF concept** boundary (`okf_concept_id`); Postgres-backed parent units                                                                                                                                                                                        |
+| Eval baseline assembly | `top_k_only` (non-default for operators/eval)                                                                                                                                                                                                                                               |
+| Generation retrieve K  | Default **10** (`--top-k` / service default); retrieve CLI default **5** unchanged                                                                                                                                                                                                          |
+| Budget                 | Truncate **unmatched** chunks only, or **`EvidenceBudgetExceeded`** — never silently drop top-K matched units                                                                                                                                                                               |
+| Generation philosophy  | **Evidence-aware** — general technical knowledge allowed; **personal/professional facts about Michael** require corpus grounding or explicit uncertainty; model-declared attribution is observable output, not proof of internal reasoning                                                  |
+| Citations              | **Integrity** (deterministic: `evidence_id`, `unit_id`, approved URLs) in contract + runtime; **support** and **attribution accuracy** (semantic) in generation-eval only — structural validity ≠ factual support                                                                           |
+| Response contract      | Model: ordered nonempty **`claims[]`** + **`support_level`** (evidence coverage) + **`abstained`** / **`abstention_reason`** when refusing; service derives **`answer_text`** and deduped **`citations[]`** — see [Contract amendment (generation-cli)](#contract-amendment-generation-cli) |
+| Resource bounds        | Configurable evidence char budget (120k = **dev default**), approximate prompt token cap, max output tokens, timeouts, max question/body size — no tokenizer-exact budgeting this milestone                                                                                                 |
+| Eval baselines         | **`no_retrieval`** (model-only), **`top_k_only`**, **`full_parent`** — `no_retrieval` is eval-only, not production architecture                                                                                                                                                             |
+| Index + corpus         | **Neon pgvector** + existing operator-controlled `okf:build` → `assistant:ingest` workflow; no automatic corpus updates                                                                                                                                                                     |
+| Deployment target      | **michaeltruong.ai** (Vercel production); server-only `DATABASE_URL`, `OPENAI_API_KEY`, and generation config                                                                                                                                                                               |
 
 ## Recommended execution authority
 
@@ -148,40 +152,48 @@ Keep **retrieval**, **assembly**, **generation**, and **validation** independent
 
 ### Contract amendment (generation-cli)
 
-**Shipped contract (`generation-contract`):** `answer_text`, `support_level` (`full` \| `partial` \| `none`), detached `citations[]`, optional `diagnostics`. Prompt templates today imply evidence-only answers — **update in `generation-cli`**, not in this plan-only PR.
+**Shipped contract (`generation-contract`):** `answer_text`, `support_level` (`full` \| `partial` \| `none`), detached `citations[]`, optional `diagnostics`. Prompt templates today imply evidence-only answers — **superseded in `generation-cli`**.
 
-**Smallest coherent extension** (implement in **`generation-cli`**, with contract tests extended in the same slice):
+**Canonical model output** (structured JSON from the LLM — implement in **`generation-cli`**, with contract tests extended in the same slice):
 
-| Field               | Role                                                                                                                                        |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `answer_text`       | Visitor-facing prose (rendered safely); may aggregate `claims[]` content                                                                    |
-| `claims[]`          | Ordered segments: `{ text, attribution, citations? }` linking statements to attribution and optional packet citations                       |
-| `citations[]`       | Registry of cited evidence (may duplicate per-claim citations for backward compatibility); integrity rules unchanged                        |
-| `support_level`     | **Evidence coverage** for corpus-relevant / personal claims — **not** overall answer correctness or general-knowledge quality               |
-| `abstention_reason` | When `support_level` is `none`, optional enum distinguishing no hits, irrelevant evidence, unsupported personal, conflicting evidence, etc. |
+| Field               | Source    | Role                                                                                                                                                                                                                                                                   |
+| ------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `claims[]`          | **Model** | **Canonical answer.** Ordered, **non-empty** segments: `{ text, attribution, citations? }`. Every visitor-facing statement lives here.                                                                                                                                 |
+| `support_level`     | **Model** | **Evidence coverage only** — how much retrieved evidence supports corpus-relevant / personal claims in the answer (`full` \| `partial` \| `none`). **`none` is valid for a good general-knowledge answer** that does not rely on the packet; it is **not** abstention. |
+| `abstained`         | **Model** | `true` when the assistant refuses or only explains why it cannot answer substantively; `false` when delivering a normal answer (including general-knowledge-only).                                                                                                     |
+| `abstention_reason` | **Model** | **Only when `abstained` is true.** Enum distinguishing no hits, irrelevant evidence, unsupported personal, conflicting evidence, etc. **Independent of `support_level`.**                                                                                              |
+
+**Service-derived public fields** (deterministic — not separate model opinions):
+
+| Field         | Derivation                                                                                                                                          |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `answer_text` | Concatenate `claims[].text` in order (with sensible separators, e.g. spaces or paragraph breaks between segments).                                  |
+| `citations[]` | **Deduplicated union** of all per-claim `citations` (stable order, e.g. first-seen `evidence_id`). Integrity validated against the evidence packet. |
+
+CLI, API, and UI all consume the **same** `claims[]` plus derived fields — **no** parallel prose or citation lists from the model. UI renders **`claims[]`** (attribution + per-claim citations); derived `answer_text` is for convenience, previews, and clients that want flat prose.
 
 **Deterministic validation (runtime)** — only what is verifiable without semantic interpretation:
 
+- `claims[]` non-empty array; each claim has non-empty `text` and valid `attribution`.
 - `evidence_supported` claims: non-empty `citations` with passing **citation integrity** (IDs/units/URLs in packet).
 - `general_knowledge` claims: citations optional; must not be the sole basis for invented personal facts (semantic enforcement in eval).
 - `uncertain` claims: no structural citation requirement; qualification checked in generation-eval.
+- When `abstained` is `true`: require `abstention_reason`; when `false`, `abstention_reason` must be absent.
+- Derived `answer_text` non-empty; derived `citations[]` passes integrity when non-empty.
 - Fabricated `evidence_id` / `unit_id` / URLs: fail integrity (existing validators).
-- `answer_text` must be non-empty; optional max length enforced at service boundary.
-- **Do not** require every answer or every claim to cite evidence.
+- **Do not** require every claim to cite evidence.
 
-**Semantic validation (generation-eval only):** citation support, attribution accuracy, unsupported personal claims, injection resistance, abstention appropriateness.
-
-**UI note:** Prefer rendering from `claims[]` when present (attribution + per-claim citations); fall back to `answer_text` + top-level `citations[]` for simple cases.
+**Semantic validation (generation-eval only):** citation support, attribution accuracy, unsupported personal claims, injection resistance, abstention appropriateness (including `abstained` vs qualified partial answers).
 
 ### Generation resource controls
 
-| Control                         | Notes                                                                                                                                                                             |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Evidence character budget       | `DEFAULT_EVIDENCE_CHARACTER_BUDGET` (120_000) = **development default**; production value set via env/config after measurement — **`EvidenceBudgetExceeded`** remains fail-closed |
-| Approximate prompt token budget | Heuristic cap on evidence + instructions + question metadata (not tokenizer-exact)                                                                                                |
-| Max generated output tokens     | Server/CLI config; reject or truncate overlong model output deterministically where possible                                                                                      |
-| Request timeout                 | End-to-end generation timeout; align with Vercel Fluid Compute limits on API slice                                                                                                |
-| Max question / body size        | Validated before retrieval or model call                                                                                                                                          |
+| Control                         | Notes                                                                                                                                                                                                       |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Evidence character budget       | `DEFAULT_EVIDENCE_CHARACTER_BUDGET` (120_000) = **development default**; production value set via env/config after measurement — **`EvidenceBudgetExceeded`** remains fail-closed                           |
+| Approximate prompt token budget | Heuristic cap on evidence + instructions + question metadata (not tokenizer-exact)                                                                                                                          |
+| Max generated output tokens     | Server/CLI config; **reject** overlong or unparseable structured JSON with a **controlled error** — do **not** truncate model output after generation (truncation risks invalid JSON and severed citations) |
+| Request timeout                 | End-to-end generation timeout; align with Vercel Fluid Compute limits on API slice                                                                                                                          |
+| Max question / body size        | Validated before retrieval or model call                                                                                                                                                                    |
 
 Optional **smaller retrieval K** or retry policies are **separate observable policies** — document in eval findings if adopted; never silently drop matched top-K units.
 
@@ -250,7 +262,7 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 **Goal:** Implement **shared RAG generation service** + fetch-based OpenAI chat adapter + **`npm run assistant:answer`** as a thin CLI adapter (`--assembly-mode`, `--top-k`, `--json`, `--dry-run-retrieval`, optional `--no-retrieval` for operator/eval baseline).
 
-**Contract work in this slice:** Extend response schema with **`claims[]`** and **`abstention_reason`**; revise prompts for evidence-aware attribution; add **structural validators** (evidence_supported → citations + integrity); clarify **`support_level`** as evidence coverage; update `tests/assistant-generation-contract.test.ts`.
+**Contract work in this slice:** Model schema = **`claims[]`** (canonical) + **`support_level`** + **`abstained`** / **`abstention_reason`**; service **derives** `answer_text` and deduped `citations[]`; revise prompts; structural validators; reject overlong structured output; update `tests/assistant-generation-contract.test.ts`.
 
 **Non-goals:** `app/api/` route, UI, full generation-eval harness, duplicate generation logic outside the service.
 
@@ -330,7 +342,7 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 **Acceptance:**
 
-- Route returns public-safe JSON (`answer_text`, `claims` when used for UI, `support_level`, `citations`, stable error codes); **no** raw evidence packets, embeddings, or internal diagnostics unless explicitly safe.
+- Route returns public-safe JSON (`claims[]`, derived `answer_text`, derived `citations[]`, `support_level`, `abstained`, `abstention_reason` when applicable, stable error codes); **no** raw evidence packets, embeddings, or internal diagnostics unless explicitly safe.
 - Service integration test or handler test proves no duplicate generation implementation.
 - Document production env vars and limits in assistant-database or dedicated assistant API doc section.
 
@@ -346,7 +358,7 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Goal:** Accessible assistant UI on the portfolio — question input, loading/error states, answer rendering from **`answer_text` / `claims[]`**, **clickable citations** tied to claims where possible (map to public URLs from citation metadata), unsupported/abstention copy, small **suggested-questions** set; **safe rendering** of model-generated text (no raw HTML injection).
+**Goal:** Accessible assistant UI on the portfolio — question input, loading/error states, answer rendering from canonical **`claims[]`** (attribution + per-claim citations; same shape as API), **clickable citations** (map to public URLs from citation metadata), abstention copy when `abstained`, small **suggested-questions** set; **safe rendering** of model-generated text (no raw HTML injection). Do not render a divergent prose path from `answer_text` alone.
 
 **Non-goals:** Thread history, streaming, new design system, heavy chat dependencies.
 
@@ -409,7 +421,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: shared RAG generation service, fetch OpenAI chat adapter, assistant:answer CLI as thin adapter; extend contract with claims[] + abstention_reason + evidence-aware prompts + structural validators; configurable resource bounds; structured internal diagnostics; tests (including injection/fabrication mocks), assistant-database + .env.example docs. Mark generation-cli completed in plan frontmatter in this PR.
+Deliverables: shared RAG generation service, fetch OpenAI chat adapter, assistant:answer CLI as thin adapter; canonical claims[] model output with service-derived answer_text and citations[]; abstained/abstention_reason orthogonal to support_level; evidence-aware prompts + structural validators; reject overlong structured JSON; configurable resource bounds; structured internal diagnostics; tests (including injection/fabrication mocks), assistant-database + .env.example docs. Mark generation-cli completed in plan frontmatter in this PR.
 
 Verification: npm run test; npm run lint; npm run typecheck; npm run format:check; manual assistant:answer when DATABASE_URL + OPENAI_API_KEY available.
 ```
@@ -457,7 +469,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: minimal accessible assistant UI (input, loading/errors, answer_text/claims rendering, citations, suggested questions) using design system; client calls API only. Mark generation-ui completed in plan frontmatter in this PR.
+Deliverables: minimal accessible assistant UI (input, loading/errors, canonical claims[] rendering, citations, suggested questions) using design system; client calls API only. Mark generation-ui completed in plan frontmatter in this PR.
 
 Verification: npm run lint; npm run typecheck; npm run format:check; npm run test; manual desktop + mobile check.
 ```
