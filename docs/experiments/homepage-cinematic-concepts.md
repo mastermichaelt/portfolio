@@ -1,9 +1,20 @@
 # Homepage cinematic concepts
 
-**Status:** Creative exploration (slice `creative-three-concepts`)  
+**Status:** Creative exploration ongoing — **no direction selected** (`creative-direction-select` not complete)  
 **Plan:** [`.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md`](../../.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md)  
-**Polish bar:** [webfueled.dev](https://webfueled.dev) — scroll pacing and transition confidence, adapted to portfolio evidence tone and amber budget ([`DESIGN.md`](../../DESIGN.md))  
-**Motion runtime (implementation):** GSAP + ScrollTrigger only ([`AGENTS.md`](../../AGENTS.md)); optional Three.js / R3F as render layers synced to ScrollTrigger timelines, never a second scroll system.
+**Polish references:** [webfueled.dev](https://webfueled.dev) (scroll confidence, typographic scale over cinematic stills); [GetLayers — New Era](https://www.getlayers.ai/layer/new-era) (particle/WebGL scroll spectacle — see inspection below)  
+**Motion runtime (implementation):** GSAP + ScrollTrigger only ([`AGENTS.md`](../../AGENTS.md)); R3F/three/shaders as render layers synced to ScrollTrigger timelines, never a second scroll system.
+
+## Replacement scope (creative canvas)
+
+The cinematic homepage is a **blank art-directed experience**. It does **not** adapt, reskin, or preserve:
+
+- The current two-channel method matrix, continuity band, route grid, or grid-based visual language
+- Homepage “methodology” chapter structure (requirement / depth / contract framing as IA)
+
+**Preserve:** global header/footer and primary nav ([`lib/nav.ts`](../../lib/nav.ts)), routes to Projects / Articles / About (Ecosystem only where narrative warrants), SEO/a11y contracts from the plan, future assistant integration, and **legacy homepage behind PostHog `cinematic-homepage` until launch**.
+
+Engineering background informs **tone and narrative** (judgment, craft, live systems) — not literal software diagrams, résumé timelines, or portfolio-template layouts.
 
 ## Methodology constraints (all concepts)
 
@@ -11,258 +22,349 @@ Inherited from [scroll-craft baseline](scroll-craft-baseline.md) (runtime-agnost
 
 | Constraint            | Creative implication                                                                                                                            |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| SSR-resolved floor    | Every chapter’s copy and hierarchy exist in the initial HTML; motion **arms** on mount, never hides load-bearing text in CSS-only cues.         |
-| Reduced motion        | `gsap.matchMedia("(prefers-reduced-motion: no-preference)")` gates pin/scrub/hide; reduced branch = native document, full narrative visible.    |
-| Keyboard / print      | Any scroll-armed opacity/transform on content gets `:focus-within` and `@media print` settles with `!important` (GSAP inline styles).           |
-| Mobile pin discipline | Desktop may pin/scrub chapters; mobile defaults to **native vertical document** (Codenames precedent), with shorter beats and no sustained pin. |
-| Scope containment     | One client choreography module + server-resolved markup; `domain/` / `content/` stay unaware of GSAP.                                           |
+| SSR-resolved floor    | Every scene’s copy and hierarchy exist in the initial HTML; motion **arms** on mount, never hides load-bearing text in CSS-only cues.           |
+| Reduced motion        | `gsap.matchMedia("(prefers-reduced-motion: no-preference)")` gates pin/scrub/hide/scene wipes; reduced branch = static storyboard stack.        |
+| Keyboard / print      | Armed hides get `:focus-within` and `@media print` settles with `!important`.                                                                   |
+| Mobile pin discipline | Desktop: long pin/scrub sequences allowed; mobile: **native document** or short pins only — no multi-minute pinned WebGL on phone.              |
+| Scope containment     | Client choreography module + server-resolved markup; flag-gated route; `domain/` / `content/` evolve in later slices, not in concept selection. |
 
-Storyboards below use **frame notation**: `F0` = load, `F1…Fn` = scroll progress landmarks. Implementation would use `useGSAP` + scoped refs ([gsap-react](https://gsap.com/docs/v3/React/)), chapter timelines with `scrollTrigger: { scrub, pin, snap }` where noted ([gsap-scrolltrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/)).
-
-## Three-axis discipline
-
-These concepts sit on **different primary axes** (Impeccable-style variants), not three layouts of the same idea:
-
-| Id    | Name             | Primary axis                                | Centerpiece medium                    |
-| ----- | ---------------- | ------------------------------------------- | ------------------------------------- |
-| **A** | **Ledger Film**  | Editorial document / horizontal film leader | Typographic “qualified figure” object |
-| **B** | **Strata Cut**   | Spatial cross-section / system depth        | Layered stack (WebGL or CSS 3D)       |
-| **C** | **Chorus Index** | Rhythmic index / measurement grid           | Animated mono grid + signal pulses    |
+Storyboards use **frame notation**: `F0` = load, `F1…Fn` = scroll landmarks. Implementation: `useGSAP` + scoped refs, master timeline with `scrollTrigger: { scrub, pin, snap }` per scene.
 
 ---
 
-## Concept A — Ledger Film
+## Reference inspection
+
+### GetLayers — “New Era” (`/layer/new-era`)
+
+**Inspection date:** 2026-10-15 (automated browser + page metadata). **Live scroll experience was not available** — the layer is **Premium** (“Upgrade to unlock”; prompt and source download gated). Findings below separate **observed** from **inferred**.
+
+| Observed (primary sources)                                                                                                                                                                                                                                                                                           | Inferred (not verified interactively)                                                                                    |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Page title and H2: **“New Era”**. Official blurb on the layer detail panel: _“A luminous swarm of orange-and-blue particles drifts through deep space, endlessly reshaping itself as you scroll — a cinematic voyage from a single point of light to a vast spiral galaxy.”_                                         | Full-page scroll choreography matches the blurb (particle morph tied to scroll progress).                                |
+| Tags listed: **Health / Science**, **landing page**, **threejs**, **nextjs**.                                                                                                                                                                                                                                        | Built as App Router + Three.js stack per GetLayers workflow docs on the same page.                                       |
+| Preview **video** URL present in DOM: `https://storage.getlayers.ai/templates/new-era.mp4` (marketing capture, not interactive). Still frame shows a **dense particle vortex** around a **central dark void**, **orange–amber warm particles** on one side and **cyan–blue** on the other, on **near-black** ground. | Interactive version uses scroll-scrubbed uniforms (particle spread, curl, color mix) rather than discrete section fades. |
+| UI: “Copy prompt”, “Download source code”, “Upgrade to Full Stack” — **no public iframe demo** in the inspected session.                                                                                                                                                                                             | Production layer likely single-page immersive hero + scroll acts (typical GetLayers “Templates” category).               |
+| OG description (meta): _“New Era — a premium layer from the GetLayers library. landing page · threejs · nextjs.”_                                                                                                                                                                                                    | —                                                                                                                        |
+
+**Takeaways for this portfolio (creative, not clone):** particle fields as **primary art direction**; scroll as **continuous metamorphosis** rather than stacked sections; WebGL justified for density and organic motion DOM cannot carry; color can stay **on-brand** (warm ink + single amber signal on near-black) instead of marketing orange/blue.
+
+### webfueled.dev
+
+| Observed                                                                                                                                                                                                                                                                           | Inferred                                                                                                                             |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Hero: **full-viewport cinematic still** (portrait, dramatic side light, deep black surround). **Large centered question headline** in white sans. **“Scroll”** affordance with mouse icon at bottom. Page copy references a **“scroll-driven hero”** as the product demonstration. | Pacing: slow first scroll, confidence in negative space; typography as **poster**, not document grid.                                |
+| Below fold: course marketing sections (skills / build / business) — conventional layout **after** the hero spectacle.                                                                                                                                                              | Narrative arc = one strong immersive opening → simpler content; for portfolio, **entire home** should stay immersive until nav coda. |
+
+**Takeaways:** pair **one unforgettable opening image or field** with **restrained type**; treat scroll as **directed camera**; avoid “hero spectacle → default portfolio layout.”
+
+---
+
+## Exploration round 1 — **not selected**
+
+Stakeholder review (2026-10-15): Ledger Film, Strata Cut, and Chorus Index **do not meet creative ambition** — too close to conventional portfolio structure (pinned text, methodology channels, grids, stack diagrams). **Do not prototype these.** Retained for history.
+
+| Id    | Name             | Primary axis                                | Why not selected (summary)                                       |
+| ----- | ---------------- | ------------------------------------------- | ---------------------------------------------------------------- |
+| **A** | **Ledger Film**  | Editorial document / horizontal film leader | Document + qualified-figure rail = animated case study, not film |
+| **B** | **Strata Cut**   | Spatial cross-section / system depth        | Literal layer stack = software diagram metaphor                  |
+| **C** | **Chorus Index** | Rhythmic index / measurement grid           | Grid + channel cells = matrix reskin                             |
+
+<details>
+<summary>Round 1 full write-ups (collapsed)</summary>
+
+### Concept A — Ledger Film
+
+Forensic scroll on hairline grid; oversized qualified figure rail; CH 01/02 pin beats; index coda. WebGL: none. See git history of this file for full tables.
+
+### Concept B — Strata Cut
+
+Geologic layer stack peeling on scroll; validator plane highlight; exit tunnels. WebGL-forward. Superseded by round 2 spatial ideas without stack metaphor.
+
+### Concept C — Chorus Index
+
+Full-viewport mono grid scan; CH cell expand. Superseded by round 2 kinetic environments.
+
+</details>
+
+---
+
+## Exploration round 2 — candidate directions (current)
+
+Three **distinct visual worlds** prioritizing differentiation and ambition over implementation ease. Each uses **scene-to-scene transformation** (morph, wipe, or camera voyage), not section reveals.
+
+| Id    | Name                 | World axis                              | Centerpiece                                       |
+| ----- | -------------------- | --------------------------------------- | ------------------------------------------------- |
+| **D** | **Singularity Wake** | Particle cosmos / scroll-sculpted field | Living particle vortex (portfolio-colored)        |
+| **E** | **Monolith Script**  | Monumental type as architecture         | One hero sentence as traversable typographic ruin |
+| **F** | **Threshold Rooms**  | Serial installation chambers            | Full-screen organic **dissolve** between rooms    |
+
+---
+
+## Concept D — Singularity Wake
 
 ### 1. Visual identity
 
-A **forensic scroll**: the homepage reads as one continuous technical record unrolling on a hairline grid — IBM Plex Mono for ordinals and scope lines, sans for claims, amber only on ink roles (`--accent`), never gratuitous fill. Differs from B’s volumetric depth and C’s pulsing grid; motion feels **lateral and deliberate** (webfueled-style confidence) rather than orbital or staccato.
+**Deep-document black** (`--bg`) holding a **living particle ocean** — millions of points in warm ink and **amber ink** (`--accent`), never fill-heavy UI. The world feels like **observatory footage**: silence, drift, then violent graceful reconfiguration. Differs from E’s stone type and F’s photographic rooms; motion is **fluid simulation**, color is **ember-on-void**.
+
+**Moodboard (concrete references)**
+
+| Reference                                                                    | What to steal                                                   |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| GetLayers **New Era** preview (`storage.getlayers.ai/templates/new-era.mp4`) | Vortex density, scroll-implied metamorphosis, void at center    |
+| **Arrival** (2016) docking / time POV shots                                  | Slow approach, scale shift without UI chrome                    |
+| **Ryoji Ikeda** — `data.scan` / superposition installations                  | Point-cloud aesthetics, restraint, no literal charts            |
+| **webfueled.dev** hero                                                       | Poster typography over full-bleed atmosphere                    |
+| Portfolio tokens                                                             | Near-black ground, ochre/amber thin marks only, IBM Plex stacks |
 
 ### 2. Signature centerpiece
 
-A **single oversized qualified figure** (tab nums, scope line, source pointer) pinned beside the hero claim — the same evidence grammar as case studies, but at cinematic scale. It is the visual anchor every chapter revisits with new numbers (175+, 9%–41%, 8–10) without becoming a résumé ticker.
+A **particle singularity** — torus/vortex whose **curl, radius, and color temperature** are the main character. It is not a galaxy stock photo; it is an **abstract engine** that could read as nebula, turbine, or flock depending on scroll phase.
 
-### 3. Scroll narrative
+### 3. Scroll narrative — scene transformations
 
-| Chapter             | Frames (storyboard)                                                                                                                                                                  | Visual state                                   | Transition                                                                  |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- | --------------------------------------------------------------------------- |
-| **0 — Threshold**   | `F0`: Full hero H1 + lead visible; figure ghosted at 40% opacity right rail. `F1`: First 15vh scroll — kicker (headline · location · availability) slides under H1; figure sharpens. | Document mode; hairline top rule; no cards.    | `scrub` 0→0.12: figure opacity + 8px x; ease `power2.out`.                  |
-| **1 — Requirement** | `F2`: Section pins (`pin: main` wrapper). Left: CH 01 requirement line. Right: figure shows `175+` with scope. `F3`: Scroll 20% through pin — depth line cross-fades in mono.        | Split panel; vertical 1px divider.             | Scrubbed crossfade between spine beats; `snap: labels` on timeline.         |
-| **2 — Contract**    | `F4`: Pin continues; contract line gains amber ink underline (not fill). `F5`: Figure swaps to 9%–41% with scope expansion animating in.                                             | Emphasis on **contract** typography.           | Figure swap: outgoing scope slides up, incoming from below (stagger 0.08s). |
-| **3 — Continuity**  | `F6`: Pin releases; “One practice” band scrolls naturally. `F7`: Narrow portrait rail hint (static image or CSS mask) at `--surface`.                                                | About-register echo without full About layout. | `once` reveal on band; no hide.                                             |
-| **4 — Index coda**  | `F8`: Inline index lines (not a 2×2 grid): Projects / Articles / About as **numbered continuations** `05`, `06`, `07` with one-line summaries. `F9`: Footer availability + mailto.   | Hairline list; amber arrow on hover only.      | Stagger `ScrollTrigger.batch` on index rows at `start: top 88%`.            |
+| Scene                       | Frames     | Visual state                                                                                                                                                                                                       | Transformation (not a “section reveal”)                                                                      |
+| --------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| **I — Point**               | `F0`–`F1`  | Single amber pixel at center; name + one-line positioning in IBM Plex Sans, bottom third (SSR).                                                                                                                    | Particles **nucleate** from the pixel (shader birth rate ↑ with scroll); type holds fixed while field grows. |
+| **II — Wake**               | `F2`–`F4`  | Vortex forms; camera **dives** along the wake (scroll-scrubbed camera spline).                                                                                                                                     | **Continuous morph**: particle velocity field rotates from laminar to turbulent; no cut.                     |
+| **III — Passage**           | `F5`–`F7`  | Vortex **opens** into a tunnel (hollow core widens); copy for “what I build” floats on a **glass-dark plane** (CSS `--surface` 85% opacity) that **rides the tunnel wall** (3D transform synced to ScrollTrigger). | Tunnel is not a new page — same particle system, new boundary conditions in shader.                          |
+| **IV — Constellation coda** | `F8`–`F10` | Field expands to sparse stars; **three bright nodes** pulse once (Projects / Articles / About) with mono labels; mailto as fourth faint node.                                                                      | Particles **re-seed** to anchor points; vortex dissolves into navigable sky.                                 |
 
-ASCII storyboard (desktop pin beat):
+ASCII (Scene II → III):
 
 ```text
-F2 ┌──────────────────────────────────────────────┐
-   │ 01 REQUIREMENT          │    ┌─────────────┐ │
-   │ Players need an AI…     │    │    175+     │ │
-   │                         │    │ monthly…    │ │
-   │                         │    │ scope line  │ │
-   └──────────────────────────────────────────────┘
-        ↑ scrub scroll drives timeline progress →
+F3        ·  ·    ·
+      ·   ╱╲   ·     ← wake
+    ·   ╱    ╲   ·
+  ·     ████     ·   ← void opens into tunnel on next scrub
+```
+
+**Narrative (engineering-informed, not illustrative):** the film is about **following a signal into structure** — ambiguity as particle cloud, judgment as stable orbit — without naming stacks or employers in the visuals.
+
+### 4. Contextual navigation
+
+- **Projects:** Scene IV node — label “Evidence” / link `/projects` (copy from content layer later).
+- **Articles:** second node — `/articles`.
+- **About:** third node — `/about`.
+- **Ecosystem:** omit unless copy in Scene III explicitly references the map; no default fourth card.
+
+### 5. Positioning story
+
+Senior / hands-on / product / AI-native reads through **pacing and craft** (shader stability, readable type on chaos), not through diagrams. One short hero line (existing hero intent) + **one** mid-film stanza max; depth lives on subpages.
+
+### 6. Desktop vs mobile
+
+| Surface | Storyboard                                                                                                                                                                    | Centerpiece                           | Reduced motion                                                          |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------- |
+| Desktop | Full pin `F1`–`F9` (~400–600vh); `scrub: 1`; `snap: { snapTo: labels, duration: 0.4 }` on scene boundaries                                                                    | WebGL particles + scrubbed camera     | Static poster: final Scene IV still + full text stack in document order |
+| Mobile  | **No long pin**; 4 static **plates** (screenshots from each scene) with short scroll between; optional 15s loop video of wake on `prefers-reduced-motion: no-preference` only | Simplified 2D canvas or CSS dot field | Plates only, no autoplay video                                          |
+
+### 7. Technology split
+
+| Scene            | GSAP / ScrollTrigger                                                  | WebGL (R3F/three)                                  | HTML / CSS                                |
+| ---------------- | --------------------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------- |
+| I–IV master      | Master timeline; `pin` viewport; scrub progress → uniform `uProgress` | Instanced particles, curl noise, additive blending | Hero + stanza copy, focusable links in IV |
+| Camera           | Scroll-linked camera rig (GSAP proxy)                                 | Perspective camera                                 | —                                         |
+| Tunnel wall copy | Transform sync from timeline                                          | Optional depth buffer read for parallax            | Panel on `--surface`                      |
+
+**WebGL justification:** **≥10⁵** animated points with organic coherence; DOM/SVG cannot hit density or fluid morph at 60fps.
+
+### 8. Performance and feasibility
+
+| Topic       | Notes                                                                                           |
+| ----------- | ----------------------------------------------------------------------------------------------- |
+| Budget      | Lazy-load R3F chunk on flag ON; `dpr` cap 1.5 mobile, 2 desktop; kill canvas on reduced-motion. |
+| Risk        | Medium–high GPU; mitigate with instancing, fixed timestep, `visibility` pause when off-screen.  |
+| Feasibility | High engineering fit (Codenames choreography patterns + new R3F dep in later slice).            |
+
+### 9. Assessment matrix
+
+| Dimension                 | Rating      | Rationale                                              |
+| ------------------------- | ----------- | ------------------------------------------------------ |
+| Visual impact             | Very high   | Closest to New Era ambition, on-brand palette          |
+| Originality               | High        | Particle sites exist; story + type treatment is custom |
+| Implementation complexity | Very high   | Shader + camera + a11y floor                           |
+| Performance risk          | Medium–high | Mitigable with tiered mobile                           |
+
+---
+
+## Concept E — Monolith Script
+
+### 1. Visual identity
+
+A **brutalist typographic landscape** — letters the size of buildings, carved from `--surface` stone on `--bg` sky. Motion feels **tectonic**: slides, shears, dust. Amber appears only when a **word fractures** and the crack glows. Differs from D’s fluid field and F’s photographic realism.
+
+**Moodboard**
+
+| Reference                                         | What to steal                                |
+| ------------------------------------------------- | -------------------------------------------- |
+| **webfueled.dev**                                 | Scale of headline relative to viewport       |
+| **Experimental Jetset** posters                   | Monument sans, grid tension                  |
+| **Tadao Ando** concrete + slit light              | Material seriousness (no fake glassmorphism) |
+| **Karsten Schmidt** (typographic installations)   | Type as environment                          |
+| **Denis Villeneuve** title cards (Dune / Arrival) | Slow push-ins on letterforms                 |
+
+### 2. Signature centerpiece
+
+The hero sentence **set in colossal IBM Plex Sans** (words as separate meshes or DOM blocks): _“I follow the product requirement as deep as it needs to go.”_ Visitors **scroll through** the sentence — camera passes between words like alleys.
+
+### 3. Scroll narrative — scene transformations
+
+| Scene              | Frames     | Visual state                                                                                                                                              | Transformation                                                                           |
+| ------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **I — Facade**     | `F0`–`F2`  | Full sentence fills viewport; only first line legible.                                                                                                    | Camera **tracks backward**; other words rise from below horizon (y/rotateX scrub).       |
+| **II — Split**     | `F3`–`F5`  | Word **“deep”** shears open (vertical split); amber crack line; interior is darkness with floating mono **evidence phrases** (short, not metrics parade). | Split is FLIP + transform; interior copy is SSR, revealed by widening gap not opacity-0. |
+| **III — Collapse** | `F6`–`F7`  | Letters **fall forward** toward camera (perspective); dust particles (light WebGL or CSS)                                                                 | Scene **morph**: typography becomes rubble field; rubble **resolves** into flat plaza.   |
+| **IV — Plaza**     | `F8`–`F10` | Three **standing stones** (not cards) engraved Projects / Articles / About; horizon hairline.                                                             | Stones rise from rubble via timeline; links are engraved text (underline on focus).      |
+
+ASCII (Scene II):
+
+```text
+F4    DEEP
+      ║ ║  ← amber crack
+      ║ ║     mono phrases inside
 ```
 
 ### 4. Contextual navigation
 
-- **Projects:** Chapter 1 case-study handoff — inline “Codenames AI case study →” after CH 01 beat (same href as today’s matrix).
-- **Articles:** Chapter 4 index line `06` — “Field reports” with count from content when available.
-- **About:** Chapter 3 continuity link + Chapter 4 `07` practice record line.
-- **Ecosystem:** Optional eighth index line only if narrative mentions “same gates” (continuity body); not required in v1.
+Engraved stones in Scene IV; optional mid-film inline link inside split (“Codenames AI →”) only as **carved footnote**, not a case-study panel.
 
 ### 5. Positioning story
 
-Shows **judgment through evidence grammar**: requirement → depth → contract → qualified number, mirroring how Michael works without listing employers in the hero. Senior/hands-on reads in the **depth** copy (validators, pipelines, migrations); AI-native reads in CH 01; product-engineering reads in cross-layer framing. Ledger detail stays on `/about`; proof stays on `/projects`.
+**Depth as literal space** — product requirement becomes architecture. Engineering judgment shown by **what the split reveals** (short field phrases), not timeline. AI-native hinted in footnote copy only if sourced from `content/` later.
 
 ### 6. Desktop vs mobile
 
-| Surface          | Pin / scroll                                          | Centerpiece                                                 | WebGL                                |
-| ---------------- | ----------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------ |
-| Desktop (≥821px) | Pin chapters 1–2 (~180vh each); `scrub: 1`            | Full-height figure rail                                     | **Off** — DOM + tabular nums suffice |
-| Mobile (≤820px)  | Native scroll; condensed chapters as stacked sections | Figure inline between beats, smaller `--fs-statement` scale | **Off**                              |
+| Surface | Storyboard                                                                                  | Reduced motion                                     |
+| ------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Desktop | Pin through II–III; horizontal **containerAnimation** optional for alley walk between words | Full sentence + stones visible; no shear animation |
+| Mobile  | Single-column stack: sentence blocks; split becomes **accordion** with details open         | Same accordion, no perspective                     |
 
 ### 7. Technology split
 
-| Beat           | GSAP / ScrollTrigger                    | WebGL | HTML / CSS                     |
-| -------------- | --------------------------------------- | ----- | ------------------------------ |
-| Hero threshold | Scrub opacity/x on figure               | —     | Hero type, kicker, grid        |
-| CH 01–02 pin   | `pin`, `scrub`, timeline `snap: labels` | —     | Split panels, hairlines        |
-| Figure swaps   | Timelines scrubbed to scroll progress   | —     | `QualifiedFigure`-style markup |
-| Continuity     | `once` fade-up                          | —     | Band, link                     |
-| Index coda     | `ScrollTrigger.batch` stagger           | —     | List rows, mailto              |
+| Scene          | GSAP / ScrollTrigger           | WebGL                                     | HTML / CSS                     |
+| -------------- | ------------------------------ | ----------------------------------------- | ------------------------------ |
+| Facade / track | `pin`, scrub camera on wrapper | Optional dust in collapse only            | Giant type blocks              |
+| Split          | Timeline + FLIP                | —                                         | Crack `:after` with `--accent` |
+| Collapse       | `rotateX`, `z`, stagger        | Low-count debris shader OR CSS transforms | —                              |
+| Plaza          | `once` rise                    | —                                         | Stone links                    |
 
-WebGL rows: **none** — convincing qualified figures and mono scope are DOM-native.
+**WebGL optional:** debris **only** if CSS particle count insufficient; not required for v1.
 
-### 8. Assessment matrix
+### 8. Performance and feasibility
 
-| Dimension                 | Rating      | Rationale                                                                                 |
-| ------------------------- | ----------- | ----------------------------------------------------------------------------------------- |
-| Visual impact             | Medium–high | Strong typographic drama within existing design system; less “wow” than spatial concepts. |
-| Originality               | Medium      | Evidence-first scroll is on-brand; not a generic WebGL hero.                              |
-| Implementation complexity | Medium      | Pin/scrub + figure swaps are Codenames-adjacent patterns already in repo.                 |
-| Performance risk          | Low         | No GPU layer; pin count bounded to two chapters on desktop.                               |
+| Topic       | Notes                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------- |
+| Budget      | Prefer DOM transforms; WebGL dust ≤2k points if used                                                    |
+| Risk        | Medium (layout thrash on huge type — use `will-change` sparingly, `ScrollTrigger.refresh` on font load) |
+| Feasibility | High without WebGL; masterpiece with light GPU                                                          |
+
+### 9. Assessment matrix
+
+| Dimension                 | Rating    | Rationale                                  |
+| ------------------------- | --------- | ------------------------------------------ |
+| Visual impact             | Very high | Unmistakable identity; typographic courage |
+| Originality               | Very high | Not a template portfolio layout            |
+| Implementation complexity | High      | FLIP + perspective + a11y                  |
+| Performance risk          | Medium    | DOM-heavy but predictable                  |
 
 ---
 
-## Concept B — Strata Cut
+## Concept F — Threshold Rooms
 
 ### 1. Visual identity
 
-A **geologic cross-section** of software: ambiguous requirement at the surface, layers peeled away to expose data, validation, and telemetry strata — near-black void between layers, warm ink, amber only at **fracture lines** where contracts hold. Differs from A’s flat document and C’s flat grid; motion is **depth-axis** (z-parallax, layer separation).
+**Serial installation art** — four full-screen **rooms** with different materials (concrete + slit light, fog + single beacon, night water + horizon, empty gallery with one portrait). Square frames, no shadows per design system; depth from **photography / WebGL quads** only. Transitions are **organic wipes** (noise threshold), not fades. Differs from D (continuous field) and E (type ruin).
+
+**Moodboard**
+
+| Reference                                                                | What to steal                                                  |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| **James Turrell** Ganzfeld / wedgework                                   | Color fields, slow perception shift                            |
+| **Bill Viola** slow-motion thresholds                                    | Emotional pacing between spaces                                |
+| **GetLayers** section templates (category copy: “Sections … own motion”) | Distinct acts, each with own art direction                     |
+| **Edward Burtynsky** (abstracted)                                        | Human scale vs industrial void — **not** literal eco messaging |
+| **webfueled.dev**                                                        | First-frame cinematic confidence                               |
 
 ### 2. Signature centerpiece
 
-An interactive **layer stack** (5–7 planes: UI, API, schema, validator, telemetry, human review) that separates on scroll like a technical diagram coming apart. Memorable image: amber edge light on the **validator** plane when CH 01 contract line locks.
+The **threshold wipe** itself — a full-viewport **shader curtain** (film burn / noise dissolve) that carries color from Room N into Room N+1. The wipe is the brand: **crossing under uncertainty**.
 
-### 3. Scroll narrative
+### 3. Scroll narrative — scene transformations
 
-| Chapter              | Frames                                                                                                                                                         | Visual state                                       | Transition                                                  |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------- |
-| **0 — Surface**      | `F0`: Hero text floats over closed stack (orthographic). `F1`: Scroll begins — stack tilts 12° (CSS or WebGL camera).                                          | Calm, webfueled-slow first 10vh.                   | Camera/scrub 0→0.1.                                         |
-| **1 — First cut**    | `F2`: Pin viewport; scroll drives `z` separation 0→120px between layers. `F3`: CH 01 copy appears on the UI plane as texture or overlaid HTML sync’d to depth. | Labels mono on layer edges.                        | `scrub` tied to layer gaps; HTML copy never hidden pre-arm. |
-| **2 — Fault line**   | `F4`: Validator plane highlights; contract quote pins to fracture. `F5`: CH 02 layer exposes pipeline/graph motif (simplified).                                | Amber hairline on validator edge.                  | Shader or CSS `outline` pulse once at label.                |
-| **3 — Bedrock**      | `F6`: Layers collapse to single `--surface` panel; continuity copy.                                                                                            | Return to 2D document.                             | Reverse scrub or hard cut with 400ms ease (desktop only).   |
-| **4 — Exit tunnels** | `F7`: Three **depth tunnels** (not cards) — shallow parallax corridors labeled Projects / Articles / About; scroll past chooses none, click enters.            | Perspective corridors, no shadows (design system). | `once` scale 0.98→1 on tunnel mouth.                        |
+| Scene                | Frames     | Visual state                                                                                                                             | Transformation                                                                   |
+| -------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Room 1 — Slit**    | `F0`–`F2`  | Concrete texture; vertical **amber slit** (CSS gradient banned — use photographic plate or painted WebGL quad); hero line in lower left. | Scroll **widens slit** (mask scrub) until room blows out to white-hot edge.      |
+| **Room 2 — Fog**     | `F3`–`F5`  | Fog plate; single `--accent-fill` beacon far away; one-sentence voiceover text (lead).                                                   | **Wipe** from slit edge; fog density tied to scroll (shader or video crossfade). |
+| **Room 3 — Horizon** | `F6`–`F8`  | Night sea; horizon as 1px `--border-strong`; subtle reflection.                                                                          | Horizon **tilts** (camera roll scrub) → wipe to gallery.                         |
+| **Room 4 — Gallery** | `F9`–`F11` | Near-black room; **one** portrait (Michael) lit like webfueled reference; three doorways (text labels) to Projects / Articles / About.   | Doors are **light gaps**, not cards; hover = amber ink underline.                |
 
-ASCII (first cut, side view):
+ASCII (wipe between rooms):
 
 ```text
-F3      [ UI copy plane ]
-           ║ gap ║
-        [ API · schema ]
-           ║ gap ║
-        [ validator ] ← amber edge
-           ║ gap ║
-        [ telemetry ]
+F3  [ concrete ]█████░░░░░[ fog ]
+              ↑ noise dissolve boundary moves →
 ```
 
 ### 4. Contextual navigation
 
-- **Projects:** Tunnel `01` at bedrock exit — “Evidence index” with Codenames thumbnail plane.
-- **Articles:** Tunnel `02` — field-report stripe motif.
-- **About:** Continuity chapter link + tunnel `03` practice record.
-- **Ecosystem:** Fourth tunnel only if bedrock copy references shared gates (optional).
+Doorway gaps in Room 4; optional whisper link in Room 2 footer (“field reports →”) as mono text.
 
 ### 5. Positioning story
 
-**Hands-on depth** is literal: visitors see layers opened. Senior scope reads in how many planes exist; AI-native reads in validator + schema planes; product-engineering reads in requirement-on-surface → contract-on-fracture. Avoid animated CV by keeping numbers on planes as **one** qualified figure per chapter, not a timeline of jobs.
+Rooms are **states of practice** (constraint, ambiguity, measurement, accountability) without labeling them as methodology. Portrait grounds **human** senior IC/leader presence without résumé scroll.
 
 ### 6. Desktop vs mobile
 
-| Surface | Pin / scroll                                             | Centerpiece                                          | WebGL                                             |
-| ------- | -------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------- |
-| Desktop | Pin `F2–F5`; scrub separation                            | Full R3F stack or CSS `transform-style: preserve-3d` | **On** (preferred) for lighting on fracture edges |
-| Mobile  | No pin; **pre-separated static diagram** + vertical copy | Simplified 2D exploded view (SVG)                    | **Off** — static SVG fallback                     |
+| Surface | Storyboard                                                               | WebGL                                 | Reduced motion                        |
+| ------- | ------------------------------------------------------------------------ | ------------------------------------- | ------------------------------------- |
+| Desktop | Pin per room (~100vh scrub each); wipe overlaps 15% scroll between rooms | Wipe shader + optional fog video loop | Four full-height stills, copy between |
+| Mobile  | Rooms stack; **static** stills; shortened copy                           | Wipe becomes **hard cut** (CSS)       | Same stills                           |
 
 ### 7. Technology split
 
-| Beat             | GSAP / ScrollTrigger                | WebGL (R3F/three)           | HTML / CSS                                    |
-| ---------------- | ----------------------------------- | --------------------------- | --------------------------------------------- |
-| Surface tilt     | Scrub camera uniform or CSS rotateX | Plane meshes + ortho camera | Hero HTML overlay                             |
-| Layer separation | `scrub` → uniform `uSpread`         | Layer meshes, edge emissive | Synced copy panels (absolute, pointer-events) |
-| CH labels        | Timeline labels                     | —                           | Mono edge labels                              |
-| Bedrock collapse | Timeline reverse                    | Optional morph to flat      | Continuity section                            |
-| Exit tunnels     | `once` transforms                   | Optional light sweep        | Tunnel links                                  |
+| Beat      | GSAP / ScrollTrigger             | WebGL / media                                                  | HTML / CSS                           |
+| --------- | -------------------------------- | -------------------------------------------------------------- | ------------------------------------ |
+| Room pins | `pin`, scrub masks               | Textured quads, fog shader or H.264 loop (muted, plays inline) | Type                                 |
+| Wipes     | Timeline progress → `uThreshold` | Full-screen fragment shader                                    | —                                    |
+| Gallery   | `once` door glow                 | —                                                              | Portrait `next/image`, doorway links |
 
-WebGL justification: **convincing emissive fracture edges and coherent multi-plane separation** without faking depth in flat DOM; mobile degrades to SVG.
+**WebGL justification:** **seamless photochemical wipe** between unrelated plates; CSS crossfade reads as template, not cinema.
 
-### 8. Assessment matrix
+### 8. Performance and feasibility
 
-| Dimension                 | Rating      | Rationale                                                                                   |
-| ------------------------- | ----------- | ------------------------------------------------------------------------------------------- |
-| Visual impact             | High        | Strongest “cinematic” first impression; closest to reference-site spectacle while on-brand. |
-| Originality               | High        | Layer metaphor matches positioning; not a template hero video.                              |
-| Implementation complexity | High        | R3F layer + HTML sync + fallback art; new dependency if WebGL in.                           |
-| Performance risk          | Medium–high | GPU + pin; must cap planes, lazy-load canvas, kill on reduced-motion.                       |
+| Topic       | Notes                                                                              |
+| ----------- | ---------------------------------------------------------------------------------- |
+| Assets      | Optimized WebP/AVIF plates + short WebM fog; art-directed shoot or licensed stills |
+| Risk        | Medium (video bandwidth) — serve poster + play only desktop motion branch          |
+| Feasibility | High creative control; production cost is **asset pipeline**, not math             |
 
----
+### 9. Assessment matrix
 
-## Concept C — Chorus Index
-
-### 1. Visual identity
-
-A **measurement chorus**: the page is a living index — ordinals, channel labels, and scope lines **pulse in rhythm** like instruments coming online, then settle into readable stanzas. Square grid, mono eyebrows, sans stanzas; amber appears only when a **channel locks** (CH 01, CH 02). Differs from A’s film leader (continuous lateral) and B’s depth; motion is **temporal/rhythmic** (stagger, beat slots) more than spatial.
-
-### 2. Signature centerpiece
-
-A **full-viewport mono grid** (hairlines only) where cells briefly highlight in scan order, then hold on two channel “cells” that expand into the current CH 01 / CH 02 narratives. The grid is the memorable object — evidence as **instrumentation**, not decoration.
-
-### 3. Scroll narrative
-
-| Chapter            | Frames                                                                                                                                           | Visual state                | Transition                                                     |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------- | -------------------------------------------------------------- |
-| **0 — Tuning**     | `F0`: Hero H1 centered; grid at 5% opacity full bleed. `F1`: 8vh scroll — scan wave across cells (single pass).                                  | Grid `_ _ _ _` rhythm.      | `gsap.fromTo` cell backgrounds scrubbed 0→0.15.                |
-| **1 — CH 01 lock** | `F2`: Cell `CH 01` expands (grid-template morph via FLIP or width tween). `F3`: Requirement → depth → contract lines stagger in.                 | Channel cell becomes panel. | Timeline with `stagger: 0.12`; no opacity-zero start for copy. |
-| **2 — CH 02 lock** | `F4`: Collapse CH 01 to rail; CH 02 cell expands. `F5`: Figure 9%–41% counts up only if motion allowed (`toggleActions` / reduced branch skips). | Second channel panel.       | `snap: 0.5` between two channel states on desktop pin.         |
-| **3 — Unison**     | `F6`: Both channels sit in two-column desktop / stack mobile; continuity stanza spans full width.                                                | “One practice” mono kicker. | Crossfade grid opacity down to 0.15.                           |
-| **4 — Coda links** | `F7`: Three **inline refrains** — each a single line with arrow link (Projects, Articles, About). `F8`: Availability footer.                     | No route grid.              | `ScrollTrigger.batch` on refrains.                             |
-
-ASCII (tuning wave):
-
-```text
-F1   ┌──┬──┬──┬──┐
-     │██│  │  │  │  ← scan highlight moves →
-     ├──┼──┼──┼──┤
-     │  │██│  │  │
-     └──┴──┴──┴──┘
-        Hero H1 beneath / over grid
-```
-
-### 4. Contextual navigation
-
-- **Projects:** Refrain after CH 01 — “Every system, and what it is allowed to claim →”
-- **Articles:** Refrain in coda — field reports line from current routes copy.
-- **About:** Continuity stanza link + coda refrain.
-- **Ecosystem:** Omit unless unison copy names ecosystem walkthrough.
-
-### 5. Positioning story
-
-Communicates **instrumentation mindset** (growth measurement + AI validation) through grid metaphor. Senior/hands-on: depth lines in each channel; product-engineering: two channels, one method; AI-native: CH 01 prominence. Shows craft via **timing and restraint** (webfueled pacing), not employer logos.
-
-### 6. Desktop vs mobile
-
-| Surface | Pin / scroll                                                   | Centerpiece                        | WebGL                                                          |
-| ------- | -------------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------- |
-| Desktop | Short pin on `F2–F5` channel swap (~120vh)                     | CSS grid + GSAP                    | Optional **ambient** particles at 3% opacity (non-interactive) |
-| Mobile  | Native; channel sections stack; scan wave shortened to 4 cells | Grid becomes horizontal rules only | **Off**                                                        |
-
-### 7. Technology split
-
-| Beat         | GSAP / ScrollTrigger         | WebGL                   | HTML / CSS        |
-| ------------ | ---------------------------- | ----------------------- | ----------------- |
-| Scan wave    | Scrub cell highlights        | Optional ambient points | CSS grid template |
-| CH expand    | FLIP / width tweens, `pin`   | —                       | Channel copy      |
-| Figure count | `snap` scrub on number tween | —                       | Tabular nums      |
-| Unison       | Timeline crossfade           | —                       | Continuity        |
-| Coda         | `batch` stagger              | —                       | Inline links      |
-
-WebGL optional row: **ambient field only** — DOM cannot add subtle depth without violating no-blur/no-glow rule; if used, extremely subtle and disabled on mobile/reduced-motion.
-
-### 8. Assessment matrix
-
-| Dimension                 | Rating      | Rationale                                                                  |
-| ------------------------- | ----------- | -------------------------------------------------------------------------- |
-| Visual impact             | Medium–high | Distinctive grid; less literal wow than B, more kinetic than static home2. |
-| Originality               | Medium–high | Grid-as-instrument fits thesis; risks feeling “data viz” if over-animated. |
-| Implementation complexity | Medium      | Mostly GSAP; FLIP/grid morph needs careful SSR floor.                      |
-| Performance risk          | Low–medium  | No heavy GPU unless ambient particles enabled.                             |
+| Dimension                 | Rating    | Rationale                    |
+| ------------------------- | --------- | ---------------------------- |
+| Visual impact             | Very high | Memorable rooms + wipes      |
+| Originality               | Very high | Portfolio as gallery install |
+| Implementation complexity | High      | Assets + shader + pin        |
+| Performance risk          | Medium    | Video weight; lazy media     |
 
 ---
 
-## Comparative summary
+## Round 2 comparative summary
 
-| Id                   | Best when prioritizing…                                           | WebGL v1 default       | Mobile strategy         |
-| -------------------- | ----------------------------------------------------------------- | ---------------------- | ----------------------- |
-| **A — Ledger Film**  | Design-system fidelity, fastest path to ship, evidence typography | Out                    | Native stack            |
-| **B — Strata Cut**   | Maximum cinematic differentiation, depth metaphor                 | In (with SVG fallback) | Static exploded diagram |
-| **C — Chorus Index** | Rhythm and “instrumentation” story without 3D                     | Optional ambient only  | Shortened scan, stack   |
+| Id                       | Ambition                         | WebGL                   | Best prototype proof          |
+| ------------------------ | -------------------------------- | ----------------------- | ----------------------------- |
+| **D — Singularity Wake** | Particle spectacle, New Era tier | **Required**            | Scene I→II wake + tunnel open |
+| **E — Monolith Script**  | Typographic installation         | Optional dust           | Word split + plaza stones     |
+| **F — Threshold Rooms**  | Cinematic photography + wipes    | **Wipe + optional fog** | Room 1 slit → Room 2 wipe     |
 
 ## Direction selection (next slice)
 
-Human gate `creative-direction-select` records:
+Human gate `creative-direction-select` — **not started.**
 
-- Chosen concept id and link to section above
-- Rejected concepts + rationale
-- WebGL in/out for v1 and prototype centerpiece
+Round 1 concepts A–C are **rejected** and must not be prototyped. Round 2 concepts D–F are **candidates only**; no choice recorded here yet.
 
-_No decision recorded in this document until that gate completes._
+When selecting, record:
+
+- Chosen concept id (D, E, or F — or disciplined hybrid with rules)
+- Rejected alternatives + rationale
+- WebGL in/out for v1 and which **scene transformation** must be proven in `visual-prototype`
