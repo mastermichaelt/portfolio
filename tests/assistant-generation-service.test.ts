@@ -30,6 +30,8 @@ function hit(rank: number, unitId: string, conceptId: string, text: string) {
   };
 }
 
+const TEST_OPENAI_API_KEY = "test-openai-api-key";
+
 function mockChatFetch(content: string, finishReason = "stop"): typeof fetch {
   return vi.fn(async () => {
     return new Response(
@@ -163,6 +165,7 @@ describe("runRagGeneration service", () => {
       question: "What is Alpha?",
       dryRunRetrieval: true,
       evidencePacket: packet,
+      apiKey: TEST_OPENAI_API_KEY,
     });
 
     expect(result.response).toBeUndefined();
@@ -197,6 +200,7 @@ describe("runRagGeneration service", () => {
           approximatePromptTokenBudget: 50_000,
         },
         fetch: mockChatFetch(badModel),
+        apiKey: TEST_OPENAI_API_KEY,
       }),
     ).rejects.toBeInstanceOf(GenerationValidationError);
   });
@@ -232,6 +236,7 @@ describe("runRagGeneration service", () => {
         approximatePromptTokenBudget: 50_000,
       },
       fetch: mockChatFetch(goodModel),
+      apiKey: TEST_OPENAI_API_KEY,
     });
 
     expect(result.response?.claims).toHaveLength(2);
@@ -253,6 +258,7 @@ describe("runRagGeneration service", () => {
           approximatePromptTokenBudget: 50_000,
         },
         fetch: mockChatFetch("not-json"),
+        apiKey: TEST_OPENAI_API_KEY,
       }),
     ).rejects.toBeInstanceOf(GenerationParseError);
   });

@@ -51,6 +51,7 @@ export function createEmptyEvidencePacket(characterBudget, assemblyMode) {
  *   embedTexts?: typeof embedTexts,
  *   fetchParentUnits?: (conceptId: string) => Promise<import("./fetch-parent-units.mjs").ParentRetrievalUnitRow[]>,
  *   fetch?: typeof fetch,
+ *   apiKey?: string,
  *   evidencePacket?: EvidencePacket,
  *   config?: Partial<ReturnType<typeof resolveGenerationConfig>>,
  * }} options
@@ -171,6 +172,7 @@ export async function runRagGeneration(options) {
       requestTimeoutMs: config.requestTimeoutMs,
       maxModelResponseJsonChars: config.maxModelResponseJsonChars,
       fetch: options.fetch,
+      apiKey: options.apiKey,
     });
     diagnostics.generation_latency_ms = Math.round(
       performance.now() - generationStarted,
