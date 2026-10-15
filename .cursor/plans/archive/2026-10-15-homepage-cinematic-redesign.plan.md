@@ -1,6 +1,6 @@
 ---
 name: Homepage cinematic redesign
-overview: Repository assessment and engineering guardrails for a cinematic scroll homepage rolled out behind PostHog flag `cinematic-homepage` (legacy home default)—preceded by creative concepts, direction selection, and visual prototype before flagged content model and implementation.
+overview: "Paused indefinitely (archived 2026-10-16). Cinematic scroll homepage behind PostHog flag `cinematic-homepage` was explored; prototypes did not meet the desired visual/experiential quality. Production homepage unchanged; no further implementation planned."
 todos:
   - id: creative-three-concepts
     content: "Docs PR: three distinct cinematic concepts + storyboards (Impeccable + scroll-craft methodology); GSAP/WebGL/CSS split per concept; webfueled.dev polish bar"
@@ -10,25 +10,52 @@ todos:
     status: completed
   - id: visual-prototype
     content: "PR: isolated hero + first scroll transition; merge-safe e2e if runtime changes; production / smoke if experiment-only route"
-    status: pending
+    status: cancelled
   - id: content-and-architecture
     content: "PR: PostHog cinematic-homepage flag + server eval; legacy home default; new static narrative home behind flag; dual Playwright coverage"
-    status: pending
+    status: cancelled
   - id: full-homepage-implement
     content: "PR(s): cinematic GSAP/WebGL behind flag; prototype teardown; e2e for flag ON motion/DOM; legacy unchanged when flag OFF"
-    status: pending
+    status: cancelled
   - id: production-hardening
     content: "PR: validate flag OFF/ON/failure, targeted preview, perf/a11y/SEO, launch + rollback; optional OKF/PostHog events"
-    status: pending
+    status: cancelled
   - id: plan-closure
-    content: "Docs-only PR: # Shipped note, archive plan under .cursor/plans/archive/, mark plan-closure completed"
-    status: pending
+    content: "Docs-only PR: archive plan, pause note, update historical docs (initiative paused—not shipped)"
+    status: completed
 isProject: false
+---
+
+# Archived — paused indefinitely
+
+**Archived 2026-10-16.** The cinematic homepage redesign initiative is **paused indefinitely** by intentional product/design decision—not because the engineering path failed.
+
+| Slice / artifact            | Outcome                                                                                                                                                                                                                              |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `creative-three-concepts`   | **Completed** — merged [#65](https://github.com/mastermichaelt/portfolio/pull/65); [`docs/experiments/homepage-cinematic-concepts.md`](../../../docs/experiments/homepage-cinematic-concepts.md) remains historical research.        |
+| `creative-direction-select` | **Completed** — Concept D (Singularity Wake) recorded in concepts doc (2026-10-16).                                                                                                                                                  |
+| `visual-prototype`          | **Cancelled** — explored on branch `feat/home-hero-visual-prototype` ([#66](https://github.com/mastermichaelt/portfolio/pull/66), closed without merge). Prototype route `/experiments/home-hero-prototype` never shipped to `main`. |
+| `content-and-architecture`  | **Cancelled** — no PostHog `cinematic-homepage` flag, no dual-path home router.                                                                                                                                                      |
+| `full-homepage-implement`   | **Cancelled** — no cinematic production implementation.                                                                                                                                                                              |
+| `production-hardening`      | **Cancelled** — no launch or rollout work.                                                                                                                                                                                           |
+| `plan-closure`              | **Completed** — this archive PR.                                                                                                                                                                                                     |
+
+**Production:** [`app/page.tsx`](../../../app/page.tsx) (Homepage 2) on `/` is **unchanged**. No experimental 3D dependencies on `main`.
+
+### Retrospective
+
+- **Singularity Wake** ([#66](https://github.com/mastermichaelt/portfolio/pull/66)) proved basic Three.js/R3F + GSAP ScrollTrigger integration on an isolated route, but **did not reach the desired visual or experiential quality** for the portfolio.
+- Continuous scroll-driven rotation felt **disorienting** and did not match the preferred interaction model.
+- Preferred future references shifted toward **immersive, mouse-responsive environments** (e.g. [Igloo](https://www.igloo.inc/)) and the **atmosphere of FFVII’s garden**—not the Singularity Wake particle vortex as implemented.
+- Before restarting any homepage motion work: establish a **convincing visual reference or reusable implementation**; **no creative direction or implementation approach is currently approved** for further work.
+
+**Durable historical docs:** [`docs/experiments/homepage-cinematic-concepts.md`](../../../docs/experiments/homepage-cinematic-concepts.md) (concepts, moodboards, direction record). **Do not execute** agent prompts below—they are preserved for context only.
+
 ---
 
 # Homepage cinematic redesign
 
-**Goal:** Ship a cinematic scroll homepage behind PostHog boolean flag **`cinematic-homepage`**, keeping **Homepage 2 as the default** for visitors until the flag is enabled in PostHog (targeted to you first, then everyone at launch). Roll back by disabling the flag—no redeploy required. Creative direction, prototype validation, and merge-safe staged implementation follow the [slices](#execution-slices). Repository assessment below is **Phase 0 — frozen findings**.
+**Original goal (historical):** Ship a cinematic scroll homepage behind PostHog boolean flag **`cinematic-homepage`**, keeping **Homepage 2 as the default** for visitors until the flag is enabled in PostHog (targeted to you first, then everyone at launch). Roll back by disabling the flag—no redeploy required. Creative direction, prototype validation, and merge-safe staged implementation were to follow the [slices](#execution-slices). Repository assessment below is **Phase 0 — frozen findings**.
 
 ## Recommended execution authority
 
@@ -369,7 +396,7 @@ Any slice that changes **runtime behavior** or **production DOM** on `/` (or rou
 
 Docs-only slices (`creative-three-concepts`, `plan-closure`) and the **human gate** are exempt. `production-hardening` follows the same rule when it touches runtime paths.
 
-**Canonical plan path:** [`.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md`](.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md).
+**Canonical plan path (archived):** [`.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md`](.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md).
 
 ---
 
@@ -668,7 +695,7 @@ Use a **fresh Agent-mode chat** per slice. Each frontmatter todo has exactly one
 ### creative-three-concepts
 
 ```text
-@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+@.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md
 
 Implement slice creative-three-concepts only. Do not start visual-prototype, content-and-architecture, full-homepage-implement, production-hardening, or plan-closure. Do not archive the plan.
 
@@ -684,7 +711,7 @@ Verification: format:check; PR diff scope per slice Acceptance; read gsap-scroll
 ### creative-direction-select
 
 ```text
-@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+@.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md
 
 Human gate creative-direction-select only. Do not start visual-prototype or later slices until the decision is recorded.
 
@@ -700,7 +727,7 @@ Verification: Phase B acceptance in slice section satisfied before any visual-pr
 ### visual-prototype
 
 ```text
-@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+@.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md
 
 Implement slice visual-prototype only. Prerequisite: creative-three-concepts merged and creative-direction-select recorded. Do not start content-and-architecture, full-homepage-implement, production-hardening, or plan-closure. Do not archive the plan.
 
@@ -716,7 +743,7 @@ Verification: lint, typecheck, format:check, test:coverage, build, test:e2e when
 ### content-and-architecture
 
 ```text
-@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+@.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md
 
 Implement slice content-and-architecture only. Prerequisite: visual-prototype exit criteria met. Do not start full-homepage-implement, production-hardening, or plan-closure. Do not archive the plan.
 
@@ -732,7 +759,7 @@ Verification: lint, typecheck, format:check, test:coverage, build, test:e2e per 
 ### full-homepage-implement
 
 ```text
-@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+@.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md
 
 Implement slice full-homepage-implement only. Prerequisite: content-and-architecture merged. Do not start production-hardening or plan-closure. Do not archive the plan.
 
@@ -748,7 +775,7 @@ Verification: lint, typecheck, format:check, test:coverage, build, test:e2e per 
 ### production-hardening
 
 ```text
-@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+@.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md
 
 Implement slice production-hardening only. Prerequisite: full-homepage-implement merged. Do not start plan-closure. Do not archive the plan.
 
@@ -764,7 +791,7 @@ Verification: lint, typecheck, format:check, test:coverage, build; test:e2e when
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md
+@.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md
 
 Execute only plan-closure.
 

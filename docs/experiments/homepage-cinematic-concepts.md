@@ -1,7 +1,8 @@
 # Homepage cinematic concepts
 
-**Status:** **Concept D — Singularity Wake** selected (`creative-direction-select` complete, 2026-10-16). `visual-prototype` not started — decision only; no prototype authorization in this step.  
-**Plan:** [`.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md`](../../.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md)  
+**Status:** **Historical research only** — initiative **paused indefinitely** (archived 2026-10-16). Concept D — Singularity Wake was the recorded direction; exploration did not meet the desired visual quality. **Not active work.**  
+**Plan (archived):** [`.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md`](../../.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md)  
+**Prototype (unmerged):** branch `feat/home-hero-visual-prototype` / PR [#66](https://github.com/mastermichaelt/portfolio/pull/66) — closed without merge; `/experiments/home-hero-prototype` is not on `main`.  
 **Polish references:** [webfueled.dev](https://webfueled.dev) (scroll confidence, typographic scale over cinematic stills); [GetLayers — New Era](https://www.getlayers.ai/layer/new-era) (particle/WebGL scroll spectacle — see inspection below)  
 **Motion runtime (implementation):** GSAP + ScrollTrigger only ([`AGENTS.md`](../../AGENTS.md)); R3F/three/shaders as render layers synced to ScrollTrigger timelines, never a second scroll system.
 
@@ -383,23 +384,13 @@ Rooms are **states of practice** (constraint, ambiguity, measurement, accountabi
 
 **In.** R3F/three is the **rendering layer** for the particle singularity, tunnel opening, and scroll-scrubbed camera. GSAP + ScrollTrigger remains the **only** scroll orchestration runtime; shader uniforms and camera transforms are driven from the master timeline progress ([`AGENTS.md`](../../AGENTS.md)).
 
-### Scope boundaries (unchanged)
+### Initiative pause (2026-10-16)
 
-- **Existing homepage** at `/` stays operational until cinematic launch; replacement ships behind PostHog **`cinematic-homepage`** in later slices (fail-closed default OFF).
-- Do **not** reintroduce current homepage grid, method matrix, continuity band, route grid, or methodology chapter IA on the cinematic branch.
-- Global header/footer, primary nav routes, accessibility floor, and SEO requirements from the [plan](../../.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md) still apply.
+The cinematic homepage redesign is **archived and paused indefinitely**. Prototypes demonstrated technical feasibility but **did not meet the desired visual and experiential quality**; production Homepage 2 at `/` is unchanged. No PostHog flag, no cinematic rollout, and **no approved direction** for further implementation. See the [archived plan](../../.cursor/plans/archive/2026-10-15-homepage-cinematic-redesign.plan.md) for slice outcomes and retrospective.
 
-### `visual-prototype` requirements (next slice — **pending, not authorized here**)
+### Scope boundaries (historical — pre-pause)
 
-When `visual-prototype` begins (separate PR/slice after this decision merges), prove at minimum:
+These constraints applied while the initiative was active; they are **not** current product commitments:
 
-| Requirement              | Detail                                                                                                                                         |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Transformation proof** | Particle **wake** morphing into an **opening tunnel** (Concept D Scenes I→III: Point → Wake → Passage).                                        |
-| **Scroll authority**     | GSAP/ScrollTrigger master timeline; scrub/pin as designed; no parallel scroll libraries.                                                       |
-| **Render layer**         | Three.js/R3F particle system + camera rig; scroll progress controls simulation parameters and camera spline.                                   |
-| **Accessibility**        | SSR-resolved HTML copy; reduced-motion branch (static/stacked floor); keyboard `:focus-within` and print settles per scroll-craft methodology. |
-| **Mobile**               | Fallback strategy per Concept D (plates / simplified field — no long pinned WebGL on phone).                                                   |
-| **Production isolation** | Prefer experiment route; **do not change** production `/` until flag slice unless plan explicitly allows.                                      |
-
-**This document update does not start implementation** — `visual-prototype` remains **pending** in plan frontmatter until that slice is explicitly executed.
+- Replacement was intended behind PostHog **`cinematic-homepage`** (never implemented on `main`).
+- Global header/footer, primary nav, accessibility, and SEO guardrails in the archived plan still describe useful patterns if the initiative resumes later.
