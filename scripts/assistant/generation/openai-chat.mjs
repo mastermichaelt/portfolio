@@ -14,11 +14,13 @@ const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
  * @param {Promise<T>} promise
  * @param {number} budgetMs
  * @param {number} requestTimeoutMs
+ * @param {() => void} [onTimeout]
  * @returns {Promise<T>}
  */
-function raceWithReadDeadline(promise, budgetMs, requestTimeoutMs) {
+function raceWithReadDeadline(promise, budgetMs, requestTimeoutMs, onTimeout) {
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
+      onTimeout?.();
       reject(
         new Error(`OpenAI chat request timed out after ${requestTimeoutMs}ms`),
       );
@@ -35,6 +37,25 @@ function raceWithReadDeadline(promise, budgetMs, requestTimeoutMs) {
       },
     );
   });
+}
+
+/**
+ * @param {Response} response
+ */
+function cancelResponseBody(response) {
+  if (!response?.body || response.bodyUsed) {
+    return;
+  }
+  try {
+    const cancelResult = response.body.cancel();
+    if (cancelResult && typeof cancelResult.then === "function") {
+      cancelResult.catch(() => {
+        // Body may already be locked by an in-flight reader.
+      });
+    }
+  } catch {
+    // Best-effort — body may already be consumed or locked.
+  }
 }
 
 /**
@@ -56,6 +77,53 @@ export function createChatRequestDeadline(requestTimeoutMs) {
     }
   };
 
+  /** @type {AbortController | null} */
+  let attemptController = null;
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  let attemptAbortTimer = null;
+  /** @type {Response | null} */
+  let attemptResponse = null;
+
+  const clearAttemptAbort = () => {
+    if (attemptAbortTimer) {
+      clearTimeout(attemptAbortTimer);
+    }
+    attemptAbortTimer = null;
+    attemptController = null;
+    attemptResponse = null;
+  };
+
+  const abortActiveAttempt = (response) => {
+    attemptController?.abort();
+    cancelResponseBody(response ?? attemptResponse);
+  };
+
+  const armAttemptAbort = () => {
+    clearAttemptAbort();
+    attemptController = new AbortController();
+    const budgetMs = remainingMs();
+    if (budgetMs <= 0) {
+      attemptController.abort();
+      return attemptController;
+    }
+    attemptAbortTimer = setTimeout(() => {
+      abortActiveAttempt();
+    }, budgetMs);
+    return attemptController;
+  };
+
+  const finishAttempt = () => {
+    if (attemptAbortTimer) {
+      clearTimeout(attemptAbortTimer);
+    }
+    attemptAbortTimer = null;
+    attemptController = null;
+    attemptResponse = null;
+  };
+
+  const timeoutError = () =>
+    new Error(`OpenAI chat request timed out after ${requestTimeoutMs}ms`);
+
   return {
     remainingMs,
     assertRemaining,
@@ -75,19 +143,20 @@ export function createChatRequestDeadline(requestTimeoutMs) {
      */
     async fetch(fetchFn, url, init) {
       assertRemaining();
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), remainingMs());
+      const controller = armAttemptAbort();
       try {
-        return await fetchFn(url, { ...init, signal: controller.signal });
+        const response = await fetchFn(url, {
+          ...init,
+          signal: controller.signal,
+        });
+        attemptResponse = response;
+        return response;
       } catch (error) {
+        finishAttempt();
         if (error instanceof Error && error.name === "AbortError") {
-          throw new Error(
-            `OpenAI chat request timed out after ${requestTimeoutMs}ms`,
-          );
+          throw timeoutError();
         }
         throw error;
-      } finally {
-        clearTimeout(timeoutId);
       }
     },
     /**
@@ -96,13 +165,24 @@ export function createChatRequestDeadline(requestTimeoutMs) {
     async readJson(response) {
       assertRemaining();
       const budgetMs = remainingMs();
-      const payload = await raceWithReadDeadline(
-        response.json(),
-        budgetMs,
-        requestTimeoutMs,
-      );
-      assertRemaining();
-      return payload;
+      try {
+        const payload = await raceWithReadDeadline(
+          response.json(),
+          budgetMs,
+          requestTimeoutMs,
+          () => abortActiveAttempt(response),
+        );
+        assertRemaining();
+        return payload;
+      } catch (error) {
+        abortActiveAttempt(response);
+        if (error instanceof Error && error.name === "AbortError") {
+          throw timeoutError();
+        }
+        throw error;
+      } finally {
+        finishAttempt();
+      }
     },
     /**
      * @param {Response} response
@@ -110,13 +190,24 @@ export function createChatRequestDeadline(requestTimeoutMs) {
     async readText(response) {
       assertRemaining();
       const budgetMs = remainingMs();
-      const text = await raceWithReadDeadline(
-        response.text(),
-        budgetMs,
-        requestTimeoutMs,
-      );
-      assertRemaining();
-      return text;
+      try {
+        const text = await raceWithReadDeadline(
+          response.text(),
+          budgetMs,
+          requestTimeoutMs,
+          () => abortActiveAttempt(response),
+        );
+        assertRemaining();
+        return text;
+      } catch (error) {
+        abortActiveAttempt(response);
+        if (error instanceof Error && error.name === "AbortError") {
+          throw timeoutError();
+        }
+        throw error;
+      } finally {
+        finishAttempt();
+      }
     },
   };
 }

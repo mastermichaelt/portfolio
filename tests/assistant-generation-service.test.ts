@@ -10,7 +10,10 @@ import {
   requestChatCompletionJson,
 } from "@/scripts/assistant/generation/openai-chat.mjs";
 import { classifyGenerationFailure } from "@/scripts/assistant/generation/classify-generation-failure.mjs";
-import { createNoOpGenerationTelemetry } from "@/scripts/assistant/generation/generation-telemetry.mjs";
+import {
+  createGenerationTelemetry,
+  createNoOpGenerationTelemetry,
+} from "@/scripts/assistant/generation/generation-telemetry.mjs";
 import { runRagGeneration } from "@/scripts/assistant/generation/run-generation.mjs";
 import { validateAndNormalizeQuestion } from "@/scripts/assistant/generation/validate-query.mjs";
 import { parseAnswerArgs } from "@/scripts/assistant/answer.mjs";
@@ -42,9 +45,12 @@ function createCapturingTelemetry() {
   const telemetry = {
     capture(
       event: string,
-      properties: Record<string, string | number | boolean>,
+      properties: Record<string, string | number | boolean | undefined>,
     ) {
-      events.push({ event, properties });
+      const sanitized = Object.fromEntries(
+        Object.entries(properties).filter(([, value]) => value !== undefined),
+      ) as Record<string, string | number | boolean>;
+      events.push({ event, properties: sanitized });
     },
     async flush() {},
   };
@@ -178,6 +184,29 @@ describe("OpenAI chat adapter", () => {
       expect(parseError.details?.max_output_tokens).toBe(2048);
       expect(parseError.details?.completion_tokens).toBe(50);
     }
+  });
+});
+
+describe("generation telemetry delivery", () => {
+  it("warns when PostHog capture returns a non-OK HTTP status", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN", "phc_test_token");
+    vi.stubEnv("ASSISTANT_GENERATION_TELEMETRY", "true");
+
+    const telemetry = createGenerationTelemetry({
+      executionContext: "cli",
+      fetch: vi.fn(async () => new Response("error", { status: 500 })),
+    });
+
+    telemetry.capture("assistant_generation_completed", {
+      model: "gpt-4o-mini",
+    });
+    await telemetry.flush();
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("HTTP 500"));
+
+    warnSpy.mockRestore();
+    vi.unstubAllEnvs();
   });
 });
 
@@ -387,6 +416,11 @@ describe("runRagGeneration service", () => {
     expect(
       events.filter((e) => e.event === "assistant_generation_completed"),
     ).toHaveLength(1);
+    const completed = events.find(
+      (e) => e.event === "assistant_generation_completed",
+    );
+    expect(completed?.properties.completion_tokens).toBe(50);
+    expect(completed?.properties.prompt_tokens).toBe(100);
     expect(
       events.some((e) => e.event === "assistant_retrieval_completed"),
     ).toBe(false);
@@ -508,6 +542,10 @@ describe("runRagGeneration service", () => {
       jsonEvents.find((e) => e.event === "assistant_generation_failed")
         ?.properties.failure_category,
     ).toBe("malformed_json");
+    expect(
+      jsonEvents.find((e) => e.event === "assistant_generation_failed")
+        ?.properties.completion_tokens,
+    ).toBeUndefined();
 
     const badModel = JSON.stringify({
       claims: [

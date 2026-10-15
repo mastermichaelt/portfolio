@@ -106,7 +106,7 @@ function captureGenerationFailureTelemetry(telemetry, state, error, context) {
       assembly_mode: context.assemblyMode,
       finish_reason: classified.finish_reason ?? "length",
       max_output_tokens: context.maxOutputTokens,
-      completion_tokens: classified.completion_tokens ?? 0,
+      completion_tokens: classified.completion_tokens,
     });
   }
 
@@ -114,11 +114,11 @@ function captureGenerationFailureTelemetry(telemetry, state, error, context) {
     model: context.model,
     assembly_mode: context.assemblyMode,
     failure_category: classified.failure_category,
-    finish_reason: classified.finish_reason ?? "",
+    finish_reason: classified.finish_reason ?? undefined,
     total_latency_ms: context.totalLatencyMs,
-    generation_latency_ms: context.generationLatencyMs ?? 0,
+    generation_latency_ms: context.generationLatencyMs,
     max_output_tokens: context.maxOutputTokens,
-    completion_tokens: classified.completion_tokens ?? 0,
+    completion_tokens: classified.completion_tokens,
   });
 }
 
@@ -337,23 +337,23 @@ export async function runRagGeneration(options) {
     );
 
     telemetry.capture("assistant_generation_completed", {
-      model: config.model,
+      model: diagnostics.model ?? config.model,
       assembly_mode: assemblyMode,
       support_level: response.support_level,
       abstained: response.abstained,
       claim_count: response.claims.length,
       ...flattenAttributionCounts(diagnostics.attribution_counts ?? {}),
-      prompt_tokens: diagnostics.prompt_tokens ?? 0,
-      completion_tokens: diagnostics.completion_tokens ?? 0,
-      total_tokens: diagnostics.total_tokens ?? 0,
+      prompt_tokens: diagnostics.prompt_tokens,
+      completion_tokens: diagnostics.completion_tokens,
+      total_tokens: diagnostics.total_tokens,
       max_output_tokens: config.maxOutputTokens,
-      output_token_utilization: utilization ?? 0,
-      retrieval_latency_ms: diagnostics.retrieval_latency_ms ?? 0,
-      assembly_latency_ms: diagnostics.assembly_latency_ms ?? 0,
-      generation_latency_ms: diagnostics.generation_latency_ms ?? 0,
-      total_latency_ms: diagnostics.total_latency_ms ?? 0,
-      evidence_entry_count: diagnostics.evidence_entry_count ?? 0,
-      evidence_character_count: diagnostics.evidence_character_count ?? 0,
+      output_token_utilization: utilization,
+      retrieval_latency_ms: diagnostics.retrieval_latency_ms,
+      assembly_latency_ms: diagnostics.assembly_latency_ms,
+      generation_latency_ms: diagnostics.generation_latency_ms,
+      total_latency_ms: diagnostics.total_latency_ms,
+      evidence_entry_count: diagnostics.evidence_entry_count,
+      evidence_character_count: diagnostics.evidence_character_count,
     });
 
     return { response, packet, diagnostics, flushTelemetry };

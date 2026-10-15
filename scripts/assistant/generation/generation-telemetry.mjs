@@ -97,6 +97,13 @@ export function flattenAttributionCounts(counts) {
  * @param {number} maxOutputTokens
  * @returns {number | undefined}
  */
+/**
+ * @param {string} message
+ */
+export function warnTelemetryDeliveryFailure(message) {
+  console.warn(`[assistant-generation telemetry] ${message}`);
+}
+
 export function outputTokenUtilization(completionTokens, maxOutputTokens) {
   if (
     typeof completionTokens !== "number" ||
@@ -170,15 +177,19 @@ export function createGenerationTelemetry(options = {}) {
             $lib: "portfolio-assistant-generation",
           },
         });
-        await fetchFn(captureUrl, {
+        const response = await fetchFn(captureUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body,
         });
+        if (!response.ok) {
+          return { ok: false, status: response.status, event: item.event };
+        }
+        return { ok: true };
       };
 
       try {
-        await new Promise((resolve, reject) => {
+        const outcomes = await new Promise((resolve, reject) => {
           const timeoutId = setTimeout(() => {
             reject(new Error("telemetry flush timeout"));
           }, config.flushTimeoutMs);
@@ -194,8 +205,23 @@ export function createGenerationTelemetry(options = {}) {
             },
           );
         });
-      } catch {
-        // Fail open — do not affect CLI exit code.
+
+        for (const outcome of outcomes) {
+          if (!outcome.ok) {
+            warnTelemetryDeliveryFailure(
+              `PostHog capture failed for ${outcome.event} (HTTP ${outcome.status})`,
+            );
+          }
+        }
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "telemetry flush timeout"
+        ) {
+          warnTelemetryDeliveryFailure("PostHog capture flush timed out");
+        } else {
+          warnTelemetryDeliveryFailure("PostHog capture flush failed");
+        }
       }
     },
   };
