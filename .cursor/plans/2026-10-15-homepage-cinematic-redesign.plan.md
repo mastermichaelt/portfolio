@@ -1,6 +1,6 @@
 ---
 name: Homepage cinematic redesign
-overview: Repository assessment and engineering guardrails for replacing Homepage 2 with a cinematic scroll narrative—preceded by a substantial creative phase (three Impeccable-backed concepts, direction selection, visual prototype) before content model or full implementation.
+overview: Repository assessment and engineering guardrails for a cinematic scroll homepage rolled out behind PostHog flag `cinematic-homepage` (legacy home default)—preceded by creative concepts, direction selection, and visual prototype before flagged content model and implementation.
 todos:
   - id: creative-three-concepts
     content: "Docs PR: three distinct cinematic concepts + storyboards (Impeccable + scroll-craft methodology); GSAP/WebGL/CSS split per concept; webfueled.dev polish bar"
@@ -12,13 +12,13 @@ todos:
     content: "PR: isolated hero + first scroll transition; merge-safe e2e if runtime changes; production / smoke if experiment-only route"
     status: pending
   - id: content-and-architecture
-    content: "PR: atomic homepage model + static / markup + all unit and Playwright tests (matrix removed); no cinematic GSAP"
+    content: "PR: PostHog cinematic-homepage flag + server eval; legacy home default; new static narrative home behind flag; dual Playwright coverage"
     status: pending
   - id: full-homepage-implement
-    content: "PR(s): cinematic GSAP/WebGL choreography + visual refinement; e2e for behavior/DOM this slice introduces"
+    content: "PR(s): cinematic GSAP/WebGL behind flag; prototype teardown; e2e for flag ON motion/DOM; legacy unchanged when flag OFF"
     status: pending
   - id: production-hardening
-    content: "PR: performance budget, Lighthouse spot-check, optional OKF corpus + PostHog chapter events (e2e not deferred here)"
+    content: "PR: validate flag OFF/ON/failure, targeted preview, perf/a11y/SEO, launch + rollback; optional OKF/PostHog events"
     status: pending
   - id: plan-closure
     content: "Docs-only PR: # Shipped note, archive plan under .cursor/plans/archive/, mark plan-closure completed"
@@ -28,7 +28,7 @@ isProject: false
 
 # Homepage cinematic redesign
 
-**Goal:** Replace Homepage 2 with a cinematic scroll narrative after creative direction, prototype validation, and merge-safe staged implementation. Repository assessment below is **Phase 0 — frozen findings**; executable work follows the [slices](#execution-slices) in order.
+**Goal:** Ship a cinematic scroll homepage behind PostHog boolean flag **`cinematic-homepage`**, keeping **Homepage 2 as the default** for visitors until the flag is enabled in PostHog (targeted to you first, then everyone at launch). Roll back by disabling the flag—no redeploy required. Creative direction, prototype validation, and merge-safe staged implementation follow the [slices](#execution-slices). Repository assessment below is **Phase 0 — frozen findings**.
 
 ## Recommended execution authority
 
@@ -158,8 +158,8 @@ Home styles: [`app/styles/home.css`](app/styles/home.css) (breakpoint `--home2-b
 
 ### What you can drop after IA change
 
-- `MethodReveal` as implemented (matrix row stagger) — **replace**, not extend, if the method matrix markup goes away.
-- Most of [`app/styles/home.css`](app/styles/home.css) tied to `.home2-matrix`, `.home2-schema`, `.home2-route-grid`, etc.
+- `MethodReveal` as implemented (matrix row stagger) — **replace on the cinematic branch** in phased slices; **remove entirely** only in post-flag cleanup PR.
+- Most of [`app/styles/home.css`](app/styles/home.css) tied to `.home2-matrix`, `.home2-schema`, `.home2-route-grid`, etc. — **after** legacy renderer and `cinematic-homepage` flag are removed.
 - `ChannelAnswer` and ARIA table roles — tied to removed IA.
 - E2E assertions in [`e2e/home-method-reveal.spec.ts`](e2e/home-method-reveal.spec.ts) and home slices of [`e2e/happy-path.spec.ts`](e2e/happy-path.spec.ts) — **rewrite** when new DOM/contracts land.
 
@@ -189,13 +189,15 @@ Home styles: [`app/styles/home.css`](app/styles/home.css) (breakpoint `--home2-b
 - **Home-specific:** [`app/page.tsx`](app/page.tsx) — `title.absolute: SITE_TITLE`, `canonical: "/"`, `openGraph.url: "/"`.
 - **JSON-LD:** [`PersonJsonLd`](components/PersonJsonLd.tsx) in layout (Person + WebSite); tests in [`tests/jsonld-graph.test.tsx`](tests/jsonld-graph.test.tsx).
 - **Sitemap:** [`app/sitemap.ts`](app/sitemap.ts) + [`lib/sitemap-paths.ts`](lib/sitemap-paths.ts) (includes `/ecosystem`).
-- **Redesign guardrails:** Keep meaningful `<h1>`, stable `id="content"`, and page metadata; cinematic motion must not remove crawlable narrative text from the initial HTML response.
+- **Redesign guardrails:** Keep meaningful `<h1>`, stable `id="content"`, and page metadata on **each** home variant; cinematic motion must not remove crawlable narrative text from the initial HTML response when the flag is ON. Until global launch, crawlers without a targeted flag cookie should continue to receive **legacy** HTML (fail-closed evaluator).
 
 ### Analytics
 
 - [`instrumentation-client.ts`](instrumentation-client.ts) → [`lib/posthog.ts`](lib/posthog.ts): init only when `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` set; `autocapture: false`, session recording off.
 - **Events today:** `outbound_link` via [`ExternalLink`](components/ExternalLink.tsx) only — homepage uses plain `<Link>` / `<a>` (no custom home events).
-- **Follow-up:** define PostHog events for scroll chapters / CTA taps if product health needs them (optional slice).
+- **Server-side PostHog today:** none — no `posthog-node`, no `@posthog/next`, no feature flags ([archived PostHog plan](.cursor/plans/archive/2026-08-10-portfolio-posthog-analytics.plan.md) explicitly deferred flags and server SDK).
+- **Distinct ID today:** created and persisted by `posthog-js` in the **browser** only (cookie/local persistence after client init). It is **not** available to the App Router on first SSR unless we add a small identity bridge (see [PostHog feature flag rollout](#posthog-feature-flag-rollout-cinematic-homepage)).
+- **Follow-up:** define PostHog events for scroll chapters / CTA taps if product health needs them (optional in `production-hardening`).
 
 ### Portfolio assistant
 
@@ -209,12 +211,12 @@ Home styles: [`app/styles/home.css`](app/styles/home.css) (breakpoint `--home2-b
 
 ### Replace / restructure (your stated direction)
 
-| Asset                                                                                     | Verdict                                                                                                                                                                                                                                                                                                                                                           |
-| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`domain/homepage.ts`](domain/homepage.ts) + [`content/homepage.ts`](content/homepage.ts) | **Replace schema** — move from matrix/channels/continuity/routes to scroll-chapter narrative model (beats, optional inline CTAs to `/projects`, `/articles`, `/about`, `/ecosystem`).                                                                                                                                                                             |
-| [`app/page.tsx`](app/page.tsx) markup                                                     | **Replace** section structure; keep repository fetch pattern and home `metadata`.                                                                                                                                                                                                                                                                                 |
-| [`components/home/MethodReveal.tsx`](components/home/MethodReveal.tsx)                    | **Two-slice replacement (not one PR):** `content-and-architecture` removes matrix-era `MethodReveal` usage from production `/` and ships **static** chapter markup only — **no cinematic GSAP in Phase D**. `full-homepage-implement` introduces the final GSAP scroll choreography (new client module(s) per architecture doc).                                  |
-| [`app/styles/home.css`](app/styles/home.css)                                              | **Slice-owned styling:** `content-and-architecture` adds static scroll-chapter layout styles for the SSR floor. `full-homepage-implement` adds cinematic motion styling and removes obsolete legacy homepage rules (e.g. `.home2-matrix`, route grid) superseded by the new home. Do not break global tokens in [`app/styles/tokens.css`](app/styles/tokens.css). |
+| Asset                                                                                     | Verdict                                                                                                                                                                                                                                                                                                                                                               |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`domain/homepage.ts`](domain/homepage.ts) + [`content/homepage.ts`](content/homepage.ts) | **Dual model during rollout:** add scroll-chapter narrative types + content for the **flagged** home in `content-and-architecture`; **retain** legacy matrix-era model (extract to `homepage-legacy` modules or equivalent) until post-launch cleanup removes the flag and legacy path.                                                                               |
+| [`app/page.tsx`](app/page.tsx)                                                            | **Flag router (server):** evaluate `cinematic-homepage` on the server; render **legacy Homepage 2** when flag OFF/unavailable; render cinematic implementation when flag ON. Keep shared `metadata` patterns; `/` must be **dynamic** while the flag exists (see rollout section).                                                                                    |
+| [`components/home/MethodReveal.tsx`](components/home/MethodReveal.tsx)                    | **Two-slice replacement on the flagged path only:** `content-and-architecture` removes matrix/`MethodReveal` from the **cinematic** branch and ships **static** chapter markup — **no cinematic GSAP in Phase D**. `full-homepage-implement` adds final GSAP choreography on the flagged path. **Legacy branch** keeps current `MethodReveal` behavior until cleanup. |
+| [`app/styles/home.css`](app/styles/home.css)                                              | **Slice-owned styling:** `content-and-architecture` adds static chapter layout CSS for the flagged home (new classes; do not delete legacy `.home2-*` yet). `full-homepage-implement` adds cinematic motion styling on the flagged path. **Post-stabilization cleanup PR** removes obsolete legacy rules after the flag and legacy renderer are deleted.              |
 
 ### Preserve or reuse
 
@@ -244,6 +246,80 @@ Cross-check claims against sibling [`resumes/`](file:///Users/michaeltruong/code
 
 ---
 
+## PostHog feature flag rollout (`cinematic-homepage`)
+
+Controlled migration only — **not** a general feature-flag framework. Reuse the existing Portfolio Projects PostHog project (`NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, `NEXT_PUBLIC_POSTHOG_HOST`; same vars on Vercel preview/production per [AGENTS.md](AGENTS.md)).
+
+### Phase 0 infrastructure findings (frozen)
+
+| Area            | Today                                                                                                                                                   | Implication for rollout                                                                                                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Client SDK      | [`posthog-js`](package.json) via [`instrumentation-client.ts`](instrumentation-client.ts) / [`lib/posthog.ts`](lib/posthog.ts)                          | Extend init to **bootstrap** server-evaluated flags + `distinct_id` when token present — avoid client-only flag fetch flicker.                                                              |
+| Server SDK      | **Absent**                                                                                                                                              | Add **`posthog-node`** (or equivalent minimal server client) **only** for `isFeatureEnabled('cinematic-homepage', distinctId)` — scoped helpers under `lib/`, not a reusable flag platform. |
+| Distinct ID     | Browser-only after `posthog.init`                                                                                                                       | **Do not assume** an anonymous ID exists on first SSR. Bridge identity before flag evaluation (below).                                                                                      |
+| App Router      | [`app/page.tsx`](app/page.tsx) is a Server Component; no `cookies()` / flag reads today                                                                 | Home route becomes **request-dynamic** while the flag is active (`cookies()` or documented `dynamic = 'force-dynamic'` on `/`).                                                             |
+| Caching         | No home-specific `fetch` cache; static generation may still apply to `/` until dynamic                                                                  | Personalized HTML must not be served from a shared static shell — document Vercel/Next behavior in the architecture note.                                                                   |
+| CI / Playwright | [`e2e/home-method-reveal.spec.ts`](e2e/home-method-reveal.spec.ts), [`e2e/happy-path.spec.ts`](e2e/happy-path.spec.ts) assert **legacy** home contracts | Default CI remains **flag OFF**; add parallel coverage for **flag ON** via deterministic test doubles (no live PostHog).                                                                    |
+| Secrets         | Public token only in `.env.example`                                                                                                                     | Add **server-only** PostHog credential for flag API (e.g. personal/project API key) in Vercel **server** env — never prefix `NEXT_PUBLIC_`; document in `.env.example` comments only.       |
+
+### Flag contract
+
+| State                                                            | `/` renders                                                                                      |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `cinematic-homepage` **disabled** (default)                      | **Existing Homepage 2** (matrix, `MethodReveal`, current e2e contracts).                         |
+| `cinematic-homepage` **enabled** for this `distinct_id`          | **Cinematic** implementation (static chapters in Phase D; full GSAP/WebGL in Phase E).           |
+| PostHog **unavailable**, misconfigured, or evaluation **errors** | **Fail closed to legacy** — same as flag OFF.                                                    |
+| Launch                                                           | Enable flag for **100%** of users in PostHog UI (release condition), not percentage experiments. |
+| Rollback                                                         | Disable flag or remove release in PostHog — **no deploy** required.                              |
+
+**Out of scope:** authentication, query-parameter overrides, preview-toggle UI, custom flag service, percentage rollouts, PostHog experiments infrastructure.
+
+### Identity propagation (server ↔ browser)
+
+Goal: the **same** `distinct_id` PostHog uses for targeting in the UI is the ID passed to server-side `isFeatureEnabled`.
+
+Recommended minimal pattern (implement in `content-and-architecture`; refine in PR if PostHog docs prescribe a newer Next.js recipe):
+
+1. **Middleware** (or equivalent edge-safe hook): on requests to `/`, read the PostHog persistence cookie if present; if missing, generate a cryptographically random anonymous `distinct_id`, set the **first-party** cookie PostHog expects (document exact name in `docs/experiments/`), `Secure`/`SameSite` appropriate for production.
+2. **Server Component** [`app/page.tsx`](app/page.tsx): read `distinct_id` from `cookies()` → call wrapped `isCinematicHomepageEnabled(distinctId)` → branch render.
+3. **Client** [`lib/posthog.ts`](lib/posthog.ts): `posthog.init` with **`bootstrap`** `{ distinctID, featureFlags }` from server props or inline script payload so the first paint matches SSR and IDs do not fork.
+4. **Your targeting:** in PostHog → Persons / Live events, copy your browser’s `distinct_id` and add a **release condition** on the flag (person/`distinct_id` allowlist). Expect **separate IDs per browser/profile** (laptop vs phone, cleared storage, incognito) — target each ID you use or accept re-copying after cookie reset.
+
+**Limitations to document in the architecture note:** anonymous IDs are not accounts; storage clears re-target; crawlers without cookies evaluate as flag OFF (legacy HTML) until global launch.
+
+### Caching and flag refresh
+
+- Treat `/` as **dynamic** for the migration window so HTML reflects the flag for the request’s `distinct_id`.
+- Server flag evaluation: prefer **per-request** `posthog-node` calls with a **short bounded cache** (optional, e.g. 30–60s in-memory) only if latency requires it — trade freshness vs TTFB in the PR.
+- PostHog UI changes typically propagate within **seconds to a few minutes**; document observed delay after toggling. No redeploy needed; avoid long-lived edge caches of HTML for `/`.
+- After global launch + cleanup PR removes the flag, `/` may return to static optimization if desired.
+
+### Automated testing (deterministic)
+
+Plan coverage in **`content-and-architecture`** (helpers + unit tests) and expand in later runtime slices:
+
+| Scenario            | Expected                                                                   | How to test (no live PostHog)                                                                                                                                 |
+| ------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Flag OFF            | Legacy home DOM                                                            | Default Playwright + Vitest mock returns `false`.                                                                                                             |
+| Flag ON             | Cinematic branch DOM (static, then motion in Phase E)                      | Playwright sets **test-only** env or server mock hook (e.g. `CINEMATIC_HOMEPAGE_E2E=1` read only in test/CI server config) — **not** a public query override. |
+| PostHog failure     | Legacy home                                                                | Unit tests force evaluator throw/timeout → `false`.                                                                                                           |
+| SSR/CSR consistency | Same branch on first paint and after hydration                             | Playwright + optional snapshot of root marker `data-home-variant="legacy                                                                                      | cinematic"`. |
+| Shell / SEO         | Nav, subpages, canonical, `id="content"`, crawlable copy on active variant | Extend `happy-path` / metadata tests; cinematic variant keeps meaningful `<h1>` in SSR HTML when flag ON.                                                     |
+
+Do **not** assert against your real PostHog `distinct_id` in CI.
+
+### Operational rollout and cleanup
+
+1. Create boolean flag **`cinematic-homepage`** in PostHog (Portfolio Projects) — **default OFF** for all users.
+2. Load production (or preview with token), find **your** `distinct_id` in PostHog Persons/Live; add targeting so only that ID (and any other devices you care about) gets the flag **ON**.
+3. Merge implementation slices incrementally; **public** visitors stay on legacy until step 5.
+4. Verify flagged experience on deployed site with your targeted browser.
+5. **Launch:** enable flag for **everyone** in PostHog.
+6. **Rollback:** disable flag in PostHog if needed.
+7. **After stabilization:** separate **cleanup PR** (not a frontmatter slice) — remove legacy homepage renderer, matrix content modules, `MethodReveal`, flag helper, `posthog-node` usage if no longer needed, and dual-path tests; simplify `/` to cinematic-only.
+
+---
+
 ## Execution overview
 
 Engineering guardrails above (SSR floor, reduced motion, focus/print escapes, SEO, shell nav, `useGSAP` lifecycle, tests) apply to **all** implementation slices. **Do not** finalize [`domain/homepage.ts`](domain/homepage.ts), [`content/homepage.ts`](content/homepage.ts), or production route markup until **after** `creative-direction-select` and `visual-prototype` exit criteria pass.
@@ -260,15 +336,15 @@ flowchart LR
   assess --> concepts --> select --> proto --> arch --> ship --> harden
 ```
 
-| Phase | Frontmatter todo            | Goal                                                     |
-| ----- | --------------------------- | -------------------------------------------------------- |
-| **0** | (this document)             | Repository assessment + planning envelope                |
-| **A** | `creative-three-concepts`   | Three concepts + storyboards                             |
-| **B** | `creative-direction-select` | One chosen concept + written rationale                   |
-| **C** | `visual-prototype`          | Hero + first scroll transition, reviewed                 |
-| **D** | `content-and-architecture`  | Atomic model + static `/` + all tests (incl. Playwright) |
-| **E** | `full-homepage-implement`   | Cinematic choreography + visual polish + e2e delta       |
-| **F** | `production-hardening`      | Perf + optional analytics/OKF                            |
+| Phase | Frontmatter todo            | Goal                                                                         |
+| ----- | --------------------------- | ---------------------------------------------------------------------------- |
+| **0** | (this document)             | Repository assessment + planning envelope                                    |
+| **A** | `creative-three-concepts`   | Three concepts + storyboards                                                 |
+| **B** | `creative-direction-select` | One chosen concept + written rationale                                       |
+| **C** | `visual-prototype`          | Hero + first scroll transition, reviewed                                     |
+| **D** | `content-and-architecture`  | PostHog flag + legacy default; cinematic static home behind flag; dual tests |
+| **E** | `full-homepage-implement`   | Cinematic GSAP/WebGL behind flag; prototype teardown; flag ON e2e            |
+| **F** | `production-hardening`      | Flag OFF/ON/failure validation, launch/rollback, perf/a11y/SEO               |
 
 ### Merge-safe regression (all runtime slices)
 
@@ -277,6 +353,7 @@ Any slice that changes **runtime behavior** or **production DOM** on `/` (or rou
 1. Run **`npm run test:e2e`** (after `npm run build`) when the diff touches `app/`, `components/`, `e2e/`, or other runtime paths — not deferred to a later slice.
 2. Update **unit**, **integration**, and **Playwright** specs affected by the change; do not leave `main` red or tests asserting removed contracts.
 3. **Not defer** correctness, compatibility, or regression fixes to a later slice.
+4. **Flag discipline:** merging must **not** switch the public default to cinematic — CI and default mocks keep **`cinematic-homepage` OFF** unless a test explicitly enables ON. When a slice changes the cinematic branch, update **both** legacy (OFF) and cinematic (ON) coverage as applicable.
 
 Docs-only slices (`creative-three-concepts`, `plan-closure`) and the **human gate** are exempt. `production-hardening` follows the same rule when it touches runtime paths.
 
@@ -420,27 +497,30 @@ Docs-only slices (`creative-three-concepts`, `plan-closure`) and the **human gat
 
 **Rationale:**
 
-- Homepage 2 matrix IA is retired — model, consumers, markup, and tests must migrate **atomically** or `main` breaks typecheck and CI Playwright
-- Separating schema from markup/e2e created a merge-unsafe gap; this slice is the single migration PR for the **static** narrative home
+- Introduce the cinematic **content model** and **static** narrative UI without changing the visitor default — PostHog flag + legacy renderer keep Homepage 2 live on `main`
+- Flag infrastructure and dual-path tests must land with the first cinematic markup or merge-unsafe regressions slip through
 - Architecture doc must exist before `full-homepage-implement` adds cinematic choreography
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Goal:** **Atomic, merge-safe migration** of the homepage **content model**, its consumers, **static scroll-chapter markup** on `/`, and **all affected tests** (unit + Playwright). Remove matrix-era types, markup, and [`MethodReveal`](components/home/MethodReveal.tsx) coupling from production `/`.
+**Goal:** **Atomic, merge-safe** introduction of PostHog flag **`cinematic-homepage`**, server-side evaluation (fail closed to legacy), and the **static** scroll-chapter cinematic home **behind the flag**, while **preserving Homepage 2** as the default `/` experience when the flag is OFF.
 
 **Deliver in this slice (single PR):**
 
-1. Redefine [`domain/homepage.ts`](domain/homepage.ts) (scroll chapters with minimal copy fields + contextual `links[]`; remove matrix/channel/continuity/route-grid types).
-2. Author [`content/homepage.ts`](content/homepage.ts) from resume-aligned narrative; inventory-grounded ([`resumes/`](file:///Users/michaeltruong/code/resumes)).
-3. Replace [`app/page.tsx`](app/page.tsx) with **static** chapter markup (readable SSR floor; contextual links; no GSAP choreography leaf on `/`).
-4. Remove Homepage 2 matrix markup and [`MethodReveal`](components/home/MethodReveal.tsx) from `/`; update [`app/styles/home.css`](app/styles/home.css) only as needed for **static** chapter layout (not cinematic motion).
-5. Update **all** affected unit tests ([`tests/static-portfolio-repository.test.ts`](tests/static-portfolio-repository.test.ts), [`tests/content-foundation.test.ts`](tests/content-foundation.test.ts), and any other failing tests).
-6. **Replace or remove** Playwright specs that targeted matrix / `[data-method-reveal]` / `.home2-*` contracts ([`e2e/home-method-reveal.spec.ts`](e2e/home-method-reveal.spec.ts), home sections of [`e2e/happy-path.spec.ts`](e2e/happy-path.spec.ts)) with assertions for the **new static** `/` contracts in this PR.
-7. Architecture note in `docs/experiments/`: server markup vs client choreography file map (for Phase E), WebGL bundle boundary, `matchMedia` branches, data attributes for a11y escapes, chapter SEO headings.
+1. Create/configure flag **`cinematic-homepage`** in PostHog (document in PR); default **OFF** globally; document how to target your `distinct_id` in PostHog UI.
+2. Add minimal server flag helper (`posthog-node` or equivalent) + middleware/cookie **distinct_id** bridge per [Identity propagation](#identity-propagation-server--browser); server-only env var on Vercel.
+3. Refactor [`app/page.tsx`](app/page.tsx) into a **server flag router**: legacy branch (current home) vs cinematic branch; mark root with `data-home-variant` for tests; ensure `/` is dynamic while flag exists.
+4. Extract **legacy** homepage into dedicated module(s) (markup + `MethodReveal` unchanged for OFF path).
+5. Add cinematic **domain/content** (scroll chapters + contextual `links[]`); keep legacy matrix types in `homepage-legacy` (or equivalent) until cleanup PR.
+6. Implement **static** cinematic chapter markup on the ON branch only (SSR floor; no GSAP choreography leaf).
+7. Add static cinematic styles in [`app/styles/home.css`](app/styles/home.css) (or scoped file) without deleting legacy `.home2-*` rules yet.
+8. Unit tests: flag evaluator fail-closed; repository/content for new model; mock PostHog — **no network**.
+9. Playwright: **keep** legacy specs passing with default OFF ([`e2e/home-method-reveal.spec.ts`](e2e/home-method-reveal.spec.ts), [`e2e/happy-path.spec.ts`](e2e/happy-path.spec.ts)); **add** flag-ON static cinematic specs via test-only enablement (see [Automated testing](#automated-testing-deterministic)).
+10. Architecture note in `docs/experiments/`: flag router, identity cookie, caching/dynamic `/`, server vs client bootstrap, file map for Phase E, SEO notes for both variants.
 
-**Non-goals (reserved for `full-homepage-implement`):** Cinematic GSAP/WebGL scroll choreography, pin/scrub timelines, visual refinement, and e2e for **motion-specific** behavior not present on the static home.
+**Non-goals (reserved for `full-homepage-implement`):** Cinematic GSAP/WebGL choreography, pin/scrub timelines, visual refinement, motion e2e, prototype route teardown.
 
-**Acceptance:** `main` is merge-safe: `npm run typecheck`, unit tests, and **Playwright** pass; no `HomepageChannel`, matrix markup, or `MethodReveal` on production `/`; static narrative home matches architecture doc.
+**Acceptance:** `main` merge-safe with **flag OFF = legacy Homepage 2** for default CI/visitors; **flag ON** serves static cinematic chapters; PostHog errors → legacy; no accidental public cutover.
 
 **Verification:**
 
@@ -467,13 +547,13 @@ Docs-only slices (`creative-three-concepts`, `plan-closure`) and the **human gat
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Goal:** Layer **cinematic** GSAP/WebGL choreography and visual refinement on the **static** home shipped in `content-and-architecture`: [`app/styles/home.css`](app/styles/home.css) motion styling, new [`components/home/*`](components/home/) client choreography per architecture. Retain shell, metadata patterns, `id="content"`. Do not re-open domain/content unless a merge-safe fix is required.
+**Goal:** Layer **cinematic** GSAP/WebGL choreography and visual refinement on the **flagged** static home from `content-and-architecture` — **only when `cinematic-homepage` is ON**. Legacy branch unchanged. Retain shell, metadata patterns, `id="content"`. Do not re-open domain/content unless a merge-safe fix is required.
 
 **Deliver in this slice (same PR unless noted):**
 
-1. Cinematic GSAP/WebGL choreography and visual refinement on `/` per architecture and prototype sign-off.
-2. Motion styling and cleanup of obsolete legacy homepage CSS superseded by the new experience.
-3. **Prototype teardown at launch:** remove the temporary `visual-prototype` experiment route (e.g. `/experiments/home-hero-prototype`), its dedicated assets, and prototype-only Playwright coverage — unless that route was **deliberately promoted** into the production architecture (document in PR if retained).
+1. Cinematic GSAP/WebGL choreography and visual refinement on the **cinematic branch** per architecture and prototype sign-off.
+2. Motion styling for the cinematic branch; remove obsolete rules **only where they apply to the cinematic path** (legacy `.home2-*` remain until post-flag cleanup).
+3. **Prototype teardown:** remove the temporary `visual-prototype` experiment route (e.g. `/experiments/home-hero-prototype`), its dedicated assets, and prototype-only Playwright coverage — unless **deliberately promoted** (document in PR).
 
 **Required in the same PR(s) that introduce runtime behavior or DOM changes:**
 
@@ -482,7 +562,7 @@ Docs-only slices (`creative-three-concepts`, `plan-closure`) and the **human gat
 
 May span multiple merge-safe PRs only if **each** PR is shippable (including its e2e delta); prefer a single narrative launch when possible.
 
-**Acceptance:** Cinematic homepage matches architecture and prototype sign-off; CI e2e job passes on the PR branch with motion/a11y coverage from this slice; no orphaned visual-prototype experiment route, assets, or prototype-only tests remain on `main` unless explicitly promoted and documented.
+**Acceptance:** Flag OFF still legacy; flag ON cinematic matches architecture and prototype sign-off; CI e2e covers motion/a11y on **ON** path without breaking **OFF** legacy specs; no orphaned prototype route/assets/tests unless promoted.
 
 **Verification:**
 
@@ -509,16 +589,20 @@ May span multiple merge-safe PRs only if **each** PR is shippable (including its
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Goal:** Performance and optional analytics/corpus follow-ups once `/` is live on the branch.
+**Goal:** Validate the **flagged rollout** on production/preview, confirm launch and rollback, then perf/a11y/SEO hardening.
 
 **Scope:**
 
-- Bundle size review, lazy WebGL verification, ScrollTrigger count sanity check, Lighthouse spot-check
-- Optional: PostHog chapter/CTA events; OKF producer + ingest if homepage copy enters retrieval scope
+- **Flag matrix (manual + automated):** OFF → legacy; ON → cinematic; PostHog disabled/mocked failure → legacy; SSR/CSR variant marker consistent.
+- **Targeted preview:** confirm your PostHog-targeted `distinct_id` sees cinematic on deployed site while an untargeted browser stays legacy.
+- Bundle size review, lazy WebGL verification, ScrollTrigger count sanity check, Lighthouse spot-check (both variants as appropriate).
+- Document **launch** (enable flag for everyone) and **rollback** (disable in PostHog) runbook in PR or `docs/experiments/`.
+- Optional: PostHog chapter/CTA events; OKF producer + ingest if homepage copy enters retrieval scope.
+- **Cleanup PR checklist** (human follow-up after stabilization): remove legacy renderer, flag plumbing, dual tests — per [Operational rollout and cleanup](#operational-rollout-and-cleanup).
 
-**Non-goals:** Deferring homepage Playwright or correctness fixes that belong in `full-homepage-implement` or `content-and-architecture`.
+**Non-goals:** Deferring homepage Playwright or correctness fixes that belong in `full-homepage-implement` or `content-and-architecture`; building query-param or admin preview toggles.
 
-**Acceptance:** Documented perf notes in PR; optional integrations merge-safe alone; if runtime paths change, all affected tests updated in this PR per [Merge-safe regression](#merge-safe-regression-all-runtime-slices).
+**Acceptance:** Documented validation of all flag states + launch/rollback steps; perf notes; optional integrations merge-safe alone; if runtime paths change, all affected tests updated in this PR per [Merge-safe regression](#merge-safe-regression-all-runtime-slices).
 
 **Verification:**
 
@@ -625,9 +709,9 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: atomic migration — domain/homepage.ts, content/homepage.ts, static app/page.tsx (matrix + MethodReveal removed), static home.css as needed, all unit tests, Playwright replaced for new static / contracts, architecture doc. No cinematic GSAP on /. Mark content-and-architecture completed in plan frontmatter in this PR.
+Deliverables: PostHog flag cinematic-homepage + server eval (fail closed); legacy home default; static cinematic branch behind flag; dual Playwright (OFF legacy + ON static); architecture doc per slice. No cinematic GSAP on /. Mark content-and-architecture completed in plan frontmatter in this PR.
 
-Verification: lint, typecheck, format:check, test:coverage, build, test:e2e per slice Verification.
+Verification: lint, typecheck, format:check, test:coverage, build, test:e2e per slice Verification; confirm default CI path is flag OFF.
 ```
 
 ### full-homepage-implement
@@ -641,7 +725,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: cinematic GSAP/WebGL choreography and visual refinement on static home from content-and-architecture; remove visual-prototype experiment route, related assets, and prototype-only tests unless deliberately promoted into production; update Playwright/unit tests for motion and DOM this slice introduces (same PR). Mark full-homepage-implement completed in plan frontmatter in this PR.
+Deliverables: cinematic GSAP/WebGL on flagged branch only (legacy unchanged when OFF); remove visual-prototype experiment route, assets, and prototype-only tests unless promoted; update Playwright/unit for flag ON motion/DOM without breaking OFF legacy specs (same PR). Mark full-homepage-implement completed in plan frontmatter in this PR.
 
 Verification: lint, typecheck, format:check, test:coverage, build, test:e2e per slice Verification.
 ```
@@ -657,9 +741,9 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: perf budget notes; optional PostHog/OKF follow-ups per slice Scope. Mark production-hardening completed in plan frontmatter in this PR.
+Deliverables: validate flag OFF/ON/failure, targeted PostHog preview, launch/rollback runbook, perf/a11y/SEO notes; optional PostHog chapter events + OKF per slice Scope; cleanup PR checklist. Mark production-hardening completed in plan frontmatter in this PR.
 
-Verification: lint, typecheck, format:check, test:coverage, build; test:e2e when runtime paths change.
+Verification: lint, typecheck, format:check, test:coverage, build; test:e2e when runtime paths change; manual flag targeting check on deploy.
 ```
 
 ### plan-closure
@@ -688,5 +772,7 @@ Verification: confirm all prerequisite implementation PRs are merged and slice t
 - **Prototype risk:** approving prototype without mobile + reduced-motion review repeats scroll-craft-era a11y gaps.
 - **Bundle size:** R3F + `three` is a major step up; prototype must justify it; code-split and measure `npm run build` if adopted.
 - **CI:** Any non-docs path change runs Playwright e2e ([AGENTS.md](AGENTS.md)); `visual-prototype`, `content-and-architecture`, and `full-homepage-implement` each own e2e deltas for their runtime/DOM changes — not deferred across slices or to `production-hardening`.
+- **Flag rollout:** distinct_id is per-browser/storage; targeting only your laptop ID will not enable cinematic on phone until you add that ID in PostHog. SSR must not cache one variant for all users. Server flag API adds latency — bound or cache consciously.
+- **Accidental cutover:** a PR that removes legacy renderer or defaults the flag ON in code (vs PostHog UI) breaks merge-safe intent — reviewers should verify fail-closed evaluator and CI default OFF.
 - **Breakpoint drift:** Header uses 921px; home matrix uses 820px — new design should document a single breakpoint story.
-- **Ecosystem:** Removed from home grid but still valid deep link; weave into narrative where “developer infrastructure / workflows” beats need it.
+- **Ecosystem:** Removed from cinematic narrative grid but still valid deep link; weave into narrative where “developer infrastructure / workflows” beats need it (legacy grid unchanged until cleanup).
