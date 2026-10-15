@@ -252,15 +252,15 @@ Controlled migration only — **not** a general feature-flag framework. Reuse th
 
 ### Phase 0 infrastructure findings (frozen)
 
-| Area            | Today                                                                                                                                                   | Implication for rollout                                                                                                                                                                     |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Client SDK      | [`posthog-js`](package.json) via [`instrumentation-client.ts`](instrumentation-client.ts) / [`lib/posthog.ts`](lib/posthog.ts)                          | Extend init to **bootstrap** server-evaluated flags + `distinct_id` when token present — avoid client-only flag fetch flicker.                                                              |
-| Server SDK      | **Absent**                                                                                                                                              | Add **`posthog-node`** (or equivalent minimal server client) **only** for `isFeatureEnabled('cinematic-homepage', distinctId)` — scoped helpers under `lib/`, not a reusable flag platform. |
-| Distinct ID     | Browser-only after `posthog.init`                                                                                                                       | **Do not assume** an anonymous ID exists on first SSR. Bridge identity before flag evaluation (below).                                                                                      |
-| App Router      | [`app/page.tsx`](app/page.tsx) is a Server Component; no `cookies()` / flag reads today                                                                 | Home route becomes **request-dynamic** while the flag is active (`cookies()` or documented `dynamic = 'force-dynamic'` on `/`).                                                             |
-| Caching         | No home-specific `fetch` cache; static generation may still apply to `/` until dynamic                                                                  | Personalized HTML must not be served from a shared static shell — document Vercel/Next behavior in the architecture note.                                                                   |
-| CI / Playwright | [`e2e/home-method-reveal.spec.ts`](e2e/home-method-reveal.spec.ts), [`e2e/happy-path.spec.ts`](e2e/happy-path.spec.ts) assert **legacy** home contracts | Default CI remains **flag OFF**; add parallel coverage for **flag ON** via deterministic test doubles (no live PostHog).                                                                    |
-| Secrets         | Public token only in `.env.example`                                                                                                                     | Add **server-only** PostHog credential for flag API (e.g. personal/project API key) in Vercel **server** env — never prefix `NEXT_PUBLIC_`; document in `.env.example` comments only.       |
+| Area            | Today                                                                                                                                                                                                                                           | Implication for rollout                                                                                                                                                                                              |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Client SDK      | [`posthog-js`](package.json) via [`instrumentation-client.ts`](instrumentation-client.ts) / [`lib/posthog.ts`](lib/posthog.ts)                                                                                                                  | Extend init to **bootstrap** server-evaluated flags + `distinct_id` when token present — avoid client-only flag fetch flicker.                                                                                       |
+| Server SDK      | **Absent**                                                                                                                                                                                                                                      | Add **`posthog-node`** (or equivalent minimal server client) **only** for `isFeatureEnabled('cinematic-homepage', distinctId)` — scoped helpers under `lib/`, not a reusable flag platform.                          |
+| Distinct ID     | Browser-only after `posthog.init`; default persistence **`localStorage+cookie`** ([PostHog JS persistence](https://posthog.com/docs/libraries/js/persistence)) — cookie `ph_<project_token>_posthog` carries `distinct_id` (and session subset) | **Verify in implementation** before custom middleware: read the live cookie/localStorage shape in this project’s init config. Server should **reuse** that persistence when possible, not mint a parallel ID scheme. |
+| App Router      | [`app/page.tsx`](app/page.tsx) is a Server Component; no `cookies()` / flag reads today                                                                                                                                                         | Home route becomes **request-dynamic** while the flag is active (`cookies()` or documented `dynamic = 'force-dynamic'` on `/`).                                                                                      |
+| Caching         | No home-specific `fetch` cache; static generation may still apply to `/` until dynamic                                                                                                                                                          | Personalized HTML must not be served from a shared static shell — document Vercel/Next behavior in the architecture note.                                                                                            |
+| CI / Playwright | [`e2e/home-method-reveal.spec.ts`](e2e/home-method-reveal.spec.ts), [`e2e/happy-path.spec.ts`](e2e/happy-path.spec.ts) assert **legacy** home contracts                                                                                         | Default CI remains **flag OFF**; add parallel coverage for **flag ON** via deterministic test doubles (no live PostHog).                                                                                             |
+| Secrets         | Public token only in `.env.example`                                                                                                                                                                                                             | Add **server-only** PostHog credential for flag API (e.g. personal/project API key) in Vercel **server** env — never prefix `NEXT_PUBLIC_`; document in `.env.example` comments only.                                |
 
 ### Flag contract
 
@@ -276,22 +276,34 @@ Controlled migration only — **not** a general feature-flag framework. Reuse th
 
 ### Identity propagation (server ↔ browser)
 
-Goal: the **same** `distinct_id` PostHog uses for targeting in the UI is the ID passed to server-side `isFeatureEnabled`.
+Goal: the **same** `distinct_id` PostHog uses for **Person targeting in the UI** is the ID passed to server-side `isFeatureEnabled` — with **no fork** between SSR, `posthog-js`, and Persons.
 
-Recommended minimal pattern (implement in `content-and-architecture`; refine in PR if PostHog docs prescribe a newer Next.js recipe):
+**Do not commit to custom middleware first.** Phase D must start with a short **identity verification** step (documented in `docs/experiments/`, not a separate slice):
 
-1. **Middleware** (or equivalent edge-safe hook): on requests to `/`, read the PostHog persistence cookie if present; if missing, generate a cryptographically random anonymous `distinct_id`, set the **first-party** cookie PostHog expects (document exact name in `docs/experiments/`), `Secure`/`SameSite` appropriate for production.
-2. **Server Component** [`app/page.tsx`](app/page.tsx): read `distinct_id` from `cookies()` → call wrapped `isCinematicHomepageEnabled(distinctId)` → branch render.
-3. **Client** [`lib/posthog.ts`](lib/posthog.ts): `posthog.init` with **`bootstrap`** `{ distinctID, featureFlags }` from server props or inline script payload so the first paint matches SSR and IDs do not fork.
-4. **Your targeting:** in PostHog → Persons / Live events, copy your browser’s `distinct_id` and add a **release condition** on the flag (person/`distinct_id` allowlist). Expect **separate IDs per browser/profile** (laptop vs phone, cleared storage, incognito) — target each ID you use or accept re-copying after cookie reset.
+1. With current [`lib/posthog.ts`](lib/posthog.ts) init on production/preview/local, inspect browser storage: cookie name `ph_<NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN>_posthog`, `localStorage` companion key, and `posthog.get_distinct_id()` after init.
+2. Confirm whether the server can **parse `distinct_id` from the existing cookie** on repeat visits (default `localStorage+cookie` persistence).
+3. Only then choose the **smallest** bridge that keeps client and server aligned — prefer, in order:
+   - **Read existing PostHog cookie** in the Server Component / shared server helper (no new ID minting when cookie present).
+   - **PostHog-documented Next.js bootstrap** ([middleware bootstrap flags](https://posthog.com/tutorials/nextjs-bootstrap-flags), [`@posthog/next` `postHogMiddleware`](https://posthog.com/docs/libraries/next-js/posthog-next) — seeds identity cookie in PostHog’s format) if cookie-only SSR is insufficient on first visit — evaluate dependency vs hand-rolled code in the Phase D PR; the archived analytics plan deferred `@posthog/next`, so re-validate maturity before adopting.
+   - **Avoid** generating a parallel anonymous ID in bespoke middleware unless verification proves it writes the **exact** persistence shape `posthog-js` expects; otherwise PostHog targeting your Person can fail or create a **new** identity.
 
-**Limitations to document in the architecture note:** anonymous IDs are not accounts; storage clears re-target; crawlers without cookies evaluate as flag OFF (legacy HTML) until global launch.
+**Reconciliation requirements (implementation):**
 
-### Caching and flag refresh
+- Server flag evaluation uses the **same** `distinct_id` the browser will use after `posthog.init` on that request (bootstrap `{ distinctID, featureFlags }` when token set).
+- Add a **manual check** in `production-hardening`: after deploy, compare Persons `distinct_id` with `posthog.get_distinct_id()` in DevTools on `/` — they must match for targeting to work.
+- **Your targeting:** copy `distinct_id` from PostHog Persons/Live; allowlist on the flag. Separate IDs per browser/profile (laptop vs phone, cleared storage, incognito) — target each or re-copy after reset.
 
-- Treat `/` as **dynamic** for the migration window so HTML reflects the flag for the request’s `distinct_id`.
-- Server flag evaluation: prefer **per-request** `posthog-node` calls with a **short bounded cache** (optional, e.g. 30–60s in-memory) only if latency requires it — trade freshness vs TTFB in the PR.
-- PostHog UI changes typically propagate within **seconds to a few minutes**; document observed delay after toggling. No redeploy needed; avoid long-lived edge caches of HTML for `/`.
+**First visit / no cookie yet:** fail closed to **legacy** on SSR unless an official seeding path (above) is implemented; document any brief client-only flag resolution and whether flicker is acceptable for untargeted first paints only.
+
+**Limitations for the architecture note:** anonymous IDs are not accounts; storage clears break targeting; crawlers without cookies stay legacy until global launch.
+
+### Server evaluation latency and caching
+
+- **Measure before optimizing:** In Phase D (and re-check in `production-hardening`), record homepage **TTFB** with server flag evaluation enabled vs a local mock/disabled baseline on preview/production. Do not add caching until measurements justify it.
+- **Default:** per-request `posthog-node` (or equivalent) evaluation on `/` while the flag exists.
+- **If caching is added later:** cache entries must be keyed by **`distinct_id` + flag key** (and optionally flag payload version) — **never** a global “cinematic on/off” flag result shared across visitors. Do **not** edge-cache personalized HTML for `/` across users.
+- PostHog UI changes typically propagate within **seconds to a few minutes** (independent of app caching); document observed delay after toggling. Rollback remains a PostHog toggle, not a deploy.
+- Treat `/` as **dynamic** for the migration window (`cookies()` / documented `force-dynamic`) so a shared static shell cannot serve the wrong variant.
 - After global launch + cleanup PR removes the flag, `/` may return to static optimization if desired.
 
 ### Automated testing (deterministic)
@@ -303,7 +315,7 @@ Plan coverage in **`content-and-architecture`** (helpers + unit tests) and expan
 | Flag OFF            | Legacy home DOM                                                            | Default Playwright + Vitest mock returns `false`.                                                                                                             |
 | Flag ON             | Cinematic branch DOM (static, then motion in Phase E)                      | Playwright sets **test-only** env or server mock hook (e.g. `CINEMATIC_HOMEPAGE_E2E=1` read only in test/CI server config) — **not** a public query override. |
 | PostHog failure     | Legacy home                                                                | Unit tests force evaluator throw/timeout → `false`.                                                                                                           |
-| SSR/CSR consistency | Same branch on first paint and after hydration                             | Playwright + optional snapshot of root marker `data-home-variant="legacy                                                                                      | cinematic"`. |
+| SSR/CSR consistency | Same branch on first paint and after hydration                             | Playwright + root marker `data-home-variant="legacy"` or `"cinematic"`.                                                                                       |
 | Shell / SEO         | Nav, subpages, canonical, `id="content"`, crawlable copy on active variant | Extend `happy-path` / metadata tests; cinematic variant keeps meaningful `<h1>` in SSR HTML when flag ON.                                                     |
 
 Do **not** assert against your real PostHog `distinct_id` in CI.
@@ -508,7 +520,7 @@ Docs-only slices (`creative-three-concepts`, `plan-closure`) and the **human gat
 **Deliver in this slice (single PR):**
 
 1. Create/configure flag **`cinematic-homepage`** in PostHog (document in PR); default **OFF** globally; document how to target your `distinct_id` in PostHog UI.
-2. Add minimal server flag helper (`posthog-node` or equivalent) + middleware/cookie **distinct_id** bridge per [Identity propagation](#identity-propagation-server--browser); server-only env var on Vercel.
+2. **Identity verification** then minimal server flag helper (`posthog-node` or equivalent): parse/reuse PostHog’s existing persistence per [Identity propagation](#identity-propagation-server--browser) — prefer cookie/bootstrap over bespoke middleware; server-only env var on Vercel; document chosen path in architecture note.
 3. Refactor [`app/page.tsx`](app/page.tsx) into a **server flag router**: legacy branch (current home) vs cinematic branch; mark root with `data-home-variant` for tests; ensure `/` is dynamic while flag exists.
 4. Extract **legacy** homepage into dedicated module(s) (markup + `MethodReveal` unchanged for OFF path).
 5. Add cinematic **domain/content** (scroll chapters + contextual `links[]`); keep legacy matrix types in `homepage-legacy` (or equivalent) until cleanup PR.
@@ -516,7 +528,7 @@ Docs-only slices (`creative-three-concepts`, `plan-closure`) and the **human gat
 7. Add static cinematic styles in [`app/styles/home.css`](app/styles/home.css) (or scoped file) without deleting legacy `.home2-*` rules yet.
 8. Unit tests: flag evaluator fail-closed; repository/content for new model; mock PostHog — **no network**.
 9. Playwright: **keep** legacy specs passing with default OFF ([`e2e/home-method-reveal.spec.ts`](e2e/home-method-reveal.spec.ts), [`e2e/happy-path.spec.ts`](e2e/happy-path.spec.ts)); **add** flag-ON static cinematic specs via test-only enablement (see [Automated testing](#automated-testing-deterministic)).
-10. Architecture note in `docs/experiments/`: flag router, identity cookie, caching/dynamic `/`, server vs client bootstrap, file map for Phase E, SEO notes for both variants.
+10. Architecture note in `docs/experiments/`: identity verification results (cookie name, parsing), chosen server/client bridge, TTFB measurement notes, caching/dynamic `/`, file map for Phase E, SEO notes for both variants.
 
 **Non-goals (reserved for `full-homepage-implement`):** Cinematic GSAP/WebGL choreography, pin/scrub timelines, visual refinement, motion e2e, prototype route teardown.
 
@@ -530,6 +542,7 @@ Docs-only slices (`creative-three-concepts`, `plan-closure`) and the **human gat
 - [ ] `npm run test` / `npm run test:coverage`
 - [ ] `npm run build`
 - [ ] `npm run test:e2e` (after `npm run build`; required because this slice may modify `app/page.tsx`)
+- [ ] Document homepage TTFB impact of server flag evaluation (baseline vs enabled) in PR or architecture note
 - [ ] GitHub PR base branch is `main`
 
 **Dependencies:** `visual-prototype` exit criteria met (stakeholder sign-off).
@@ -612,6 +625,8 @@ May span multiple merge-safe PRs only if **each** PR is shippable (including its
 - [ ] `npm run test` / `npm run test:coverage`
 - [ ] `npm run build`
 - [ ] `npm run test:e2e` when PR touches runtime paths (otherwise note N/A in PR)
+- [ ] Manual: Persons `distinct_id` matches `posthog.get_distinct_id()` on `/` after deploy (targeting sanity check)
+- [ ] Manual: re-measure homepage TTFB with server flag evaluation; confirm no cross-visitor cache leakage if caching was added
 - [ ] GitHub PR base branch is `main`
 
 **Dependencies:** `full-homepage-implement` merged.
@@ -709,7 +724,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: PostHog flag cinematic-homepage + server eval (fail closed); legacy home default; static cinematic branch behind flag; dual Playwright (OFF legacy + ON static); architecture doc per slice. No cinematic GSAP on /. Mark content-and-architecture completed in plan frontmatter in this PR.
+Deliverables: verify posthog-js persistence then wire cinematic-homepage + server eval (fail closed, reuse cookie/bootstrap — no parallel ID scheme); legacy default; static cinematic branch behind flag; dual Playwright; architecture doc (identity + TTFB notes). No cinematic GSAP on /. Mark content-and-architecture completed in plan frontmatter in this PR.
 
 Verification: lint, typecheck, format:check, test:coverage, build, test:e2e per slice Verification; confirm default CI path is flag OFF.
 ```
@@ -772,7 +787,8 @@ Verification: confirm all prerequisite implementation PRs are merged and slice t
 - **Prototype risk:** approving prototype without mobile + reduced-motion review repeats scroll-craft-era a11y gaps.
 - **Bundle size:** R3F + `three` is a major step up; prototype must justify it; code-split and measure `npm run build` if adopted.
 - **CI:** Any non-docs path change runs Playwright e2e ([AGENTS.md](AGENTS.md)); `visual-prototype`, `content-and-architecture`, and `full-homepage-implement` each own e2e deltas for their runtime/DOM changes — not deferred across slices or to `production-hardening`.
-- **Flag rollout:** distinct_id is per-browser/storage; targeting only your laptop ID will not enable cinematic on phone until you add that ID in PostHog. SSR must not cache one variant for all users. Server flag API adds latency — bound or cache consciously.
+- **Flag rollout / identity:** distinct_id is per-browser/storage; targeting only your laptop ID will not enable cinematic on phone until you add that ID in PostHog. **ID fork** (custom middleware UUID vs `posthog-js` persistence) breaks Person targeting — verify cookie shape before shipping a bridge. SSR must not cache one variant for all users.
+- **Server flag latency:** per-request PostHog evaluation may add TTFB; measure before caching; any cache must be **per-`distinct_id`**, never a shared variant across visitors.
 - **Accidental cutover:** a PR that removes legacy renderer or defaults the flag ON in code (vs PostHog UI) breaks merge-safe intent — reviewers should verify fail-closed evaluator and CI default OFF.
 - **Breakpoint drift:** Header uses 921px; home matrix uses 820px — new design should document a single breakpoint story.
 - **Ecosystem:** Removed from cinematic narrative grid but still valid deep link; weave into narrative where “developer infrastructure / workflows” beats need it (legacy grid unchanged until cleanup).
