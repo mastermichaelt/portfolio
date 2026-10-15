@@ -227,6 +227,56 @@ npm run assistant:retrieve -- "your question"
 
 Options: `--top-k <n>` (default 5), `--filter-source-class <id>`, `--json` for machine-readable output. The CLI embeds the question with the same model as ingest (`text-embedding-3-small`), then runs exact pgvector cosine search using the `<=>` operator. Each hit reports `cosine_distance` (lower = more similar; OpenAI embeddings are unit-normalized so distance is typically in `[0, 2]`) and `similarity = 1 - cosine_distance` as a diagnostic only. Requires `OPENAI_API_KEY` from the `portfolio-assistant` project.
 
+### 9. RAG generation CLI (`assistant:answer`)
+
+**Slice:** `generation-cli` — shared RAG generation service + thin CLI adapter (no App Router API yet).
+
+After ingest, run evidence-aware generation (retrieve → assemble → OpenAI Chat Completions → structural validation):
+
+```bash
+npm run assistant:answer -- "your question"
+```
+
+Requires `DATABASE_URL` (retrieval index) and `OPENAI_API_KEY` (`portfolio-assistant` project) unless `--no-retrieval` or `--dry-run-retrieval` with `--no-retrieval`.
+
+| Flag                          | Purpose                                                                          |
+| ----------------------------- | -------------------------------------------------------------------------------- |
+| `--assembly-mode full_parent` | Default production assembly at OKF concept boundary                              |
+| `--assembly-mode top_k_only`  | Eval baseline — matched hits only                                                |
+| `--top-k <n>`                 | Retrieval width before assembly (default **10**; retrieve CLI default remains 5) |
+| `--filter-source-class <id>`  | Same filter as `assistant:retrieve`                                              |
+| `--dry-run-retrieval`         | Retrieve + assemble only; no chat call                                           |
+| `--no-retrieval`              | Skip retrieval (model-only / eval baseline)                                      |
+| `--json`                      | Full structured response (claims, derived `answer_text`, citations, diagnostics) |
+
+**Response contract:** the model returns canonical `claims[]` + `support_level` + `abstained` / `abstention_reason`. The service derives `answer_text` and deduped `citations[]` and runs deterministic citation-integrity checks. Evidence-backed links in `evidence_supported` / `evidence_inferred` claim text must appear in the evidence packet URL registry; `general_knowledge` and `uncertain` claims must not introduce arbitrary HTTP(S) URLs (prose-only explanations). `finish_reason=length` is a **hard generation failure** (`output_truncated`) — truncated JSON is never parsed or salvaged. Internal diagnostics are returned only on the service result object (not on the public `response`); CLI `--json` merges diagnostics for operators; the future API adapter will expose the public contract only.
+
+**Server-side telemetry (PostHog):** `runRagGeneration` emits operational events when a project token is configured. Reuses `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` / `NEXT_PUBLIC_POSTHOG_HOST` or overrides via `ASSISTANT_GENERATION_POSTHOG_*`. Set `ASSISTANT_GENERATION_TELEMETRY=false` to disable. Events use a stable operational `distinct_id` (`assistant_generation_cli` by default) — not site visitor identity. **Never** includes raw questions, evidence, answers, citation text, API keys, or exception messages (only bounded `failure_category` values). Delivery is fail-open; inject `telemetry` in tests. CLI calls `flushTelemetry()` after success; failures flush before rethrow.
+
+| Event                            | When                                                                                                          | Key properties                                                                                                               |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `assistant_retrieval_completed`  | After retrieve + assemble (once per run; skipped for `--no-retrieval` and injected `evidencePacket` fixtures) | `assembly_mode`, `top_k`, `evidence_entry_count`, `evidence_character_count`, `retrieval_latency_ms`, `assembly_latency_ms`  |
+| `assistant_generation_completed` | Successful chat + validation                                                                                  | `model`, latencies, token usage, `support_level`, `abstained`, `claim_count`, `attribution_*`, evidence counts               |
+| `assistant_generation_failed`    | Any generation failure                                                                                        | `failure_category`, `model`, `assembly_mode`, latencies, `max_output_tokens`, optional `finish_reason` / `completion_tokens` |
+| `assistant_generation_truncated` | `finish_reason=length` only (paired with failed event, category `output_truncated`)                           | `finish_reason`, `max_output_tokens`, `completion_tokens`                                                                    |
+
+Verify in PostHog: filter `analytics_environment = assistant_generation_tooling` and `execution_context` (`cli` / `eval` / `api`). Property `telemetry_schema_version` is `1`.
+
+**Resource bounds** (optional env overrides — see `.env.example`):
+
+| Variable                                       | Default (dev) | Role                                                                                |
+| ---------------------------------------------- | ------------- | ----------------------------------------------------------------------------------- |
+| `ASSISTANT_GENERATION_MODEL`                   | `gpt-4o-mini` | Chat model                                                                          |
+| `ASSISTANT_GENERATION_TOP_K`                   | `10`          | Generation retrieve K                                                               |
+| `ASSISTANT_EVIDENCE_CHARACTER_BUDGET`          | `120000`      | Evidence packet char cap (`EvidenceBudgetExceeded` when exceeded)                   |
+| `ASSISTANT_GENERATION_PROMPT_TOKEN_BUDGET`     | `28000`       | Heuristic prompt cap (chars ÷ 4)                                                    |
+| `ASSISTANT_GENERATION_MAX_OUTPUT_TOKENS`       | `2048`        | Chat `max_tokens`                                                                   |
+| `ASSISTANT_GENERATION_TIMEOUT_MS`              | `120000`      | End-to-end OpenAI chat budget (all attempts, retry backoff, and response body read) |
+| `ASSISTANT_GENERATION_MAX_QUESTION_LENGTH`     | `4000`        | Question validation                                                                 |
+| `ASSISTANT_GENERATION_MAX_RESPONSE_JSON_CHARS` | `24000`       | Reject overlong model JSON                                                          |
+
+Implementation entrypoint: `scripts/assistant/generation/run-generation.mjs` (imported by `scripts/assistant/answer.mjs`; future API route must call the same service).
+
 ## OpenAI Embeddings API (operator workflow)
 
 **Prerequisite:** complete hosted Neon migrate/verify above before the first **live** ingest that calls OpenAI.
@@ -307,5 +357,7 @@ After [career-inventory snapshots](../../tests/fixtures/assistant-okf/career-inv
 | `npm run assistant:db:migrate` | Apply `db/migrations/*.sql` in order via `DATABASE_URL` |
 | `npm run assistant:db:verify`  | Schema + connectivity verification                      |
 | `npm run assistant:ingest`     | OKF build → derive → embed → upsert → delete stale      |
+| `npm run assistant:retrieve`   | Embed question + pgvector search (inspect retrieval)    |
+| `npm run assistant:answer`     | Shared RAG generation service (CLI adapter)             |
 
 Database commands are provider-neutral: they work against local Docker Postgres or hosted Neon depending solely on `DATABASE_URL`.

@@ -2,7 +2,7 @@
 title: Portfolio assistant — RAG generation direction
 subtitle: Design considerations between retrieval and grounded answers (not implemented)
 status: draft
-version: 0.2.4
+version: 0.2.5
 updated: 2026-10-16
 related:
   - docs/assistant/architecture-direction.md
@@ -228,10 +228,48 @@ Visitors should be able to **begin with natural-language questions** rather than
 
 ---
 
+## Visitor-visible model usage (`/assistant`)
+
+**Architectural direction (decision).** The portfolio targets a **technical audience**. Visitors should see **actual OpenAI-reported** model and token usage for each **successful** assistant answer — a deliberate transparency choice that demonstrates the underlying AI implementation, aligned in spirit with [Codenames AI](https://codenames-ai.com) token display (not a shared component dependency).
+
+### Reference behaviour — Codenames AI (read-only)
+
+| Aspect           | Codenames AI convention                                                                      | Portfolio assistant adaptation                                                                          |
+| ---------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Placement        | Per-turn inline suffix on clue history rows; optional cumulative pill in panel summary       | Single compact **footer** under each successful answer on `/assistant`                                  |
+| Metrics shown    | `totalTokens` inline; `title` / `sr-only` expand **prompt** vs **completion** counts         | **Model display name** + **input** (`prompt_tokens`) + **output** (`completion_tokens`)                 |
+| Formatting       | `toLocaleString()`; muted smaller type (`clue-history__tokens`, ~0.78em; badge ~0.72rem)     | Portfolio [design-system.md](../design-system.md) secondary/muted typography; locale-formatted integers |
+| Unavailable data | Renders nothing when `usage` is absent on an entry                                           | Omit footer or partial fields — **never** show `0` for missing counts                                   |
+| Accessibility    | `title` tooltips + `sr-only` detail strings                                                  | Sensible `title` optional; footer text readable at mobile sizes; no information conveyed by color alone |
+| Responsive       | Grid stacks on narrow viewports; token suffix `white-space: nowrap` with wrap at panel level | Allow footer to wrap on small screens; keep answer/citations primary                                    |
+
+### API surface (`generation-api`)
+
+**Architectural direction.** The public HTTP response separates **`answer`** (existing generation contract) from optional **`usage`**:
+
+- **Allowlisted `usage` fields:** `model`, `prompt_tokens`, `completion_tokens`, `total_tokens` — each optional; sourced from OpenAI Chat Completions `usage` and the resolved model id returned by the shared service.
+- **Not in the client payload:** evidence packets, prompts, retrieved passages, `diagnostics`, approximate prompt budgets, `max_output_tokens`, `output_token_utilization`, retry counts, secrets, or raw error traces.
+- **Failures:** no `usage` object on error, timeout, truncation, or incomplete generation.
+
+### UI surface (`generation-ui`)
+
+**Architectural direction.** Render a compact usage line only after a **successful** client response, e.g. `GPT-4o mini · 1,842 input tokens · 326 output tokens`. Do not show estimated token counts, utilization percentages, or operator diagnostics. Do not add **browser-side PostHog** (or other client analytics) events for token usage.
+
+### Operator telemetry (PostHog) — independent
+
+**Current implementation (generation-cli).** Server-side PostHog events (`assistant_generation_completed`, `assistant_generation_failed`, `assistant_generation_truncated`, `assistant_retrieval_completed`) capture tokens, latencies, truncation, and failure categories for operators — see [assistant-database.md](./assistant-database.md). That instrumentation **does not** replace or duplicate the visitor footer; conversely, the footer **does not** feed analytics.
+
+### Compatibility with service `diagnostics`
+
+**Architectural direction.** `runRagGeneration` continues to record token usage in **`diagnostics`** for CLI `--json`, eval, and telemetry. The API route **projects** an allowlisted subset into public **`usage`**; the UI reads **`usage` only**, not CLI diagnostics.
+
+---
+
 ## Changelog
 
 | Date       | Change                                                                                                                                                                                    |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-16 | Visitor-visible OpenAI token usage on `/assistant` (API `usage` object + UI footer); Codenames AI as behavioural reference; PostHog server telemetry remains operator-only                |
 | 2026-10-16 | Deferred future direction: AI-first conversational portfolio (product/UX milestone); current RAG milestone ships `/assistant` first — homepage integration out of scope                   |
 | 2026-10-16 | Canonical `claims[]` with service-derived `answer_text`/`citations[]`; abstention orthogonal to `support_level`; reject overlong structured JSON (plan contract tightening)               |
 | 2026-10-16 | Evidence-aware generation, claim-level attribution, three-way generation eval (`no_retrieval` / `top_k_only` / `full_parent`); align abstention and evaluation with active plan amendment |
