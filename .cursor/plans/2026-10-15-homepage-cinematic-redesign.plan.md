@@ -4,7 +4,7 @@ overview: Repository assessment and engineering guardrails for a cinematic scrol
 todos:
   - id: creative-three-concepts
     content: "Docs PR: three distinct cinematic concepts + storyboards (Impeccable + scroll-craft methodology); GSAP/WebGL/CSS split per concept; webfueled.dev polish bar"
-    status: pending
+    status: completed
   - id: creative-direction-select
     content: "Human gate: select one concept (record decision + rationale in plan or docs/experiments/)"
     status: pending
