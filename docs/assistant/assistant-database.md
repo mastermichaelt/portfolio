@@ -1,6 +1,6 @@
 # Assistant retrieval database
 
-Postgres + pgvector backing store for the assistant retrieval experiment. **Dev tooling only** — not used by `app/` routes or the Vercel deploy.
+Postgres + pgvector backing store for the assistant retrieval index and **durable API rate-limit counters**. The production assistant generation route (`POST /api/assistant/generate`) reads the retrieval index and rate-limit tables via server-only `DATABASE_URL` on Vercel. Site `PortfolioRepository` persistence remains separate (future milestone).
 
 ## Two Postgres concerns (do not conflate)
 
@@ -275,7 +275,37 @@ Verify in PostHog: filter `analytics_environment = assistant_generation_tooling`
 | `ASSISTANT_GENERATION_MAX_QUESTION_LENGTH`     | `4000`        | Question validation                                                                 |
 | `ASSISTANT_GENERATION_MAX_RESPONSE_JSON_CHARS` | `24000`       | Reject overlong model JSON                                                          |
 
-Implementation entrypoint: `scripts/assistant/generation/run-generation.mjs` (imported by `scripts/assistant/answer.mjs`; future API route must call the same service).
+Implementation entrypoint: `scripts/assistant/generation/run-generation.mjs` (imported by `scripts/assistant/answer.mjs` and `app/api/assistant/generate/route.ts`).
+
+### 10. Generation API (`POST /api/assistant/generate`)
+
+**Slice:** `generation-api` — App Router adapter over the same `runRagGeneration` service (no CLI shell-out).
+
+| Concern          | Detail                                                                                                                                                                                                                                                                  |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Route**        | `POST /api/assistant/generate` — JSON body `{ "question": "…" }` only                                                                                                                                                                                                   |
+| **Runtime**      | Node.js (Fluid Compute); `maxDuration` 120s (aligns with default `ASSISTANT_GENERATION_TIMEOUT_MS`)                                                                                                                                                                     |
+| **Secrets**      | Server-only `DATABASE_URL`, `OPENAI_API_KEY`, generation env overrides — never `NEXT_PUBLIC_*`                                                                                                                                                                          |
+| **Success body** | `{ "answer": { claims, answer_text, citations, support_level, abstained, abstention_reason? }, "usage"?: { model?, prompt_tokens?, completion_tokens?, total_tokens? } }` — `usage` only when OpenAI reported at least one token count (never zero-filled placeholders) |
+| **Errors**       | Stable `{ "error": { "code", "message" } }` — no stack traces, packets, prompts, or `diagnostics`; **no `usage` on failures**                                                                                                                                           |
+| **Rate limits**  | Durable Postgres counters in `assistant_api_rate_limit_counters` (migration `20261016100000_assistant_api_rate_limits.sql`) — shared across instances; defaults in `.env.example`                                                                                       |
+
+**Deploy checklist (operator):**
+
+1. Apply migrations on the assistant `DATABASE_URL` (`npm run assistant:db:migrate`) so `assistant_api_rate_limit_counters` exists.
+2. Set Vercel production/preview env: `DATABASE_URL` (pooled Neon acceptable), `OPENAI_API_KEY` (`portfolio-assistant` project), optional generation bounds from `.env.example`.
+3. Smoke test locally:
+
+   ```bash
+   npm run dev
+   curl -sS -X POST http://localhost:3000/api/assistant/generate \
+     -H 'Content-Type: application/json' \
+     -d '{"question":"What projects has Michael shipped?"}' | jq .
+   ```
+
+4. Expect `200` with `answer.claims[]` when secrets and index are configured; `429` when rate limits trip; `503` if rate-limit storage is unreachable (fail-closed).
+
+**Manual verification:** run the curl above against local dev with `DATABASE_URL` + `OPENAI_API_KEY` in gitignored `.env.local`.
 
 ## OpenAI Embeddings API (operator workflow)
 
@@ -359,5 +389,6 @@ After [career-inventory snapshots](../../tests/fixtures/assistant-okf/career-inv
 | `npm run assistant:ingest`     | OKF build → derive → embed → upsert → delete stale      |
 | `npm run assistant:retrieve`   | Embed question + pgvector search (inspect retrieval)    |
 | `npm run assistant:answer`     | Shared RAG generation service (CLI adapter)             |
+| `POST /api/assistant/generate` | Same service via App Router (production visitor API)    |
 
 Database commands are provider-neutral: they work against local Docker Postgres or hosted Neon depending solely on `DATABASE_URL`.

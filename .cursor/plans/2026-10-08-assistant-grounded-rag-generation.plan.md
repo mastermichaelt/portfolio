@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: generation-api
     content: "PR: Next.js server API route — thin adapter over shared service; validation, rate limits, public answer + allowlisted usage object, safe errors; no client secrets"
-    status: pending
+    status: completed
   - id: generation-ui
     content: "PR: dedicated /assistant page + nav — claims[], citations, compact per-answer token usage footer; reusable components; no floating widget"
     status: pending

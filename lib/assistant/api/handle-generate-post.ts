@@ -1,0 +1,170 @@
+import { createPool } from "@/scripts/assistant/db/client.mjs";
+import { runRagGeneration } from "@/scripts/assistant/generation/run-generation.mjs";
+import type { Pool } from "pg";
+
+import { resolveClientKeyFromHeaders } from "./client-key";
+import { resolveAssistantApiConfig } from "./config";
+import { jsonError, mapGenerationErrorToResponse } from "./errors";
+import {
+  assertNoDisallowedPublicKeys,
+  buildPublicAnswer,
+  buildPublicUsageFromDiagnostics,
+} from "./public-envelope";
+import { checkAssistantApiRateLimit } from "./rate-limit";
+
+export type AssistantGenerateRequestBody = {
+  question?: unknown;
+};
+
+export type HandleAssistantGenerateDeps = {
+  runRagGeneration: typeof runRagGeneration;
+  createPool: (databaseUrl?: string) => Pool;
+  resolveConfig: typeof resolveAssistantApiConfig;
+  checkRateLimit: typeof checkAssistantApiRateLimit;
+};
+
+const defaultDeps: HandleAssistantGenerateDeps = {
+  runRagGeneration,
+  createPool,
+  resolveConfig: resolveAssistantApiConfig,
+  checkRateLimit: checkAssistantApiRateLimit,
+};
+
+function parseQuestionBody(
+  body: AssistantGenerateRequestBody,
+): string | Response {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return jsonError(
+      400,
+      "invalid_request",
+      "Request body must be a JSON object.",
+    );
+  }
+
+  if (body.question === undefined) {
+    return jsonError(
+      400,
+      "invalid_request",
+      "Missing required field: question.",
+    );
+  }
+
+  if (typeof body.question !== "string") {
+    return jsonError(
+      400,
+      "invalid_request",
+      "Field question must be a string.",
+    );
+  }
+
+  return body.question;
+}
+
+async function readJsonBody(
+  request: Request,
+  maxBodyBytes: number,
+): Promise<AssistantGenerateRequestBody | Response> {
+  const contentLength = request.headers.get("content-length");
+  if (contentLength) {
+    const length = Number(contentLength);
+    if (Number.isFinite(length) && length > maxBodyBytes) {
+      return jsonError(413, "request_too_large", "Request body is too large.");
+    }
+  }
+
+  const raw = await request.text();
+  if (raw.length > maxBodyBytes) {
+    return jsonError(413, "request_too_large", "Request body is too large.");
+  }
+
+  if (!raw.trim()) {
+    return jsonError(400, "invalid_json", "Request body must be JSON.");
+  }
+
+  try {
+    return JSON.parse(raw) as AssistantGenerateRequestBody;
+  } catch {
+    return jsonError(400, "invalid_json", "Request body must be valid JSON.");
+  }
+}
+
+/**
+ * POST /api/assistant/generate — thin adapter over {@link runRagGeneration}.
+ */
+export async function handleAssistantGeneratePost(
+  request: Request,
+  deps: HandleAssistantGenerateDeps = defaultDeps,
+): Promise<Response> {
+  if (request.method !== "POST") {
+    return jsonError(405, "method_not_allowed", "Use POST for this endpoint.", {
+      Allow: "POST",
+    });
+  }
+
+  const config = deps.resolveConfig();
+  const parsedBody = await readJsonBody(request, config.maxBodyBytes);
+  if (parsedBody instanceof Response) {
+    return parsedBody;
+  }
+
+  const question = parseQuestionBody(parsedBody);
+  if (question instanceof Response) {
+    return question;
+  }
+
+  const clientKey = resolveClientKeyFromHeaders(request.headers);
+  const pool = deps.createPool();
+
+  try {
+    const rateLimit = await deps.checkRateLimit(pool, clientKey, config);
+    if (!rateLimit.allowed) {
+      const message =
+        rateLimit.window === "storage_unavailable"
+          ? "The assistant is temporarily unavailable. Please try again later."
+          : "Too many requests. Please wait before trying again.";
+      const code =
+        rateLimit.window === "storage_unavailable"
+          ? "service_unavailable"
+          : "rate_limited";
+      const status = code === "rate_limited" ? 429 : 503;
+
+      return jsonError(status, code, message, {
+        "Retry-After": String(rateLimit.retryAfterSeconds),
+      });
+    }
+
+    const result = await deps.runRagGeneration({
+      question,
+      executionContext: "api",
+    });
+
+    if (!result.response) {
+      return jsonError(
+        502,
+        "generation_failed",
+        "The assistant could not produce a valid answer. Please try again.",
+      );
+    }
+
+    await result.flushTelemetry();
+
+    const answer = buildPublicAnswer(result.response);
+    const usage = buildPublicUsageFromDiagnostics(result.diagnostics);
+    const payload = usage ? { answer, usage } : { answer };
+
+    const violations = assertNoDisallowedPublicKeys(payload);
+    if (violations.length > 0) {
+      return jsonError(
+        500,
+        "generation_failed",
+        "The assistant could not complete your request. Please try again.",
+      );
+    }
+
+    return Response.json(payload, { status: 200 });
+  } catch (error) {
+    return mapGenerationErrorToResponse(error);
+  } finally {
+    await pool.end();
+  }
+}
