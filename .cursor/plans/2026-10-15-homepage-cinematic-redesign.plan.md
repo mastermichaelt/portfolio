@@ -301,7 +301,7 @@ Goal: the **same** `distinct_id` PostHog uses for **Person targeting in the UI**
 
 - **Measure before optimizing:** In Phase D (and re-check in `production-hardening`), record homepage **TTFB** with server flag evaluation enabled vs a local mock/disabled baseline on preview/production. Do not add caching until measurements justify it.
 - **Default:** per-request `posthog-node` (or equivalent) evaluation on `/` while the flag exists.
-- **If caching is added later:** cache entries must be keyed by **`distinct_id` + flag key** (and optionally flag payload version) — **never** a global “cinematic on/off” flag result shared across visitors. Do **not** edge-cache personalized HTML for `/` across users.
+- **If caching is added later:** cache entries must be keyed by **`distinct_id` + flag key** + **PostHog project** + **environment** (e.g. production vs preview / `analytics_environment`) (and optionally flag payload version) — **never** a global “cinematic on/off” result shared across visitors or deploy contexts. Do **not** edge-cache personalized HTML for `/` across users.
 - PostHog UI changes typically propagate within **seconds to a few minutes** (independent of app caching); document observed delay after toggling. Rollback remains a PostHog toggle, not a deploy.
 - Treat `/` as **dynamic** for the migration window (`cookies()` / documented `force-dynamic`) so a shared static shell cannot serve the wrong variant.
 - After global launch + cleanup PR removes the flag, `/` may return to static optimization if desired.
