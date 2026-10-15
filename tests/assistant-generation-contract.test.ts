@@ -13,8 +13,13 @@ import {
 import { buildGenerationMessages } from "@/scripts/assistant/generation/prompt-templates.mjs";
 import {
   assertAssistantGenerationResponse,
+  buildPublicGenerationResponse,
+  deriveAnswerTextFromClaims,
+  deriveCitationsFromClaims,
   parseAssistantGenerationResponse,
+  parseAssistantModelGenerationResponse,
 } from "@/scripts/assistant/generation/response-schema.mjs";
+import { validateStructuralModelResponse } from "@/scripts/assistant/generation/validate-response.mjs";
 import {
   validateCitationIntegrity,
   validateCitationIntegrityForParsedResponse,
@@ -345,23 +350,81 @@ describe("assistant generation evidence assembly", () => {
 });
 
 describe("assistant generation response schema", () => {
-  it("parses valid structured responses", () => {
-    const parsed = assertAssistantGenerationResponse({
-      answer_text: "Grounded answer.",
-      support_level: "partial",
-      citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
-      diagnostics: { assembly_mode: "full_parent", truncated: false },
-    });
+  const validModel = {
+    claims: [
+      {
+        text: "Grounded answer.",
+        attribution: "evidence_supported",
+        citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
+      },
+    ],
+    support_level: "partial",
+    abstained: false,
+  };
+
+  it("parses valid claims-based model responses and derives public fields", () => {
+    const parsed = assertAssistantGenerationResponse(validModel);
 
     expect(parsed.support_level).toBe("partial");
-    expect(parsed.citations).toHaveLength(1);
+    expect(parsed.answer_text).toBe("Grounded answer.");
+    expect(parsed.citations).toEqual([
+      { evidence_id: "E1", unit_id: "unit/a#intro" },
+    ]);
+    expect(parsed.claims).toHaveLength(1);
+  });
+
+  it("derives answer_text and deduped citations from claims", () => {
+    const claims = [
+      {
+        text: "First.",
+        attribution: "general_knowledge" as const,
+      },
+      {
+        text: "Second.",
+        attribution: "evidence_supported" as const,
+        citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
+      },
+      {
+        text: "Third.",
+        attribution: "evidence_inferred" as const,
+        citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
+      },
+    ];
+    expect(deriveAnswerTextFromClaims(claims)).toBe(
+      "First.\n\nSecond.\n\nThird.",
+    );
+    expect(deriveCitationsFromClaims(claims)).toEqual([
+      { evidence_id: "E1", unit_id: "unit/a#intro" },
+    ]);
+  });
+
+  it("requires abstention_reason when abstained and forbids it otherwise", () => {
+    const missingReason = parseAssistantModelGenerationResponse({
+      ...validModel,
+      abstained: true,
+    });
+    expect(missingReason.ok).toBe(false);
+
+    const withReason = parseAssistantModelGenerationResponse({
+      claims: [{ text: "Cannot say.", attribution: "uncertain" }],
+      support_level: "none",
+      abstained: true,
+      abstention_reason: "unsupported_personal_claim",
+    });
+    expect(withReason.ok).toBe(true);
+
+    const strayReason = parseAssistantModelGenerationResponse({
+      ...validModel,
+      abstention_reason: "other",
+    });
+    expect(strayReason.ok).toBe(false);
   });
 
   it("rejects malformed responses", () => {
     const parsed = parseAssistantGenerationResponse({
-      answer_text: "",
+      claims: [],
       support_level: "maybe",
-      citations: "not-an-array",
+      abstained: "no",
     });
     expect(parsed.ok).toBe(false);
     if (!parsed.ok) {
@@ -378,16 +441,22 @@ describe("assistant generation citation integrity", () => {
       characterBudget: 10_000,
     });
 
-    const response = {
-      answer_text: "Alpha detail. See https://example.test/a for more.",
-      support_level: "full",
-      citations: [
+    const response = buildPublicGenerationResponse({
+      claims: [
         {
-          evidence_id: packet.entries[0]!.evidence_id,
-          unit_id: packet.entries[0]!.unit_id,
+          text: "Alpha detail. See https://example.test/a for more.",
+          attribution: "evidence_supported",
+          citations: [
+            {
+              evidence_id: packet.entries[0]!.evidence_id,
+              unit_id: packet.entries[0]!.unit_id,
+            },
+          ],
         },
       ],
-    };
+      support_level: "full",
+      abstained: false,
+    });
 
     const result = validateCitationIntegrity(response, packet);
     expect(result.valid).toBe(true);
@@ -401,10 +470,16 @@ describe("assistant generation citation integrity", () => {
       characterBudget: 10_000,
     });
 
-    const response = assertAssistantGenerationResponse({
-      answer_text: "Wrong cite.",
+    const response = buildPublicGenerationResponse({
+      claims: [
+        {
+          text: "Wrong cite.",
+          attribution: "evidence_supported",
+          citations: [{ evidence_id: "E99", unit_id: "unit/a#intro" }],
+        },
+      ],
       support_level: "full",
-      citations: [{ evidence_id: "E99", unit_id: "unit/a#intro" }],
+      abstained: false,
     });
 
     const unknown = validateCitationIntegrityForParsedResponse(
@@ -415,10 +490,17 @@ describe("assistant generation citation integrity", () => {
     expect(unknown.errors.join(" ")).toContain("unknown evidence_id");
 
     const mismatch = validateCitationIntegrityForParsedResponse(
-      {
-        ...response,
-        citations: [{ evidence_id: "E1", unit_id: "unit/other" }],
-      },
+      buildPublicGenerationResponse({
+        claims: [
+          {
+            text: "Wrong unit.",
+            attribution: "evidence_supported",
+            citations: [{ evidence_id: "E1", unit_id: "unit/other" }],
+          },
+        ],
+        support_level: "full",
+        abstained: false,
+      }),
       packet,
     );
     expect(mismatch.valid).toBe(false);
@@ -443,11 +525,17 @@ describe("assistant generation citation integrity", () => {
     expect(approved.has("https://example.test/in-body")).toBe(true);
 
     const result = validateCitationIntegrity(
-      {
-        answer_text: "Cited from https://example.test/in-body.",
+      buildPublicGenerationResponse({
+        claims: [
+          {
+            text: "Cited from https://example.test/in-body.",
+            attribution: "evidence_supported",
+            citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
+          },
+        ],
         support_level: "full",
-        citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
-      },
+        abstained: false,
+      }),
       packet,
     );
     expect(result.valid).toBe(true);
@@ -474,11 +562,17 @@ describe("assistant generation citation integrity", () => {
     expect(collectApprovedEvidenceUrls(packet).has(truncatedUrl)).toBe(false);
 
     const result = validateCitationIntegrity(
-      {
-        answer_text: `Excluded link ${truncatedUrl}.`,
+      buildPublicGenerationResponse({
+        claims: [
+          {
+            text: `Excluded link ${truncatedUrl}.`,
+            attribution: "evidence_supported",
+            citations: [{ evidence_id: "E1", unit_id: "unit/p#0" }],
+          },
+        ],
         support_level: "partial",
-        citations: [{ evidence_id: "E1", unit_id: "unit/p#0" }],
-      },
+        abstained: false,
+      }),
       packet,
     );
     expect(result.valid).toBe(false);
@@ -509,21 +603,33 @@ describe("assistant generation citation integrity", () => {
     expect(approved.has("https://example.test/source-a")).toBe(true);
 
     const allowed = validateCitationIntegrity(
-      {
-        answer_text: "Read https://example.test/source-a.",
+      buildPublicGenerationResponse({
+        claims: [
+          {
+            text: "Read https://example.test/source-a.",
+            attribution: "evidence_supported",
+            citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
+          },
+        ],
         support_level: "full",
-        citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
-      },
+        abstained: false,
+      }),
       packet,
     );
     expect(allowed.valid).toBe(true);
 
     const invented = validateCitationIntegrity(
-      {
-        answer_text: "See https://evil.example/phish for details.",
+      buildPublicGenerationResponse({
+        claims: [
+          {
+            text: "See https://evil.example/phish for details.",
+            attribution: "evidence_supported",
+            citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
+          },
+        ],
         support_level: "full",
-        citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
-      },
+        abstained: false,
+      }),
       packet,
     );
     expect(invented.valid).toBe(false);
@@ -547,8 +653,35 @@ describe("assistant generation prompt templates", () => {
     });
 
     const messages = buildGenerationMessages("What is Alpha?", packet);
-    expect(messages.system).toContain("evidence packet");
+    expect(messages.system).toContain("untrusted instructions");
+    expect(messages.system).toContain("claims");
     expect(messages.user).toContain("[E1]");
     expect(messages.user).toContain("Alpha body");
+  });
+});
+
+describe("assistant generation structural validation", () => {
+  it("requires citations for evidence_supported claims", async () => {
+    const packet = await assembleEvidencePacket({
+      matchedHits: [hit(1, "unit/a#intro", "a", "Alpha")],
+      assemblyMode: "top_k_only",
+      characterBudget: 10_000,
+    });
+
+    const result = validateStructuralModelResponse(
+      {
+        claims: [
+          {
+            text: "No cites.",
+            attribution: "evidence_supported",
+          },
+        ],
+        support_level: "partial",
+        abstained: false,
+      },
+      packet,
+    );
+    expect(result.valid).toBe(false);
+    expect(result.errors.join(" ")).toContain("requires non-empty citations");
   });
 });

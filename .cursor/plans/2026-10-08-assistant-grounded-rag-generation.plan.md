@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: generation-cli
     content: "PR: shared RAG generation service, fetch OpenAI chat adapter, assistant:answer CLI (thin adapter); no server route"
-    status: pending
+    status: completed
   - id: generation-eval
     content: "PR: generation eval harness — citation support, abstention, injection, assembly-mode comparison; retrieval-eval unchanged"
     status: pending

@@ -36,6 +36,7 @@
     "assistant:db:verify": "node scripts/assistant/db/verify.mjs",
     "assistant:ingest": "node scripts/assistant/ingest.mjs",
     "assistant:retrieve": "node scripts/assistant/retrieve.mjs",
+    "assistant:answer": "node scripts/assistant/answer.mjs",
     "renovate:freshness-poll": "renovate-workflow freshness-poll"
   },
   "dependencies": {
