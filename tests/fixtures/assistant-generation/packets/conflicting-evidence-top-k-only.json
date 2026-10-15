@@ -1,0 +1,60 @@
+{
+  "assembly_mode": "top_k_only",
+  "matched_hits": [
+    {
+      "rank": 1,
+      "cosine_distance": 0.2,
+      "similarity": 0.8,
+      "unit_id": "unit/portfolio/career-fixture-b01",
+      "okf_concept_id": "portfolio/career-fixture",
+      "source_class": "portfolio",
+      "type": "snapshot",
+      "title": "Role timeline A",
+      "resource": "https://michaeltruong.ai/about",
+      "retrieval_text": "Michael led the experimentation platform team through 2022.",
+      "content_hash": "hash-career-a"
+    },
+    {
+      "rank": 2,
+      "cosine_distance": 0.21,
+      "similarity": 0.79,
+      "unit_id": "unit/portfolio/career-fixture-b02",
+      "okf_concept_id": "portfolio/career-fixture",
+      "source_class": "portfolio",
+      "type": "snapshot",
+      "title": "Role timeline B",
+      "resource": "https://michaeltruong.ai/about",
+      "retrieval_text": "Michael returned to individual contributor work in 2024 and did not lead the experimentation platform in 2022.",
+      "content_hash": "hash-career-b"
+    }
+  ],
+  "entries": [
+    {
+      "evidence_id": "E1",
+      "unit_id": "unit/portfolio/career-fixture-b01",
+      "okf_concept_id": "portfolio/career-fixture",
+      "content_hash": "hash-career-a",
+      "retrieval_text": "Michael led the experimentation platform team through 2022.",
+      "resource": "https://michaeltruong.ai/about",
+      "title": "Role timeline A",
+      "sources": [{ "url": "https://michaeltruong.ai/about" }],
+      "matched_retrieval": true,
+      "retrieval_rank": 1
+    },
+    {
+      "evidence_id": "E2",
+      "unit_id": "unit/portfolio/career-fixture-b02",
+      "okf_concept_id": "portfolio/career-fixture",
+      "content_hash": "hash-career-b",
+      "retrieval_text": "Michael returned to individual contributor work in 2024 and did not lead the experimentation platform in 2022.",
+      "resource": "https://michaeltruong.ai/about",
+      "title": "Role timeline B",
+      "sources": [{ "url": "https://michaeltruong.ai/about" }],
+      "matched_retrieval": true,
+      "retrieval_rank": 2
+    }
+  ],
+  "character_budget": 120000,
+  "character_count": 198,
+  "truncated": false
+}
