@@ -24,4 +24,8 @@ Retrieval-eval fixtures under `tests/fixtures/assistant-retrieval/` are unchange
 | Citation integrity + structural rules              | `validateGenerationResponse` (generation contract)                                           |
 | Citation support, attribution accuracy, abstention | `scripts/assistant/generation/eval.mjs` (deterministic heuristics from fixture expectations) |
 
+**Citation support** — per-claim rules only assert that fixture `required_evidence_substrings` appear in the **cited evidence passage text**. They do not prove the full claim is entailed by that evidence; list substrings a grounded answer should cite, and use operator review for broader correctness.
+
+**Assembly comparison** — `full_parent_expands_vs_top_k` is true only when the frozen `full_parent` packet has **strictly more** entries than `top_k_only` (equal counts are not treated as expansion).
+
 Operator-run live model comparisons and LLM-as-judge are optional; not required in CI.

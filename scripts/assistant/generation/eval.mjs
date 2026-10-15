@@ -2,7 +2,9 @@
  * Generation eval harness — frozen packets, deterministic scorers (no LLM-as-judge).
  */
 
-import { pathToFileURL } from "node:url";
+import { realpathSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { parseAssistantModelGenerationResponse } from "./response-schema.mjs";
 import { validateGenerationResponse } from "./validate-response.mjs";
@@ -83,6 +85,12 @@ function containsSubstring(haystack, needle) {
 }
 
 /**
+ * Deterministic citation support: each rule checks that every
+ * `required_evidence_substrings` entry appears in the **cited evidence text**
+ * (not that the full claim is entailed). Fixture authors must list substrings
+ * that a well-grounded answer should be able to cite; operator review covers
+ * broader correctness.
+ *
  * @param {AssistantModelGenerationResponse} model
  * @param {EvidencePacket} packet
  * @param {CitationSupportClaimExpectation[]} rules
@@ -368,7 +376,7 @@ export function compareAssemblyModePackets(packetsByMode) {
   return {
     summary,
     retrieval_contribution: {
-      full_parent_expands_vs_top_k: fullParentEntries >= topKEntries,
+      full_parent_expands_vs_top_k: fullParentEntries > topKEntries,
       top_k_has_evidence_when_no_retrieval_empty:
         topKEntries > noRetrievalEntries,
     },
@@ -478,10 +486,29 @@ async function runEvalCli() {
   }
 }
 
-const isMain =
-  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+/**
+ * @param {string} filePath
+ */
+function resolveRealPath(filePath) {
+  const resolved = path.resolve(filePath);
+  try {
+    return realpathSync(resolved);
+  } catch {
+    return resolved;
+  }
+}
 
-if (isMain) {
+function isExecutedAsMain() {
+  const entry = process.argv[1];
+  if (!entry) {
+    return false;
+  }
+  return (
+    resolveRealPath(entry) === resolveRealPath(fileURLToPath(import.meta.url))
+  );
+}
+
+if (isExecutedAsMain()) {
   runEvalCli().catch((error) => {
     console.error(error);
     process.exitCode = 1;

@@ -189,6 +189,18 @@ describe("assistant generation assembly mode comparison", () => {
     ).toBe(true);
   });
 
+  it("does not treat equal entry counts as full_parent expansion", () => {
+    const packet = loadPacket("savepoints-top-k-only.json");
+    const report = compareAssemblyModePackets({
+      no_retrieval: loadPacket("empty-no-retrieval.json"),
+      top_k_only: packet,
+      full_parent: packet,
+    });
+    expect(report.retrieval_contribution.full_parent_expands_vs_top_k).toBe(
+      false,
+    );
+  });
+
   it("full_parent packet enables broader citation support than top_k_only for shared claim", () => {
     const topK = loadPacket("savepoints-top-k-only.json");
     const fullParent = loadPacket("savepoints-full-parent.json");
