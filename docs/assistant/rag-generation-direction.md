@@ -2,7 +2,7 @@
 title: Portfolio assistant — RAG generation direction
 subtitle: Design considerations between retrieval and grounded answers (not implemented)
 status: draft
-version: 0.2.3
+version: 0.2.4
 updated: 2026-10-16
 related:
   - docs/assistant/architecture-direction.md
@@ -204,10 +204,35 @@ Observed behaviour is recorded in [cross-repository-corpus-eval-findings.md](./c
 
 ---
 
+## Deferred future direction — AI-first conversational portfolio
+
+> **Status: deferred product and UX milestone — not part of the current RAG implementation plan.** No prescribed visual layout, animation system, interaction framework, or homepage composition at this stage. Do not conflate with `generation-ui` (`/assistant` first ship).
+
+**Architectural direction (long-term vision).** Evolve [michaeltruong.ai](https://michaeltruong.ai) from a primarily static, navigation-driven portfolio into an **AI-first, conversational portfolio** where the assistant becomes the **primary interface** for discovering and exploring Michael’s professional identity, engineering experience, projects, writing, technical decisions, and approach to software development.
+
+Visitors should be able to **begin with natural-language questions** rather than needing to internalize the site’s information architecture first.
+
+**Intended experience qualities (direction only):**
+
+- **Conversational discovery on the homepage** — make assistant-driven exploration a first-class interaction, not a peripheral support channel.
+- **Integral portfolio surface** — present the assistant as part of the portfolio product, not an embedded generic chatbot widget.
+- **Answers plus navigation** — combine conversational responses with contextual links to relevant projects, articles, and experience content.
+- **Guided exploration** — suggested questions and natural follow-up paths complement free-form queries.
+- **Coexistence with classic IA** — preserve conventional navigation and direct URLs to existing portfolio pages and content modules.
+- **Brand and craft** — maintain a distinctive visual identity consistent with the rest of the portfolio.
+- **Resilience** — remain accessible, performant, SEO-friendly, and useful when the assistant is unavailable or abstains.
+
+**Architectural direction (content, not replacement).** The goal is **not** to replace portfolio content with generated prose. Existing static content remains canonical; the assistant makes that content **more discoverable** through an intelligent, conversational layer.
+
+**Relationship to the current milestone.** The active [grounded RAG plan](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md) delivers a **reliable, evidence-aware assistant** with a **minimal usable interface** at **`/assistant`**. Reusable interaction components from that slice are an intentional stepping stone toward this direction; **homepage integration and AI-first composition are explicitly deferred** to a future product milestone. **Non-goals for the current milestone** include homepage replacement, cinematic homepage redesign, floating site-wide chat widgets, streaming, conversational memory, and agentic tool execution.
+
+---
+
 ## Changelog
 
 | Date       | Change                                                                                                                                                                                    |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-16 | Deferred future direction: AI-first conversational portfolio (product/UX milestone); current RAG milestone ships `/assistant` first — homepage integration out of scope                   |
 | 2026-10-16 | Canonical `claims[]` with service-derived `answer_text`/`citations[]`; abstention orthogonal to `support_level`; reject overlong structured JSON (plan contract tightening)               |
 | 2026-10-16 | Evidence-aware generation, claim-level attribution, three-way generation eval (`no_retrieval` / `top_k_only` / `full_parent`); align abstention and evaluation with active plan amendment |
 | 2026-10-12 | Field report follow-ons: retrieval diagnostics, evidence sufficiency, end-to-end eval (trimmed catalogue)                                                                                 |
