@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: generation-eval
     content: "PR: generation eval harness — citation support, abstention, injection, assembly-mode comparison; retrieval-eval unchanged"
-    status: pending
+    status: completed
   - id: generation-api
     content: "PR: Next.js server API route — thin adapter over shared service; validation, rate limits, public answer + allowlisted usage object, safe errors; no client secrets"
     status: pending

@@ -1,0 +1,35 @@
+{
+  "assembly_mode": "top_k_only",
+  "matched_hits": [
+    {
+      "rank": 1,
+      "cosine_distance": 0.22,
+      "similarity": 0.78,
+      "unit_id": "unit/portfolio/codenames-ai-b03-validation",
+      "okf_concept_id": "portfolio/codenames-ai",
+      "source_class": "portfolio",
+      "type": "case_study",
+      "title": "Judge and validation pipeline",
+      "resource": "https://codenames-ai.com",
+      "retrieval_text": "Codenames AI uses schema-first validation for clue and guess responses, with contract tests between the Express API and React client.",
+      "content_hash": "hash-codenames-b03"
+    }
+  ],
+  "entries": [
+    {
+      "evidence_id": "E1",
+      "unit_id": "unit/portfolio/codenames-ai-b03-validation",
+      "okf_concept_id": "portfolio/codenames-ai",
+      "content_hash": "hash-codenames-b03",
+      "retrieval_text": "Codenames AI uses schema-first validation for clue and guess responses, with contract tests between the Express API and React client.",
+      "resource": "https://codenames-ai.com",
+      "title": "Judge and validation pipeline",
+      "sources": [{ "url": "https://codenames-ai.com" }],
+      "matched_retrieval": true,
+      "retrieval_rank": 1
+    }
+  ],
+  "character_budget": 120000,
+  "character_count": 156,
+  "truncated": false
+}

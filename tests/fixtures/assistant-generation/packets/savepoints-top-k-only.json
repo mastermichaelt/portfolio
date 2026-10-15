@@ -1,0 +1,35 @@
+{
+  "assembly_mode": "top_k_only",
+  "matched_hits": [
+    {
+      "rank": 1,
+      "cosine_distance": 0.18,
+      "similarity": 0.82,
+      "unit_id": "unit/portfolio/savepoints-architecture-b02-capture",
+      "okf_concept_id": "portfolio/savepoints-architecture",
+      "source_class": "portfolio",
+      "type": "case_study",
+      "title": "Savepoints durable capture",
+      "resource": "https://michaeltruong.ai/projects/savepoints",
+      "retrieval_text": "Savepoints captures durable learnings from agent sessions via a five-check rubric before promotion to a canonical store. Postgres backs durable submit when configured.",
+      "content_hash": "hash-savepoints-b02"
+    }
+  ],
+  "entries": [
+    {
+      "evidence_id": "E1",
+      "unit_id": "unit/portfolio/savepoints-architecture-b02-capture",
+      "okf_concept_id": "portfolio/savepoints-architecture",
+      "content_hash": "hash-savepoints-b02",
+      "retrieval_text": "Savepoints captures durable learnings from agent sessions via a five-check rubric before promotion to a canonical store. Postgres backs durable submit when configured.",
+      "resource": "https://michaeltruong.ai/projects/savepoints",
+      "title": "Savepoints durable capture",
+      "sources": [{ "url": "https://michaeltruong.ai/projects/savepoints" }],
+      "matched_retrieval": true,
+      "retrieval_rank": 1
+    }
+  ],
+  "character_budget": 120000,
+  "character_count": 198,
+  "truncated": false
+}
