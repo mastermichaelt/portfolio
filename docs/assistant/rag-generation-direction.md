@@ -2,8 +2,8 @@
 title: Portfolio assistant — RAG generation direction
 subtitle: Design considerations between retrieval and grounded answers (not implemented)
 status: draft
-version: 0.2.1
-updated: 2026-10-12
+version: 0.2.2
+updated: 2026-10-16
 related:
   - docs/assistant/architecture-direction.md
   - docs/assistant/assistant-database.md
@@ -17,7 +17,7 @@ related:
 
 This note captures answer-generation architecture for the portfolio assistant. **Active execution plan:** [2026-10-08-assistant-grounded-rag-generation.plan.md](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md) (implementation slices; not yet shipped). This direction doc remains design background — routes, prompts, and code land via that plan.
 
-**Locked for the current milestone (see plan):** `gpt-4o-mini`; default evidence assembly **`full_parent`** (OKF concept boundary, Postgres-backed units); eval baseline **`top_k_only`**; generation default top-K **10**; budget fail-closed **`EvidenceBudgetExceeded`** (no silent drop of matched retrieval units); **citation integrity** (contract) vs **citation support** (generation-eval).
+**Locked for the current milestone (see plan):** `gpt-4o-mini`; default evidence assembly **`full_parent`** (OKF concept boundary, Postgres-backed units); eval baselines **`top_k_only`** and **`no_retrieval`** (model-only, eval-only); generation default top-K **10**; budget fail-closed **`EvidenceBudgetExceeded`** (no silent drop of matched retrieval units); **evidence-aware generation** (general knowledge allowed with honest attribution); **citation integrity** + structural claim rules (contract/runtime) vs **citation support** and **attribution accuracy** (generation-eval).
 
 Sections use the same labels as [architecture-direction.md](./architecture-direction.md): **current implementation**, **proposed design option**, **open decision**, **architectural direction**.
 
@@ -57,11 +57,11 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 **Architectural direction (decision).** Treat **retrieval** and **generation** as separate subsystems with a narrow, typed handoff:
 
-| Stage                 | Owns                                                          | Does not own                                 |
-| --------------------- | ------------------------------------------------------------- | -------------------------------------------- |
-| **Retrieval**         | Query embedding, similarity search, filters, hit ranking      | Natural-language answers, citations in prose |
-| **Evidence assembly** | Selecting, expanding, grouping, budgeting context for the LLM | Rewriting canonical sources as truth         |
-| **Generation**        | Grounded answer text, citation surfacing, abstention UX       | OKF normalization, embedding index schema    |
+| Stage                 | Owns                                                                                   | Does not own                                 |
+| --------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Retrieval**         | Query embedding, similarity search, filters, hit ranking                               | Natural-language answers, citations in prose |
+| **Evidence assembly** | Selecting, expanding, grouping, budgeting context for the LLM                          | Rewriting canonical sources as truth         |
+| **Generation**        | Evidence-aware answer text, claim-level attribution, citation surfacing, abstention UX | OKF normalization, embedding index schema    |
 
 **Architectural direction.** `PortfolioRepository` and page routes must not depend on retrieval or generation. Future `app/api/` (or equivalent) may call retrieval + assembly + generation; the browsable site remains valid with the assistant removed.
 
@@ -129,7 +129,9 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 - **Parent-level** — canonical `resource` for the OKF concept,
 - **Source-chain** — entries from OKF `sources[]` when the answer spans multiple originating sources.
 
-**Proposed design option.** Require the generation contract to emit **structured citations** (citation ids referencing the evidence packet registry) with a renderer that maps ids → portfolio routes and external URLs.
+**Architectural direction (milestone).** Emit **structured citations** tied to **claims or segments** (`evidence_supported`, `evidence_inferred`, `general_knowledge`, `uncertain`) so evaluators and UI can see which statements cite the packet — a detached citation list alone is insufficient for support measurement.
+
+**Proposed design option.** Map citation ids → portfolio routes and external URLs in the renderer.
 
 **Open decision.** Whether answers cite the **chunk** that retrieved best, the **parent concept**, or both (chunk for precision, parent for stable human link).
 
@@ -139,7 +141,7 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 ## Retrieval confidence, abstention, and out-of-corpus questions
 
-**Architectural direction.** Corpus-only assistant knowledge is **bounded**. Questions outside indexed material (e.g. private life details, employers’ internal data, future plans not published) should eventually be handled with explicit **abstention** or careful qualification — not silent invention.
+**Architectural direction.** Published corpus knowledge is **bounded** for claims about Michael’s career and work. The assistant may answer **general technical questions** without retrieval when appropriate, but must not invent personal/professional facts. Questions outside indexed material (private life, employers’ internal data, unpublished plans) warrant **abstention** or explicit **`uncertain`** qualification — not confident invention.
 
 **Current implementation.** No confidence scoring, refusal gates, or abstention UX — by design for early learning ([architecture-direction.md](./architecture-direction.md) grounding posture).
 
@@ -152,7 +154,9 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 **Proposed design option — abstention responses.** When signals fail thresholds: short message that the corpus does not contain enough evidence; optional suggested portfolio links from coarse retrieval or static IA — **not** a fabricated answer.
 
-**Open decision.** Threshold values and whether abstention is **fail-closed** (no LLM call) vs **grounded hedge** (LLM with explicit “insufficient evidence” instruction).
+**Architectural direction (milestone).** Distinguish abstention triggers: no hits; irrelevant evidence; partial evidence; general technical (may answer without abstaining); unsupported personal; conflicting evidence. Abstention is **not** required solely because retrieval is thin for a general engineering explanation.
+
+**Open decision.** Threshold values and whether some abstention paths are **fail-closed** (no LLM call) vs **qualified answer** (LLM with `uncertain` / `support_level: none`).
 
 **Open decision.** Relationship between retrieval-eval pass/fail and production abstention (evaluation metric vs runtime policy).
 
@@ -166,11 +170,11 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 
 **Architectural direction (decision).** **Evaluate retrieval separately from grounded generation** until both subsystems exist. Mixing them early obscures whether failures are chunking, embedding, ranking, assembly, or hallucination.
 
-| Layer                 | What to measure (examples)                                                                              | Typical artifacts                                                |
-| --------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| **Retrieval**         | Parent concept recall, chunk specificity, rank of expected unit, distance diagnostics, filter behaviour | retrieval-eval fixtures, `assistant:retrieve --json` transcripts |
-| **Evidence assembly** | Budget compliance, deduplication, expansion policy regressions                                          | Unit tests + fixture packets (future)                            |
-| **Grounded answer**   | Faithfulness to packet, citation correctness, abstention on negatives, readability                      | Human review, LLM-as-judge (open), comparison to baseline        |
+| Layer                 | What to measure (examples)                                                                                                                                                       | Typical artifacts                                                                                                    |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Retrieval**         | Parent concept recall, chunk specificity, rank of expected unit, distance diagnostics, filter behaviour                                                                          | retrieval-eval fixtures, `assistant:retrieve --json` transcripts                                                     |
+| **Evidence assembly** | Budget compliance, deduplication, expansion policy regressions                                                                                                                   | Unit tests + fixture packets (future)                                                                                |
+| **Grounded answer**   | Answer correctness, claim-level attribution, citation integrity vs support, abstention appropriateness, retrieval contribution (`no_retrieval` vs `top_k_only` vs `full_parent`) | Frozen evidence-packet fixtures, deterministic scorers, operator-run live comparisons (LLM-as-judge not required CI) |
 
 **Open decision.** When to introduce **answer-eval** fixtures (after minimal generation path exists).
 
@@ -200,8 +204,9 @@ Observed behaviour is recorded in [cross-repository-corpus-eval-findings.md](./c
 
 ## Changelog
 
-| Date       | Change                                                                                                                                                                         |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-10-12 | Field report follow-ons: retrieval diagnostics, evidence sufficiency, end-to-end eval (trimmed catalogue)                                                                      |
-| 2026-10-08 | Initial draft: retrieval/generation boundary, evidence assembly options, parent-context expansion as proposed (not mandated), budgets, citations, abstention, split evaluation |
-| 2026-10-08 | Link active grounded-RAG execution plan; record locked assembly/citation/budget decisions for milestone                                                                        |
+| Date       | Change                                                                                                                                                                                    |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-16 | Evidence-aware generation, claim-level attribution, three-way generation eval (`no_retrieval` / `top_k_only` / `full_parent`); align abstention and evaluation with active plan amendment |
+| 2026-10-12 | Field report follow-ons: retrieval diagnostics, evidence sufficiency, end-to-end eval (trimmed catalogue)                                                                                 |
+| 2026-10-08 | Initial draft: retrieval/generation boundary, evidence assembly options, parent-context expansion as proposed (not mandated), budgets, citations, abstention, split evaluation            |
+| 2026-10-08 | Link active grounded-RAG execution plan; record locked assembly/citation/budget decisions for milestone                                                                                   |
