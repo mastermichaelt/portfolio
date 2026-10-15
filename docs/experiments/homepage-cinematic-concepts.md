@@ -1,6 +1,6 @@
 # Homepage cinematic concepts
 
-**Status:** Creative exploration ongoing — **no direction selected** (`creative-direction-select` not complete)  
+**Status:** **Concept D — Singularity Wake** selected (`creative-direction-select` complete, 2026-10-16). `visual-prototype` not started — decision only; no prototype authorization in this step.  
 **Plan:** [`.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md`](../../.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md)  
 **Polish references:** [webfueled.dev](https://webfueled.dev) (scroll confidence, typographic scale over cinematic stills); [GetLayers — New Era](https://www.getlayers.ai/layer/new-era) (particle/WebGL scroll spectacle — see inspection below)  
 **Motion runtime (implementation):** GSAP + ScrollTrigger only ([`AGENTS.md`](../../AGENTS.md)); R3F/three/shaders as render layers synced to ScrollTrigger timelines, never a second scroll system.
@@ -351,20 +351,55 @@ Rooms are **states of practice** (constraint, ambiguity, measurement, accountabi
 
 ## Round 2 comparative summary
 
-| Id                       | Ambition                         | WebGL                   | Best prototype proof          |
-| ------------------------ | -------------------------------- | ----------------------- | ----------------------------- |
-| **D — Singularity Wake** | Particle spectacle, New Era tier | **Required**            | Scene I→II wake + tunnel open |
-| **E — Monolith Script**  | Typographic installation         | Optional dust           | Word split + plaza stones     |
-| **F — Threshold Rooms**  | Cinematic photography + wipes    | **Wipe + optional fog** | Room 1 slit → Room 2 wipe     |
+| Id                       | Selection    | Ambition                         | WebGL                   | Best prototype proof          |
+| ------------------------ | ------------ | -------------------------------- | ----------------------- | ----------------------------- |
+| **D — Singularity Wake** | **Chosen**   | Particle spectacle, New Era tier | **Required**            | Scene I→II wake + tunnel open |
+| **E — Monolith Script**  | Not selected | Typographic installation         | Optional dust           | Word split + plaza stones     |
+| **F — Threshold Rooms**  | Not selected | Cinematic photography + wipes    | **Wipe + optional fog** | Room 1 slit → Room 2 wipe     |
 
-## Direction selection (next slice)
+## Creative direction — recorded decision
 
-Human gate `creative-direction-select` — **not started.**
+**Human gate:** `creative-direction-select` — **complete** (2026-10-16).  
+**Chosen direction:** [**Concept D — Singularity Wake**](#concept-d--singularity-wake) (Round 2).
 
-Round 1 concepts A–C are **rejected** and must not be prototyped. Round 2 concepts D–F are **candidates only**; no choice recorded here yet.
+### Rationale (stakeholder)
 
-When selecting, record:
+- Closest match to the immersive, particle-driven experience that originally attracted review of [GetLayers New Era](https://www.getlayers.ai/layer/new-era) — adapted to this portfolio’s art direction, **not** a reproduction of the reference template.
+- Deliberately ambitious **Three.js / R3F + GSAP** frontend engineering exercise.
+- **Continuous scene transformation** (wake → tunnel → field) is more compelling than discrete typographic installations or photographic room sequences.
+- Target: visually distinctive and **personal**, while staying within site tokens, shell nav, SEO/a11y, and flag-gated rollout.
 
-- Chosen concept id (D, E, or F — or disciplined hybrid with rules)
-- Rejected alternatives + rationale
-- WebGL in/out for v1 and which **scene transformation** must be proven in `visual-prototype`
+### Not selected (exploration history)
+
+| Id    | Name                                  | Status             | Why not chosen (summary)                                                                                                                                                |
+| ----- | ------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A–C   | Ledger Film, Strata Cut, Chorus Index | Rejected (Round 1) | Too close to conventional portfolio / matrix / grid / stack metaphors — see [Round 1](#exploration-round-1--not-selected).                                              |
+| **E** | **Monolith Script**                   | Not selected       | Monumental type-as-architecture is strong but secondary to particle continuity; split/collapse/plaza arc deferred. Full write-up retained above for history.            |
+| **F** | **Threshold Rooms**                   | Not selected       | Installation + photographic wipes are cinematic but separate rooms lack the single morphing field; asset-heavy path deferred. Full write-up retained above for history. |
+
+**No hybrid:** v1 follows Singularity Wake scenes as authored in Concept D; do not merge Monolith or Threshold motifs without a new human gate.
+
+### WebGL for v1
+
+**In.** R3F/three is the **rendering layer** for the particle singularity, tunnel opening, and scroll-scrubbed camera. GSAP + ScrollTrigger remains the **only** scroll orchestration runtime; shader uniforms and camera transforms are driven from the master timeline progress ([`AGENTS.md`](../../AGENTS.md)).
+
+### Scope boundaries (unchanged)
+
+- **Existing homepage** at `/` stays operational until cinematic launch; replacement ships behind PostHog **`cinematic-homepage`** in later slices (fail-closed default OFF).
+- Do **not** reintroduce current homepage grid, method matrix, continuity band, route grid, or methodology chapter IA on the cinematic branch.
+- Global header/footer, primary nav routes, accessibility floor, and SEO requirements from the [plan](../../.cursor/plans/2026-10-15-homepage-cinematic-redesign.plan.md) still apply.
+
+### `visual-prototype` requirements (next slice — **pending, not authorized here**)
+
+When `visual-prototype` begins (separate PR/slice after this decision merges), prove at minimum:
+
+| Requirement              | Detail                                                                                                                                         |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Transformation proof** | Particle **wake** morphing into an **opening tunnel** (Concept D Scenes I→III: Point → Wake → Passage).                                        |
+| **Scroll authority**     | GSAP/ScrollTrigger master timeline; scrub/pin as designed; no parallel scroll libraries.                                                       |
+| **Render layer**         | Three.js/R3F particle system + camera rig; scroll progress controls simulation parameters and camera spline.                                   |
+| **Accessibility**        | SSR-resolved HTML copy; reduced-motion branch (static/stacked floor); keyboard `:focus-within` and print settles per scroll-craft methodology. |
+| **Mobile**               | Fallback strategy per Concept D (plates / simplified field — no long pinned WebGL on phone).                                                   |
+| **Production isolation** | Prefer experiment route; **do not change** production `/` until flag slice unless plan explicitly allows.                                      |
+
+**This document update does not start implementation** — `visual-prototype` remains **pending** in plan frontmatter until that slice is explicitly executed.

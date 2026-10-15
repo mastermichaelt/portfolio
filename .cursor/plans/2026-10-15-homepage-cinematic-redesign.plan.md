@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: creative-direction-select
     content: "Human gate: select one concept (record decision + rationale in plan or docs/experiments/)"
-    status: pending
+    status: completed
   - id: visual-prototype
     content: "PR: isolated hero + first scroll transition; merge-safe e2e if runtime changes; production / smoke if experiment-only route"
     status: pending
