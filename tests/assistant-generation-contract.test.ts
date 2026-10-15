@@ -661,7 +661,7 @@ describe("assistant generation prompt templates", () => {
 });
 
 describe("assistant generation structural validation", () => {
-  it("allows external URLs in general_knowledge claims without evidence allowlist", async () => {
+  it("rejects external URLs in general_knowledge claims", async () => {
     const packet = await assembleEvidencePacket({
       matchedHits: [hit(1, "unit/a#intro", "a", "Alpha")],
       assemblyMode: "top_k_only",
@@ -681,7 +681,10 @@ describe("assistant generation structural validation", () => {
       },
       packet,
     );
-    expect(result.valid).toBe(true);
+    expect(result.valid).toBe(false);
+    expect(
+      result.errors.some((e) => e.includes("must not include external URLs")),
+    ).toBe(true);
   });
 
   it("requires citations for evidence_supported claims", async () => {
