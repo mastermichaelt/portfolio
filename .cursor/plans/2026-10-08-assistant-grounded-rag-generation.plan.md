@@ -18,7 +18,7 @@ todos:
     content: "PR: Next.js server API route — thin adapter over shared service; validation, rate limits, timeouts, safe errors; no client secrets"
     status: pending
   - id: generation-ui
-    content: "PR: minimal accessible assistant UI on portfolio — input, loading/errors, citations, suggested questions; design system"
+    content: "PR: dedicated /assistant page + nav entry — accessible UI (intro, suggested questions, claims[], citations); reusable components; no floating widget"
     status: pending
   - id: operational-acceptance
     content: "Manual verification gate — local + deployed E2E on michaeltruong.ai; operator sign-off before public-ready"
@@ -39,13 +39,15 @@ isProject: false
 
 **Plan amendment (2026-10-16, contract tightening):** **`claims[]` is the canonical model output** — the service derives `answer_text` and top-level `citations[]`; **`support_level`** measures evidence coverage only (orthogonal to abstention); **`abstention_reason`** is set only when the assistant actually abstains; overlong structured model output is **rejected**, not truncated post-generation.
 
+**Plan amendment (2026-10-16, initial UI placement):** Ship the milestone assistant on a **dedicated `/assistant` route** with a **primary navigation entry** — a deliberate portfolio destination, not a site-wide floating chat widget. Interaction components must stay **reusable** for a future homepage integration; **AI-first homepage composition is deferred** (documented in [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md)). This amendment does not expand `generation-ui` into a homepage redesign.
+
 This document amends the active plan in place; do not fork a competing plan.
 
 **Direction (design background):** [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md)
 
 **Prerequisites (shipped):** OKF + structure-aware derive/ingest/retrieve; cross-repository corpus + retrieval-eval — [cross-repository-corpus-eval-findings.md](../../docs/assistant/cross-repository-corpus-eval-findings.md); **generation contract** (`scripts/assistant/generation/*`, `tests/assistant-generation-contract.test.ts`).
 
-**Non-goals (milestone):** corpus expansion, retrieval-eval baseline changes, streaming, LangChain/LlamaIndex, automatic corpus updates, live web search, elaborate chat product (threads, memory, tool use), neighbour ±1 expansion, tokenizer-exact budgets, LLM-as-judge in required CI.
+**Non-goals (milestone):** corpus expansion, retrieval-eval baseline changes, streaming, LangChain/LlamaIndex, automatic corpus updates, live web search, elaborate chat product (threads, memory, tool use), neighbour ±1 expansion, tokenizer-exact budgets, LLM-as-judge in required CI, **homepage replacement or cinematic homepage redesign**, **site-wide floating chat widget**, **agentic tool execution**, **heavy chat framework**, **new design system**, **additional retrieval architecture changes** (beyond shipped contract/service). Do not reopen the archived cinematic homepage redesign initiative.
 
 ## Locked decisions
 
@@ -238,7 +240,7 @@ Resource controls are **server-side**; the browser is untrusted.
 
 ### Deferred
 
-Streaming, neighbour expansion, automatic ingest on deploy, external web search, conversational memory, LLM-as-judge as required CI gate.
+Streaming, neighbour expansion, automatic ingest on deploy, external web search, conversational memory, LLM-as-judge as required CI gate, **AI-first homepage** (assistant as primary discovery surface — product/UX milestone; see [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md)).
 
 ---
 
@@ -354,24 +356,36 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 **Recommended authority:** Open PR only
 
-**Rationale:** Minimal visitor surface after API exists.
+**Rationale:** First public assistant surface after API exists — a dedicated portfolio page, not a generic embedded widget.
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Goal:** Accessible assistant UI on the portfolio — question input, loading/error states, answer rendering from canonical **`claims[]`** (attribution + per-claim citations; same shape as API), **clickable citations** (map to public URLs from citation metadata), abstention copy when `abstained`, small **suggested-questions** set; **safe rendering** of model-generated text (no raw HTML injection). Do not render a divergent prose path from `answer_text` alone.
+**Goal:** Ship a **standalone, responsive, accessible** assistant experience at **`/assistant`** on [michaeltruong.ai](https://michaeltruong.ai) — a deliberate portfolio destination that reuses existing typography, layout, components, and [design-system.md](../../docs/design-system.md) conventions.
 
-**Non-goals:** Thread history, streaming, new design system, heavy chat dependencies.
+**Scope:**
+
+- **Route:** `app/assistant/page.tsx` (or equivalent App Router page) at `/assistant`.
+- **Discovery:** Add a discoverable entry in **primary site navigation** (e.g. extend [lib/nav.ts](../../lib/nav.ts) / [SiteHeader.tsx](../../components/SiteHeader.tsx) — label TBD in implementation, e.g. “Assistant”).
+- **Page content:** Concise introduction explaining what visitors can ask; a small curated **suggested-questions** set; question input; loading states; answer rendering from canonical **`claims[]`** (attribution + per-claim citations; same shape as API); **clickable evidence citations** (public URLs from citation metadata); error surfaces; abstention and **`uncertain`** / qualification messaging when `abstained` or attribution warrants it; **safe rendering** of model-generated text (no raw HTML injection). Do not render a divergent prose path from `answer_text` alone.
+- **Component architecture:** Extract reusable assistant interaction components (input, message/claim list, citation links, suggested prompts, status states) so the same experience can later integrate into the homepage **without rebuilding** — **homepage integration is out of scope for this slice**.
+
+**Non-goals:** Site-wide **floating chat widget**; homepage replacement or redesign; cinematic homepage work; thread history or conversational memory; streaming; new design system; heavy chat framework dependencies; agentic tool execution; retrieval or generation architecture changes; eval harness changes.
 
 **Dependencies:** `generation-api` merged (or same PR only if truly merge-safe — **prefer separate PR**).
 
+**Likely files:** `app/assistant/page.tsx`, `app/assistant/*` or `components/assistant/*` (reusable interaction modules), `lib/nav.ts`, `components/SiteHeader.tsx`, scoped styles under `app/styles/` as needed; client fetch to the generation API route only.
+
 **Acceptance:**
 
-- Uses existing tokens/components ([design-system.md](../../docs/design-system.md)).
-- Calls API route only; no secrets in client bundle.
-- Basic a11y: labels, focus, reduced-motion respect.
+- **`/assistant`** is live in the app router and reachable on production after deploy; **primary nav** includes a clear link to it.
+- Page feels like part of the portfolio (tokens, spacing, typography, existing components) — not a third-party chat embed.
+- Full interaction loop: intro → suggested question or typed question → loading → **`claims[]`** rendering with claim-level attribution → clickable citations → API errors and abstention/uncertainty copy handled gracefully.
+- Uses existing tokens/components ([design-system.md](../../docs/design-system.md)); calls API route only; no secrets in client bundle.
+- Reusable assistant components are structured for future homepage embedding (no floating widget).
+- Basic a11y: labels, focus order, keyboard use, `prefers-reduced-motion` respect; responsive layout (mobile + desktop).
 - Playwright or component tests where practical; manual mobile check documented in PR.
 
-**PR boundary:** UI routes/components/styles + client fetch; no eval harness changes.
+**PR boundary:** UI routes/components/styles + nav entry + client fetch; no eval harness changes; no homepage composition changes.
 
 ---
 
@@ -469,9 +483,11 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: minimal accessible assistant UI (input, loading/errors, canonical claims[] rendering, citations, suggested questions) using design system; client calls API only. Mark generation-ui completed in plan frontmatter in this PR.
+Deliverables: dedicated /assistant page on michaeltruong.ai with primary-nav entry; standalone responsive accessible assistant UI (intro, suggested questions, input, loading/errors, canonical claims[] rendering with attribution, clickable citations, abstention/uncertainty messaging, safe text rendering) using existing portfolio design conventions; reusable assistant interaction components (no site-wide floating chat widget; no homepage redesign — future homepage integration is deferred). Client calls generation API only. Mark generation-ui completed in plan frontmatter in this PR.
 
-Verification: npm run lint; npm run typecheck; npm run format:check; npm run test; manual desktop + mobile check.
+Non-goals: homepage replacement, cinematic homepage, streaming, chat memory/history, agentic tools, new design system, heavy chat framework, retrieval architecture changes.
+
+Verification: npm run lint; npm run typecheck; npm run format:check; npm run test; manual desktop + mobile check on /assistant.
 ```
 
 ### operational-acceptance
