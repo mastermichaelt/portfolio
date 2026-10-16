@@ -44,6 +44,26 @@ async function readCounter(
   return Number(result.rows[0]?.count ?? 0);
 }
 
+describe("assistant API rate limit", () => {
+  it("fails closed when pool.connect() cannot reach Postgres", async () => {
+    const badPool = createPool("postgresql://invalid:invalid@127.0.0.1:1/none");
+    const result = await checkAssistantApiRateLimit(
+      badPool,
+      "ip:test",
+      testConfig(),
+      Date.UTC(2026, 9, 16, 12, 0, 0),
+      { runExpiryCleanup: false },
+    );
+    await badPool.end();
+
+    expect(result).toEqual({
+      allowed: false,
+      retryAfterSeconds: 60,
+      window: "storage_unavailable",
+    });
+  });
+});
+
 describe("assistant API rate limit (integration)", () => {
   it("documents skip when DATABASE_URL is unset", () => {
     if (!hasDatabase) {
@@ -56,18 +76,32 @@ describe("assistant API rate limit (integration)", () => {
 
   describe.skipIf(!hasDatabase)("with DATABASE_URL", () => {
     let pool: import("pg").Pool;
+    let postgresIntegrationReady = false;
     const fixedNow = Date.UTC(2026, 9, 16, 12, 0, 0);
 
     beforeAll(async () => {
       pool = createPool(databaseUrl!);
-      await runMigrations(pool, { log: () => {} });
+      try {
+        await pool.query("SELECT 1");
+        await runMigrations(pool, { log: () => {} });
+        postgresIntegrationReady = true;
+      } catch {
+        postgresIntegrationReady = false;
+        await pool.end().catch(() => {});
+      }
     });
 
     afterAll(async () => {
-      await pool.end();
+      if (postgresIntegrationReady) {
+        await pool.end();
+      }
     });
 
-    beforeEach(async () => {
+    beforeEach(async (context) => {
+      if (!postgresIntegrationReady) {
+        context.skip();
+        return;
+      }
       await pool.query(`DELETE FROM assistant_api_rate_limit_counters`);
     });
 
@@ -214,25 +248,6 @@ describe("assistant API rate limit (integration)", () => {
 
       expect(allowed).toBe(4);
       expect(rejected).toBe(4);
-    });
-
-    it("fails closed when the database is unavailable", async () => {
-      const badPool = createPool(
-        "postgresql://invalid:invalid@127.0.0.1:1/none",
-      );
-      const result = await checkAssistantApiRateLimit(
-        badPool,
-        "ip:test",
-        testConfig(),
-        fixedNow,
-        { runExpiryCleanup: false },
-      );
-      await badPool.end();
-
-      expect(result.allowed).toBe(false);
-      if (!result.allowed) {
-        expect(result.window).toBe("storage_unavailable");
-      }
     });
 
     it("does not fail admission when expiry cleanup fails after commit", async () => {

@@ -163,9 +163,10 @@ export async function checkAssistantApiRateLimit(
   const buckets = buildBuckets(clientKey, config, nowMs);
   const runExpiryCleanup = options.runExpiryCleanup ?? true;
 
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
   let decision: RateLimitResult;
   try {
+    client = await pool.connect();
     decision = await admitInTransaction(client, buckets, nowMs);
   } catch {
     return {
@@ -174,7 +175,7 @@ export async function checkAssistantApiRateLimit(
       window: "storage_unavailable",
     };
   } finally {
-    client.release();
+    client?.release();
   }
 
   if (decision.allowed && runExpiryCleanup) {
