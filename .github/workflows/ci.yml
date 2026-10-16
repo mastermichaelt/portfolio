@@ -28,6 +28,7 @@ jobs:
       - run: npm run format:check
       - run: npm run test:coverage
       - run: npm run build
+      - run: npm run verify:social-metadata
 
       # Path-aware gate: job always reports a status (required-check safe).
       # Skip Playwright only when every changed path is on the docs-only allowlist.
