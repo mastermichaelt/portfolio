@@ -16,6 +16,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack",
+    "verify:social-metadata": "node scripts/verify-prerendered-social-metadata.mjs",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write .",

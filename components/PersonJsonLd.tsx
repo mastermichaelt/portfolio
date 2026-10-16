@@ -1,5 +1,6 @@
 import type { Profile } from "@/domain/profile";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site-metadata";
+import { SITE_PORTRAIT_PATH } from "@/lib/social-metadata";
 import { getSiteUrl } from "@/lib/site";
 
 const JOB_TITLES = ["Senior Software Engineer", "AI Product Engineer"];
@@ -28,6 +29,7 @@ export function buildPersonJsonLd(profile: Profile, siteUrl: string) {
     name: profile.name,
     jobTitle: JOB_TITLES,
     url: siteUrl,
+    image: `${siteUrl}${SITE_PORTRAIT_PATH}`,
     email: profile.email,
     homeLocation: {
       "@type": "Place",

@@ -7,6 +7,7 @@ import {
   jsonLdId,
 } from "@/components/PersonJsonLd";
 import { profile } from "@/content/profile";
+import { SITE_PORTRAIT_PATH } from "@/lib/social-metadata";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site-metadata";
 
 const SITE_URL = "https://michaeltruong.ai";
@@ -83,6 +84,7 @@ describe("buildPersonJsonLd graph", () => {
       name: profile.name,
       jobTitle: ["Senior Software Engineer", "AI Product Engineer"],
       url: SITE_URL,
+      image: `${SITE_URL}${SITE_PORTRAIT_PATH}`,
       email: profile.email,
       homeLocation: {
         "@type": "Place",

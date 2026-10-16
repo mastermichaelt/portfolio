@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ProductionLine } from "@/components/ecosystem/ProductionLine";
 import { getPortfolioRepository } from "@/lib/portfolio";
+import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Ecosystem",
@@ -10,9 +11,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/ecosystem",
   },
-  openGraph: {
-    url: "/ecosystem",
-  },
+  openGraph: openGraphForCanonicalPath("/ecosystem"),
 };
 
 export default async function EcosystemPage() {

@@ -7,6 +7,7 @@ import { ExternalLink } from "@/components/ExternalLink";
 import { ProjectCaseDetail } from "@/components/ProjectCaseDetail";
 import { SupportingCaseDetail } from "@/components/SupportingCaseDetail";
 import { getPortfolioRepository } from "@/lib/portfolio";
+import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 
 type ProjectPageProps = PageProps<"/projects/[slug]">;
 
@@ -37,11 +38,10 @@ export async function generateMetadata({
       alternates: {
         canonical: path,
       },
-      openGraph: {
+      openGraph: openGraphForCanonicalPath(path, {
         title: `${projectCase.name} · Michael Truong`,
         description: projectCase.lead,
-        url: path,
-      },
+      }),
     };
   }
 
@@ -54,11 +54,10 @@ export async function generateMetadata({
       alternates: {
         canonical: path,
       },
-      openGraph: {
+      openGraph: openGraphForCanonicalPath(path, {
         title: `${supportingCase.name} · Michael Truong`,
         description: supportingCase.lead,
-        url: path,
-      },
+      }),
     };
   }
 
@@ -73,11 +72,10 @@ export async function generateMetadata({
     alternates: {
       canonical: path,
     },
-    openGraph: {
+    openGraph: openGraphForCanonicalPath(path, {
       title: `${project.title} · Michael Truong`,
       description: project.summary,
-      url: path,
-    },
+    }),
   };
 }
 

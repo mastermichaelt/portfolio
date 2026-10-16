@@ -7,6 +7,7 @@ import type {
   HomepageMethodDimension,
 } from "@/domain/homepage";
 import { getPortfolioRepository } from "@/lib/portfolio";
+import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 import { SITE_TITLE } from "@/lib/site-metadata";
 
 export const metadata: Metadata = {
@@ -16,9 +17,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  openGraph: {
-    url: "/",
-  },
+  openGraph: openGraphForCanonicalPath("/"),
 };
 
 /**

@@ -53,6 +53,15 @@ describe("layout metadata", () => {
     expect(metadata.keywords).toEqual([...SITE_KEYWORDS]);
     expect(metadata.description).toBe(SITE_DESCRIPTION);
     expect(metadata.openGraph?.description).toBe(SITE_DESCRIPTION);
+    expect(metadata.openGraph?.images).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          url: "/opengraph-image",
+          width: 1200,
+          height: 630,
+        }),
+      ]),
+    );
     expect(metadata.twitter).toMatchObject({
       card: "summary_large_image",
       description: SITE_DESCRIPTION,
@@ -66,7 +75,12 @@ describe("homepage metadata", () => {
 
     expect(metadata.title).toEqual({ absolute: SITE_TITLE });
     expect(metadata.alternates).toEqual({ canonical: "/" });
-    expect(metadata.openGraph).toEqual({ url: "/" });
+    expect(metadata.openGraph).toMatchObject({
+      url: "/",
+      images: expect.arrayContaining([
+        expect.objectContaining({ url: "/opengraph-image" }),
+      ]),
+    });
     expect(metadata.twitter).toBeUndefined();
     expect(metadata.description).toBeUndefined();
   });

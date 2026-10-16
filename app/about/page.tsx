@@ -9,6 +9,7 @@ import type {
 } from "@/domain/about";
 import type { Profile } from "@/domain/profile";
 import { getPortfolioRepository } from "@/lib/portfolio";
+import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 
 function resolveSupplementHref(
   supplement: AboutSectionSupplement,
@@ -45,9 +46,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/about",
   },
-  openGraph: {
-    url: "/about",
-  },
+  openGraph: openGraphForCanonicalPath("/about"),
 };
 
 function AboutEntryLinks({ links }: { links: AboutLink[] }) {
