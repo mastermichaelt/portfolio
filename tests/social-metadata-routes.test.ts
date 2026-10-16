@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { OPEN_GRAPH_IMAGE_PATH, SITE_PORTRAIT_PATH } from "@/lib/social-metadata";
+import {
+  OPEN_GRAPH_IMAGE_PATH,
+  SITE_PORTRAIT_PATH,
+} from "@/lib/social-metadata";
 import { getSiteUrl } from "@/lib/site";
 import { SITE_TITLE } from "@/lib/site-metadata";
 
@@ -118,10 +121,12 @@ describe("route Open Graph metadata exports", () => {
     const { buildPersonJsonLd } = await import("@/components/PersonJsonLd");
     const { profile } = await import("@/content/profile");
     const siteUrl = getSiteUrl();
-    const person = (buildPersonJsonLd(profile, siteUrl)["@graph"] as Array<{
-      "@type": string;
-      image?: string;
-    }>).find((node) => node["@type"] === "Person");
+    const person = (
+      buildPersonJsonLd(profile, siteUrl)["@graph"] as Array<{
+        "@type": string;
+        image?: string;
+      }>
+    ).find((node) => node["@type"] === "Person");
 
     expect(person?.image).toBe(`${siteUrl}${SITE_PORTRAIT_PATH}`);
   });
