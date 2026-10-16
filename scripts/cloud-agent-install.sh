@@ -89,9 +89,18 @@ install_node_major() {
     rm -rf "$_tmpdir"
     exit 1
   fi
-  install -d "$_prefix"
-  # Merge the full distribution tree (bin symlinks + lib/node_modules/npm, etc.).
-  cp -a "$_extracted/." "$_prefix/"
+  # Cloud build install runs as ubuntu; /usr/local is root-owned (passwordless sudo is available).
+  if [ -w "$_prefix" ] 2>/dev/null; then
+    install -d "$_prefix"
+    cp -a "$_extracted/." "$_prefix/"
+  elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+    sudo install -d "$_prefix"
+    sudo cp -a "$_extracted/." "$_prefix/"
+  else
+    echo "error: cannot install Node to ${_prefix}: not writable and passwordless sudo unavailable" >&2
+    rm -rf "$_tmpdir"
+    exit 1
+  fi
   rm -rf "$_tmpdir"
 }
 
