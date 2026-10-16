@@ -1,4 +1,4 @@
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 import type { AssistantApiConfig } from "./config";
 
@@ -11,6 +11,13 @@ type RateLimitWindow = {
   windowMs: number;
   limit: number;
   scope: "client" | "global";
+};
+
+type RateLimitBucket = {
+  key: string;
+  windowEndsAt: Date;
+  limit: number;
+  windowName: string;
 };
 
 function buildWindows(config: AssistantApiConfig): RateLimitWindow[] {
@@ -53,69 +60,126 @@ function bucketKey(
   return `${subject}:${window.name}:${windowIndex}`;
 }
 
+function buildBuckets(
+  clientKey: string,
+  config: AssistantApiConfig,
+  nowMs: number,
+): RateLimitBucket[] {
+  const windows = buildWindows(config);
+  const buckets = windows.map((window) => {
+    const windowEndsAt = new Date(
+      (Math.floor(nowMs / window.windowMs) + 1) * window.windowMs,
+    );
+    return {
+      key: bucketKey(window.scope, clientKey, window, nowMs),
+      windowEndsAt,
+      limit: window.limit,
+      windowName: window.name,
+    };
+  });
+
+  return buckets.sort((a, b) => a.key.localeCompare(b.key));
+}
+
 export type RateLimitResult =
   | { allowed: true }
   | { allowed: false; retryAfterSeconds: number; window: string };
 
+const INCREMENT_COUNTER_SQL = `
+  INSERT INTO assistant_api_rate_limit_counters (bucket_key, count, window_ends_at)
+  VALUES ($1, 1, $2)
+  ON CONFLICT (bucket_key) DO UPDATE
+  SET count = assistant_api_rate_limit_counters.count + 1
+  RETURNING count
+`;
+
 /**
- * Increment durable counters and enforce configured windows. Fails closed when the
- * database is unavailable (treat as not allowed).
+ * Delete expired counters. Failures are swallowed — never affects admission.
+ */
+export async function expireRateLimitCountersBestEffort(
+  pool: Pool,
+): Promise<void> {
+  try {
+    await pool.query(
+      `DELETE FROM assistant_api_rate_limit_counters WHERE window_ends_at < now()`,
+    );
+  } catch {
+    // Best-effort housekeeping only.
+  }
+}
+
+async function admitInTransaction(
+  client: PoolClient,
+  buckets: RateLimitBucket[],
+  nowMs: number,
+): Promise<RateLimitResult> {
+  await client.query("BEGIN");
+
+  try {
+    for (const bucket of buckets) {
+      const result = await client.query<{ count: string }>(
+        INCREMENT_COUNTER_SQL,
+        [bucket.key, bucket.windowEndsAt],
+      );
+
+      const count = Number(result.rows[0]?.count ?? 0);
+      if (count > bucket.limit) {
+        await client.query("ROLLBACK");
+        const retryAfterSeconds = Math.max(
+          1,
+          Math.ceil((bucket.windowEndsAt.getTime() - nowMs) / 1000),
+        );
+        return {
+          allowed: false,
+          retryAfterSeconds,
+          window: bucket.windowName,
+        };
+      }
+    }
+
+    await client.query("COMMIT");
+    return { allowed: true };
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  }
+}
+
+/**
+ * Increment durable counters and enforce configured windows in one transaction.
+ * Fails closed when the database is unavailable.
  */
 export async function checkAssistantApiRateLimit(
   pool: Pool,
   clientKey: string,
   config: AssistantApiConfig,
   nowMs = Date.now(),
+  options: { runExpiryCleanup?: boolean } = {},
 ): Promise<RateLimitResult> {
   if (!config.rateLimitEnabled) {
     return { allowed: true };
   }
 
-  const windows = buildWindows(config);
+  const buckets = buildBuckets(clientKey, config, nowMs);
+  const runExpiryCleanup = options.runExpiryCleanup ?? true;
 
+  const client = await pool.connect();
+  let decision: RateLimitResult;
   try {
-    for (const window of windows) {
-      const key = bucketKey(window.scope, clientKey, window, nowMs);
-      const windowEndsAt = new Date(
-        (Math.floor(nowMs / window.windowMs) + 1) * window.windowMs,
-      );
-
-      const result = await pool.query<{ count: string }>(
-        `
-        INSERT INTO assistant_api_rate_limit_counters (bucket_key, count, window_ends_at)
-        VALUES ($1, 1, $2)
-        ON CONFLICT (bucket_key) DO UPDATE
-        SET count = assistant_api_rate_limit_counters.count + 1
-        RETURNING count
-        `,
-        [key, windowEndsAt],
-      );
-
-      const count = Number(result.rows[0]?.count ?? 0);
-      if (count > window.limit) {
-        const retryAfterSeconds = Math.max(
-          1,
-          Math.ceil((windowEndsAt.getTime() - nowMs) / 1000),
-        );
-        return {
-          allowed: false,
-          retryAfterSeconds,
-          window: window.name,
-        };
-      }
-    }
-
-    // Best-effort expiry cleanup — does not affect the current decision.
-    await pool.query(
-      `DELETE FROM assistant_api_rate_limit_counters WHERE window_ends_at < now()`,
-    );
-
-    return { allowed: true };
+    decision = await admitInTransaction(client, buckets, nowMs);
   } catch {
     return {
       allowed: false,
       retryAfterSeconds: 60,
       window: "storage_unavailable",
     };
+  } finally {
+    client.release();
   }
+
+  if (decision.allowed && runExpiryCleanup) {
+    await expireRateLimitCountersBestEffort(pool);
+  }
+
+  return decision;
 }

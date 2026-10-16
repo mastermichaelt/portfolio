@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { resolveClientKeyFromHeaders } from "@/lib/assistant/api/client-key";
 import {
   type HandleAssistantGenerateDeps,
   handleAssistantGeneratePost,
@@ -211,6 +212,71 @@ describe("assistant generation API handler", () => {
     );
 
     expect(response.status).toBe(413);
+  });
+
+  it("returns 503 when pool creation fails without leaking config details", async () => {
+    const deps = createDeps({});
+    deps.createPool = vi.fn(() => {
+      throw new Error(
+        "DATABASE_URL is required for assistant retrieval tooling (see .env.example)",
+      );
+    });
+
+    const response = await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Hi" }),
+      }),
+      deps,
+    );
+
+    expect(response.status).toBe(503);
+    const body = await response.json();
+    expect(body.error.code).toBe("service_unavailable");
+    expect(JSON.stringify(body)).not.toContain("DATABASE_URL");
+  });
+
+  it("rejects chunked oversized bodies without Content-Length", async () => {
+    const deps = {
+      ...createDeps({}),
+      resolveConfig: () => ({
+        maxBodyBytes: 24,
+        rateLimitEnabled: false,
+        perClientPerMinute: 8,
+        perClientPerHour: 40,
+        perClientPerDay: 120,
+        globalPerDay: 2_000,
+      }),
+    };
+
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('{"question":"'));
+        controller.enqueue(new TextEncoder().encode("abcdefghijklmnop"));
+        controller.enqueue(new TextEncoder().encode('"}'));
+        controller.close();
+      },
+    });
+
+    const response = await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: stream,
+        duplex: "half",
+      } as RequestInit),
+      deps,
+    );
+
+    expect(response.status).toBe(413);
+  });
+
+  it("uses the first x-forwarded-for entry as the rate-limit client key", () => {
+    const headers = new Headers({
+      "x-forwarded-for": "203.0.113.44, 198.51.100.1",
+    });
+    expect(resolveClientKeyFromHeaders(headers)).toBe("ip:203.0.113.44");
   });
 
   it("imports runRagGeneration from the shared service module", async () => {

@@ -10,6 +10,7 @@ import {
   buildPublicAnswer,
   buildPublicUsageFromDiagnostics,
 } from "./public-envelope";
+import { readBoundedUtf8Body } from "./read-request-body";
 import { checkAssistantApiRateLimit } from "./rate-limit";
 
 export type AssistantGenerateRequestBody = {
@@ -64,17 +65,9 @@ async function readJsonBody(
   request: Request,
   maxBodyBytes: number,
 ): Promise<AssistantGenerateRequestBody | Response> {
-  const contentLength = request.headers.get("content-length");
-  if (contentLength) {
-    const length = Number(contentLength);
-    if (Number.isFinite(length) && length > maxBodyBytes) {
-      return jsonError(413, "request_too_large", "Request body is too large.");
-    }
-  }
-
-  const raw = await request.text();
-  if (raw.length > maxBodyBytes) {
-    return jsonError(413, "request_too_large", "Request body is too large.");
+  const raw = await readBoundedUtf8Body(request, maxBodyBytes);
+  if (raw instanceof Response) {
+    return raw;
   }
 
   if (!raw.trim()) {
@@ -113,9 +106,11 @@ export async function handleAssistantGeneratePost(
   }
 
   const clientKey = resolveClientKeyFromHeaders(request.headers);
-  const pool = deps.createPool();
+  let pool: Pool | undefined;
 
   try {
+    pool = deps.createPool();
+
     const rateLimit = await deps.checkRateLimit(pool, clientKey, config);
     if (!rateLimit.allowed) {
       const message =
@@ -165,6 +160,8 @@ export async function handleAssistantGeneratePost(
   } catch (error) {
     return mapGenerationErrorToResponse(error);
   } finally {
-    await pool.end();
+    if (pool) {
+      await pool.end();
+    }
   }
 }
