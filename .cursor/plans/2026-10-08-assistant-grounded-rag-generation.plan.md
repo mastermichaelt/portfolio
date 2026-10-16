@@ -21,7 +21,7 @@ todos:
     content: "PR: dedicated /assistant page + nav — claims[], citations, compact per-answer token usage footer; reusable components; no floating widget"
     status: pending
   - id: operational-acceptance
-    content: "Manual verification gate — local + deployed E2E on michaeltruong.ai; operator sign-off before public-ready"
+    content: "Manual verification gate — production Neon corpus ingest + verify (operator-approved), then local + deployed E2E on michaeltruong.ai; operator sign-off before public-ready"
     status: pending
   - id: plan-closure
     content: "Docs-only PR — # Shipped note, archive plan, update architecture-direction + rag-generation-direction (after production verified)"
@@ -42,6 +42,8 @@ isProject: false
 **Plan amendment (2026-10-16, initial UI placement):** Ship the milestone assistant on a **dedicated `/assistant` route** with a **primary navigation entry** — a deliberate portfolio destination, not a site-wide floating chat widget. Interaction components must stay **reusable** for a future homepage integration; **AI-first homepage composition is deferred** (documented in [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md)). This amendment does not expand `generation-ui` into a homepage redesign.
 
 **Plan amendment (2026-10-16, visitor-visible token usage):** Expose **OpenAI-reported** model and token counts to visitors on successful `/assistant` answers (compact usage footer). The **`generation-api`** slice returns an explicit, allowlisted `usage` object alongside the public answer; **`generation-ui`** renders it using portfolio design conventions informed by [Codenames AI](https://codenames-ai.com) per-turn token display (muted secondary typography, locale-formatted counts, omit when unavailable). **Server-side PostHog** telemetry (operator tooling) remains independent — no duplicate browser analytics for tokens. Internal `diagnostics` stay server/CLI-only.
+
+**Plan amendment (2026-10-16, production Neon corpus):** Hosted assistant generation on michaeltruong.ai requires a **populated production retrieval index** on Neon — not only schema/migrations. **Production corpus ingestion and verification** are an **operator-controlled operational prerequisite** inside **`operational-acceptance`**, executed **before deployed E2E acceptance**. They use the existing `okf:build` → `assistant:ingest` workflow ([assistant-database.md](../../docs/assistant/assistant-database.md)); **not** a new implementation slice, **not** triggered by Vercel deploys, and **not** agent-executable without explicit operator approval.
 
 This document amends the active plan in place; do not fork a competing plan.
 
@@ -69,7 +71,7 @@ Preserve unless a future plan amendment explicitly revises them.
 | Visitor-visible usage  | **`generation-api`** returns allowlisted **`usage`** (`model`, OpenAI `prompt_tokens`, `completion_tokens`, optional `total_tokens`) on **successful** responses only; omit fields when unavailable — **never** coerce missing counts to zero; **no** prompt/evidence/diagnostics in the client payload |
 | Resource bounds        | Configurable evidence char budget (120k = **dev default**), approximate prompt token cap, max output tokens, timeouts, max question/body size — no tokenizer-exact budgeting this milestone                                                                                                             |
 | Eval baselines         | **`no_retrieval`** (model-only), **`top_k_only`**, **`full_parent`** — `no_retrieval` is eval-only, not production architecture                                                                                                                                                                         |
-| Index + corpus         | **Neon pgvector** + existing operator-controlled `okf:build` → `assistant:ingest` workflow; no automatic corpus updates                                                                                                                                                                                 |
+| Index + corpus         | **Neon pgvector** + existing operator-controlled `okf:build` → `assistant:ingest` workflow; no automatic corpus updates; **production Neon must be ingested and verified** before deployed assistant E2E ([operational-acceptance](#slice--operational-acceptance))                                     |
 | Deployment target      | **michaeltruong.ai** (Vercel production); server-only `DATABASE_URL`, `OPENAI_API_KEY`, and generation config                                                                                                                                                                                           |
 
 ## Recommended execution authority
@@ -95,6 +97,22 @@ Multi-slice plans stack **execution order**, not Git branches. Integration branc
 **Before opening a PR:** branch contains **only** that slice’s changes.
 
 **After opening:** PR base is `main`; diff has no prior-slice work except through merged `main`.
+
+---
+
+## Milestone execution sequence
+
+Implementation slices (Git PRs, merge order):
+
+1. `generation-contract` → `generation-cli` → `generation-eval` → `generation-api` → `generation-ui`
+
+Operational gates (no implementation slice; operator-controlled where noted):
+
+1. **`operational-acceptance` — Phase A: Production Neon corpus** (operator task, **explicit approval required** before any production `DATABASE_URL` ingest) — populate and verify the hosted retrieval index **before** calling production/preview assistant E2E “ready”.
+2. **`operational-acceptance` — Phase B: Local + deployed verification** — `assistant:answer`, generation API, and `/assistant` UI on michaeltruong.ai (after Phase A and `generation-ui` deploy).
+3. **`plan-closure`** — docs-only archive after Phase B sign-off.
+
+Corpus updates remain **operator-controlled** (`okf:build` → `assistant:ingest`); deployments do **not** run ingest automatically.
 
 ---
 
@@ -424,20 +442,53 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 **Recommended authority:** Manual verification gate
 
-**Rationale:** Model quality, cost, abuse resistance, and deployment config require operator review before calling the assistant publicly ready.
+**Nature:** **Operational verification only** — not an application feature, not a new implementation slice, and **not** executed by agents against production without explicit operator approval.
 
-**Agent instruction:** Do not commit or open a PR. Optional `.agent-runs/assistant-generation/**`.
+**Rationale:** Model quality, cost, abuse resistance, deployment config, and **hosted retrieval index readiness** require operator review before calling the assistant publicly ready.
 
-**Prerequisites:** `generation-contract` through `generation-ui` merged; production index ingested; Vercel env configured for michaeltruong.ai.
+**Agent instruction:** Do not commit or open a PR. Do **not** run production ingest or mutate production Neon data unless the operator has explicitly approved that step in the current session. Optional `.agent-runs/assistant-generation/**` for gitignored notes.
+
+**Prerequisites:** `generation-contract` through `generation-ui` merged; Vercel env configured for michaeltruong.ai (`DATABASE_URL` points at production Neon for runtime).
+
+### Phase A — Production Neon corpus ingestion and verification (before deployed E2E)
+
+**Operator approval required:** Do not export a production Neon `DATABASE_URL` into ingest commands or run `npm run assistant:ingest` against production until the operator confirms target project/branch/database and approves the run.
+
+**Current baseline (2026-10-16):** Neon project `portfolio-assistant`, branch `main`, database `portfolio_assistant` — schema migrated; `assistant_retrieval_units` **empty** on production; local Docker index holds **262** units (reference for parity checks, not an automatic production row-count requirement).
+
+**Checklist** (commands and workflows: [assistant-database.md](../../docs/assistant/assistant-database.md)):
+
+| Step | Action                                                                                                                                                                                                                                                                   |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1    | **Confirm target** — Neon project `portfolio-assistant`, intended branch (`main`), database `portfolio_assistant`, and that `DATABASE_URL` is the **assistant retrieval** connection only (not site persistence or other Neon projects).                                 |
+| 2    | **Schema** — `npm run assistant:db:migrate` and `npm run assistant:db:verify` against production `DATABASE_URL` (direct connection for migrate).                                                                                                                         |
+| 3    | **Canonical corpus** — `npm run okf:build` (or verify `content/assistant/okf` / manifest matches the intended release).                                                                                                                                                  |
+| 4    | **Ingest** — `npm run assistant:ingest` with production `DATABASE_URL` set (operator session only; never commit secrets).                                                                                                                                                |
+| 5    | **Post-ingest verify** — non-zero `assistant_retrieval_units` count; ingest summary (upsert/skip/delete); `assistant_ingestion_runs` row with expected `bundle_sha256`; spot-check provenance fields on sample units.                                                    |
+| 6    | **Retrieval smoke** — `npm run assistant:retrieve --` known portfolio questions (e.g. Savepoints, Codenames AI); confirm relevant hits and sane distances.                                                                                                               |
+| 7    | **Idempotent re-ingest** — second `assistant:ingest` run: expect high skip count, no unintended mass delete; row count stable unless corpus changed.                                                                                                                     |
+| 8    | **Generation smoke (hosted index)** — `npm run assistant:answer` against production `DATABASE_URL`: one **grounded** portfolio question (citations + `evidence_supported` claims) and one **unsupported personal** question (valid abstention, no fabricated citations). |
+
+**Phase A acceptance criteria (measurable):**
+
+- Production retrieval index is **populated** (`assistant_retrieval_units` count > 0).
+- Unit count and `bundle_sha256` align with the **intended canonical corpus**; any delta from local **262** units is **documented** (corpus version, filters, or environment — not silently assumed equal).
+- Retrieval returns **relevant evidence** for at least two known portfolio questions recorded in the sign-off notes.
+- Hosted-path generation (CLI against production `DATABASE_URL`, then API after deploy) produces **valid grounded answers** and **safe abstentions** without structural validation failures.
+- **No accidental data loss** — no manual table truncation; ingest delete semantics only remove stale units per existing sync rules; second ingest does not wipe the index.
+
+### Phase B — Local and deployed E2E acceptance
+
+**Prerequisites:** Phase A complete and signed off; `generation-ui` deployed to michaeltruong.ai (or approved preview).
 
 **Procedure (expanded):**
 
-- **Local:** ~12–15 `assistant:answer` runs (`full_parent`); 3–4 `top_k_only` and 2–3 `no_retrieval` eval comparisons; tokens, resource bounds, `EvidenceBudgetExceeded`, citation-support and attribution spot checks.
+- **Local:** ~12–15 `assistant:answer` runs (`full_parent`) against dev Docker or production index as appropriate; 3–4 `top_k_only` and 2–3 `no_retrieval` eval comparisons; tokens, resource bounds, `EvidenceBudgetExceeded`, citation-support and attribution spot checks.
 - **Deployed:** E2E on production/preview — evidence-backed vs general-knowledge answers, citation links, abstention on unsupported personal questions, **per-answer token usage footer** on successful responses, **rate limit** and quota behavior, timeout/error surfaces (no misleading usage on failures), mobile layout, latency and cost sanity.
 - **Cost:** confirm OpenAI project budget/alerts; note observed usage band against configured max tokens and rate limits.
 - **Sign-off:** explicit operator approval recorded in findings (no fabricated metrics).
 
-**Acceptance:** [generation-eval-findings.md](../../docs/assistant/generation-eval-findings.md) (or successor ops doc) updated; operator sign-off; assistant not declared “public-ready” without this gate.
+**Acceptance:** [generation-eval-findings.md](../../docs/assistant/generation-eval-findings.md) (or successor ops doc) updated with Phase A corpus notes + Phase B UI/API verdict; operator sign-off; assistant not declared “public-ready” without **both** phases.
 
 ---
 
@@ -447,7 +498,7 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Prerequisites:** All implementation slices + **operational-acceptance** complete; assistant **deployed and verified** on michaeltruong.ai.
+**Prerequisites:** All implementation slices + **operational-acceptance** complete (Phase A production corpus + Phase B deployed verification); assistant **deployed and verified** on michaeltruong.ai.
 
 **Deliverables:** `# Shipped` note; move plan to `.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md`; update [architecture-direction.md](../../docs/assistant/architecture-direction.md) and [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md); mark `plan-closure` completed.
 
@@ -532,7 +583,7 @@ Authority: Manual verification gate.
 
 Topology: no tracked-file changes unless operator chooses to commit findings doc in a follow-up; optional gitignored .agent-runs/assistant-generation/**.
 
-Deliverables: execute plan operational-acceptance procedure (local + deployed on michaeltruong.ai); report verdict and paths to any gitignored notes.
+Deliverables: Phase A — production Neon corpus ingestion checklist (operator approval required before production ingest; do not run ingest unless approved); Phase B — local + deployed E2E on michaeltruong.ai. Report verdict, Phase A corpus metrics (row count, bundle_sha256, any delta vs local 262 explained), and paths to any gitignored notes.
 ```
 
 ### plan-closure
@@ -544,7 +595,7 @@ Execute only plan-closure.
 
 Authority: Open PR only — docs-only archive PR; do not merge.
 
-Prerequisites: all implementation slices and operational-acceptance complete; assistant verified on michaeltruong.ai; slice todos marked completed in frontmatter.
+Prerequisites: all implementation slices and operational-acceptance complete (Phase A Neon corpus + Phase B deployed E2E); assistant verified on michaeltruong.ai; slice todos marked completed in frontmatter.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 

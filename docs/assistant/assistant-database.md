@@ -277,6 +277,10 @@ Verify in PostHog: filter `analytics_environment = assistant_generation_tooling`
 
 Implementation entrypoint: `scripts/assistant/generation/run-generation.mjs` (imported by `scripts/assistant/answer.mjs`; future API route must call the same service).
 
+### Production Neon corpus (hosted assistant prerequisite)
+
+Before **deployed** assistant end-to-end acceptance on michaeltruong.ai, operators must populate the **production** Neon retrieval index (project `portfolio-assistant`, database `portfolio_assistant`) using operator-approved `okf:build` → `assistant:ingest`. **Deployments do not run ingest automatically.** Requires explicit operator approval before pointing ingest at production `DATABASE_URL`. Checklist and measurable acceptance criteria: [RAG generation plan — operational-acceptance Phase A](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md#phase-a--production-neon-corpus-ingestion-and-verification-before-deployed-e2e).
+
 ## OpenAI Embeddings API (operator workflow)
 
 **Prerequisite:** complete hosted Neon migrate/verify above before the first **live** ingest that calls OpenAI.
