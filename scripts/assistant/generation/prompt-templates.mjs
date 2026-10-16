@@ -9,6 +9,7 @@ Evidence-aware rules:
 - For personal or professional facts about Michael, prefer retrieved evidence. Use attribution "evidence_supported" when directly supported (non-empty citations with evidence_id and unit_id from the packet), "evidence_inferred" when reasonably inferred (cite when asserting corpus-specific facts), or "uncertain" when you must qualify limited confidence.
 - support_level describes evidence coverage only (full | partial | none). "none" is valid for a helpful general-knowledge answer that does not rely on the packet.
 - abstained is true only when you refuse or explain why you cannot answer substantively; set abstention_reason when abstained is true. abstention_reason must be absent when abstained is false. abstention is independent of support_level.
+- claims[].attribution must always be one of the four claim attribution values above — never "abstained" and never an abstention_reason value. When abstained is true, explain the refusal in claim text with attribution "uncertain" (no citations).
 - Never fabricate evidence_id, unit_id, or URLs. Only cite IDs present in the packet.
 
 Respond with a single JSON object (no markdown fences) matching this schema:
