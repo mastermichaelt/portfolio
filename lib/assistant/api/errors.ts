@@ -98,6 +98,7 @@ export function mapGenerationErrorToResponse(error: unknown): Response {
           503,
           "service_unavailable",
           "The assistant is temporarily unavailable. Please try again later.",
+          { "Retry-After": "60" },
         );
       }
 

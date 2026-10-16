@@ -204,6 +204,8 @@ describe("assistant API rate limit (integration)", () => {
         expect(dayRejected.window).toBe("day");
       }
 
+      await pool.query(`DELETE FROM assistant_api_rate_limit_counters`);
+
       const globalConfig = testConfig({ globalPerDay: 1 });
       const clientA = `ip:test-global-a-${randomUUID()}`;
       const clientB = `ip:test-global-b-${randomUUID()}`;
