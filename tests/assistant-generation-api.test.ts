@@ -26,8 +26,11 @@ const sampleResponse = {
 function createDeps(overrides: {
   runRagGeneration?: ReturnType<typeof vi.fn>;
   checkRateLimit?: ReturnType<typeof vi.fn>;
-}): HandleAssistantGenerateDeps {
-  const pool = { end: vi.fn(async () => {}) };
+  pool?: { end: ReturnType<typeof vi.fn> };
+}): HandleAssistantGenerateDeps & {
+  pool: { end: ReturnType<typeof vi.fn> };
+} {
+  const pool = overrides.pool ?? { end: vi.fn(async () => {}) };
   return {
     runRagGeneration:
       overrides.runRagGeneration ??
@@ -54,7 +57,10 @@ function createDeps(overrides: {
     checkRateLimit:
       overrides.checkRateLimit ??
       vi.fn(async () => ({ allowed: true as const })),
-  } as unknown as HandleAssistantGenerateDeps;
+    pool,
+  } as unknown as HandleAssistantGenerateDeps & {
+    pool: { end: ReturnType<typeof vi.fn> };
+  };
 }
 
 describe("assistant generation API handler", () => {
@@ -94,7 +100,75 @@ describe("assistant generation API handler", () => {
     expect(deps.runRagGeneration).toHaveBeenCalledWith({
       question: "Who is Michael?",
       executionContext: "api",
+      pool: deps.pool,
     });
+    expect(deps.createPool).toHaveBeenCalledTimes(1);
+    expect(deps.pool.end).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes the same pool to rate limiting and generation", async () => {
+    const deps = createDeps({});
+
+    await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Pool reuse?" }),
+      }),
+      deps,
+    );
+
+    expect(deps.createPool).toHaveBeenCalledTimes(1);
+    const checkCallPool = vi.mocked(deps.checkRateLimit).mock.calls[0]?.[0];
+    const generationCallPool = vi.mocked(deps.runRagGeneration).mock
+      .calls[0]?.[0]?.pool;
+    expect(checkCallPool).toBe(deps.pool);
+    expect(generationCallPool).toBe(deps.pool);
+  });
+
+  it("closes the pool once when rate limited before generation", async () => {
+    const deps = createDeps({
+      checkRateLimit: vi.fn(async () => ({
+        allowed: false,
+        retryAfterSeconds: 60,
+        window: "minute",
+      })),
+    });
+
+    await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Hi" }),
+      }),
+      deps,
+    );
+
+    expect(deps.createPool).toHaveBeenCalledTimes(1);
+    expect(deps.runRagGeneration).not.toHaveBeenCalled();
+    expect(deps.pool.end).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes the pool once when generation throws", async () => {
+    const deps = createDeps({
+      runRagGeneration: vi.fn(async () => {
+        const { GenerationValidationError } =
+          await import("@/scripts/assistant/generation/errors.mjs");
+        throw new GenerationValidationError("Model response failed validation");
+      }),
+    });
+
+    await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Trigger error" }),
+      }),
+      deps,
+    );
+
+    expect(deps.createPool).toHaveBeenCalledTimes(1);
+    expect(deps.pool.end).toHaveBeenCalledTimes(1);
   });
 
   it("omits usage when OpenAI token counts are unavailable", async () => {

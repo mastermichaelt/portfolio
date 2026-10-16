@@ -131,6 +131,7 @@ export async function handleAssistantGeneratePost(
     const result = await deps.runRagGeneration({
       question,
       executionContext: "api",
+      pool,
     });
 
     if (!result.response) {
