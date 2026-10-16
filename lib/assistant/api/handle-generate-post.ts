@@ -1,5 +1,8 @@
 import { createPool } from "@/scripts/assistant/db/client.mjs";
+import { QueryValidationError } from "@/scripts/assistant/generation/errors.mjs";
+import { resolveGenerationConfig } from "@/scripts/assistant/generation/generation-config.mjs";
 import { runRagGeneration } from "@/scripts/assistant/generation/run-generation.mjs";
+import { validateAndNormalizeQuestion } from "@/scripts/assistant/generation/validate-query.mjs";
 import type { Pool } from "pg";
 
 import { resolveClientKeyFromHeaders } from "./client-key";
@@ -61,6 +64,14 @@ function parseQuestionBody(
   return body.question;
 }
 
+/**
+ * Same semantic validation as {@link runRagGeneration} — run before durable rate limits.
+ */
+function validateApiQuestion(question: string): string {
+  const { maxQuestionLength } = resolveGenerationConfig();
+  return validateAndNormalizeQuestion(question, maxQuestionLength);
+}
+
 async function readJsonBody(
   request: Request,
   maxBodyBytes: number,
@@ -105,6 +116,16 @@ export async function handleAssistantGeneratePost(
     return question;
   }
 
+  let normalizedQuestion: string;
+  try {
+    normalizedQuestion = validateApiQuestion(question);
+  } catch (error) {
+    if (error instanceof QueryValidationError) {
+      return mapGenerationErrorToResponse(error);
+    }
+    throw error;
+  }
+
   const clientKey = resolveClientKeyFromHeaders(request.headers);
   let pool: Pool | undefined;
 
@@ -129,7 +150,7 @@ export async function handleAssistantGeneratePost(
     }
 
     const result = await deps.runRagGeneration({
-      question,
+      question: normalizedQuestion,
       executionContext: "api",
       pool,
     });

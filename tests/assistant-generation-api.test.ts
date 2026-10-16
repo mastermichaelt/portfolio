@@ -239,28 +239,74 @@ describe("assistant generation API handler", () => {
     expect(deps.runRagGeneration).not.toHaveBeenCalled();
   });
 
-  it("maps validation errors to safe client messages without usage", async () => {
-    const deps = createDeps({
-      runRagGeneration: vi.fn(async () => {
-        const { QueryValidationError } =
-          await import("@/scripts/assistant/generation/errors.mjs");
-        throw new QueryValidationError("question must be non-empty");
-      }),
-    });
+  describe("question validation before durable rate limits", () => {
+    async function postQuestion(
+      deps: ReturnType<typeof createDeps>,
+      question: string,
+    ) {
+      return handleAssistantGeneratePost(
+        new Request("http://localhost/api/assistant/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        }),
+        deps,
+      );
+    }
 
-    const response = await handleAssistantGeneratePost(
-      new Request("http://localhost/api/assistant/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: "   " }),
-      }),
-      deps,
+    it.each([
+      ["empty", ""],
+      ["whitespace-only", "   "],
+      ["overlong", "x".repeat(4_001)],
+      ["null-byte", "hello\u0000world"],
+    ])(
+      "returns 400 for %s questions without rate limiting or pool",
+      async (_label, question) => {
+        const deps = createDeps({});
+        const response = await postQuestion(deps, question);
+
+        expect(response.status).toBe(400);
+        const body = await response.json();
+        expect(body.error.code).toBe("invalid_request");
+        expect(body.error.message).not.toMatch(
+          /non-empty|max length|null bytes/i,
+        );
+        expect(deps.checkRateLimit).not.toHaveBeenCalled();
+        expect(deps.createPool).not.toHaveBeenCalled();
+        expect(deps.runRagGeneration).not.toHaveBeenCalled();
+      },
     );
 
-    expect(response.status).toBe(400);
-    const body = await response.json();
-    expect(body.error.message).not.toContain("non-empty");
-    expect(body.usage).toBeUndefined();
+    it("applies rate limits and generation for valid questions", async () => {
+      const deps = createDeps({});
+      const response = await postQuestion(deps, "  Who is Michael?  ");
+
+      expect(response.status).toBe(200);
+      expect(deps.checkRateLimit).toHaveBeenCalledTimes(1);
+      expect(deps.createPool).toHaveBeenCalledTimes(1);
+      expect(deps.runRagGeneration).toHaveBeenCalledWith({
+        question: "Who is Michael?",
+        executionContext: "api",
+        pool: deps.pool,
+      });
+    });
+
+    it("returns 429 for valid questions when rate limited without generation", async () => {
+      const deps = createDeps({
+        checkRateLimit: vi.fn(async () => ({
+          allowed: false,
+          retryAfterSeconds: 30,
+          window: "minute",
+        })),
+      });
+
+      const response = await postQuestion(deps, "Valid question?");
+
+      expect(response.status).toBe(429);
+      expect(deps.checkRateLimit).toHaveBeenCalledTimes(1);
+      expect(deps.runRagGeneration).not.toHaveBeenCalled();
+      expect(deps.pool.end).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("rejects oversized bodies", async () => {
