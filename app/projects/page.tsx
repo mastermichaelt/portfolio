@@ -3,6 +3,7 @@ import Link from "next/link";
 import { QualifiedFigure } from "@/components/QualifiedFigure";
 import { RichText } from "@/components/RichText";
 import { getPortfolioRepository } from "@/lib/portfolio";
+import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Projects",
@@ -11,9 +12,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/projects",
   },
-  openGraph: {
-    url: "/projects",
-  },
+  openGraph: openGraphForCanonicalPath("/projects"),
 };
 
 export default async function ProjectsPage() {

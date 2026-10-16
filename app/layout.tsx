@@ -13,6 +13,7 @@ import {
   SITE_TITLE_TEMPLATE,
 } from "@/lib/site-metadata";
 import { ibmPlexMono, ibmPlexSans } from "@/lib/fonts";
+import { defaultOpenGraphImages } from "@/lib/social-metadata";
 import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -32,6 +33,7 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     locale: "en_AU",
+    images: defaultOpenGraphImages(),
   },
   twitter: {
     card: "summary_large_image",

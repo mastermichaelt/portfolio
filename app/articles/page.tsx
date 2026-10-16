@@ -4,6 +4,7 @@ import { resolveArticleSystem } from "@/content/article-lines";
 import { ExternalLink } from "@/components/ExternalLink";
 import { groupArticleLines } from "@/lib/article-lines";
 import { getPortfolioRepository } from "@/lib/portfolio";
+import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Articles",
@@ -12,9 +13,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/articles",
   },
-  openGraph: {
-    url: "/articles",
-  },
+  openGraph: openGraphForCanonicalPath("/articles"),
 };
 
 const DEV_ARCHIVE_URL = "https://dev.to/michaeltruong";
