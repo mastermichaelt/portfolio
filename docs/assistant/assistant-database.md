@@ -285,7 +285,7 @@ Implementation entrypoint: `scripts/assistant/generation/run-generation.mjs` (im
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Route**           | `POST /api/assistant/generate` — JSON body `{ "question": "…" }` only                                                                                                                                                                                                   |
 | **Runtime**         | Node.js (Fluid Compute); `maxDuration` 120s (aligns with default `ASSISTANT_GENERATION_TIMEOUT_MS`)                                                                                                                                                                     |
-| **Secrets**         | Server-only `DATABASE_URL`, `OPENAI_API_KEY`, generation env overrides — never `NEXT_PUBLIC_*`                                                                                                                                                                          |
+| **Secrets**         | Server-only `DATABASE_URL`, `OPENAI_API_KEY`, optional `OPENAI_PROJECT_ID` (recommended for `sk-proj-*` keys), generation env overrides — never `NEXT_PUBLIC_*`                                                                                                         |
 | **Success body**    | `{ "answer": { claims, answer_text, citations, support_level, abstained, abstention_reason? }, "usage"?: { model?, prompt_tokens?, completion_tokens?, total_tokens? } }` — `usage` only when OpenAI reported at least one token count (never zero-filled placeholders) |
 | **Errors**          | Stable `{ "error": { "code", "message" } }` — no stack traces, packets, prompts, or `diagnostics`; **no `usage` on failures**                                                                                                                                           |
 | **Rate limits**     | Durable Postgres counters in `assistant_api_rate_limit_counters` (migration `20261016100000_assistant_api_rate_limits.sql`) — **single transaction** admits or rejects all windows; shared across instances; defaults in `.env.example`                                 |
@@ -294,7 +294,7 @@ Implementation entrypoint: `scripts/assistant/generation/run-generation.mjs` (im
 **Deploy checklist (operator):**
 
 1. Apply migrations on the assistant `DATABASE_URL` (`npm run assistant:db:migrate`) so `assistant_api_rate_limit_counters` exists.
-2. Set Vercel production/preview env: `DATABASE_URL` (pooled Neon acceptable), `OPENAI_API_KEY` (`portfolio-assistant` project), optional generation bounds from `.env.example`.
+2. Set Vercel production/preview env: `DATABASE_URL` (pooled Neon acceptable), `OPENAI_API_KEY` (`portfolio-assistant` project), `OPENAI_PROJECT_ID` when using a project-scoped key, optional generation bounds from `.env.example`.
 3. Smoke test locally:
 
    ```bash
@@ -323,13 +323,18 @@ Implementation entrypoint: `scripts/assistant/generation/run-generation.mjs` (im
 
 1. In that project, create an API key with access to the **Embeddings** API.
 2. Store the key only in gitignored `.env.local` (local) or runtime secrets (Cursor Cloud / CI when explicitly configured) as `OPENAI_API_KEY`.
-3. **Never commit** the key, key IDs, or secret values. Do not paste secrets into PRs or issues.
+3. For **project-scoped** keys (`sk-proj-…`), also set `OPENAI_PROJECT_ID` to that project’s ID (e.g. `proj_…` from the OpenAI dashboard). Assistant chat and embeddings clients send it as the `OpenAI-Project` header when set; omitting it can cause intermittent `403` / `model_not_found` on Chat Completions even when the model is allowlisted.
+4. **Never commit** the key, key IDs, or secret values. Do not paste secrets into PRs or issues.
 
-### 3. Budget and alerts
+### 3. Project ID for sk-proj keys
+
+When using a project-scoped API key, set `OPENAI_PROJECT_ID` alongside `OPENAI_API_KEY` in `.env.local` or deployment secrets. The value is the OpenAI project identifier (`proj_…`), not the display name `portfolio-assistant`.
+
+### 4. Budget and alerts
 
 Configure a modest **project budget** and **usage alerts** on `portfolio-assistant` before bulk ingest experiments.
 
-### 4. Confirm model access (smoke test)
+### 5. Confirm model access (smoke test)
 
 The assistant index is fixed to **`text-embedding-3-small` at 1536 dimensions** (`vector(1536)` in Postgres). Before the first full ingest:
 
@@ -341,7 +346,7 @@ The assistant index is fixed to **`text-embedding-3-small` at 1536 dimensions** 
 
 Optional override `ASSISTANT_EMBEDDING_MODEL` is validated against the supported index model only — changing model requires a schema migration and full re-embed (see migration comments).
 
-### 5. First live ingest acceptance
+### 6. First live ingest acceptance
 
 With `DATABASE_URL` pointing at migrated assistant retrieval Postgres (local Docker or Neon) and `OPENAI_API_KEY` from `portfolio-assistant`:
 

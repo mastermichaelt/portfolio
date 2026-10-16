@@ -95,6 +95,7 @@ export const DISALLOWED_PUBLIC_RESPONSE_KEYS = [
   "user",
   "messages",
   "OPENAI_API_KEY",
+  "OPENAI_PROJECT_ID",
   "DATABASE_URL",
   "output_token_utilization",
   "evidence_character_budget",
