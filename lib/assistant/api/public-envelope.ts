@@ -30,13 +30,39 @@ const USAGE_ALLOWLIST = new Set([
   "total_tokens",
 ]);
 
+type PublicCitation = AssistantGenerationResponse["citations"][number];
+type PublicClaim = AssistantGenerationResponse["claims"][number];
+
+function projectPublicCitation(citation: PublicCitation): PublicCitation {
+  return {
+    evidence_id: citation.evidence_id,
+    unit_id: citation.unit_id,
+  };
+}
+
+function projectPublicClaim(claim: PublicClaim): PublicClaim {
+  const projected: PublicClaim = {
+    text: claim.text,
+    attribution: claim.attribution,
+  };
+
+  if (claim.citations !== undefined) {
+    projected.citations = claim.citations.map(projectPublicCitation);
+  }
+
+  return projected;
+}
+
 export function buildPublicAnswer(
   response: AssistantGenerationResponse,
 ): AssistantPublicAnswer {
+  const claims = response.claims.map(projectPublicClaim);
+  const citations = response.citations.map(projectPublicCitation);
+
   const answer: AssistantPublicAnswer = {
-    claims: response.claims,
+    claims,
     answer_text: response.answer_text,
-    citations: response.citations,
+    citations,
     support_level: response.support_level,
     abstained: response.abstained,
   };
