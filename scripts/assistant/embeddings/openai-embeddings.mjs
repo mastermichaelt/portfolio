@@ -9,6 +9,7 @@ import {
   requireOpenAIApiKey,
   resolveEmbeddingConfig,
 } from "./embedding-config.mjs";
+import { buildOpenAIRequestHeaders } from "../openai-request-headers.mjs";
 
 /** @typedef {typeof fetch} FetchFn */
 
@@ -149,10 +150,7 @@ export async function requestEmbeddingsBatch(options) {
   while (true) {
     const response = await fetchFn(url, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: buildOpenAIRequestHeaders(apiKey),
       body,
     });
 

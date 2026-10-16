@@ -16,6 +16,7 @@ import {
 } from "./generation-telemetry.mjs";
 import { requestChatCompletionJson } from "./openai-chat.mjs";
 import { buildGenerationMessages } from "./prompt-templates.mjs";
+import { repairAssistantModelGenerationJson } from "./repair-model-response.mjs";
 import {
   buildPublicGenerationResponse,
   countAttributions,
@@ -310,6 +311,8 @@ export async function runRagGeneration(options) {
     } catch {
       throw new GenerationParseError("Model response is not valid JSON");
     }
+
+    modelJson = repairAssistantModelGenerationJson(modelJson);
 
     const parsedModel = parseAssistantModelGenerationResponse(modelJson);
     if (!parsedModel.ok) {

@@ -1,4 +1,5 @@
 import { requireOpenAIApiKey } from "../embeddings/embedding-config.mjs";
+import { buildOpenAIRequestHeaders } from "../openai-request-headers.mjs";
 import { GenerationParseError } from "./errors.mjs";
 import { resolveGenerationConfig } from "./generation-config.mjs";
 
@@ -326,10 +327,7 @@ export async function requestChatCompletionJson(options) {
   while (true) {
     const response = await deadline.fetch(fetchFn, url, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: buildOpenAIRequestHeaders(apiKey),
       body,
     });
 

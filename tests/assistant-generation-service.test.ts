@@ -1,3 +1,4 @@
+import type { Pool } from "pg";
 import { describe, expect, it, vi } from "vitest";
 
 import { assembleEvidencePacket } from "@/scripts/assistant/generation/evidence-packet.mjs";
@@ -263,6 +264,80 @@ describe("runRagGeneration service", () => {
 
     expect(result.response).toBeUndefined();
     expect(result.packet.entries).toHaveLength(1);
+  });
+
+  it("does not close an externally supplied pool", async () => {
+    const packet = await assembleEvidencePacket({
+      matchedHits: [hit(1, "unit/a#intro", "a", "Alpha body")],
+      assemblyMode: "top_k_only",
+      characterBudget: 10_000,
+    });
+
+    const pool = { end: vi.fn(async () => {}) } as unknown as Pool;
+
+    await runRagGeneration({
+      question: "What is Alpha?",
+      evidencePacket: packet,
+      pool,
+      config: {
+        evidenceCharacterBudget: 10_000,
+        approximatePromptTokenBudget: 50_000,
+      },
+      fetch: mockChatFetch(
+        JSON.stringify({
+          claims: [
+            {
+              text: "Alpha body from corpus.",
+              attribution: "evidence_supported",
+              citations: [{ evidence_id: "E1", unit_id: "unit/a#intro" }],
+            },
+          ],
+          support_level: "full",
+          abstained: false,
+        }),
+      ),
+      apiKey: TEST_OPENAI_API_KEY,
+    });
+
+    expect(pool.end).not.toHaveBeenCalled();
+  });
+
+  it("repairs abstained=true responses that misuse abstained as claim attribution", async () => {
+    const packet = await assembleEvidencePacket({
+      matchedHits: [hit(1, "unit/a#intro", "a", "Alpha body")],
+      assemblyMode: "top_k_only",
+      characterBudget: 10_000,
+    });
+
+    const malformedAbstention = JSON.stringify({
+      claims: [
+        {
+          text: "I cannot answer questions about private compensation.",
+          attribution: "abstained",
+        },
+      ],
+      support_level: "none",
+      abstained: true,
+      abstention_reason: "unsupported_personal_claim",
+    });
+
+    const result = await runRagGeneration({
+      question: "Exact salary at secret employer in 2030?",
+      evidencePacket: packet,
+      config: {
+        evidenceCharacterBudget: 10_000,
+        approximatePromptTokenBudget: 50_000,
+      },
+      fetch: mockChatFetch(malformedAbstention),
+      apiKey: TEST_OPENAI_API_KEY,
+    });
+
+    expect(result.response?.abstained).toBe(true);
+    expect(result.response?.abstention_reason).toBe(
+      "unsupported_personal_claim",
+    );
+    expect(result.response?.claims[0].attribution).toBe("uncertain");
+    expect(result.response?.citations).toEqual([]);
   });
 
   it("validates fabricated citations from mocked model output", async () => {
