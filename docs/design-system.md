@@ -153,7 +153,13 @@ Identity is a small borrowed set: channel identifiers (`CH 01` / `CH 02`), techn
 - Focus rings and keyboard reachability for nav toggle, links, buttons, and the theme switch must remain usable (do not remove outline without an equivalent). The theme switch is a native `<button>`; its destination label is its accessible name, its glyph is `aria-hidden`, and the change is announced via a polite `role="status"` region.
 - Keep `color-scheme` aligned with the active theme so native UI (form controls, scrollbars, caret) matches.
 - Prefer `text-wrap: pretty` / `balance` (already on body copy and headings) over manual line breaks.
-- Interactive cards and rows should remain full-hit targets (link wraps the card / log row).
+- Interactive cards and rows should remain full-hit targets while preserving
+  valid semantics. A link may wrap a card or native log row. In an ARIA table,
+  keep each `role="row"` and its `role="cell"` children intact, place the link
+  inside a cell, and expand its hit area with a pseudo-element rather than
+  wrapping the row in a link. The supporting-row overlay intentionally prevents
+  pointer text selection in the summary and proof cells; this is a known UX
+  trade-off and must be revisited before those cells gain interactive content.
 - `prefers-reduced-motion: reduce` is a global duration floor in `base.css`.
 - **Automated axe gate** ([`e2e/accessibility.spec.ts`](../e2e/accessibility.spec.ts), part of `npm run test:e2e` and the CI `test` job): `@axe-core/playwright` runs the WCAG 2.2 A/AA rule tags (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`) over every `getSitemapPaths()` route, in light and dark, at 1280 and 390 px, plus `/projects` with the mobile nav sheet open — 38 scans. Each scan is the hydrated, settled document under `prefers-reduced-motion: reduce` at scroll position 0; intermediate animation and scroll states and other widths are not covered. **Violations are fixed, not suppressed:** no rules are disabled, no regions excluded, and any exception needs explicit owner approval and a ledger entry keyed by route, theme, viewport, state, rule and target. axe `incomplete` results are not passes — each scan annotates their count; set `AXE_REPORT_INCOMPLETE=1` to attach the full JSON for manual review.
 
