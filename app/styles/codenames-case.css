@@ -193,8 +193,12 @@
   white-space: nowrap;
 }
 
+/* Solid values, not opacity: the old 40% fade left the text at 2.13:1. The
+   border and fill keep their faded look; the text holds 4.87:1. */
 .cn-gchip--muted {
-  opacity: 0.4;
+  border-color: #1b1e25;
+  background: #0d1016;
+  color: #7d838e;
   text-decoration: line-through;
 }
 
@@ -825,6 +829,12 @@
 
 .cn-card-product--ruled {
   border-bottom: 1px solid var(--accent);
+}
+
+/* The product canvas is dark in both themes, so its label keeps the dark
+   --muted value (5.42:1) instead of the light theme's (3.23:1). */
+.cn-card-product .cn-label {
+  color: #8d877c;
 }
 
 .cn-langswap {
