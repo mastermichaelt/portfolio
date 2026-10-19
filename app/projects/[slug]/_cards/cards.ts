@@ -1,9 +1,14 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import type { Metadata } from "next";
 
-/** Approved social-card assets live beside this module as `<slug>.png`. */
+/**
+ * Approved social-card assets live beside this module as `<slug>.png`. They are
+ * read at runtime, so next.config.ts `outputFileTracingIncludes` must ship them
+ * with the `/projects/[slug]` page and image-route server bundles.
+ */
 export const CASE_STUDY_CARDS_DIR = join(
   process.cwd(),
   "app/projects/[slug]/_cards",
@@ -50,9 +55,11 @@ function missingCardError(slug: string, detail: string): Error {
 }
 
 export function caseStudyCard(slug: string): CaseStudyCard {
-  const card = CASE_STUDY_CARDS[slug];
-  if (!card) throw missingCardError(slug, "no CASE_STUDY_CARDS entry");
-  return card;
+  // Own keys only: inherited names such as "constructor" are not cards.
+  if (!Object.hasOwn(CASE_STUDY_CARDS, slug)) {
+    throw missingCardError(slug, "no CASE_STUDY_CARDS entry");
+  }
+  return CASE_STUDY_CARDS[slug];
 }
 
 /** The approved PNG, byte-for-byte. */
@@ -68,24 +75,31 @@ export async function readCaseStudyCardPng(slug: string): Promise<Buffer> {
   }
 }
 
+/** Short content hash of the PNG bytes: a replaced card gets a new URL. */
+export function caseStudyCardVersion(png: Uint8Array): string {
+  return createHash("sha256").update(png).digest("hex").slice(0, 12);
+}
+
 /**
- * Explicit image entries for the page metadata. They point at the existing
- * `opengraph-image` / `twitter-image` routes; declaring them (rather than
+ * Explicit image entries for the page metadata. Declaring them (rather than
  * relying on the file convention) is the only way to give each card its own
- * alt text and real dimensions without changing those URLs.
+ * alt text and real dimensions without changing the route URL. Open Graph and
+ * Twitter share the one `opengraph-image` route; `?v=` busts crawler caches
+ * whenever the PNG bytes change.
  */
-export function caseStudySocialImages(slug: string) {
+export async function caseStudySocialImages(slug: string) {
   const { alt, width, height } = caseStudyCard(slug);
-  const image = (route: string) => ({
-    url: `/projects/${slug}/${route}`,
+  const version = caseStudyCardVersion(await readCaseStudyCardPng(slug));
+  const image = {
+    url: `/projects/${slug}/opengraph-image?v=${version}`,
     width,
     height,
     alt,
     type: "image/png",
-  });
+  };
   return {
-    openGraph: [image("opengraph-image")],
-    twitter: [image("twitter-image")],
+    openGraph: [image],
+    twitter: [image],
   } satisfies {
     openGraph: NonNullable<Metadata["openGraph"]>["images"];
     twitter: NonNullable<Metadata["twitter"]>["images"];

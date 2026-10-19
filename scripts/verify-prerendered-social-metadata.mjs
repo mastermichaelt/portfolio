@@ -2,10 +2,14 @@
 /**
  * Post-build regression: prerendered HTML must expose og:image / twitter:image on
  * indexable routes — the default card on static routes, the per-slug card on
- * case studies (with its own alt text, dimensions and Twitter copy). Case-study
- * routes are discovered from the build output, so a new slug cannot skip these
- * checks. Run after `npm run build` (CI runs this immediately after build).
+ * case studies (with its own alt text, dimensions, Twitter copy and
+ * content-versioned URL). Case-study routes come from the prerender manifest
+ * (not a directory scan, which also sees pages `next start` caches at runtime)
+ * and must match the approved PNGs one-to-one, each prerendered and traced into
+ * the server bundles that read it. Run after `npm run build` (CI runs this
+ * immediately after build).
  */
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,13 +31,7 @@ const STATIC_ROUTES = [
   { html: "articles.html", ogUrl: `${SITE_ORIGIN}/articles` },
 ];
 
-/** Must always prerender; any other slug found in the build is checked too. */
-const KNOWN_CASE_STUDY_SLUGS = [
-  "codenames-ai",
-  "experiment-measurement",
-  "editorial-workflow",
-  "renovate-governance",
-];
+const CARDS_DIR = resolve(root, "app/projects/[slug]/_cards");
 
 const PORTRAIT_URL = `${SITE_ORIGIN}/portrait-michael-1200.jpg`;
 
@@ -46,28 +44,78 @@ if (!existsSync(appDir)) {
   fail("missing .next/server/app — run npm run build first");
 }
 
-const CASE_STUDY_SLUGS = readdirSync(resolve(appDir, "projects"))
-  .filter((file) => file.endsWith(".html"))
-  .map((file) => file.slice(0, -".html".length))
+const prerenderManifestPath = resolve(root, ".next/prerender-manifest.json");
+if (!existsSync(prerenderManifestPath)) {
+  fail("missing .next/prerender-manifest.json — run npm run build first");
+}
+const prerendered = Object.entries(
+  JSON.parse(readFileSync(prerenderManifestPath, "utf8")).routes,
+);
+
+/** Paths prerendered at build from the given dynamic route. */
+function prerenderedFrom(srcRoute) {
+  return prerendered
+    .filter(([, route]) => route.srcRoute === srcRoute)
+    .map(([path]) => path);
+}
+
+const CASE_STUDY_SLUGS = prerenderedFrom("/projects/[slug]")
+  .map((path) => path.slice("/projects/".length))
   .sort();
 
-for (const slug of KNOWN_CASE_STUDY_SLUGS) {
-  if (!CASE_STUDY_SLUGS.includes(slug)) {
-    fail(`missing prerendered case study projects/${slug}.html`);
+const CARD_SLUGS = readdirSync(CARDS_DIR)
+  .filter((file) => file.endsWith(".png"))
+  .map((file) => file.slice(0, -".png".length))
+  .sort();
+
+if (CASE_STUDY_SLUGS.join() !== CARD_SLUGS.join()) {
+  fail(
+    `prerendered case studies [${CASE_STUDY_SLUGS}] must match card PNGs in app/projects/[slug]/_cards [${CARD_SLUGS}]`,
+  );
+}
+
+const prerenderedImages = prerenderedFrom("/projects/[slug]/opengraph-image");
+for (const slug of CASE_STUDY_SLUGS) {
+  if (!prerenderedImages.includes(`/projects/${slug}/opengraph-image`)) {
+    fail(`/projects/${slug}/opengraph-image must be prerendered at build`);
   }
+}
+
+// Both the page (hashes the PNG for ?v=) and the image route (serves it) read
+// the cards with fs at runtime; each server bundle's trace must ship them.
+for (const bundle of ["page.js", "opengraph-image/route.js"]) {
+  const tracePath = resolve(appDir, "projects/[slug]", `${bundle}.nft.json`);
+  if (!existsSync(tracePath)) fail(`missing trace ${tracePath}`);
+  const traced = JSON.parse(readFileSync(tracePath, "utf8")).files.map((file) =>
+    resolve(dirname(tracePath), file),
+  );
+  for (const slug of CARD_SLUGS) {
+    if (!traced.includes(resolve(CARDS_DIR, `${slug}.png`))) {
+      fail(
+        `projects/[slug]/${bundle} trace is missing _cards/${slug}.png (next.config.ts outputFileTracingIncludes)`,
+      );
+    }
+  }
+}
+
+/** Mirrors caseStudyCardVersion in app/projects/[slug]/_cards/cards.ts. */
+function cardVersion(slug) {
+  const png = readFileSync(resolve(CARDS_DIR, `${slug}.png`));
+  return createHash("sha256").update(png).digest("hex").slice(0, 12);
 }
 
 const ROUTES = [
   ...STATIC_ROUTES.map((route) => ({ ...route, card: DEFAULT_CARD })),
-  ...CASE_STUDY_SLUGS.map((slug) => ({
-    caseStudy: true,
-    html: `projects/${slug}.html`,
-    ogUrl: `${SITE_ORIGIN}/projects/${slug}`,
-    card: {
-      ogImage: `${SITE_ORIGIN}/projects/${slug}/opengraph-image`,
-      twitterImage: `${SITE_ORIGIN}/projects/${slug}/twitter-image`,
-    },
-  })),
+  ...CASE_STUDY_SLUGS.map((slug) => {
+    // Open Graph and Twitter share the one content-versioned image URL.
+    const image = `${SITE_ORIGIN}/projects/${slug}/opengraph-image?v=${cardVersion(slug)}`;
+    return {
+      caseStudy: true,
+      html: `projects/${slug}.html`,
+      ogUrl: `${SITE_ORIGIN}/projects/${slug}`,
+      card: { ogImage: image, twitterImage: image },
+    };
+  }),
 ];
 
 /** `content` values of every `<meta property|name="key">` tag. */
@@ -102,8 +150,17 @@ function metaContent(html, key, label) {
   return contents[0];
 }
 
-/** Per-slug card alt and size, and case-study (not site-wide) Twitter copy. */
-function assertCaseStudyCard(html, label) {
+/** Exact versioned card URL, per-slug alt and size, case-study Twitter copy. */
+function assertCaseStudyCard(html, card, label) {
+  for (const [key, expected] of [
+    ["og:image", card.ogImage],
+    ["twitter:image", card.twitterImage],
+  ]) {
+    const actual = metaContent(html, key, label);
+    if (actual !== expected) {
+      fail(`${label}: ${key} "${actual}" must be exactly ${expected}`);
+    }
+  }
   const ogAlt = metaContent(html, "og:image:alt", label);
   if (ogAlt.length < 40) {
     fail(`${label}: og:image:alt must describe the card, got "${ogAlt}"`);
@@ -144,7 +201,7 @@ for (const route of ROUTES) {
   const label = route.html;
   assertImageTag(html, "og:image", route.card.ogImage, label);
   assertImageTag(html, "twitter:image", route.card.twitterImage, label);
-  if (route.caseStudy) assertCaseStudyCard(html, label);
+  if (route.caseStudy) assertCaseStudyCard(html, route.card, label);
   assertOgUrl(html, route.ogUrl, label);
 }
 

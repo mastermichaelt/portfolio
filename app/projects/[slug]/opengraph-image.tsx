@@ -8,7 +8,8 @@ import {
 import { readCaseStudyCardPng } from "./_cards/cards";
 
 // No `alt` / `size` exports: the page metadata declares each card explicitly
-// (per-slug alt and real dimensions) via caseStudySocialImages.
+// (per-slug alt, real dimensions, content version) via caseStudySocialImages.
+// Twitter metadata points at this same route; there is no twitter-image route.
 export const contentType = "image/png";
 
 /** Prerenders each card at build (without this, every request re-reads). */
@@ -24,6 +25,8 @@ export default async function Image({
 }) {
   const { slug } = await params;
   // Gate on the resolver so only known slugs reach the filesystem path.
+  // (`dynamicParams = false` is not an option: Next's metadata-route loader
+  // drops that export, so unknown slugs always reach this handler.)
   if (!(await resolveCaseStudyEntry(slug))) notFound();
 
   const png = await readCaseStudyCardPng(slug);

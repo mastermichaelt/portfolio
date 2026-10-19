@@ -33,7 +33,7 @@ export async function generateMetadata({
 
   const { name, description } = caseStudyMetadataFields(entry);
   const title = `${name} · Michael Truong`;
-  const images = caseStudySocialImages(slug);
+  const images = await caseStudySocialImages(slug);
   const path = `/projects/${slug}`;
   return {
     title: name,

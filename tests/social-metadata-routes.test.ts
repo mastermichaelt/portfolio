@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -104,7 +106,7 @@ describe("route Open Graph metadata exports", () => {
   // scripts/verify-prerendered-social-metadata.mjs.
   it("declares the per-slug card and Twitter copy on project detail metadata", async () => {
     const { generateMetadata } = await import("@/app/projects/[slug]/page");
-    const { CASE_STUDY_CARDS } =
+    const { CASE_STUDY_CARDS, CASE_STUDY_CARDS_DIR, caseStudyCardVersion } =
       await import("@/app/projects/[slug]/_cards/cards");
 
     for (const [slug, name] of [
@@ -116,34 +118,29 @@ describe("route Open Graph metadata exports", () => {
         params: Promise.resolve({ slug }),
       } as Parameters<typeof generateMetadata>[0]);
       const { alt, width, height } = CASE_STUDY_CARDS[slug];
+      const version = caseStudyCardVersion(
+        readFileSync(join(CASE_STUDY_CARDS_DIR, `${slug}.png`)),
+      );
+      const image = {
+        url: `/projects/${slug}/opengraph-image?v=${version}`,
+        alt,
+        width,
+        height,
+        type: "image/png",
+      };
       const title = `${name} · Michael Truong`;
 
       expect(metadata.openGraph).toMatchObject({
         url: `/projects/${slug}`,
         title,
-        images: [
-          {
-            url: `/projects/${slug}/opengraph-image`,
-            alt,
-            width,
-            height,
-            type: "image/png",
-          },
-        ],
+        images: [image],
       });
+      // Twitter shares the one opengraph-image endpoint.
       expect(metadata.twitter).toEqual({
         card: "summary_large_image",
         title,
         description: metadata.description,
-        images: [
-          {
-            url: `/projects/${slug}/twitter-image`,
-            alt,
-            width,
-            height,
-            type: "image/png",
-          },
-        ],
+        images: [image],
       });
       expect(metadata.twitter?.title).not.toBe(SITE_TITLE);
     }
