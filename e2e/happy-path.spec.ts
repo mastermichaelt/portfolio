@@ -210,16 +210,16 @@ test.describe("portfolio happy path", () => {
     // Supporting rows link to a proof surface.
     await expect(
       page.locator(
-        'a.pindex-row--support[href="/projects/editorial-workflow"]',
+        '.pindex-row--support a[href="/projects/editorial-workflow"]',
       ),
     ).toBeVisible();
     await expect(
       page.locator(
-        'a.pindex-row--support[href="/projects/renovate-governance"]',
+        '.pindex-row--support a[href="/projects/renovate-governance"]',
       ),
     ).toBeVisible();
     await expect(
-      page.locator('a.pindex-row--support[href="/ecosystem"]'),
+      page.locator('.pindex-row--support a[href="/ecosystem"]'),
     ).toBeVisible();
 
     // Provenance / fact-id review aids must not ship.
@@ -312,7 +312,7 @@ test.describe("portfolio happy path", () => {
       }
 
       await expect(
-        page.locator('a.pindex-row--support[href="/ecosystem"]'),
+        page.locator('.pindex-row--support a[href="/ecosystem"]'),
       ).toBeVisible();
     });
 
@@ -537,10 +537,10 @@ test.describe("portfolio happy path", () => {
     await expect(page.locator("#line-05 a.aline-impl")).toHaveCount(0);
 
     // Archive-row accessible names carry the paired system when one exists, and
-    // stay natural (title only, no dangling separator) when none does.
+    // stay natural (title then DEV, no dangling separator) when none does.
     await expect(
       page.locator("#line-01 a.aline-row").first(),
-    ).toHaveAccessibleName(/ — Codenames AI \(opens in new tab\)$/);
+    ).toHaveAccessibleName(/ — Codenames AI, DEV \(opens in new tab\)$/);
     await expect(
       page.locator("#line-05 a.aline-row").first(),
     ).toHaveAccessibleName(

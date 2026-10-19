@@ -116,7 +116,7 @@
   font-family: var(--font-mono-stack);
   font-size: 10.5px;
   letter-spacing: 0.14em;
-  color: var(--border-strong);
+  color: var(--muted);
 }
 
 .home2-dim-label {
@@ -448,6 +448,9 @@
 
 .home2-availability a {
   color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: from-font;
 }
 
 @media (max-width: 820px) {
