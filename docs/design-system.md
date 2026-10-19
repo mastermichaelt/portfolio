@@ -153,7 +153,13 @@ Identity is a small borrowed set: channel identifiers (`CH 01` / `CH 02`), techn
 - Focus rings and keyboard reachability for nav toggle, links, buttons, and the theme switch must remain usable (do not remove outline without an equivalent). The theme switch is a native `<button>`; its destination label is its accessible name, its glyph is `aria-hidden`, and the change is announced via a polite `role="status"` region.
 - Keep `color-scheme` aligned with the active theme so native UI (form controls, scrollbars, caret) matches.
 - Prefer `text-wrap: pretty` / `balance` (already on body copy and headings) over manual line breaks.
-- Interactive cards and rows should remain full-hit targets (link wraps the card / log row).
+- Interactive cards and rows should remain full-hit targets while preserving
+  valid semantics. A link may wrap a card or native log row. In an ARIA table,
+  keep each `role="row"` and its `role="cell"` children intact, place the link
+  inside a cell, and expand its hit area with a pseudo-element rather than
+  wrapping the row in a link. The supporting-row overlay intentionally prevents
+  pointer text selection in the summary and proof cells; this is a known UX
+  trade-off and must be revisited before those cells gain interactive content.
 - `prefers-reduced-motion: reduce` is a global duration floor in `base.css`.
 
 ## Tailwind

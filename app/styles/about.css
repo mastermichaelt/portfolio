@@ -473,10 +473,6 @@
     display: inline-flex;
   }
 
-  .about-entry-links a {
-    display: flex;
-  }
-
   .about-section-supplement a {
     display: flex;
   }

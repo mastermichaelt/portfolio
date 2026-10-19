@@ -127,11 +127,7 @@ export default async function ProjectsPage() {
                   role="cell"
                   aria-labelledby="pindex-col-system"
                 >
-                  <Link
-                    className="pindex-support-link"
-                    href={row.href}
-                    aria-label={`Supporting: ${row.title}`}
-                  >
+                  <Link className="pindex-support-link" href={row.href}>
                     <span className="pindex-tier">Supporting</span>{" "}
                     <span className="pindex-sys pindex-sys--support">
                       {row.title}
