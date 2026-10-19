@@ -6,111 +6,83 @@ import { CodenamesCaseExperience } from "@/components/projects/CodenamesCaseExpe
 import { ExternalLink } from "@/components/ExternalLink";
 import { ProjectCaseDetail } from "@/components/ProjectCaseDetail";
 import { SupportingCaseDetail } from "@/components/SupportingCaseDetail";
+import {
+  caseStudyMetadataFields,
+  listCaseStudyParams,
+  resolveCaseStudyEntry,
+} from "@/lib/case-study-entry";
 import { getPortfolioRepository } from "@/lib/portfolio";
 import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 
+import { caseStudySocialImages } from "./_cards/cards";
+
 type ProjectPageProps = PageProps<"/projects/[slug]">;
 
-export async function generateStaticParams() {
-  const repository = getPortfolioRepository();
-  const [cases, supporting, projects] = await Promise.all([
-    repository.listProjectCases(),
-    repository.listSupportingCases(),
-    repository.listProjects(),
-  ]);
-  return [...cases, ...supporting, ...projects].map((entry) => ({
-    slug: entry.slug,
-  }));
+export function generateStaticParams() {
+  return listCaseStudyParams();
 }
 
 export async function generateMetadata({
   params,
 }: ProjectPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const repository = getPortfolioRepository();
-
-  const projectCase = await repository.getProjectCase(slug);
-  if (projectCase) {
-    const path = `/projects/${projectCase.slug}`;
-    return {
-      title: projectCase.name,
-      description: projectCase.lead,
-      alternates: {
-        canonical: path,
-      },
-      openGraph: openGraphForCanonicalPath(path, {
-        title: `${projectCase.name} · Michael Truong`,
-        description: projectCase.lead,
-      }),
-    };
-  }
-
-  const supportingCase = await repository.getSupportingCase(slug);
-  if (supportingCase) {
-    const path = `/projects/${supportingCase.slug}`;
-    return {
-      title: supportingCase.name,
-      description: supportingCase.lead,
-      alternates: {
-        canonical: path,
-      },
-      openGraph: openGraphForCanonicalPath(path, {
-        title: `${supportingCase.name} · Michael Truong`,
-        description: supportingCase.lead,
-      }),
-    };
-  }
-
-  const project = await repository.getProject(slug);
-  if (!project) {
+  const entry = await resolveCaseStudyEntry(slug);
+  if (!entry) {
     return { title: "Project not found" };
   }
-  const path = `/projects/${project.slug}`;
+
+  const { name, description } = caseStudyMetadataFields(entry);
+  const title = `${name} · Michael Truong`;
+  const images = await caseStudySocialImages(slug);
+  const path = `/projects/${slug}`;
   return {
-    title: project.title,
-    description: project.summary,
+    title: name,
+    description,
     alternates: {
       canonical: path,
     },
-    openGraph: openGraphForCanonicalPath(path, {
-      title: `${project.title} · Michael Truong`,
-      description: project.summary,
-    }),
+    openGraph: openGraphForCanonicalPath(
+      path,
+      { title, description },
+      images.openGraph,
+    ),
+    // A page-level `twitter` replaces the layout's (site title/description)
+    // wholesale, so restate the card type alongside the case-study copy.
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: images.twitter,
+    },
   };
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params;
+  const entry = await resolveCaseStudyEntry(slug);
+  if (!entry) notFound();
   const repository = getPortfolioRepository();
 
-  const projectCase = await repository.getProjectCase(slug);
-  if (projectCase) {
+  if (entry.kind === "case") {
     if (slug === "codenames-ai") {
       const experience = await repository.getCodenamesExperience();
       return <CodenamesCaseExperience experience={experience} />;
     }
-    return <ProjectCaseDetail projectCase={projectCase} />;
+    return <ProjectCaseDetail projectCase={entry.projectCase} />;
   }
 
-  const supportingCase = await repository.getSupportingCase(slug);
-  if (supportingCase) {
-    const [entities, workflowView] = await Promise.all([
-      repository.listEntities(),
-      repository.getProjectWorkflowView(slug),
-    ]);
-    if (!workflowView) notFound();
+  if (entry.kind === "supporting") {
+    const entities = await repository.listEntities();
     return (
       <SupportingCaseDetail
-        supportingCase={supportingCase}
-        workflowView={workflowView}
+        supportingCase={entry.supportingCase}
+        workflowView={entry.workflowView}
         entities={entities}
       />
     );
   }
 
-  const project = await repository.getProject(slug);
-  if (!project) notFound();
-
+  const { project } = entry;
   const tocItems = [
     ...project.sections.map((section) => ({
       id: section.id,

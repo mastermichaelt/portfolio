@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -46,6 +48,8 @@ vi.mock("@/lib/portfolio", () => ({
             lead: "Lead for supporting case.",
           }
         : null,
+    getProjectWorkflowView: async (slug: string) =>
+      slug === "editorial-workflow" ? { slug } : null,
     getProject: async () => null,
     listProjectCases: async () => [],
     listSupportingCases: async () => [],
@@ -96,25 +100,50 @@ describe("route Open Graph metadata exports", () => {
     }
   });
 
-  it("includes default images on representative project detail metadata", async () => {
+  // Detail pages declare their own card (per-slug alt and real dimensions) at
+  // the existing image-route URLs, plus case-study Twitter copy instead of the
+  // layout's site title. The rendered tags are asserted by
+  // scripts/verify-prerendered-social-metadata.mjs.
+  it("declares the per-slug card and Twitter copy on project detail metadata", async () => {
     const { generateMetadata } = await import("@/app/projects/[slug]/page");
+    const { CASE_STUDY_CARDS, CASE_STUDY_CARDS_DIR, caseStudyCardVersion } =
+      await import("@/app/projects/[slug]/_cards/cards");
 
-    const projectCase = await generateMetadata({
-      params: Promise.resolve({ slug: "codenames-ai" }),
-    } as Parameters<typeof generateMetadata>[0]);
-    expectOpenGraphImages(projectCase.openGraph, { requireUrl: true });
-    expect(projectCase.openGraph?.url).toBe("/projects/codenames-ai");
+    for (const [slug, name] of [
+      ["codenames-ai", "Codenames AI"],
+      ["experiment-measurement", "Experiment measurement"],
+      ["editorial-workflow", "Editorial workflow"],
+    ]) {
+      const metadata = await generateMetadata({
+        params: Promise.resolve({ slug }),
+      } as Parameters<typeof generateMetadata>[0]);
+      const { alt, width, height } = CASE_STUDY_CARDS[slug];
+      const version = caseStudyCardVersion(
+        readFileSync(join(CASE_STUDY_CARDS_DIR, `${slug}.png`)),
+      );
+      const image = {
+        url: `/projects/${slug}/opengraph-image?v=${version}`,
+        alt,
+        width,
+        height,
+        type: "image/png",
+      };
+      const title = `${name} · Michael Truong`;
 
-    const primaryCase = await generateMetadata({
-      params: Promise.resolve({ slug: "experiment-measurement" }),
-    } as Parameters<typeof generateMetadata>[0]);
-    expectOpenGraphImages(primaryCase.openGraph, { requireUrl: true });
-
-    const supporting = await generateMetadata({
-      params: Promise.resolve({ slug: "editorial-workflow" }),
-    } as Parameters<typeof generateMetadata>[0]);
-    expectOpenGraphImages(supporting.openGraph, { requireUrl: true });
-    expect(supporting.openGraph?.title).toContain("Editorial workflow");
+      expect(metadata.openGraph).toMatchObject({
+        url: `/projects/${slug}`,
+        title,
+        images: [image],
+      });
+      // Twitter shares the one opengraph-image endpoint.
+      expect(metadata.twitter).toEqual({
+        card: "summary_large_image",
+        title,
+        description: metadata.description,
+        images: [image],
+      });
+      expect(metadata.twitter?.title).not.toBe(SITE_TITLE);
+    }
   });
 
   it("keeps Person JSON-LD image on the canonical portrait URL", async () => {
