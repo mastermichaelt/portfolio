@@ -46,6 +46,8 @@ vi.mock("@/lib/portfolio", () => ({
             lead: "Lead for supporting case.",
           }
         : null,
+    getProjectWorkflowView: async (slug: string) =>
+      slug === "editorial-workflow" ? { slug } : null,
     getProject: async () => null,
     listProjectCases: async () => [],
     listSupportingCases: async () => [],
@@ -96,25 +98,24 @@ describe("route Open Graph metadata exports", () => {
     }
   });
 
-  it("includes default images on representative project detail metadata", async () => {
+  // Detail pages leave `images` unset so the colocated per-slug
+  // opengraph-image / twitter-image files own the card. The rendered tags are
+  // asserted by scripts/verify-prerendered-social-metadata.mjs.
+  it("leaves images to the per-slug image files on project detail metadata", async () => {
     const { generateMetadata } = await import("@/app/projects/[slug]/page");
 
-    const projectCase = await generateMetadata({
-      params: Promise.resolve({ slug: "codenames-ai" }),
-    } as Parameters<typeof generateMetadata>[0]);
-    expectOpenGraphImages(projectCase.openGraph, { requireUrl: true });
-    expect(projectCase.openGraph?.url).toBe("/projects/codenames-ai");
-
-    const primaryCase = await generateMetadata({
-      params: Promise.resolve({ slug: "experiment-measurement" }),
-    } as Parameters<typeof generateMetadata>[0]);
-    expectOpenGraphImages(primaryCase.openGraph, { requireUrl: true });
-
-    const supporting = await generateMetadata({
-      params: Promise.resolve({ slug: "editorial-workflow" }),
-    } as Parameters<typeof generateMetadata>[0]);
-    expectOpenGraphImages(supporting.openGraph, { requireUrl: true });
-    expect(supporting.openGraph?.title).toContain("Editorial workflow");
+    for (const slug of [
+      "codenames-ai",
+      "experiment-measurement",
+      "editorial-workflow",
+    ]) {
+      const metadata = await generateMetadata({
+        params: Promise.resolve({ slug }),
+      } as Parameters<typeof generateMetadata>[0]);
+      expect(metadata.openGraph?.url).toBe(`/projects/${slug}`);
+      expect(metadata.openGraph && "images" in metadata.openGraph).toBe(false);
+      expect(metadata.openGraph?.title).toMatch(/· Michael Truong$/);
+    }
   });
 
   it("keeps Person JSON-LD image on the canonical portrait URL", async () => {

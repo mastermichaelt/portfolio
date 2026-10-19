@@ -38,3 +38,19 @@ export function openGraphForCanonicalPath(
     images: defaultOpenGraphImages(),
   };
 }
+
+/**
+ * Open Graph fields for a segment with a colocated `opengraph-image` file.
+ * Omits the `images` key entirely: Next applies the file image only when the
+ * segment's `openGraph` has no own `images` key (even `images: undefined`
+ * suppresses it). Use only where that file exists, else og:image disappears.
+ */
+export function openGraphForFileImageSegment(
+  pathname: string,
+  fields?: Omit<NonNullable<Metadata["openGraph"]>, "url" | "images">,
+): NonNullable<Metadata["openGraph"]> {
+  return {
+    ...fields,
+    url: pathname,
+  };
+}
