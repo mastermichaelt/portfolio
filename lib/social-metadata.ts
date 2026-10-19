@@ -25,16 +25,20 @@ export function defaultOpenGraphImages(): NonNullable<
 }
 
 /**
- * Open Graph fields for an indexable route. Always includes `images` so a partial
- * page-level `openGraph` override does not drop file-convention preview tags.
+ * Open Graph fields for an indexable route. Always includes `images` (the
+ * default card unless a route passes its own) so a partial page-level
+ * `openGraph` override does not drop preview tags.
  */
 export function openGraphForCanonicalPath(
   pathname: string,
   fields?: Omit<NonNullable<Metadata["openGraph"]>, "url" | "images">,
+  images: NonNullable<
+    Metadata["openGraph"]
+  >["images"] = defaultOpenGraphImages(),
 ): NonNullable<Metadata["openGraph"]> {
   return {
     ...fields,
     url: pathname,
-    images: defaultOpenGraphImages(),
+    images,
   };
 }

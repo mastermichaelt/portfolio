@@ -40,6 +40,17 @@ describe("social metadata helpers", () => {
     });
   });
 
+  it("uses route-supplied images instead of the default card when given", () => {
+    const images = [{ url: "/projects/x/opengraph-image", alt: "X card" }];
+    expect(
+      openGraphForCanonicalPath("/projects/x", { title: "X" }, images),
+    ).toEqual({
+      url: "/projects/x",
+      title: "X",
+      images,
+    });
+  });
+
   it("exposes the canonical portrait path for structured data", () => {
     expect(SITE_PORTRAIT_PATH).toBe("/portrait-michael-1200.jpg");
   });
