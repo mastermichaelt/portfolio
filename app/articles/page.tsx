@@ -110,12 +110,13 @@ export default async function ArticlesPage() {
                   <ExternalLink
                     className="aline-report"
                     href={band.lead.article.url}
-                    aria-label={band.lead.article.title}
+                    aria-label={`Report: ${band.lead.article.title}, DEV`}
+                    analyticsLabel={band.lead.article.title}
                   >
-                    <span className="aline-report-tag">Report</span>
+                    <span className="aline-report-tag">Report</span>{" "}
                     <span className="aline-report-title">
                       {band.lead.article.title}
-                    </span>
+                    </span>{" "}
                     <span className="aline-report-dev">DEV ↗</span>
                   </ExternalLink>
                 </div>
@@ -137,18 +138,19 @@ export default async function ArticlesPage() {
                   key={row.article.slug}
                   className="aline-row"
                   href={row.article.url}
+                  // The name carries every visible label in order (WCAG 2.5.3).
                   aria-label={
                     row.system
-                      ? `${row.article.title} — ${row.system.label}`
-                      : row.article.title
+                      ? `${row.article.title} — ${row.system.label}, DEV`
+                      : `${row.article.title}, DEV`
                   }
                   analyticsLabel={row.article.title}
                 >
-                  <span className="aline-row-title">{row.article.title}</span>
+                  <span className="aline-row-title">{row.article.title}</span>{" "}
                   <span className="aline-row-meta">
                     <span className="aline-row-system">
                       {row.system?.label ?? ""}
-                    </span>
+                    </span>{" "}
                     <span className="aline-row-dev">DEV ↗</span>
                   </span>
                 </ExternalLink>
