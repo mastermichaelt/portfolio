@@ -1,12 +1,15 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
+import {
+  CASE_STUDY_CARDS,
+  CASE_STUDY_CARDS_DIR,
+  readCaseStudyCardPng,
+} from "@/app/projects/[slug]/_cards/cards";
 import Image from "@/app/projects/[slug]/opengraph-image";
 import TwitterImage from "@/app/projects/[slug]/twitter-image";
 import { listCaseStudyParams } from "@/lib/case-study-entry";
-
-const CARDS_DIR = join(process.cwd(), "app/projects/[slug]/_cards");
 
 /** Width/height from the PNG IHDR chunk. */
 function pngSize(bytes: Buffer) {
@@ -14,13 +17,40 @@ function pngSize(bytes: Buffer) {
   return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 }
 
-describe("per-case-study social image route", () => {
-  it("serves every prerendered slug's approved card byte-for-byte", async () => {
-    const params = await listCaseStudyParams();
-    expect(params).toHaveLength(4);
+describe("per-case-study social cards", () => {
+  afterEach(() => {
+    delete CASE_STUDY_CARDS["no-png-yet"];
+  });
 
-    for (const { slug } of params) {
-      const source = readFileSync(join(CARDS_DIR, `${slug}.png`));
+  it("has exactly one card entry and PNG per prerendered slug", async () => {
+    const slugs = (await listCaseStudyParams()).map((p) => p.slug).sort();
+    expect(Object.keys(CASE_STUDY_CARDS).sort()).toEqual(slugs);
+    expect(
+      readdirSync(CASE_STUDY_CARDS_DIR)
+        .filter((file) => file.endsWith(".png"))
+        .sort(),
+    ).toEqual(slugs.map((slug) => `${slug}.png`));
+  });
+
+  it("declares each card's real size, a 1.91:1 aspect, and its own alt text", () => {
+    const alts = new Set<string>();
+    for (const [slug, card] of Object.entries(CASE_STUDY_CARDS)) {
+      const size = pngSize(
+        readFileSync(join(CASE_STUDY_CARDS_DIR, `${slug}.png`)),
+      );
+      expect(size).toEqual({ width: card.width, height: card.height });
+      expect(
+        Math.abs(card.width / card.height / (1200 / 630) - 1),
+      ).toBeLessThan(0.01);
+      expect(card.alt.length).toBeGreaterThan(40);
+      alts.add(card.alt);
+    }
+    expect(alts.size).toBe(Object.keys(CASE_STUDY_CARDS).length);
+  });
+
+  it("serves every prerendered slug's approved card byte-for-byte", async () => {
+    for (const { slug } of await listCaseStudyParams()) {
+      const source = readFileSync(join(CASE_STUDY_CARDS_DIR, `${slug}.png`));
       for (const route of [Image, TwitterImage]) {
         const response = await route({ params: Promise.resolve({ slug }) });
         expect(response.status).toBe(200);
@@ -29,10 +59,6 @@ describe("per-case-study social image route", () => {
           true,
         );
       }
-
-      // Large-card aspect (1.91:1, the 1200×630 ratio) within 1%.
-      const { width, height } = pngSize(source);
-      expect(Math.abs(width / height / (1200 / 630) - 1)).toBeLessThan(0.01);
     }
   });
 
@@ -40,5 +66,16 @@ describe("per-case-study social image route", () => {
     await expect(
       Image({ params: Promise.resolve({ slug: "../../package" }) }),
     ).rejects.toMatchObject({ digest: expect.stringContaining("404") });
+  });
+
+  it("fails with an actionable error when a card entry or PNG is missing", async () => {
+    await expect(readCaseStudyCardPng("unlisted")).rejects.toThrow(
+      /Missing social card for \/projects\/unlisted: no CASE_STUDY_CARDS entry.*_cards\/unlisted\.png/,
+    );
+
+    CASE_STUDY_CARDS["no-png-yet"] = { alt: "x", width: 1200, height: 630 };
+    await expect(readCaseStudyCardPng("no-png-yet")).rejects.toThrow(
+      /Missing social card for \/projects\/no-png-yet: no-png-yet\.png not found/,
+    );
   });
 });

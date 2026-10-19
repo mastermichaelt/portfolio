@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  caseStudyMetadataFields,
+  type CaseStudyEntry,
   listCaseStudyParams,
   resolveCaseStudyEntry,
 } from "@/lib/case-study-entry";
@@ -51,5 +53,26 @@ describe("resolveCaseStudyEntry", () => {
     for (const { slug } of params) {
       expect(await resolveCaseStudyEntry(slug)).not.toBeNull();
     }
+  });
+
+  it("maps every entry kind to metadata name and description", () => {
+    expect(
+      caseStudyMetadataFields({
+        kind: "case",
+        projectCase: { name: "Case", lead: "Case lead" },
+      } as CaseStudyEntry),
+    ).toEqual({ name: "Case", description: "Case lead" });
+    expect(
+      caseStudyMetadataFields({
+        kind: "supporting",
+        supportingCase: { name: "Supporting", lead: "Supporting lead" },
+      } as CaseStudyEntry),
+    ).toEqual({ name: "Supporting", description: "Supporting lead" });
+    expect(
+      caseStudyMetadataFields({
+        kind: "project",
+        project: { title: "Project", summary: "Project summary" },
+      } as CaseStudyEntry),
+    ).toEqual({ name: "Project", description: "Project summary" });
   });
 });

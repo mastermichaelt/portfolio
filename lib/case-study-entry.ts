@@ -51,3 +51,24 @@ export async function resolveCaseStudyEntry(
   const project = await repository.getProject(slug);
   return project ? { kind: "project", project } : null;
 }
+
+/** Display name and description for page metadata, exhaustive over entry kinds. */
+export function caseStudyMetadataFields(entry: CaseStudyEntry): {
+  name: string;
+  description: string;
+} {
+  switch (entry.kind) {
+    case "case":
+      return {
+        name: entry.projectCase.name,
+        description: entry.projectCase.lead,
+      };
+    case "supporting":
+      return {
+        name: entry.supportingCase.name,
+        description: entry.supportingCase.lead,
+      };
+    case "project":
+      return { name: entry.project.title, description: entry.project.summary };
+  }
+}

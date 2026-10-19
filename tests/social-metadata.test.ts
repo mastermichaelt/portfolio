@@ -5,7 +5,6 @@ import {
   SITE_PORTRAIT_PATH,
   defaultOpenGraphImages,
   openGraphForCanonicalPath,
-  openGraphForFileImageSegment,
 } from "@/lib/social-metadata";
 import { SITE_TITLE } from "@/lib/site-metadata";
 
@@ -41,18 +40,15 @@ describe("social metadata helpers", () => {
     });
   });
 
-  it("omits the images key for segments with a colocated opengraph-image", () => {
-    const result = openGraphForFileImageSegment("/projects/codenames-ai", {
-      title: "Codenames AI · Michael Truong",
-      description: "Lead copy",
+  it("uses route-supplied images instead of the default card when given", () => {
+    const images = [{ url: "/projects/x/opengraph-image", alt: "X card" }];
+    expect(
+      openGraphForCanonicalPath("/projects/x", { title: "X" }, images),
+    ).toEqual({
+      url: "/projects/x",
+      title: "X",
+      images,
     });
-    expect(result).toEqual({
-      url: "/projects/codenames-ai",
-      title: "Codenames AI · Michael Truong",
-      description: "Lead copy",
-    });
-    // Even `images: undefined` would suppress the file-convention image.
-    expect("images" in result).toBe(false);
   });
 
   it("exposes the canonical portrait path for structured data", () => {

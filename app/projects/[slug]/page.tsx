@@ -7,11 +7,14 @@ import { ExternalLink } from "@/components/ExternalLink";
 import { ProjectCaseDetail } from "@/components/ProjectCaseDetail";
 import { SupportingCaseDetail } from "@/components/SupportingCaseDetail";
 import {
+  caseStudyMetadataFields,
   listCaseStudyParams,
   resolveCaseStudyEntry,
 } from "@/lib/case-study-entry";
 import { getPortfolioRepository } from "@/lib/portfolio";
-import { openGraphForFileImageSegment } from "@/lib/social-metadata";
+import { openGraphForCanonicalPath } from "@/lib/social-metadata";
+
+import { caseStudySocialImages } from "./_cards/cards";
 
 type ProjectPageProps = PageProps<"/projects/[slug]">;
 
@@ -28,15 +31,9 @@ export async function generateMetadata({
     return { title: "Project not found" };
   }
 
-  const { name, description } =
-    entry.kind === "case"
-      ? { name: entry.projectCase.name, description: entry.projectCase.lead }
-      : entry.kind === "supporting"
-        ? {
-            name: entry.supportingCase.name,
-            description: entry.supportingCase.lead,
-          }
-        : { name: entry.project.title, description: entry.project.summary };
+  const { name, description } = caseStudyMetadataFields(entry);
+  const title = `${name} · Michael Truong`;
+  const images = caseStudySocialImages(slug);
   const path = `/projects/${slug}`;
   return {
     title: name,
@@ -44,11 +41,19 @@ export async function generateMetadata({
     alternates: {
       canonical: path,
     },
-    // Image comes from the colocated opengraph-image / twitter-image files.
-    openGraph: openGraphForFileImageSegment(path, {
-      title: `${name} · Michael Truong`,
+    openGraph: openGraphForCanonicalPath(
+      path,
+      { title, description },
+      images.openGraph,
+    ),
+    // A page-level `twitter` replaces the layout's (site title/description)
+    // wholesale, so restate the card type alongside the case-study copy.
+    twitter: {
+      card: "summary_large_image",
+      title,
       description,
-    }),
+      images: images.twitter,
+    },
   };
 }
 

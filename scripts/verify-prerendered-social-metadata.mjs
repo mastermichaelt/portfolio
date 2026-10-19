@@ -2,10 +2,11 @@
 /**
  * Post-build regression: prerendered HTML must expose og:image / twitter:image on
  * indexable routes — the default card on static routes, the per-slug card on
- * case studies (never the default). Run after `npm run build` (CI runs this
- * immediately after build).
+ * case studies (with its own alt text, dimensions and Twitter copy). Case-study
+ * routes are discovered from the build output, so a new slug cannot skip these
+ * checks. Run after `npm run build` (CI runs this immediately after build).
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,23 +27,12 @@ const STATIC_ROUTES = [
   { html: "articles.html", ogUrl: `${SITE_ORIGIN}/articles` },
 ];
 
-const CASE_STUDY_SLUGS = [
+/** Must always prerender; any other slug found in the build is checked too. */
+const KNOWN_CASE_STUDY_SLUGS = [
   "codenames-ai",
   "experiment-measurement",
   "editorial-workflow",
   "renovate-governance",
-];
-
-const ROUTES = [
-  ...STATIC_ROUTES.map((route) => ({ ...route, card: DEFAULT_CARD })),
-  ...CASE_STUDY_SLUGS.map((slug) => ({
-    html: `projects/${slug}.html`,
-    ogUrl: `${SITE_ORIGIN}/projects/${slug}`,
-    card: {
-      ogImage: `${SITE_ORIGIN}/projects/${slug}/opengraph-image`,
-      twitterImage: `${SITE_ORIGIN}/projects/${slug}/twitter-image`,
-    },
-  })),
 ];
 
 const PORTRAIT_URL = `${SITE_ORIGIN}/portrait-michael-1200.jpg`;
@@ -55,6 +45,30 @@ function fail(message) {
 if (!existsSync(appDir)) {
   fail("missing .next/server/app — run npm run build first");
 }
+
+const CASE_STUDY_SLUGS = readdirSync(resolve(appDir, "projects"))
+  .filter((file) => file.endsWith(".html"))
+  .map((file) => file.slice(0, -".html".length))
+  .sort();
+
+for (const slug of KNOWN_CASE_STUDY_SLUGS) {
+  if (!CASE_STUDY_SLUGS.includes(slug)) {
+    fail(`missing prerendered case study projects/${slug}.html`);
+  }
+}
+
+const ROUTES = [
+  ...STATIC_ROUTES.map((route) => ({ ...route, card: DEFAULT_CARD })),
+  ...CASE_STUDY_SLUGS.map((slug) => ({
+    caseStudy: true,
+    html: `projects/${slug}.html`,
+    ogUrl: `${SITE_ORIGIN}/projects/${slug}`,
+    card: {
+      ogImage: `${SITE_ORIGIN}/projects/${slug}/opengraph-image`,
+      twitterImage: `${SITE_ORIGIN}/projects/${slug}/twitter-image`,
+    },
+  })),
+];
 
 /** `content` values of every `<meta property|name="key">` tag. */
 function metaContents(html, key) {
@@ -77,15 +91,39 @@ function assertImageTag(html, key, expectedPrefix, label) {
   }
 }
 
-function assertNoDefaultCard(html, label) {
-  for (const key of ["og:image", "twitter:image"]) {
-    for (const content of metaContents(html, key)) {
-      if (
-        content.startsWith(DEFAULT_CARD.ogImage) ||
-        content.startsWith(DEFAULT_CARD.twitterImage)
-      ) {
-        fail(`${label}: ${key} must not use the default card (${content})`);
-      }
+/** The single `content` of a `<meta>` tag, failing when absent or repeated. */
+function metaContent(html, key, label) {
+  const contents = metaContents(html, key);
+  if (contents.length !== 1) {
+    fail(
+      `${label}: expected exactly one ${key} meta tag, found ${contents.length}`,
+    );
+  }
+  return contents[0];
+}
+
+/** Per-slug card alt and size, and case-study (not site-wide) Twitter copy. */
+function assertCaseStudyCard(html, label) {
+  const ogAlt = metaContent(html, "og:image:alt", label);
+  if (ogAlt.length < 40) {
+    fail(`${label}: og:image:alt must describe the card, got "${ogAlt}"`);
+  }
+  if (metaContent(html, "twitter:image:alt", label) !== ogAlt) {
+    fail(`${label}: twitter:image:alt must match og:image:alt`);
+  }
+  for (const key of ["og:image:width", "og:image:height"]) {
+    if (!/^[1-9]\d*$/.test(metaContent(html, key, label))) {
+      fail(`${label}: ${key} must be a positive integer`);
+    }
+  }
+  for (const field of ["title", "description"]) {
+    if (
+      metaContent(html, `twitter:${field}`, label) !==
+      metaContent(html, `og:${field}`, label)
+    ) {
+      fail(
+        `${label}: twitter:${field} must match og:${field} (case-study copy, not the site default)`,
+      );
     }
   }
 }
@@ -106,7 +144,7 @@ for (const route of ROUTES) {
   const label = route.html;
   assertImageTag(html, "og:image", route.card.ogImage, label);
   assertImageTag(html, "twitter:image", route.card.twitterImage, label);
-  if (route.card !== DEFAULT_CARD) assertNoDefaultCard(html, label);
+  if (route.caseStudy) assertCaseStudyCard(html, label);
   assertOgUrl(html, route.ogUrl, label);
 }
 
@@ -116,5 +154,5 @@ if (!aboutHtml.includes(`"image":"${PORTRAIT_URL}"`)) {
 }
 
 console.log(
-  `verify:social-metadata — ok (${ROUTES.length} routes, Person.image on about)`,
+  `verify:social-metadata — ok (${ROUTES.length} routes incl. ${CASE_STUDY_SLUGS.length} case studies, Person.image on about)`,
 );

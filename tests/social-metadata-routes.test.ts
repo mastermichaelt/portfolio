@@ -98,23 +98,54 @@ describe("route Open Graph metadata exports", () => {
     }
   });
 
-  // Detail pages leave `images` unset so the colocated per-slug
-  // opengraph-image / twitter-image files own the card. The rendered tags are
-  // asserted by scripts/verify-prerendered-social-metadata.mjs.
-  it("leaves images to the per-slug image files on project detail metadata", async () => {
+  // Detail pages declare their own card (per-slug alt and real dimensions) at
+  // the existing image-route URLs, plus case-study Twitter copy instead of the
+  // layout's site title. The rendered tags are asserted by
+  // scripts/verify-prerendered-social-metadata.mjs.
+  it("declares the per-slug card and Twitter copy on project detail metadata", async () => {
     const { generateMetadata } = await import("@/app/projects/[slug]/page");
+    const { CASE_STUDY_CARDS } =
+      await import("@/app/projects/[slug]/_cards/cards");
 
-    for (const slug of [
-      "codenames-ai",
-      "experiment-measurement",
-      "editorial-workflow",
+    for (const [slug, name] of [
+      ["codenames-ai", "Codenames AI"],
+      ["experiment-measurement", "Experiment measurement"],
+      ["editorial-workflow", "Editorial workflow"],
     ]) {
       const metadata = await generateMetadata({
         params: Promise.resolve({ slug }),
       } as Parameters<typeof generateMetadata>[0]);
-      expect(metadata.openGraph?.url).toBe(`/projects/${slug}`);
-      expect(metadata.openGraph && "images" in metadata.openGraph).toBe(false);
-      expect(metadata.openGraph?.title).toMatch(/· Michael Truong$/);
+      const { alt, width, height } = CASE_STUDY_CARDS[slug];
+      const title = `${name} · Michael Truong`;
+
+      expect(metadata.openGraph).toMatchObject({
+        url: `/projects/${slug}`,
+        title,
+        images: [
+          {
+            url: `/projects/${slug}/opengraph-image`,
+            alt,
+            width,
+            height,
+            type: "image/png",
+          },
+        ],
+      });
+      expect(metadata.twitter).toEqual({
+        card: "summary_large_image",
+        title,
+        description: metadata.description,
+        images: [
+          {
+            url: `/projects/${slug}/twitter-image`,
+            alt,
+            width,
+            height,
+            type: "image/png",
+          },
+        ],
+      });
+      expect(metadata.twitter?.title).not.toBe(SITE_TITLE);
     }
   });
 
