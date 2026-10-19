@@ -7,10 +7,13 @@ import { getSitemapPaths } from "../lib/sitemap-paths";
    fixed, not suppressed — no rules are disabled and no regions excluded.
    See docs/design-system.md § Accessibility expectations.
 
-   Scope: each scan is the hydrated, settled document under
-   prefers-reduced-motion: reduce, at scroll position 0. Intermediate animation
-   and scroll states (e.g. a Codenames stage beat parked mid-fade) are not
-   scanned, nor are widths other than 1280 and 390 px.
+   Scope: each scan is the hydrated document after React has committed the tree
+   containing <main id="content">, under prefers-reduced-motion: reduce and at
+   scroll position 0. This is not a general "all passive effects settled"
+   signal: the current mount effects either subscribe without changing the
+   scanned DOM or recompute the same initial state. Intermediate animation and
+   scroll states (e.g. a Codenames stage beat parked mid-fade) are not scanned,
+   nor are widths other than 1280 and 390 px.
 
    axe "incomplete" nodes (contrast it could not decide) never pass silently:
    each scan records a count annotation, and the full JSON is attached when the
@@ -48,10 +51,12 @@ function formatViolations(label: string, violations: AxeResults["violations"]) {
 }
 
 /* React calls the DevTools global hook's onCommitFiberRoot after every commit,
-   once layout effects have run; sync re-renders those effects schedule (e.g.
-   ArchitectureFigure swapping to the trace on a narrow frame) flush in the same
-   task. Marking the commit whose tree contains <main id="content"> gives a
-   deterministic "page hydrated and settled" signal with no app change. */
+   once that commit's layout effects have run. Marking the commit whose tree
+   contains <main id="content"> proves React has claimed the page; Playwright
+   observes the marker in a later animation frame, after synchronous layout-
+   effect updates such as ArchitectureFigure's narrow trace swap. It does not
+   claim that arbitrary passive effects have settled; the scope audit above is
+   what makes this boundary sufficient for the current pages. */
 function installHydrationSignal() {
   type Fiber = {
     stateNode: unknown;
