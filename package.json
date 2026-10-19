@@ -49,6 +49,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@google/genai": "^2.24.0",
     "@multipliers-dev/renovate-workflow": "^0.3.0",
     "@playwright/test": "^1.62.1",

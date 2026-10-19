@@ -161,6 +161,7 @@ Identity is a small borrowed set: channel identifiers (`CH 01` / `CH 02`), techn
   pointer text selection in the summary and proof cells; this is a known UX
   trade-off and must be revisited before those cells gain interactive content.
 - `prefers-reduced-motion: reduce` is a global duration floor in `base.css`.
+- **Automated axe gate** ([`e2e/accessibility.spec.ts`](../e2e/accessibility.spec.ts), part of `npm run test:e2e` and the CI `test` job): `@axe-core/playwright` runs the WCAG 2.2 A/AA rule tags (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`) over every `getSitemapPaths()` route, in light and dark, at 1280 and 390 px, plus `/projects` with the mobile nav sheet open — 38 scans. Each scan is the hydrated, settled document under `prefers-reduced-motion: reduce` at scroll position 0; intermediate animation and scroll states and other widths are not covered. **Violations are fixed, not suppressed:** no rules are disabled, no regions excluded, and any exception needs explicit owner approval and a ledger entry keyed by route, theme, viewport, state, rule and target. axe `incomplete` results are not passes — each scan annotates their count; set `AXE_REPORT_INCOMPLETE=1` to attach the full JSON for manual review.
 
 ## Tailwind
 

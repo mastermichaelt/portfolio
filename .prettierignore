@@ -4,6 +4,7 @@ out
 build
 package-lock.json
 .tmp-hook-tests/
+.context/
 .cursor/skills/impeccable/
 
 # disposable output from the dev image generator (scripts/generate-image.mjs)
