@@ -303,6 +303,9 @@
 
 .aline-archive-link {
   color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: from-font;
 }
 
 /* ======================================================= Responsive ===== */

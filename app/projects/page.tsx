@@ -116,19 +116,43 @@ export default async function ProjectsPage() {
             ))}
 
             {index.supporting.map((row) => (
-              <Link
+              <div
                 key={row.href}
                 className="pindex-row pindex-row--support"
-                href={row.href}
+                role="row"
                 aria-label={`Supporting: ${row.title}`}
               >
-                <div className="pindex-col-system">
-                  <p className="pindex-tier">Supporting</p>
-                  <p className="pindex-sys pindex-sys--support">{row.title}</p>
+                <div
+                  className="pindex-col-system"
+                  role="cell"
+                  aria-labelledby="pindex-col-system"
+                >
+                  <Link
+                    className="pindex-support-link"
+                    href={row.href}
+                    aria-label={`Supporting: ${row.title}`}
+                  >
+                    <span className="pindex-tier">Supporting</span>{" "}
+                    <span className="pindex-sys pindex-sys--support">
+                      {row.title}
+                    </span>
+                  </Link>
                 </div>
-                <p className="pindex-support-body">{row.summary}</p>
-                <p className="pindex-proof">{row.proofSurface}</p>
-              </Link>
+                <p
+                  className="pindex-support-body"
+                  role="cell"
+                  aria-labelledby="pindex-col-contract"
+                >
+                  {row.summary}
+                </p>
+                <p
+                  className="pindex-proof"
+                  role="cell"
+                  aria-labelledby="pindex-col-evidence"
+                >
+                  {row.proofSurface}
+                </p>
+              </div>
             ))}
 
             {index.infrastructure.map((row) => (
@@ -162,11 +186,11 @@ export default async function ProjectsPage() {
                 </p>
               </div>
             ))}
-
-            <p className="pindex-footer">
-              <RichText segments={index.footer} />
-            </p>
           </div>
+
+          <p className="pindex-footer fade-in delay-1">
+            <RichText segments={index.footer} />
+          </p>
         </div>
       </section>
     </main>
