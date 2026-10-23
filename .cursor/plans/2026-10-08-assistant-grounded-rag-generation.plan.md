@@ -399,7 +399,7 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 ---
 
-## Slice — `generation-ui`
+## Slice — generation-ui
 
 **Recommended authority:** Open PR only
 
@@ -438,7 +438,7 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 ---
 
-## Slice — `operational-acceptance`
+## Slice — operational-acceptance
 
 **Recommended authority:** Manual verification gate
 
@@ -492,9 +492,13 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 ---
 
-## Slice — `plan-closure`
+## Slice — plan-closure
 
 **Recommended authority:** Open PR only
+
+**Rationale:**
+
+- Docs-only archival after milestone verification; keeps `.cursor/plans/` for in-progress work only.
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
@@ -584,6 +588,8 @@ Authority: Manual verification gate.
 Topology: no tracked-file changes unless operator chooses to commit findings doc in a follow-up; optional gitignored .agent-runs/assistant-generation/**.
 
 Deliverables: Phase A — production Neon corpus ingestion checklist (operator approval required before production ingest; do not run ingest unless approved); Phase B — local + deployed E2E on michaeltruong.ai. Report verdict, Phase A corpus metrics (row count, bundle_sha256, any delta vs local 262 explained), and paths to any gitignored notes.
+
+Verification: operator sign-off recorded; Phase A and Phase B checklists completed per slice acceptance; no production ingest without explicit approval.
 ```
 
 ### plan-closure

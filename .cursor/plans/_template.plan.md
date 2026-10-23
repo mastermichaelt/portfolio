@@ -46,7 +46,7 @@ The repository integration branch is `main` unless this plan explicitly authoriz
 
 ---
 
-## Slice 1 — First merge-safe slice
+## Slice — slice-1
 
 **Recommended authority:** Open PR only
 
@@ -62,7 +62,7 @@ The repository integration branch is `main` unless this plan explicitly authoriz
 
 ---
 
-## Slice 2 — Second merge-safe slice
+## Slice — slice-2
 
 **Recommended authority:** Open PR only
 
@@ -167,21 +167,7 @@ Verification: confirm all prerequisite implementation PRs are merged and slice t
 **Preconditions:** …
 **Verify:** …
 
-Agent prompt (uncomment as `### <slice-id>` — do not reuse a default todo id as a live heading):
-
-```text
-@.cursor/plans/<slug>.plan.md
-
-Implement slice <slice-id> only.
-
-Authority: Merge granted — You may merge after documented verification passes.
-
-Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
-
-Deliverables: …. Mark <slice-id> completed in plan frontmatter in this PR.
-
-Verification: ….
-```
+Agent prompt (uncomment as `### <slice-id>` — do not reuse a default todo id as a live heading). Use the same labeled Authority / Topology / Deliverables / Verification layout as the Open PR only prompts above, with Authority: Merge granted.
 
 -->
 
