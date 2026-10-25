@@ -26,7 +26,6 @@ const DEFAULT_CARD = {
 
 const STATIC_ROUTES = [
   { html: "index.html", ogUrl: SITE_ORIGIN },
-  { html: "about.html", ogUrl: `${SITE_ORIGIN}/about` },
   { html: "projects.html", ogUrl: `${SITE_ORIGIN}/projects` },
   { html: "articles.html", ogUrl: `${SITE_ORIGIN}/articles` },
 ];
@@ -34,6 +33,12 @@ const STATIC_ROUTES = [
 const CARDS_DIR = resolve(root, "app/projects/[slug]/_cards");
 
 const PORTRAIT_URL = `${SITE_ORIGIN}/portrait-michael-1200.jpg`;
+
+const ABOUT_ROUTE = {
+  html: "about.html",
+  ogUrl: `${SITE_ORIGIN}/about`,
+  card: { ogImage: PORTRAIT_URL, twitterImage: PORTRAIT_URL },
+};
 
 function fail(message) {
   console.error(`verify:social-metadata — ${message}`);
@@ -106,6 +111,7 @@ function cardVersion(slug) {
 
 const ROUTES = [
   ...STATIC_ROUTES.map((route) => ({ ...route, card: DEFAULT_CARD })),
+  { ...ABOUT_ROUTE, portraitPage: true },
   ...CASE_STUDY_SLUGS.map((slug) => {
     // Open Graph and Twitter share the one content-versioned image URL.
     const image = `${SITE_ORIGIN}/projects/${slug}/opengraph-image?v=${cardVersion(slug)}`;
@@ -201,7 +207,9 @@ for (const route of ROUTES) {
   const label = route.html;
   assertImageTag(html, "og:image", route.card.ogImage, label);
   assertImageTag(html, "twitter:image", route.card.twitterImage, label);
-  if (route.caseStudy) assertCaseStudyCard(html, route.card, label);
+  if (route.caseStudy || route.portraitPage) {
+    assertCaseStudyCard(html, route.card, label);
+  }
   assertOgUrl(html, route.ogUrl, label);
 }
 

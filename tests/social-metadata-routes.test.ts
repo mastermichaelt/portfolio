@@ -4,7 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   OPEN_GRAPH_IMAGE_PATH,
+  SITE_PORTRAIT_ALT,
   SITE_PORTRAIT_PATH,
+  SITE_PORTRAIT_SIZE,
+  portraitOpenGraphImages,
 } from "@/lib/social-metadata";
 import { getSiteUrl } from "@/lib/site";
 import { SITE_TITLE } from "@/lib/site-metadata";
@@ -89,7 +92,6 @@ describe("route Open Graph metadata exports", () => {
   it("includes default images on static indexable pages", async () => {
     const pages = [
       await import("@/app/page"),
-      await import("@/app/about/page"),
       await import("@/app/projects/page"),
       await import("@/app/articles/page"),
       await import("@/app/ecosystem/page"),
@@ -98,6 +100,29 @@ describe("route Open Graph metadata exports", () => {
     for (const { metadata } of pages) {
       expectOpenGraphImages(metadata.openGraph, { requireUrl: true });
     }
+  });
+
+  it("uses the canonical portrait for About Open Graph and Twitter previews", async () => {
+    const { metadata } = await import("@/app/about/page");
+    const portraitImages = portraitOpenGraphImages();
+
+    expect(metadata.openGraph).toMatchObject({
+      url: "/about",
+      images: portraitImages,
+    });
+    expect(metadata.twitter).toEqual({
+      card: "summary_large_image",
+      images: portraitImages,
+    });
+    expect(portraitImages).toEqual([
+      {
+        url: SITE_PORTRAIT_PATH,
+        alt: SITE_PORTRAIT_ALT,
+        width: SITE_PORTRAIT_SIZE.width,
+        height: SITE_PORTRAIT_SIZE.height,
+        type: "image/jpeg",
+      },
+    ]);
   });
 
   // Detail pages declare their own card (per-slug alt and real dimensions) at
