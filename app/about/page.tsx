@@ -9,7 +9,11 @@ import type {
 } from "@/domain/about";
 import type { Profile } from "@/domain/profile";
 import { getPortfolioRepository } from "@/lib/portfolio";
-import { openGraphForCanonicalPath } from "@/lib/social-metadata";
+import {
+  openGraphForCanonicalPath,
+  portraitOpenGraphImages,
+  SITE_PORTRAIT_ALT,
+} from "@/lib/social-metadata";
 
 function resolveSupplementHref(
   supplement: AboutSectionSupplement,
@@ -39,6 +43,8 @@ function AboutSectionSupplementLink({
   );
 }
 
+const aboutPortraitImages = portraitOpenGraphImages();
+
 export const metadata: Metadata = {
   title: "About",
   description:
@@ -46,7 +52,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/about",
   },
-  openGraph: openGraphForCanonicalPath("/about"),
+  openGraph: openGraphForCanonicalPath(
+    "/about",
+    undefined,
+    aboutPortraitImages,
+  ),
+  twitter: {
+    card: "summary_large_image",
+    images: aboutPortraitImages,
+  },
 };
 
 function AboutEntryLinks({ links }: { links: AboutLink[] }) {
@@ -129,7 +143,7 @@ export default async function AboutPage() {
               src="/portrait-michael.jpg"
               srcSet="/portrait-michael-200.jpg 200w, /portrait-michael-300.jpg 300w, /portrait-michael-400.jpg 400w, /portrait-michael-600.jpg 600w, /portrait-michael-900.jpg 900w, /portrait-michael-1200.jpg 1200w"
               sizes="(max-width: 700px) 100vw, (max-width: 920px) 200px, 300px"
-              alt={profile.name}
+              alt={SITE_PORTRAIT_ALT}
               width={1200}
               height={1500}
               loading="eager"

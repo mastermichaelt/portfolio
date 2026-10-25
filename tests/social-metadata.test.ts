@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   OPEN_GRAPH_IMAGE_PATH,
+  SITE_PORTRAIT_ALT,
   SITE_PORTRAIT_PATH,
+  SITE_PORTRAIT_SIZE,
   defaultOpenGraphImages,
   openGraphForCanonicalPath,
+  portraitOpenGraphImages,
 } from "@/lib/social-metadata";
 import { SITE_TITLE } from "@/lib/site-metadata";
 
@@ -53,5 +56,17 @@ describe("social metadata helpers", () => {
 
   it("exposes the canonical portrait path for structured data", () => {
     expect(SITE_PORTRAIT_PATH).toBe("/portrait-michael-1200.jpg");
+  });
+
+  it("builds About-page Open Graph images from the canonical portrait", () => {
+    expect(portraitOpenGraphImages()).toEqual([
+      {
+        url: SITE_PORTRAIT_PATH,
+        width: SITE_PORTRAIT_SIZE.width,
+        height: SITE_PORTRAIT_SIZE.height,
+        alt: SITE_PORTRAIT_ALT,
+        type: "image/jpeg",
+      },
+    ]);
   });
 });

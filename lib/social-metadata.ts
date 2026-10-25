@@ -10,6 +10,26 @@ export const OPEN_GRAPH_IMAGE_PATH = "/opengraph-image";
 /** Canonical photographic portrait for Person JSON-LD and identity surfaces. */
 export const SITE_PORTRAIT_PATH = "/portrait-michael-1200.jpg";
 
+export const SITE_PORTRAIT_SIZE = { width: 1200, height: 1500 } as const;
+
+/** Descriptive alt for the canonical portrait (HTML img and Open Graph). */
+export const SITE_PORTRAIT_ALT =
+  "Portrait of Michael Truong, Senior Software Engineer in Sydney, Australia";
+
+export function portraitOpenGraphImages(): NonNullable<
+  Metadata["openGraph"]
+>["images"] {
+  return [
+    {
+      url: SITE_PORTRAIT_PATH,
+      width: SITE_PORTRAIT_SIZE.width,
+      height: SITE_PORTRAIT_SIZE.height,
+      alt: SITE_PORTRAIT_ALT,
+      type: "image/jpeg",
+    },
+  ];
+}
+
 export function defaultOpenGraphImages(): NonNullable<
   Metadata["openGraph"]
 >["images"] {
