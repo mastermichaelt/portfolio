@@ -19,11 +19,12 @@
 }
 
 .connect-portrait {
-  width: clamp(7rem, 22vw, 9.5rem);
-  height: auto;
-  border-radius: 0.75rem;
-  border: 1px solid var(--border);
-  object-fit: contain;
+  width: clamp(7.5rem, 22vw, 9rem);
+  height: clamp(7.5rem, 22vw, 9rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 3px solid #e8e4dc;
+  object-fit: cover;
   object-position: center;
 }
 
