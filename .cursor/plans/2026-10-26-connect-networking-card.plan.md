@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: tests-e2e
     content: "PR: e2e/connect.spec.ts (responsive/links); /connect in sitemap for axe; no offline tests"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after last slice: # Shipped note, move plan to .cursor/plans/archive/2026-10-26-connect-networking-card.plan.md"
     status: pending

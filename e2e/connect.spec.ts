@@ -1,5 +1,8 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import { CONNECT_HEADLINE, CONNECT_MANIFEST_PATH } from "../lib/connect";
+import { getSitemapPaths } from "../lib/sitemap-paths";
+
 async function expectFullyInViewport(page: Page, locator: Locator) {
   const box = await locator.boundingBox();
   const viewport = page.viewportSize();
@@ -16,6 +19,27 @@ async function expectFullyInViewport(page: Page, locator: Locator) {
 }
 
 test.describe("connect networking card", () => {
+  test("is listed in sitemap paths for axe coverage", () => {
+    expect(getSitemapPaths()).toContain("/connect");
+  });
+
+  test("advertises the connect-only web app manifest", async ({ page }) => {
+    await page.goto("/connect");
+    await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(
+      "href",
+      CONNECT_MANIFEST_PATH,
+    );
+  });
+
+  test("does not advertise the connect manifest on site home", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const manifest = page.locator('link[rel="manifest"]');
+    await expect(manifest).toHaveCount(1);
+    await expect(manifest).not.toHaveAttribute("href", CONNECT_MANIFEST_PATH);
+  });
+
   test("renders identity, QR, and links without primary site nav", async ({
     page,
   }) => {
@@ -26,6 +50,7 @@ test.describe("connect networking card", () => {
     await expect(
       page.getByRole("heading", { name: "Michael Truong", level: 1 }),
     ).toBeVisible();
+    await expect(page.getByText(CONNECT_HEADLINE)).toBeVisible();
     const qrImage = page.getByRole("img", { name: /QR code/i });
     await expect(qrImage).toBeVisible();
     await expectFullyInViewport(page, qrImage);
@@ -89,5 +114,28 @@ test.describe("connect networking card", () => {
     const qrImage = page.getByRole("img", { name: /QR code/i });
     await expect(qrImage).toBeVisible();
     await expectFullyInViewport(page, qrImage);
+  });
+
+  test("keeps the QR in view at 375px width", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/connect");
+
+    const qrImage = page.getByRole("img", { name: /QR code/i });
+    await expect(qrImage).toBeVisible();
+    await expectFullyInViewport(page, qrImage);
+  });
+
+  test("renders the networking card on desktop without site chrome", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/connect");
+
+    await expect(page.locator("main#content")).toBeVisible();
+    await expect(page.getByRole("img", { name: /QR code/i })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Primary" })).toHaveCount(
+      0,
+    );
+    await expect(page.locator("footer.site-footer")).toHaveCount(0);
   });
 });

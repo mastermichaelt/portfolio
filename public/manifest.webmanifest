@@ -1,0 +1,17 @@
+{
+  "name": "Michael Truong · Making uncertain systems dependable",
+  "short_name": "Michael Truong",
+  "description": "Michael Truong is a Senior Software Engineer and AI Product Engineer in Sydney, building AI products, engineering systems, and tools for more dependable software development.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#121110",
+  "theme_color": "#121110",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

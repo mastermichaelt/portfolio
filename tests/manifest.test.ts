@@ -1,30 +1,45 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from "@/lib/site-metadata";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  SITE_WEB_MANIFEST,
+  SITE_WEB_MANIFEST_PATH,
+} from "@/lib/site-web-manifest";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-describe("web manifest", () => {
-  it("returns identity metadata with browser display and a single 192 icon", async () => {
-    const manifest = (await import("@/app/manifest")).default;
-    const result = manifest();
+vi.mock("@/lib/fonts", () => ({
+  ibmPlexSans: { variable: "--font-body" },
+  ibmPlexMono: { variable: "--font-mono" },
+}));
 
-    expect(result.display).toBe("browser");
-    expect(result.start_url).toBe("/");
-    expect(result.background_color).toBe("#121110");
-    expect(result.theme_color).toBe("#121110");
-    expect(result.name).toBe(SITE_TITLE);
-    expect(result.short_name).toBe(SITE_NAME);
-    expect(result.description).toBe(SITE_DESCRIPTION);
-    expect(result.icons).toHaveLength(1);
-    expect(result.icons?.[0]).toEqual({
-      src: "/android-chrome-192x192.png",
-      sizes: "192x192",
-      type: "image/png",
-      purpose: "any",
+describe("web manifest", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it("ships manifest.webmanifest aligned with lib/site-web-manifest constants", () => {
+    const manifestPath = resolve(root, "public/manifest.webmanifest");
+    expect(existsSync(manifestPath)).toBe(true);
+
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+
+    expect(manifest).toEqual({
+      ...SITE_WEB_MANIFEST,
+      icons: SITE_WEB_MANIFEST.icons.map((icon) => ({ ...icon })),
     });
+  });
+
+  it("wires root layout metadata.manifest to the static site manifest", async () => {
+    const { metadata } = await import("@/app/layout");
+    expect(metadata.manifest).toBe(SITE_WEB_MANIFEST_PATH);
+  });
+
+  it("references a single 192 launcher icon on disk", () => {
     expect(existsSync(resolve(root, "public/android-chrome-192x192.png"))).toBe(
       true,
     );
