@@ -24,8 +24,7 @@
   aspect-ratio: 1;
   border-radius: 50%;
   border: 3px solid #e8e4dc;
-  background-color: #e8e4dc;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
 }
 
