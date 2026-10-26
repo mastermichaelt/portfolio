@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: connect-page-and-qr
     content: "PR: lib/connect.ts, connect page + connect.css, sitemap/metadata, QR verify+generate script, linkedin-connect-qr.svg, connect-qr tests; optional early connect page e2e assertions"
-    status: pending
+    status: completed
   - id: connect-manifest-icons
     content: "PR: connect.webmanifest + connect icons (192/512); short_name Connect, start_url /connect; root manifest unchanged"
     status: pending

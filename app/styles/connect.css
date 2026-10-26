@@ -1,0 +1,112 @@
+.connect-page {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 2.5rem) var(--page-gutter, 1.25rem)
+    clamp(1.25rem, 6vw, 3rem);
+}
+
+.connect-shell {
+  width: min(100%, 26rem);
+}
+
+.connect-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.75rem, 2.5vw, 1.25rem);
+  text-align: center;
+}
+
+.connect-portrait {
+  width: clamp(7rem, 22vw, 9.5rem);
+  height: auto;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  object-fit: cover;
+  aspect-ratio: 4 / 5;
+}
+
+.connect-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 22rem;
+}
+
+.connect-name {
+  margin: 0;
+  font-size: clamp(1.35rem, 4.5vw, 1.6rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.connect-headline {
+  margin: 0;
+  color: var(--fg-2);
+  font-size: clamp(0.95rem, 3.2vw, 1.05rem);
+  line-height: 1.45;
+}
+
+.connect-headline-line {
+  display: block;
+}
+
+.connect-qr-panel {
+  width: min(100%, 17.5rem);
+  padding: clamp(0.65rem, 2vw, 1rem);
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklch, var(--border) 65%, #ffffff);
+}
+
+.connect-qr {
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.connect-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem 1.1rem;
+  font-size: 0.95rem;
+}
+
+.connect-links a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+/* Short phones: keep the QR panel in the first screen where possible. */
+@media (max-height: 740px) {
+  .connect-page {
+    padding-top: 0.75rem;
+    padding-bottom: 1rem;
+  }
+
+  .connect-card {
+    gap: 0.65rem;
+  }
+
+  .connect-name {
+    font-size: 1.25rem;
+  }
+
+  .connect-headline {
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .connect-qr-panel {
+    width: min(100%, 16rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connect-card.fade-in {
+    animation: none;
+  }
+}

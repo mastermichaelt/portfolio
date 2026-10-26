@@ -13,6 +13,9 @@ const REMOVED_SCAFFOLD_SVGS = [
   "window.svg",
 ] as const;
 
+/** Intentional static SVG assets (not Next.js scaffold). */
+const ALLOWED_PUBLIC_SVGS = new Set(["linkedin-connect-qr.svg"]);
+
 const SCAN_DIRS = [
   "app",
   "components",
@@ -62,12 +65,15 @@ describe("scaffold cleanup", () => {
     }
   });
 
-  it("does not ship any SVG assets in public/", () => {
+  it("does not ship scaffold SVG assets in public/", () => {
     const publicSvgs = readdirSync(resolve(root, "public")).filter((name) =>
       name.endsWith(".svg"),
     );
 
-    expect(publicSvgs).toEqual([]);
+    const unexpected = publicSvgs.filter(
+      (name) => !ALLOWED_PUBLIC_SVGS.has(name),
+    );
+    expect(unexpected).toEqual([]);
   });
 
   it("does not reference removed scaffold SVGs in product or test code", () => {
