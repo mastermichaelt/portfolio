@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Square connect portrait for the circular on-page frame (LinkedIn QR card framing).
- * Deliberate square crop on the source photo — not full-frame letterboxing.
+ * Crop derived from the official LinkedIn QR reference circle, not centre-fit guessing.
  */
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
@@ -10,12 +10,15 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 /**
- * Framing tuned on connect-portrait-source.jpg (768×1024): face + owl fill the
- * circle with minimal headroom; both subjects stay inside the crop.
+ * Square extract on connect-portrait-source.jpg (768×1024).
+ * Tuned against the portrait circle on the LinkedIn QR card reference (900×835).
  */
-const FRAMING = {
-  top: 330 / 1024,
-  sideOfWidth: 665 / 768,
+const SOURCE_CROP_BASE = {
+  width: 768,
+  height: 1024,
+  left: 102,
+  top: 246,
+  size: 572,
 };
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -26,6 +29,25 @@ const master = resolve(publicDir, "connect-portrait-1200.jpg");
 
 const input = existsSync(source) ? source : fallbackSource;
 
+function squareCropRegion(width, height) {
+  const scaleX = width / SOURCE_CROP_BASE.width;
+  const scaleY = height / SOURCE_CROP_BASE.height;
+  const size = Math.min(
+    Math.round(SOURCE_CROP_BASE.size * scaleX),
+    width,
+    height,
+  );
+  const left = Math.min(
+    Math.round(SOURCE_CROP_BASE.left * scaleX),
+    width - size,
+  );
+  const top = Math.min(
+    Math.round(SOURCE_CROP_BASE.top * scaleY),
+    height - size,
+  );
+  return { left, top, width: size, height: size };
+}
+
 async function squareCropBuffer(inputPath) {
   const meta = await sharp(inputPath).metadata();
   const width = meta.width ?? 0;
@@ -34,12 +56,10 @@ async function squareCropBuffer(inputPath) {
     throw new Error(`Could not read dimensions for ${inputPath}`);
   }
 
-  const side = Math.min(Math.round(width * FRAMING.sideOfWidth), width, height);
-  const top = Math.min(Math.round(height * FRAMING.top), height - side);
-  const left = Math.max(0, Math.round((width - side) / 2));
+  const region = squareCropRegion(width, height);
 
   return sharp(inputPath)
-    .extract({ left, top, width: side, height: side })
+    .extract(region)
     .resize(1200, 1200)
     .jpeg({ quality: 88, mozjpeg: true })
     .toBuffer();
