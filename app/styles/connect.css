@@ -1,0 +1,87 @@
+.connect-page {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: clamp(1.5rem, 5vw, 2.5rem) var(--page-gutter, 1.25rem)
+    clamp(2rem, 8vw, 3rem);
+}
+
+.connect-shell {
+  width: min(100%, 26rem);
+}
+
+.connect-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+.connect-portrait {
+  width: 9.5rem;
+  height: auto;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  object-fit: cover;
+  aspect-ratio: 4 / 5;
+}
+
+.connect-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 22rem;
+}
+
+.connect-name {
+  margin: 0;
+  font-size: clamp(1.35rem, 4.5vw, 1.6rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.connect-headline {
+  margin: 0;
+  color: var(--fg-2);
+  font-size: clamp(0.95rem, 3.2vw, 1.05rem);
+  line-height: 1.45;
+}
+
+.connect-headline-line {
+  display: block;
+}
+
+.connect-qr-panel {
+  width: min(100%, 18.5rem);
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklch, var(--border) 65%, #ffffff);
+}
+
+.connect-qr {
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.connect-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem 1.1rem;
+  font-size: 0.95rem;
+}
+
+.connect-links a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connect-card.fade-in {
+    animation: none;
+  }
+}
