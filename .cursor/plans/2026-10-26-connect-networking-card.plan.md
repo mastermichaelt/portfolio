@@ -80,6 +80,10 @@ Each implementation PR runs: `npm run lint`, `npm run typecheck`, `npm test`, `n
 
 **Recommended authority:** Open PR only
 
+**Rationale:** Enables a standalone `/connect` shell without duplicating `PersonJsonLd` or changing site-wide metadata; must land before the connect page.
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
 **Goal:** Route group `(site)` with slim root layout; `PersonJsonLd` + header/footer only on site routes; no behavior change to URLs or site metadata content.
 
 **Acceptance:** Regression table (metadata, JSON-LD, nav, root manifest tests) passes; `/connect` route not required in this slice.
@@ -89,6 +93,10 @@ Each implementation PR runs: `npm run lint`, `npm run typecheck`, `npm test`, `n
 ## Slice — connect-page-and-qr
 
 **Recommended authority:** Open PR only
+
+**Rationale:** Delivers the core meetup networking card (identity + scannable QR) in one merge-safe PR without service worker scope.
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
 
 **Goal:** Single PR for the `/connect` page and QR pipeline:
 
@@ -107,6 +115,10 @@ Each implementation PR runs: `npm run lint`, `npm run typecheck`, `npm test`, `n
 
 **Recommended authority:** Open PR only
 
+**Rationale:** Dedicated connect manifest and launcher icons enable Pixel Home Screen shortcut (`Connect` → `/connect`) without altering the root portfolio manifest.
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
 **Goal:** [`public/connect.webmanifest`](public/connect.webmanifest), connect layout `metadata.manifest`, `connect-icon-192.png` + `connect-icon-512.png` after pixel vs portrait evaluation; `short_name: Connect`, `start_url: /connect`.
 
 **Acceptance:** Root [`app/manifest.ts`](app/manifest.ts) unchanged; [`tests/connect-manifest.test.ts`](tests/connect-manifest.test.ts); no LinkedIn trademark launcher icon.
@@ -117,6 +129,10 @@ Each implementation PR runs: `npm run lint`, `npm run typecheck`, `npm test`, `n
 
 **Recommended authority:** Open PR only
 
+**Rationale:** Locks connect behavior, links, responsive layout, and axe coverage via sitemap without offline or SW tests.
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
 **Goal:** [`e2e/connect.spec.ts`](e2e/connect.spec.ts) — identity, LinkedIn/GitHub/portfolio links, no primary nav, manifest link on `/connect`, responsive checks at mobile viewports; add `/connect` to [`lib/sitemap-paths.ts`](lib/sitemap-paths.ts) if not already done (axe via [`e2e/accessibility.spec.ts`](e2e/accessibility.spec.ts)).
 
 **Explicitly out of scope:** Offline Playwright tests, service worker assertions, `context.setOffline`.
@@ -125,11 +141,15 @@ Each implementation PR runs: `npm run lint`, `npm run typecheck`, `npm test`, `n
 
 ---
 
-## Plan closure (docs-only PR)
+## Slice — plan-closure
 
 **Recommended authority:** Open PR only
 
-After the last implementation slice merges: `# Shipped` note, archive plan, mark `plan-closure` completed.
+**Rationale:** Archives the plan after all implementation slices merge; docs-only hygiene per planning standards.
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Goal:** After the last implementation slice merges: `# Shipped` note, archive plan, mark `plan-closure` completed.
 
 ---
 
