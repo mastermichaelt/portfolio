@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ExternalLink } from "@/components/ExternalLink";
 import { profile } from "@/content/profile";
 import {
-  CONNECT_HEADLINE_LINES,
+  CONNECT_HEADLINE,
   CONNECT_LINKEDIN_ANALYTICS_LABEL,
   LINKEDIN_PROFILE_URL,
 } from "@/lib/connect";
@@ -29,13 +29,7 @@ export default function ConnectPage() {
 
           <div className="connect-identity">
             <h1 className="connect-name">{profile.name}</h1>
-            <p className="connect-headline">
-              {CONNECT_HEADLINE_LINES.map((line) => (
-                <span key={line} className="connect-headline-line">
-                  {line}
-                </span>
-              ))}
-            </p>
+            <p className="connect-headline">{CONNECT_HEADLINE}</p>
           </div>
 
           <div className="connect-qr-panel">

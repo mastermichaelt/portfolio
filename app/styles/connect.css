@@ -20,11 +20,11 @@
 
 .connect-portrait {
   width: clamp(7rem, 22vw, 9.5rem);
-  height: auto;
+  height: clamp(7rem, 22vw, 9.5rem);
   border-radius: 50%;
   border: 1px solid var(--border);
   object-fit: cover;
-  aspect-ratio: 4 / 5;
+  object-position: center;
 }
 
 .connect-identity {
@@ -47,10 +47,6 @@
   color: var(--fg-2);
   font-size: clamp(0.95rem, 3.2vw, 1.05rem);
   line-height: 1.45;
-}
-
-.connect-headline-line {
-  display: block;
 }
 
 .connect-qr-panel {
