@@ -37,11 +37,6 @@ describe("connect web manifest", () => {
     const expected = [
       { file: "public/connect-icon-192.png", width: 192, height: 192 },
       { file: "public/connect-icon-512.png", width: 512, height: 512 },
-      {
-        file: "public/connect-icon-maskable-512.png",
-        width: 512,
-        height: 512,
-      },
     ] as const;
 
     for (const icon of expected) {
@@ -56,12 +51,28 @@ describe("connect web manifest", () => {
     }
   });
 
-  it("ships maskable 512 icon from the same approved crop as the any 512 icon", () => {
-    const any512 = readFileSync(resolve(root, "public/connect-icon-512.png"));
-    const maskable512 = readFileSync(
-      resolve(root, "public/connect-icon-maskable-512.png"),
+  it("declares the same 512px icon for any and maskable launcher purposes", () => {
+    const launcher512 = "/connect-icon-512.png";
+    const any512 = CONNECT_WEB_MANIFEST.icons.find(
+      (icon) => icon.sizes === "512x512" && icon.purpose === "any",
     );
-    expect(maskable512.equals(any512)).toBe(true);
+    const maskable512 = CONNECT_WEB_MANIFEST.icons.find(
+      (icon) => icon.purpose === "maskable",
+    );
+
+    expect(any512).toEqual({
+      src: launcher512,
+      sizes: "512x512",
+      type: "image/png",
+      purpose: "any",
+    });
+    expect(maskable512).toEqual({
+      src: launcher512,
+      sizes: "512x512",
+      type: "image/png",
+      purpose: "maskable",
+    });
+    expect(existsSync(resolve(root, "public/connect-icon-512.png"))).toBe(true);
   });
 
   it("wires connect layout metadata.manifest to the static manifest", async () => {

@@ -58,7 +58,7 @@ export const CONNECT_WEB_MANIFEST = {
       purpose: "any",
     },
     {
-      src: "/connect-icon-maskable-512.png",
+      src: "/connect-icon-512.png",
       sizes: "512x512",
       type: "image/png",
       purpose: "maskable",
