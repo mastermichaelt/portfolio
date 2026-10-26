@@ -9,7 +9,6 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 import {
-  composeConnectMaskableIcon,
   composeConnectMaskableIconPreview,
   extractConnectPortraitSquare,
 } from "./lib/connect-portrait-crop.mjs";
@@ -39,12 +38,8 @@ await sharp(master512).toFile(out512);
 await sharp(master512).resize(192, 192).png().toFile(out192);
 
 mkdirSync(agentRunsDir, { recursive: true });
-await (
-  await composeConnectMaskableIcon(sharp, square, 512)
-)
-  .png()
-  .toFile(outMaskable512);
-await composeConnectMaskableIconPreview(sharp, sharp(outMaskable512), 512)
+await sharp(master512).toFile(outMaskable512);
+await composeConnectMaskableIconPreview(sharp, sharp(master512), 512)
   .png()
   .toFile(previewMaskable512);
 

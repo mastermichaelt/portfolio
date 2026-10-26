@@ -56,6 +56,14 @@ describe("connect web manifest", () => {
     }
   });
 
+  it("ships maskable 512 icon from the same approved crop as the any 512 icon", () => {
+    const any512 = readFileSync(resolve(root, "public/connect-icon-512.png"));
+    const maskable512 = readFileSync(
+      resolve(root, "public/connect-icon-maskable-512.png"),
+    );
+    expect(maskable512.equals(any512)).toBe(true);
+  });
+
   it("wires connect layout metadata.manifest to the static manifest", async () => {
     const { metadata } = await import("@/app/connect/layout");
     expect(metadata.manifest).toBe(CONNECT_MANIFEST_PATH);
