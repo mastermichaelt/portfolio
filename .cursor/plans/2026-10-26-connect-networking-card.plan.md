@@ -101,14 +101,14 @@ Each implementation PR runs: `npm run lint`, `npm run typecheck`, `npm test`, `n
 **Goal:** Single PR for the `/connect` page and QR pipeline:
 
 - [`lib/connect.ts`](lib/connect.ts) — `LINKEDIN_PROFILE_URL`, `CONNECT_HEADLINE`, metadata strings
-- [`app/connect/layout.tsx`](app/connect/layout.tsx), [`app/connect/page.tsx`](app/connect/page.tsx), [`app/styles/connect.css`](app/styles/connect.css) — mobile-first, QR-first; no site header/footer
-- Sitemap + page metadata (`/connect` canonical)
+- [`app/connect/layout.tsx`](app/connect/layout.tsx), [`app/connect/page.tsx`](app/connect/page.tsx), [`app/styles/connect.css`](app/styles/connect.css) — mobile-first, QR-first; no site header/footer; page wraps content in **`<main id="content">`** (same contract as [`e2e/accessibility.spec.ts`](e2e/accessibility.spec.ts) and other routes)
+- Sitemap + page metadata (`/connect` canonical) — **only add `/connect` to [`lib/sitemap-paths.ts`](lib/sitemap-paths.ts) in the same PR as `main#content`** so axe does not time out waiting for `#content`
 - Dev-time: decode official LinkedIn QR card JPG (local); generate [`public/linkedin-connect-qr.svg`](public/linkedin-connect-qr.svg); [`scripts/generate-connect-qr.mjs`](scripts/generate-connect-qr.mjs) + `npm run generate:connect-qr` (not in `npm run build`)
 - [`tests/connect-qr.test.ts`](tests/connect-qr.test.ts) — committed SVG decodes to canonical URL
 - Optional connect metadata/constants unit tests
 - **Encouraged (same PR, when low-cost):** straightforward connect page assertions — e.g. minimal [`e2e/connect.spec.ts`](e2e/connect.spec.ts) smoke (page loads, key links, no primary nav) or equivalent — without waiting for the dedicated `tests-e2e` slice. Do not duplicate the full responsive/axe matrix here if it fits better in `tests-e2e`.
 
-**Acceptance:** Page uses portfolio portrait + HTML name/headline; no JPG on page; canonical LinkedIn URL; not in primary nav. If early e2e was added, it passes in this PR’s CI gates.
+**Acceptance:** Page uses portfolio portrait + HTML name/headline; **`<main id="content">` present**; no JPG on page; canonical LinkedIn URL; not in primary nav. If `/connect` is in `getSitemapPaths()`, `npm run test:e2e` includes passing axe for `/connect`. If early connect e2e was added, it passes in this PR’s CI gates.
 
 ---
 
@@ -190,11 +190,11 @@ Refactor is **moves only** under `app/(site)/`; public URLs unchanged.
 
 ### Regression verification (required per implementation PR)
 
-| Check                    | How                                                                                     |
-| ------------------------ | --------------------------------------------------------------------------------------- |
-| Metadata / JSON-LD / nav | Existing Vitest + `e2e/happy-path.spec.ts`                                              |
-| Root manifest            | [`tests/manifest.test.ts`](tests/manifest.test.ts) — `display: browser`, `start_url: /` |
-| Connect                  | No duplicate `PersonJsonLd` on `/connect`                                               |
+| Check                    | How                                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| Metadata / JSON-LD / nav | Existing Vitest + `e2e/happy-path.spec.ts`                                                       |
+| Root manifest            | [`tests/manifest.test.ts`](tests/manifest.test.ts) — `display: browser`, `start_url: /`          |
+| Connect                  | No duplicate `PersonJsonLd` on `/connect`; `<main id="content">` before sitemap lists `/connect` |
 
 ---
 
@@ -309,7 +309,7 @@ flowchart TD
 ### E2E
 
 - [`e2e/connect.spec.ts`](e2e/connect.spec.ts): render, links, nav absence, mobile viewport
-- A11y: `/connect` via `getSitemapPaths()`
+- A11y: `/connect` via `getSitemapPaths()` — requires `<main id="content">` on the connect page (hydration gate in [`e2e/accessibility.spec.ts`](e2e/accessibility.spec.ts))
 
 ### Repo gates
 
@@ -321,7 +321,7 @@ npm run lint && npm run typecheck && npm test && npm run build && npm run test:e
 
 ## Analytics and accessibility
 
-PostHog via existing client init; LinkedIn `ExternalLink` + `analyticsLabel`; redundant link besides QR; semantic headings; focus/reduced-motion per site standards.
+PostHog via existing client init; LinkedIn `ExternalLink` + `analyticsLabel`; redundant link besides QR; semantic headings; **`<main id="content">`** on connect page (skip-link + axe parity with site pages); focus/reduced-motion per site standards.
 
 ---
 
@@ -375,9 +375,9 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: lib/connect.ts, app/connect page + layout + connect.css, sitemap/metadata, generate-connect-qr script, public/linkedin-connect-qr.svg, tests/connect-qr.test.ts. Encouraged when low-cost: minimal e2e/connect.spec.ts smoke (loads, links, no primary nav) in this PR — do not wait for tests-e2e for basic page assertions. Mark connect-page-and-qr completed in plan frontmatter in this PR.
+Deliverables: lib/connect.ts, app/connect page + layout + connect.css (main id="content"), sitemap/metadata, generate-connect-qr script, public/linkedin-connect-qr.svg, tests/connect-qr.test.ts. Only add /connect to getSitemapPaths in the same PR as main#content. Encouraged when low-cost: minimal e2e/connect.spec.ts smoke (loads, links, no primary nav) in this PR — do not wait for tests-e2e for basic page assertions. Mark connect-page-and-qr completed in plan frontmatter in this PR.
 
-Verification: /connect renders on mobile; Vitest decodes SVG; no JPG on page; no service worker. If early e2e added, npm run test:e2e passes for connect smoke.
+Verification: /connect renders on mobile; main#content present; Vitest decodes SVG; no JPG on page; no service worker. If sitemap includes /connect, npm run test:e2e passes (including axe). If early connect e2e added, smoke passes.
 ```
 
 ### connect-manifest-icons
