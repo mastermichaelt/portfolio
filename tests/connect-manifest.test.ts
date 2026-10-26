@@ -1,20 +1,8 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import {
-  CONNECT_MANIFEST_BACKGROUND_COLOR,
-  CONNECT_MANIFEST_DISPLAY,
-  CONNECT_MANIFEST_ICONS,
-  CONNECT_MANIFEST_ID,
-  CONNECT_MANIFEST_NAME,
-  CONNECT_MANIFEST_PATH,
-  CONNECT_MANIFEST_SCOPE,
-  CONNECT_MANIFEST_SHORT_NAME,
-  CONNECT_MANIFEST_START_URL,
-  CONNECT_MANIFEST_THEME_COLOR,
-  CONNECT_PAGE_DESCRIPTION,
-} from "@/lib/connect";
+import { CONNECT_MANIFEST_PATH, CONNECT_WEB_MANIFEST } from "@/lib/connect";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -40,16 +28,8 @@ describe("connect web manifest", () => {
     >;
 
     expect(manifest).toEqual({
-      id: CONNECT_MANIFEST_ID,
-      name: CONNECT_MANIFEST_NAME,
-      short_name: CONNECT_MANIFEST_SHORT_NAME,
-      description: CONNECT_PAGE_DESCRIPTION,
-      start_url: CONNECT_MANIFEST_START_URL,
-      scope: CONNECT_MANIFEST_SCOPE,
-      display: CONNECT_MANIFEST_DISPLAY,
-      background_color: CONNECT_MANIFEST_BACKGROUND_COLOR,
-      theme_color: CONNECT_MANIFEST_THEME_COLOR,
-      icons: CONNECT_MANIFEST_ICONS.map((icon) => ({ ...icon })),
+      ...CONNECT_WEB_MANIFEST,
+      icons: CONNECT_WEB_MANIFEST.icons.map((icon) => ({ ...icon })),
     });
   });
 
@@ -76,12 +56,17 @@ describe("connect web manifest", () => {
     expect(metadata.manifest).toBe(CONNECT_MANIFEST_PATH);
   });
 
-  it("does not register a service worker for connect", () => {
-    const layout = readFileSync(
-      resolve(root, "app/connect/layout.tsx"),
-      "utf8",
-    );
-    expect(layout).not.toMatch(/serviceWorker|navigator\.serviceWorker/);
+  it("does not add service worker wiring for the connect route", () => {
+    const connectDir = resolve(root, "app/connect");
+    for (const file of readdirSync(connectDir)) {
+      const content = readFileSync(resolve(connectDir, file), "utf8");
+      expect(content).not.toMatch(
+        /serviceWorker|navigator\.serviceWorker|serwist/i,
+      );
+    }
+
+    const nextConfig = readFileSync(resolve(root, "next.config.ts"), "utf8");
+    expect(nextConfig).not.toMatch(/serwist|serviceWorker/i);
     expect(existsSync(resolve(root, "public/sw.js"))).toBe(false);
   });
 });
