@@ -33,10 +33,15 @@ describe("connect web manifest", () => {
     });
   });
 
-  it("ships 192 and 512 connect launcher icons on disk", () => {
+  it("ships connect launcher icons on disk", () => {
     const expected = [
       { file: "public/connect-icon-192.png", width: 192, height: 192 },
       { file: "public/connect-icon-512.png", width: 512, height: 512 },
+      {
+        file: "public/connect-icon-maskable-512.png",
+        width: 512,
+        height: 512,
+      },
     ] as const;
 
     for (const icon of expected) {
