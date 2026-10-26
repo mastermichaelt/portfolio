@@ -30,7 +30,7 @@ const STATIC_ROUTES = [
   { html: "articles.html", ogUrl: `${SITE_ORIGIN}/articles` },
 ];
 
-const CARDS_DIR = resolve(root, "app/projects/[slug]/_cards");
+const CARDS_DIR = resolve(root, "app/(site)/projects/[slug]/_cards");
 
 const PORTRAIT_URL = `${SITE_ORIGIN}/portrait-michael-1200.jpg`;
 
@@ -75,7 +75,7 @@ const CARD_SLUGS = readdirSync(CARDS_DIR)
 
 if (CASE_STUDY_SLUGS.join() !== CARD_SLUGS.join()) {
   fail(
-    `prerendered case studies [${CASE_STUDY_SLUGS}] must match card PNGs in app/projects/[slug]/_cards [${CARD_SLUGS}]`,
+    `prerendered case studies [${CASE_STUDY_SLUGS}] must match card PNGs in app/(site)/projects/[slug]/_cards [${CARD_SLUGS}]`,
   );
 }
 
@@ -103,7 +103,7 @@ for (const bundle of ["page.js", "opengraph-image/route.js"]) {
   }
 }
 
-/** Mirrors caseStudyCardVersion in app/projects/[slug]/_cards/cards.ts. */
+/** Mirrors caseStudyCardVersion in app/(site)/projects/[slug]/_cards/cards.ts. */
 function cardVersion(slug) {
   const png = readFileSync(resolve(CARDS_DIR, `${slug}.png`));
   return createHash("sha256").update(png).digest("hex").slice(0, 12);

@@ -8,9 +8,9 @@ const nextConfig: NextConfig = {
   // Case-study social cards are read with fs at runtime, which file tracing
   // cannot follow; ship them with the routes that read them.
   outputFileTracingIncludes: {
-    "/projects/\\[slug\\]": ["./app/projects/[[]slug]/_cards/*.png"],
+    "/projects/\\[slug\\]": ["./app/(site)/projects/[[]slug]/_cards/*.png"],
     "/projects/\\[slug\\]/opengraph-image": [
-      "./app/projects/[[]slug]/_cards/*.png",
+      "./app/(site)/projects/[[]slug]/_cards/*.png",
     ],
   },
 };

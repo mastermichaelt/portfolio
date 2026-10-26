@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: route-group-shell
     content: "PR: Refactor app/(site) route group (moves only); slim root layout; PersonJsonLd/header/footer on (site) only; post-move regression"
-    status: pending
+    status: completed
   - id: connect-page-and-qr
     content: "PR: lib/connect.ts, connect page + connect.css, sitemap/metadata, QR verify+generate script, linkedin-connect-qr.svg, connect-qr tests; optional early connect page e2e assertions"
     status: pending

@@ -11,7 +11,7 @@ import type { Metadata } from "next";
  */
 export const CASE_STUDY_CARDS_DIR = join(
   process.cwd(),
-  "app/projects/[slug]/_cards",
+  "app/(site)/projects/[slug]/_cards",
 );
 
 interface CaseStudyCard {
@@ -49,8 +49,8 @@ export const CASE_STUDY_CARDS: Record<string, CaseStudyCard> = {
 function missingCardError(slug: string, detail: string): Error {
   return new Error(
     `Missing social card for /projects/${slug}: ${detail}. Add the approved ` +
-      `1.91:1 PNG as app/projects/[slug]/_cards/${slug}.png and an entry ` +
-      `(alt, width, height) to CASE_STUDY_CARDS in app/projects/[slug]/_cards/cards.ts.`,
+      `1.91:1 PNG as app/(site)/projects/[slug]/_cards/${slug}.png and an entry ` +
+      `(alt, width, height) to CASE_STUDY_CARDS in app/(site)/projects/[slug]/_cards/cards.ts.`,
   );
 }
 
