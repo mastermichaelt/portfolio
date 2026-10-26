@@ -64,6 +64,25 @@ function prerenderedFrom(srcRoute) {
     .map(([path]) => path);
 }
 
+/** Server bundle dir for `/projects/[slug]` (route groups add a `(site)/` segment). */
+function projectsSlugBundleDir() {
+  const withSite = resolve(appDir, "(site)/projects/[slug]");
+  if (existsSync(withSite)) return withSite;
+  return resolve(appDir, "projects/[slug]");
+}
+
+/** Public path prefix for a case-study opengraph-image route (hash suffix optional). */
+function caseStudyOpenGraphPath(slug) {
+  return `/projects/${slug}/opengraph-image`;
+}
+
+function hasPrerenderedCaseStudyOpenGraph(slug) {
+  const prefix = caseStudyOpenGraphPath(slug);
+  return prerendered.some(
+    ([path]) => path === prefix || path.startsWith(`${prefix}-`),
+  );
+}
+
 const CASE_STUDY_SLUGS = prerenderedFrom("/projects/[slug]")
   .map((path) => path.slice("/projects/".length))
   .sort();
@@ -79,17 +98,29 @@ if (CASE_STUDY_SLUGS.join() !== CARD_SLUGS.join()) {
   );
 }
 
-const prerenderedImages = prerenderedFrom("/projects/[slug]/opengraph-image");
 for (const slug of CASE_STUDY_SLUGS) {
-  if (!prerenderedImages.includes(`/projects/${slug}/opengraph-image`)) {
-    fail(`/projects/${slug}/opengraph-image must be prerendered at build`);
+  if (!hasPrerenderedCaseStudyOpenGraph(slug)) {
+    fail(`${caseStudyOpenGraphPath(slug)} must be prerendered at build`);
   }
 }
 
 // Both the page (hashes the PNG for ?v=) and the image route (serves it) read
 // the cards with fs at runtime; each server bundle's trace must ship them.
-for (const bundle of ["page.js", "opengraph-image/route.js"]) {
-  const tracePath = resolve(appDir, "projects/[slug]", `${bundle}.nft.json`);
+const slugBundleDir = projectsSlugBundleDir();
+const openGraphBundleDir = readdirSync(slugBundleDir).find((name) =>
+  name.startsWith("opengraph-image"),
+);
+if (!openGraphBundleDir) {
+  fail(`missing opengraph-image bundle under ${slugBundleDir}`);
+}
+const tracedBundles = [
+  { label: "page.js", tracePath: resolve(slugBundleDir, "page.js.nft.json") },
+  {
+    label: `${openGraphBundleDir}/route.js`,
+    tracePath: resolve(slugBundleDir, openGraphBundleDir, "route.js.nft.json"),
+  },
+];
+for (const { label, tracePath } of tracedBundles) {
   if (!existsSync(tracePath)) fail(`missing trace ${tracePath}`);
   const traced = JSON.parse(readFileSync(tracePath, "utf8")).files.map((file) =>
     resolve(dirname(tracePath), file),
@@ -97,7 +128,7 @@ for (const bundle of ["page.js", "opengraph-image/route.js"]) {
   for (const slug of CARD_SLUGS) {
     if (!traced.includes(resolve(CARDS_DIR, `${slug}.png`))) {
       fail(
-        `projects/[slug]/${bundle} trace is missing _cards/${slug}.png (next.config.ts outputFileTracingIncludes)`,
+        `projects/[slug]/${label} trace is missing _cards/${slug}.png (next.config.ts outputFileTracingIncludes)`,
       );
     }
   }
