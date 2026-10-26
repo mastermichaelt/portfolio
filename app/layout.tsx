@@ -11,6 +11,7 @@ import {
 import { ibmPlexMono, ibmPlexSans } from "@/lib/fonts";
 import { defaultOpenGraphImages } from "@/lib/social-metadata";
 import { getSiteUrl } from "@/lib/site";
+import { SITE_WEB_MANIFEST_PATH } from "@/lib/site-web-manifest";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
   authors: [{ name: SITE_NAME, url: getSiteUrl() }],
   creator: SITE_NAME,
   keywords: [...SITE_KEYWORDS],
+  manifest: SITE_WEB_MANIFEST_PATH,
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
