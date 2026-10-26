@@ -21,8 +21,8 @@ const artQrSvgPath = resolve(
   "../public/connect-qr-art.svg",
 );
 
-/** Inner QR width on `/connect` at default viewport (~17.5rem panel minus padding). */
-const CONNECT_QR_DISPLAY_INNER_PX = 248;
+/** Inner QR width on `/connect` at default viewport (17.5rem panel − 2×20px padding). */
+const CONNECT_QR_DISPLAY_INNER_PX = 240;
 
 async function decodeQrFromSvgRasterizedAtWidth(
   svgPath: string,

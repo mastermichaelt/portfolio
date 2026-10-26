@@ -10,7 +10,8 @@ import {
   CONNECT_QR_TOGGLE_SHOW_STANDARD,
 } from "@/lib/connect";
 
-const QR_DISPLAY_SIZE = 280;
+/** Rendered QR artwork size inside the 17.5rem panel (280px − 2×20px padding). */
+const QR_DISPLAY_SIZE = 240;
 
 type QrMode = "illustrated" | "standard";
 
