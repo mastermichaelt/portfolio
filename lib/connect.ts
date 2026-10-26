@@ -5,6 +5,9 @@ export const LINKEDIN_PROFILE_URL =
 /** Illustrated QR (default on `/connect`). */
 export const CONNECT_QR_ART_PATH = "/connect-qr-art.svg";
 
+/** Light-module / field fill in `connect-qr-art.svg` (`#fcf0e4`, 851 rects). */
+export const CONNECT_QR_ART_PANEL_BACKGROUND = "#fcf0e4";
+
 /** Generated standard QR (toggle fallback on `/connect`). */
 export const CONNECT_QR_STANDARD_PATH = "/linkedin-connect-qr.svg";
 

@@ -61,11 +61,16 @@
 .connect-qr-panel {
   width: 100%;
   max-width: 17.5rem;
-  padding: 1.25rem;
+  padding: 0.5rem;
   background: #ffffff;
   border-radius: 0.75rem;
-  /* Box-shadow keeps the 280px outer box at 20px padding + 240px QR artwork. */
+  /* Box-shadow ring: 280px outer box at 8px padding + 264px QR artwork. */
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--border) 65%, #ffffff);
+}
+
+.connect-qr-panel[data-qr-mode="illustrated"] {
+  background: #fcf0e4;
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--border) 65%, #fcf0e4);
 }
 
 .connect-qr {

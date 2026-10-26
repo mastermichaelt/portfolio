@@ -10,8 +10,8 @@ import {
   CONNECT_QR_TOGGLE_SHOW_STANDARD,
 } from "@/lib/connect";
 
-/** Rendered QR artwork size inside the 17.5rem panel (280px − 2×20px padding). */
-const QR_DISPLAY_SIZE = 240;
+/** Rendered QR artwork size inside the 17.5rem panel (280px − 2×8px padding). */
+const QR_DISPLAY_SIZE = 264;
 
 type QrMode = "illustrated" | "standard";
 
@@ -27,7 +27,7 @@ export function ConnectQrToggle() {
 
   return (
     <div className="connect-qr-section">
-      <div className="connect-qr-panel">
+      <div className="connect-qr-panel" data-qr-mode={mode}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           id={qrImageId}
