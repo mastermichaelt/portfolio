@@ -48,7 +48,38 @@ test.describe("connect networking card", () => {
     );
     await expect(page.locator("footer.site-footer")).toHaveCount(0);
     await expect(page.locator('img[src$=".jpg"]')).toHaveCount(1);
+    await expect(qrImage).toHaveAttribute("src", /connect-qr-art\.svg$/);
+
+    const toggle = page.getByRole("button", {
+      name: "Having trouble scanning? Show standard QR",
+    });
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+
+    await toggle.click();
     await expect(qrImage).toHaveAttribute("src", /linkedin-connect-qr\.svg$/);
+    await expect(
+      page.getByRole("button", { name: "Show illustrated QR" }),
+    ).toHaveAttribute("aria-pressed", "true");
+
+    await page.getByRole("button", { name: "Show illustrated QR" }).click();
+    await expect(qrImage).toHaveAttribute("src", /connect-qr-art\.svg$/);
+  });
+
+  test("toggles QR mode with the keyboard", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/connect");
+
+    const toggle = page.getByRole("button", {
+      name: "Having trouble scanning? Show standard QR",
+    });
+    await toggle.focus();
+    await expect(toggle).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("img", { name: /QR code/i })).toHaveAttribute(
+      "src",
+      /linkedin-connect-qr\.svg$/,
+    );
   });
 
   test("fits the QR in the viewport on a short phone", async ({ page }) => {

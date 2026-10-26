@@ -2,6 +2,22 @@
 export const LINKEDIN_PROFILE_URL =
   "https://www.linkedin.com/in/michael-truong-dev/";
 
+/** Illustrated QR (default on `/connect`). */
+export const CONNECT_QR_ART_PATH = "/connect-qr-art.svg";
+
+/** Light-module / field fill in `connect-qr-art.svg` (`#fcf0e4`, 851 rects). */
+export const CONNECT_QR_ART_PANEL_BACKGROUND = "#fcf0e4";
+
+/** Generated standard QR (toggle fallback on `/connect`). */
+export const CONNECT_QR_STANDARD_PATH = "/linkedin-connect-qr.svg";
+
+export const CONNECT_QR_ALT = "QR code linking to Michael Truong on LinkedIn";
+
+export const CONNECT_QR_TOGGLE_SHOW_STANDARD =
+  "Having trouble scanning? Show standard QR";
+
+export const CONNECT_QR_TOGGLE_SHOW_ILLUSTRATED = "Show illustrated QR";
+
 /** LinkedIn networking-card headline (matches official QR export). */
 export const CONNECT_HEADLINE =
   "Senior Software Engineer | AI Product Engineer | Ex Atlassian";
