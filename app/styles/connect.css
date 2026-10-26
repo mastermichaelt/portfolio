@@ -20,10 +20,10 @@
 
 .connect-portrait {
   width: clamp(7rem, 22vw, 9.5rem);
-  height: clamp(7rem, 22vw, 9.5rem);
-  border-radius: 50%;
+  height: auto;
+  border-radius: 0.75rem;
   border: 1px solid var(--border);
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
 }
 
