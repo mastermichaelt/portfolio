@@ -3,6 +3,7 @@
  * Square connect portrait for the circular on-page frame (LinkedIn card composition).
  * Fits the full 4:5 photograph inside a square without cropping face or owl.
  */
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,10 +14,14 @@ const LETTERBOX = "#e8e4dc";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const publicDir = resolve(repoRoot, "public");
-const source = resolve(publicDir, "portrait-michael-1200.jpg");
+/** Wider original (face + owl); falls back to site portrait master. */
+const source = resolve(publicDir, "connect-portrait-source.jpg");
+const fallbackSource = resolve(publicDir, "portrait-michael-1200.jpg");
 const master = resolve(publicDir, "connect-portrait-1200.jpg");
 
-const squareMaster = await sharp(source)
+const input = existsSync(source) ? source : fallbackSource;
+
+const squareMaster = await sharp(input)
   .resize(1200, 1200, {
     fit: "contain",
     background: LETTERBOX,
