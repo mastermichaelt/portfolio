@@ -42,20 +42,42 @@ export async function extractConnectPortraitSquare(sharp, inputPath) {
 /** Maskable safe zone: centered circle with diameter 80% of the icon edge (W3C). */
 export const MASKABLE_SAFE_ZONE_DIAMETER_RATIO = 0.8;
 
+/** Background cover zoom before blur/downscale (Sharp allows one resize per pipeline). */
+export const MASKABLE_BACKGROUND_ZOOM_RATIO = 1.08;
+
+/**
+ * Blurred full-bleed background for maskable icons: zoom, then blur, then downscale.
+ * Uses an intermediate buffer so the zoom step is not dropped by Sharp.
+ */
+export async function buildConnectMaskableBlurredBackground(
+  sharp,
+  squarePipeline,
+  size,
+) {
+  const zoom = Math.round(size * MASKABLE_BACKGROUND_ZOOM_RATIO);
+  const zoomed = await squarePipeline
+    .clone()
+    .resize(zoom, zoom, { fit: "cover", position: "centre" })
+    .png()
+    .toBuffer();
+  return sharp(zoomed)
+    .blur(16)
+    .resize(size, size, { fit: "cover", position: "centre" })
+    .png()
+    .toBuffer();
+}
+
 /**
  * Full-bleed maskable launcher icon from the approved square crop.
  * Blurred cover fill reaches every edge; the sharp portrait fills the canvas so
  * Android adaptive icons do not letterbox with a white ring.
  */
 export async function composeConnectMaskableIcon(sharp, squarePipeline, size) {
-  const zoom = Math.round(size * 1.08);
-  const background = await squarePipeline
-    .clone()
-    .resize(zoom, zoom, { fit: "cover", position: "centre" })
-    .blur(16)
-    .resize(size, size, { fit: "cover", position: "centre" })
-    .png()
-    .toBuffer();
+  const background = await buildConnectMaskableBlurredBackground(
+    sharp,
+    squarePipeline,
+    size,
+  );
   const foreground = await squarePipeline
     .clone()
     .resize(size, size, { fit: "cover", position: "centre" })
