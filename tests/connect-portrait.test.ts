@@ -23,16 +23,15 @@ function readJpegDimensions(buffer: Buffer): { width: number; height: number } {
 }
 
 describe("connect portrait asset", () => {
-  it("ships square JPEGs generated for the circular frame", () => {
-    for (const file of [
-      "public/connect-portrait.jpg",
-      "public/connect-portrait-1200.jpg",
-    ]) {
-      const absolutePath = resolve(root, file);
-      expect(existsSync(absolutePath)).toBe(true);
-      const { width, height } = readJpegDimensions(readFileSync(absolutePath));
-      expect(width).toBe(height);
-      expect(width).toBeGreaterThanOrEqual(600);
-    }
+  it("ships connect-portrait-source.jpg and a single 600×600 connect-portrait.jpg", () => {
+    const sourcePath = resolve(root, "public/connect-portrait-source.jpg");
+    const portraitPath = resolve(root, "public/connect-portrait.jpg");
+
+    expect(existsSync(sourcePath)).toBe(true);
+    expect(existsSync(portraitPath)).toBe(true);
+
+    const { width, height } = readJpegDimensions(readFileSync(portraitPath));
+    expect(width).toBe(600);
+    expect(height).toBe(600);
   });
 });

@@ -18,8 +18,6 @@ export default function ConnectPage() {
           <img
             className="connect-portrait"
             src="/connect-portrait.jpg"
-            srcSet="/connect-portrait-400.jpg 400w, /connect-portrait-600.jpg 600w, /connect-portrait-900.jpg 900w, /connect-portrait-1200.jpg 1200w"
-            sizes="9rem"
             alt={SITE_PORTRAIT_ALT}
             width={600}
             height={600}
