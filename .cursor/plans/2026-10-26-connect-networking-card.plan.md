@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: connect-manifest-icons
     content: "PR: connect.webmanifest + connect icons (192/512); short_name Connect, start_url /connect; root manifest unchanged"
-    status: pending
+    status: completed
   - id: tests-e2e
     content: "PR: e2e/connect.spec.ts (responsive/links); /connect in sitemap for axe; no offline tests"
     status: pending
