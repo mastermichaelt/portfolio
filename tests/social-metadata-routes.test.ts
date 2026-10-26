@@ -91,10 +91,10 @@ describe("route Open Graph metadata exports", () => {
 
   it("includes default images on static indexable pages", async () => {
     const pages = [
-      await import("@/app/page"),
-      await import("@/app/projects/page"),
-      await import("@/app/articles/page"),
-      await import("@/app/ecosystem/page"),
+      await import("@/app/(site)/page"),
+      await import("@/app/(site)/projects/page"),
+      await import("@/app/(site)/articles/page"),
+      await import("@/app/(site)/ecosystem/page"),
     ] as const;
 
     for (const { metadata } of pages) {
@@ -103,7 +103,7 @@ describe("route Open Graph metadata exports", () => {
   });
 
   it("uses the canonical portrait for About Open Graph and Twitter previews", async () => {
-    const { metadata } = await import("@/app/about/page");
+    const { metadata } = await import("@/app/(site)/about/page");
     const portraitImages = portraitOpenGraphImages();
 
     expect(metadata.openGraph).toMatchObject({
@@ -130,9 +130,10 @@ describe("route Open Graph metadata exports", () => {
   // layout's site title. The rendered tags are asserted by
   // scripts/verify-prerendered-social-metadata.mjs.
   it("declares the per-slug card and Twitter copy on project detail metadata", async () => {
-    const { generateMetadata } = await import("@/app/projects/[slug]/page");
+    const { generateMetadata } =
+      await import("@/app/(site)/projects/[slug]/page");
     const { CASE_STUDY_CARDS, CASE_STUDY_CARDS_DIR, caseStudyCardVersion } =
-      await import("@/app/projects/[slug]/_cards/cards");
+      await import("@/app/(site)/projects/[slug]/_cards/cards");
 
     for (const [slug, name] of [
       ["codenames-ai", "Codenames AI"],

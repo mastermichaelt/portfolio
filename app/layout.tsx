@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { PersonJsonLd } from "@/components/PersonJsonLd";
-import { SiteFooter } from "@/components/SiteFooter";
-import { SiteHeader } from "@/components/SiteHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeScript } from "@/components/ThemeScript";
-import { getPortfolioRepository } from "@/lib/portfolio";
 import {
   SITE_DESCRIPTION,
   SITE_KEYWORDS,
@@ -56,9 +52,7 @@ export const viewport: Viewport = {
   colorScheme: "dark light",
 };
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const profile = await getPortfolioRepository().getProfile();
-
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
@@ -69,17 +63,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <ThemeScript />
-        <PersonJsonLd profile={profile} />
       </head>
       <body className="min-h-full flex flex-col">
         <a className="skip-link" href="#content">
           Skip to content
         </a>
-        <ThemeProvider>
-          <SiteHeader email={profile.email} />
-          {children}
-          <SiteFooter profile={profile} />
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

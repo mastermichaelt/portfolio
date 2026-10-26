@@ -71,7 +71,7 @@ describe("layout metadata", () => {
 
 describe("homepage metadata", () => {
   it("keeps homepage-specific fields without partial Twitter or OG description overrides", async () => {
-    const { metadata } = await import("@/app/page");
+    const { metadata } = await import("@/app/(site)/page");
 
     expect(metadata.title).toEqual({ absolute: SITE_TITLE });
     expect(metadata.alternates).toEqual({ canonical: "/" });

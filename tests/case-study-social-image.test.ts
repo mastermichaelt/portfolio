@@ -9,8 +9,8 @@ import {
   caseStudyCardVersion,
   caseStudySocialImages,
   readCaseStudyCardPng,
-} from "@/app/projects/[slug]/_cards/cards";
-import Image from "@/app/projects/[slug]/opengraph-image";
+} from "@/app/(site)/projects/[slug]/_cards/cards";
+import Image from "@/app/(site)/projects/[slug]/opengraph-image";
 import { listCaseStudyParams } from "@/lib/case-study-entry";
 
 /** Width/height from the PNG IHDR chunk. */
