@@ -9,7 +9,7 @@ todos:
     content: "PR: Refactor app/(site) route group (moves only); slim root layout; PersonJsonLd/header/footer on (site) only; post-move regression"
     status: pending
   - id: connect-page-and-qr
-    content: "PR: lib/connect.ts, connect page + connect.css, sitemap/metadata, QR verify+generate script, linkedin-connect-qr.svg, connect-qr tests"
+    content: "PR: lib/connect.ts, connect page + connect.css, sitemap/metadata, QR verify+generate script, linkedin-connect-qr.svg, connect-qr tests; optional early connect page e2e assertions"
     status: pending
   - id: connect-manifest-icons
     content: "PR: connect.webmanifest + connect icons (192/512); short_name Connect, start_url /connect; root manifest unchanged"
@@ -37,7 +37,7 @@ isProject: false
 - QR encodes and opens canonical LinkedIn profile (`https://www.linkedin.com/in/michael-truong-dev/`).
 - Professional identity matches LinkedIn (name, headline, links).
 - Pixel **Home Screen shortcut** opens `/connect` directly (browser chrome acceptable).
-- Recognizable shortcut icon where supported.
+- Recognizable shortcut icon **where Chrome uses manifest icons**; if the OS creates a **browser shortcut** with a generated icon instead, that is acceptable (do not expand scope to force a custom launcher icon).
 - **No** service worker or offline infrastructure introduced.
 - Existing portfolio routes, identity metadata, and root PWA manifest behavior unchanged.
 
@@ -69,7 +69,7 @@ Multi-slice plans stack **execution order**, not Git branches. Integration branc
 1. `route-group-shell`
 2. `connect-page-and-qr`
 3. `connect-manifest-icons`
-4. `tests-e2e` (or merge into prior slice if merge-safe; must include connect e2e + sitemap/axe coverage before closure)
+4. `tests-e2e` — dedicated PR for full connect Playwright + axe via sitemap; **may** add straightforward page assertions earlier in `connect-page-and-qr` when merge-safe (do not block page slice waiting for this PR)
 5. `plan-closure` (docs-only, after all implementation slices merge)
 
 Each implementation PR runs: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `npm run test:e2e` when the slice touches product paths (docs-only `plan-closure` excepted per CI allowlist).
@@ -106,8 +106,9 @@ Each implementation PR runs: `npm run lint`, `npm run typecheck`, `npm test`, `n
 - Dev-time: decode official LinkedIn QR card JPG (local); generate [`public/linkedin-connect-qr.svg`](public/linkedin-connect-qr.svg); [`scripts/generate-connect-qr.mjs`](scripts/generate-connect-qr.mjs) + `npm run generate:connect-qr` (not in `npm run build`)
 - [`tests/connect-qr.test.ts`](tests/connect-qr.test.ts) — committed SVG decodes to canonical URL
 - Optional connect metadata/constants unit tests
+- **Encouraged (same PR, when low-cost):** straightforward connect page assertions — e.g. minimal [`e2e/connect.spec.ts`](e2e/connect.spec.ts) smoke (page loads, key links, no primary nav) or equivalent — without waiting for the dedicated `tests-e2e` slice. Do not duplicate the full responsive/axe matrix here if it fits better in `tests-e2e`.
 
-**Acceptance:** Page uses portfolio portrait + HTML name/headline; no JPG on page; canonical LinkedIn URL; not in primary nav.
+**Acceptance:** Page uses portfolio portrait + HTML name/headline; no JPG on page; canonical LinkedIn URL; not in primary nav. If early e2e was added, it passes in this PR’s CI gates.
 
 ---
 
@@ -129,7 +130,7 @@ Each implementation PR runs: `npm run lint`, `npm run typecheck`, `npm test`, `n
 
 **Recommended authority:** Open PR only
 
-**Rationale:** Locks connect behavior, links, responsive layout, and axe coverage via sitemap without offline or SW tests.
+**Rationale:** Completes connect Playwright coverage (responsive layout, manifest link, axe via sitemap). Any smoke assertions landed in `connect-page-and-qr` should be extended here, not duplicated.
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
@@ -213,12 +214,15 @@ Refactor is **moves only** under `app/(site)/`; public URLs unchanged.
 
 ### Minimum vs best-effort (Pixel)
 
-| Experience                 | Requirement                                                                                                      |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Minimum (required)**     | Home Screen **shortcut** opens `https://michaeltruong.ai/connect` directly; label **Connect**; recognizable icon |
-| **Best-effort (optional)** | Separate installable web app with **standalone** chrome (no URL bar) — verify manually; not a merge blocker      |
+| Experience                          | Requirement                                                                                                                                                                                                                                       |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Minimum (required)**              | Home Screen **shortcut** opens `https://michaeltruong.ai/connect` directly; label **Connect** where Chrome shows it; recognizable **custom** icon when the shortcut uses manifest icons                                                           |
+| **Best-effort (optional)**          | Separate installable web app with **standalone** chrome (no URL bar) — verify manually; not a merge blocker                                                                                                                                       |
+| **Icon fallback (required policy)** | If Chrome creates a **browser shortcut** (not a full installed web app) and uses a **generated** launcher icon instead of `connect-icon-*.png`, **accept it** — do not add Android-specific engineering to force a customized launcher experience |
 
-Document in PR: “shortcut verified on Pixel” vs “standalone install observed” if applicable.
+Chrome may install a web app or add a browser shortcut; shortcut label and icon behavior are **not fully controlled** by `connect.webmanifest`. Manual Pixel verification remains the source of truth for launcher UX.
+
+Document in PR: “shortcut verified on Pixel” vs “standalone install observed”; note whether manifest icons or Chrome-generated shortcut icon was used.
 
 ### Home Screen icon — evaluate and pick
 
@@ -231,15 +235,16 @@ Pick whichever reads best at launcher size; maskable-safe padding as needed.
 
 ### What CI can prove vs manual (Pixel)
 
-| Claim                                   | CI                      | Manual               |
-| --------------------------------------- | ----------------------- | -------------------- |
-| Connect manifest fields + icons on disk | Yes                     | —                    |
-| Root manifest unchanged                 | Yes                     | —                    |
-| `link[rel=manifest]` on `/connect`      | Yes                     | —                    |
-| Shortcut opens `/connect`               | No                      | Yes                  |
-| Shortcut label **Connect**              | No                      | Yes                  |
-| Standalone (no browser chrome)          | No                      | Optional observation |
-| QR scan → LinkedIn profile              | Partial (Vitest decode) | Yes (second phone)   |
+| Claim                                   | CI                      | Manual                                  |
+| --------------------------------------- | ----------------------- | --------------------------------------- |
+| Connect manifest fields + icons on disk | Yes                     | —                                       |
+| Root manifest unchanged                 | Yes                     | —                                       |
+| `link[rel=manifest]` on `/connect`      | Yes                     | —                                       |
+| Shortcut opens `/connect`               | No                      | Yes                                     |
+| Shortcut label **Connect**              | No                      | Yes (when shown)                        |
+| Custom manifest icon on launcher        | No                      | Best-effort; generated shortcut icon OK |
+| Standalone (no browser chrome)          | No                      | Optional observation                    |
+| QR scan → LinkedIn profile              | Partial (Vitest decode) | Yes (second phone)                      |
 
 ---
 
@@ -322,16 +327,17 @@ PostHog via existing client init; LinkedIn `ExternalLink` + `analyticsLabel`; re
 
 ## Trade-offs
 
-| Choice                      | Benefit                       | Cost                      |
-| --------------------------- | ----------------------------- | ------------------------- |
-| No offline v1               | Smaller diff; no SW risk      | `/connect` needs network  |
-| Combined page + QR slice    | One merge-safe PR for core UX | Larger single PR          |
-| Connect manifest + shortcut | Direct `/connect` launch      | Standalone not guaranteed |
-| Verify JPG + generate SVG   | Trusted destination; clean QR | Dev tooling + tests       |
+| Choice                      | Benefit                             | Cost                                             |
+| --------------------------- | ----------------------------------- | ------------------------------------------------ |
+| No offline v1               | Smaller diff; no SW risk            | `/connect` needs network                         |
+| Combined page + QR slice    | One merge-safe PR for core UX       | Larger single PR                                 |
+| Connect manifest + shortcut | Direct `/connect` launch            | Standalone + custom launcher icon not guaranteed |
+| Accept Chrome shortcut icon | Avoids Android launcher scope creep | May differ from manifest art                     |
+| Verify JPG + generate SVG   | Trusted destination; clean QR       | Dev tooling + tests                              |
 
 ## Outstanding manual checks (Pixel)
 
-1. Add to Home Screen from `/connect` — shortcut opens `/connect`; label **Connect**; icon recognizable.
+1. Add to Home Screen from `/connect` — shortcut opens `/connect`; label **Connect** when shown; prefer recognizable custom icon — if Chrome uses a generated shortcut icon instead, note it and **do not** treat as a blocker.
 2. Optional: standalone install without browser chrome.
 3. Second device scans on-page QR → LinkedIn profile.
 4. Visual: QR prominent on device; headline wrapping OK.
@@ -369,9 +375,9 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: lib/connect.ts, app/connect page + layout + connect.css, sitemap/metadata, generate-connect-qr script, public/linkedin-connect-qr.svg, tests/connect-qr.test.ts. Mark connect-page-and-qr completed in plan frontmatter in this PR.
+Deliverables: lib/connect.ts, app/connect page + layout + connect.css, sitemap/metadata, generate-connect-qr script, public/linkedin-connect-qr.svg, tests/connect-qr.test.ts. Encouraged when low-cost: minimal e2e/connect.spec.ts smoke (loads, links, no primary nav) in this PR — do not wait for tests-e2e for basic page assertions. Mark connect-page-and-qr completed in plan frontmatter in this PR.
 
-Verification: /connect renders on mobile; Vitest decodes SVG; no JPG on page; no service worker.
+Verification: /connect renders on mobile; Vitest decodes SVG; no JPG on page; no service worker. If early e2e added, npm run test:e2e passes for connect smoke.
 ```
 
 ### connect-manifest-icons
@@ -401,7 +407,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: e2e/connect.spec.ts; ensure /connect in getSitemapPaths for axe. Mark tests-e2e completed in plan frontmatter in this PR.
+Deliverables: complete e2e/connect.spec.ts (extend any smoke from connect-page-and-qr); ensure /connect in getSitemapPaths for axe. Mark tests-e2e completed in plan frontmatter in this PR.
 
 Verification: npm run test:e2e. No offline or service worker tests.
 ```
