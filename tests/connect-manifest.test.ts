@@ -33,7 +33,7 @@ describe("connect web manifest", () => {
     });
   });
 
-  it("ships 192 and 512 connect launcher icons on disk", () => {
+  it("ships connect launcher icons on disk", () => {
     const expected = [
       { file: "public/connect-icon-192.png", width: 192, height: 192 },
       { file: "public/connect-icon-512.png", width: 512, height: 512 },
@@ -49,6 +49,30 @@ describe("connect web manifest", () => {
       expect(height).toBe(icon.height);
       expect(statSync(absolutePath).size).toBeGreaterThan(4_000);
     }
+  });
+
+  it("declares the same 512px icon for any and maskable launcher purposes", () => {
+    const launcher512 = "/connect-icon-512.png";
+    const any512 = CONNECT_WEB_MANIFEST.icons.find(
+      (icon) => icon.sizes === "512x512" && icon.purpose === "any",
+    );
+    const maskable512 = CONNECT_WEB_MANIFEST.icons.find(
+      (icon) => icon.purpose === "maskable",
+    );
+
+    expect(any512).toEqual({
+      src: launcher512,
+      sizes: "512x512",
+      type: "image/png",
+      purpose: "any",
+    });
+    expect(maskable512).toEqual({
+      src: launcher512,
+      sizes: "512x512",
+      type: "image/png",
+      purpose: "maskable",
+    });
+    expect(existsSync(resolve(root, "public/connect-icon-512.png"))).toBe(true);
   });
 
   it("wires connect layout metadata.manifest to the static manifest", async () => {

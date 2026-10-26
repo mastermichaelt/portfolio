@@ -38,3 +38,28 @@ export async function extractConnectPortraitSquare(sharp, inputPath) {
   }
   return sharp(inputPath).extract(squareCropRegion(width, height));
 }
+
+/** Approximate Android circular launcher mask for local preview. */
+export function composeConnectMaskableIconPreview(
+  sharp,
+  maskablePipeline,
+  size,
+) {
+  const radius = size / 2;
+  const mask = Buffer.from(
+    `<svg width="${size}" height="${size}"><circle cx="${radius}" cy="${radius}" r="${radius}" fill="white"/></svg>`,
+  );
+  const pad = Math.round(size * 0.12);
+  const backdrop = "#121110";
+  return maskablePipeline
+    .clone()
+    .ensureAlpha()
+    .composite([{ input: mask, blend: "dest-in" }])
+    .extend({
+      top: pad,
+      bottom: pad,
+      left: pad,
+      right: pad,
+      background: backdrop,
+    });
+}
