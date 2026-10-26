@@ -108,7 +108,7 @@ Each implementation PR runs: `npm run lint`, `npm run typecheck`, `npm test`, `n
 - Optional connect metadata/constants unit tests
 - **Encouraged (same PR, when low-cost):** straightforward connect page assertions — e.g. minimal [`e2e/connect.spec.ts`](e2e/connect.spec.ts) smoke (page loads, key links, no primary nav) or equivalent — without waiting for the dedicated `tests-e2e` slice. Do not duplicate the full responsive/axe matrix here if it fits better in `tests-e2e`.
 
-**Acceptance:** Page uses portfolio portrait + HTML name/headline; **`<main id="content">` present**; no JPG on page; canonical LinkedIn URL; not in primary nav. If `/connect` is in `getSitemapPaths()`, `npm run test:e2e` includes passing axe for `/connect`. If early connect e2e was added, it passes in this PR’s CI gates.
+**Acceptance:** Page uses portfolio portrait + HTML name/headline; **`<main id="content">` present** (required for root skip link `href="#content"` as well as axe/sitemap); no JPG on page; canonical LinkedIn URL; not in primary nav. If `/connect` is in `getSitemapPaths()`, `npm run test:e2e` includes passing axe for `/connect`. If early connect e2e was added, it passes in this PR’s CI gates.
 
 ---
 
@@ -179,9 +179,11 @@ Refactor is **moves only** under `app/(site)/`; public URLs unchanged.
 
 ### Allowed layout split
 
-- **Root** [`app/layout.tsx`](app/layout.tsx): `html`/`body`, fonts, `ThemeScript`, `ThemeProvider`, skip link, `globals.css` — minus header/footer/JSON-LD.
+- **Root** [`app/layout.tsx`](app/layout.tsx): `html`/`body`, fonts, `ThemeScript`, `ThemeProvider`, skip link (`href="#content"`), `globals.css` — minus header/footer/JSON-LD.
 - **`app/(site)/layout.tsx`**: `PersonJsonLd`, `SiteHeader`, `SiteFooter`.
 - **`app/connect/`**: no site header/footer; no `PersonJsonLd`.
+
+The skip link stays on the **root** layout, so every route (including `/connect`) inherits it even when it does not use `(site)` chrome. Non–`(site)` pages must still expose a `#content` target (see `connect-page-and-qr` acceptance).
 
 ### Explicit non-goals
 
@@ -377,7 +379,7 @@ Topology: start from latest origin/main; branch represents only this slice; PR b
 
 Deliverables: lib/connect.ts, app/connect page + layout + connect.css (main id="content"), sitemap/metadata, generate-connect-qr script, public/linkedin-connect-qr.svg, tests/connect-qr.test.ts. Only add /connect to getSitemapPaths in the same PR as main#content. Encouraged when low-cost: minimal e2e/connect.spec.ts smoke (loads, links, no primary nav) in this PR — do not wait for tests-e2e for basic page assertions. Mark connect-page-and-qr completed in plan frontmatter in this PR.
 
-Verification: /connect renders on mobile; main#content present; Vitest decodes SVG; no JPG on page; no service worker. If sitemap includes /connect, npm run test:e2e passes (including axe). If early connect e2e added, smoke passes.
+Verification: /connect renders on mobile; main id="content" present (root skip link target — connect is outside (site) but still inherits skip link from app/layout.tsx); Vitest decodes SVG; no JPG on page; no service worker. If sitemap includes /connect, npm run test:e2e passes (including axe). If early connect e2e added, smoke passes.
 ```
 
 ### connect-manifest-icons
