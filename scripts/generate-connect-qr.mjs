@@ -12,21 +12,11 @@ import jsQR from "jsqr";
 import QRCode from "qrcode";
 import sharp from "sharp";
 
-const LINKEDIN_PROFILE_URL = "https://www.linkedin.com/in/michael-truong-dev/";
+import { LINKEDIN_PROFILE_URL } from "../lib/connect.ts";
+import { linkedInProfileUrlsMatch } from "../lib/connect-qr-decode.ts";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const outputPath = resolve(repoRoot, "public/linkedin-connect-qr.svg");
-
-function linkedInProfileUrlsMatch(decoded, canonical) {
-  const decodedUrl = new URL(decoded);
-  const canonicalUrl = new URL(canonical);
-  const normalizePath = (pathname) => pathname.replace(/\/$/, "") || "/";
-  return (
-    decodedUrl.protocol === canonicalUrl.protocol &&
-    decodedUrl.hostname === canonicalUrl.hostname &&
-    normalizePath(decodedUrl.pathname) === normalizePath(canonicalUrl.pathname)
-  );
-}
 
 async function decodeQrFromImageFile(imagePath) {
   const { data, info } = await sharp(imagePath)

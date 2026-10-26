@@ -38,7 +38,7 @@ export default function ConnectPage() {
             </p>
           </div>
 
-          <div className="connect-qr-panel" aria-hidden={false}>
+          <div className="connect-qr-panel">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className="connect-qr"

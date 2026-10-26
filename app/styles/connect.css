@@ -2,8 +2,8 @@
   flex: 1;
   display: flex;
   justify-content: center;
-  padding: clamp(1.5rem, 5vw, 2.5rem) var(--page-gutter, 1.25rem)
-    clamp(2rem, 8vw, 3rem);
+  padding: clamp(1rem, 4vw, 2.5rem) var(--page-gutter, 1.25rem)
+    clamp(1.25rem, 6vw, 3rem);
 }
 
 .connect-shell {
@@ -14,12 +14,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.25rem;
+  gap: clamp(0.75rem, 2.5vw, 1.25rem);
   text-align: center;
 }
 
 .connect-portrait {
-  width: 9.5rem;
+  width: clamp(7rem, 22vw, 9.5rem);
   height: auto;
   border-radius: 50%;
   border: 1px solid var(--border);
@@ -30,7 +30,7 @@
 .connect-identity {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
   max-width: 22rem;
 }
 
@@ -54,8 +54,8 @@
 }
 
 .connect-qr-panel {
-  width: min(100%, 18.5rem);
-  padding: 1rem;
+  width: min(100%, 17.5rem);
+  padding: clamp(0.65rem, 2vw, 1rem);
   background: #ffffff;
   border-radius: 0.75rem;
   border: 1px solid color-mix(in oklch, var(--border) 65%, #ffffff);
@@ -78,6 +78,31 @@
 .connect-links a {
   text-decoration: underline;
   text-underline-offset: 0.18em;
+}
+
+/* Short phones: keep the QR panel in the first screen where possible. */
+@media (max-height: 740px) {
+  .connect-page {
+    padding-top: 0.75rem;
+    padding-bottom: 1rem;
+  }
+
+  .connect-card {
+    gap: 0.65rem;
+  }
+
+  .connect-name {
+    font-size: 1.25rem;
+  }
+
+  .connect-headline {
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .connect-qr-panel {
+    width: min(100%, 16rem);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
