@@ -19,12 +19,13 @@
 }
 
 .connect-portrait {
-  width: clamp(7rem, 22vw, 9.5rem);
-  height: auto;
+  width: clamp(7.5rem, 22vw, 9rem);
+  height: clamp(7.5rem, 22vw, 9rem);
+  aspect-ratio: 1;
   border-radius: 50%;
-  border: 1px solid var(--border);
+  border: 3px solid #e8e4dc;
   object-fit: cover;
-  aspect-ratio: 4 / 5;
+  object-position: center;
 }
 
 .connect-identity {
@@ -47,10 +48,6 @@
   color: var(--fg-2);
   font-size: clamp(0.95rem, 3.2vw, 1.05rem);
   line-height: 1.45;
-}
-
-.connect-headline-line {
-  display: block;
 }
 
 .connect-qr-panel {

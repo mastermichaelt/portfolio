@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ExternalLink } from "@/components/ExternalLink";
 import { profile } from "@/content/profile";
 import {
-  CONNECT_HEADLINE_LINES,
+  CONNECT_HEADLINE,
   CONNECT_LINKEDIN_ANALYTICS_LABEL,
   LINKEDIN_PROFILE_URL,
 } from "@/lib/connect";
@@ -17,25 +17,17 @@ export default function ConnectPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="connect-portrait"
-            src="/portrait-michael.jpg"
-            srcSet="/portrait-michael-200.jpg 200w, /portrait-michael-300.jpg 300w, /portrait-michael-400.jpg 400w, /portrait-michael-600.jpg 600w, /portrait-michael-900.jpg 900w, /portrait-michael-1200.jpg 1200w"
-            sizes="160px"
+            src="/connect-portrait.jpg"
             alt={SITE_PORTRAIT_ALT}
-            width={1200}
-            height={1500}
+            width={600}
+            height={600}
             loading="eager"
             decoding="async"
           />
 
           <div className="connect-identity">
             <h1 className="connect-name">{profile.name}</h1>
-            <p className="connect-headline">
-              {CONNECT_HEADLINE_LINES.map((line) => (
-                <span key={line} className="connect-headline-line">
-                  {line}
-                </span>
-              ))}
-            </p>
+            <p className="connect-headline">{CONNECT_HEADLINE}</p>
           </div>
 
           <div className="connect-qr-panel">
