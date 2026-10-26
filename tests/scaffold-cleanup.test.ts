@@ -14,7 +14,10 @@ const REMOVED_SCAFFOLD_SVGS = [
 ] as const;
 
 /** Intentional static SVG assets (not Next.js scaffold). */
-const ALLOWED_PUBLIC_SVGS = new Set(["linkedin-connect-qr.svg"]);
+const ALLOWED_PUBLIC_SVGS = new Set([
+  "connect-qr-art.svg",
+  "linkedin-connect-qr.svg",
+]);
 
 const SCAN_DIRS = [
   "app",

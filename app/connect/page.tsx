@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ConnectQrToggle } from "@/components/connect/ConnectQrToggle";
 import { ExternalLink } from "@/components/ExternalLink";
 import { profile } from "@/content/profile";
 import {
@@ -30,17 +31,7 @@ export default function ConnectPage() {
             <p className="connect-headline">{CONNECT_HEADLINE}</p>
           </div>
 
-          <div className="connect-qr-panel">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className="connect-qr"
-              src="/linkedin-connect-qr.svg"
-              alt="QR code linking to Michael Truong on LinkedIn"
-              width={280}
-              height={280}
-              decoding="async"
-            />
-          </div>
+          <ConnectQrToggle />
 
           <nav className="connect-links" aria-label="Connect links">
             <ExternalLink

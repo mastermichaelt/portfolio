@@ -43,12 +43,20 @@ export function linkedInProfileUrlsMatch(
   const decodedUrl = new URL(decoded);
   const canonicalUrl = new URL(canonical);
 
+  const normalizeHostname = (hostname: string) => {
+    if (hostname === "linkedin.com" || hostname === "www.linkedin.com") {
+      return "www.linkedin.com";
+    }
+    return hostname;
+  };
+
   const normalizePath = (pathname: string) =>
     pathname.replace(/\/$/, "") || "/";
 
   return (
     decodedUrl.protocol === canonicalUrl.protocol &&
-    decodedUrl.hostname === canonicalUrl.hostname &&
+    normalizeHostname(decodedUrl.hostname) ===
+      normalizeHostname(canonicalUrl.hostname) &&
     normalizePath(decodedUrl.pathname) === normalizePath(canonicalUrl.pathname)
   );
 }
