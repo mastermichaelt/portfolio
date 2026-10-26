@@ -19,8 +19,31 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after last slice: # Shipped note, move plan to .cursor/plans/archive/2026-10-26-connect-networking-card.plan.md"
-    status: pending
+    status: completed
 isProject: false
+---
+
+# Shipped
+
+**Archived 2026-10-26.**
+
+| Slice                  | Delivered                                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------------------- |
+| plan-only-pr           | [#87](https://github.com/mastermichaelt/portfolio/pull/87) — plan artifact only (Plan-only PR)          |
+| route-group-shell      | [#88](https://github.com/mastermichaelt/portfolio/pull/88) — `app/(site)` route group; slim root layout |
+| connect-page-and-qr    | [#89](https://github.com/mastermichaelt/portfolio/pull/89) — `/connect` page, QR pipeline, sitemap      |
+| connect-manifest-icons | [#90](https://github.com/mastermichaelt/portfolio/pull/90) — `connect.webmanifest` + launcher icons     |
+| tests-e2e              | [#92](https://github.com/mastermichaelt/portfolio/pull/92) — Playwright + axe via sitemap               |
+| plan-closure           | This PR — archive to `.cursor/plans/archive/2026-10-26-connect-networking-card.plan.md`                 |
+
+**Follow-up merges on `main` (not separate plan slices):** [#91](https://github.com/mastermichaelt/portfolio/pull/91) illustrated QR toggle; [#93](https://github.com/mastermichaelt/portfolio/pull/93) maskable launcher icon reuse.
+
+**Deferred (v1 non-goals):** service worker, Serwist, precaching, offline E2E, root manifest changes.
+
+Production: [`/connect`](https://michaeltruong.ai/connect) — mobile-first networking card with dev-verified LinkedIn QR SVG and connect-scoped Home Screen manifest (`short_name: Connect`, `start_url: /connect`).
+
+This plan is archived. The work described here has shipped; the remaining content is preserved for historical context.
+
 ---
 
 # Connect networking card (`/connect`)
@@ -52,7 +75,7 @@ isProject: false
 | tests-e2e              | Open PR only          | Do not merge. Stop after opening the PR. |
 | plan-closure           | Open PR only          | Do not merge. Stop after opening the PR. |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md)).
 
 ## Repository topology (default)
 
@@ -353,7 +376,7 @@ Use a **fresh Agent-mode chat** per slice.
 ### route-group-shell
 
 ```text
-@.cursor/plans/2026-10-26-connect-networking-card.plan.md
+@.cursor/plans/archive/2026-10-26-connect-networking-card.plan.md
 
 Implement slice route-group-shell only. Do not start connect-page-and-qr or later slices. Do not archive the plan.
 
@@ -369,7 +392,7 @@ Verification: metadata/JSON-LD/nav regression tests per plan. Do not add service
 ### connect-page-and-qr
 
 ```text
-@.cursor/plans/2026-10-26-connect-networking-card.plan.md
+@.cursor/plans/archive/2026-10-26-connect-networking-card.plan.md
 
 Implement slice connect-page-and-qr only. Prerequisite: route-group-shell merged. Do not start connect-manifest-icons or later slices.
 
@@ -385,7 +408,7 @@ Verification: /connect renders on mobile; main id="content" present (root skip l
 ### connect-manifest-icons
 
 ```text
-@.cursor/plans/2026-10-26-connect-networking-card.plan.md
+@.cursor/plans/archive/2026-10-26-connect-networking-card.plan.md
 
 Implement slice connect-manifest-icons only. Prerequisite: connect-page-and-qr merged. Do not start tests-e2e or plan-closure.
 
@@ -401,7 +424,7 @@ Verification: tests/connect-manifest.test.ts; root manifest unchanged; no servic
 ### tests-e2e
 
 ```text
-@.cursor/plans/2026-10-26-connect-networking-card.plan.md
+@.cursor/plans/archive/2026-10-26-connect-networking-card.plan.md
 
 Implement slice tests-e2e only. Prerequisite: connect-manifest-icons merged. Do not start plan-closure.
 
@@ -417,7 +440,7 @@ Verification: npm run test:e2e. No offline or service worker tests.
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-10-26-connect-networking-card.plan.md
+@.cursor/plans/archive/2026-10-26-connect-networking-card.plan.md
 
 Execute only plan-closure.
 
