@@ -56,6 +56,7 @@
     "@axe-core/playwright": "^4.14.0",
     "@google/genai": "^2.24.0",
     "@multipliers-dev/renovate-workflow": "^0.3.1",
+    "@multipliers-dev/savepoints-lite": "1.1.0",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20.19.43",
