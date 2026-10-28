@@ -554,7 +554,8 @@ Do **not** ship any bridge that replays full CREATE on populated production.
 8. Docs: [assistant-database.md](../../docs/assistant/assistant-database.md) (single-authority target, investigation outcome, operator workflow, Neon baseline procedure); short pointer in [architecture-direction.md](../../docs/assistant/architecture-direction.md). If Strategy B: maintenance cost + **which retirement path** (same-PR vs **`drizzle-migration-cutover`**).
 9. If Strategy B and dual-runner remains after this PR: **do not mark migration cutover complete** in docs; open **`drizzle-migration-cutover`** or complete cutover in the same PR before merge.
 10. If Strategy B: optional hardening — assert baseline SQL contains no `CREATE TABLE` / `CREATE EXTENSION`.
-11. Mark **`drizzle-foundation`** `completed` in plan frontmatter in this PR.
+11. If Strategy A **or** legacy runner retired in this PR (same-PR cutover): mark **`drizzle-migration-cutover`** `cancelled` in plan frontmatter with one-line rationale.
+12. Mark **`drizzle-foundation`** `completed` in plan frontmatter in this PR.
 
 **Acceptance:**
 
@@ -810,7 +811,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: Drizzle ORM + Drizzle Kit; db/schema.ts matching existing assistant tables; db/client.ts + temporary client.mjs shim; drizzle.config.ts; migration path per investigation — evaluate Strategy A (single-authority Drizzle migrate, legacy runner retired) first; Strategy B (dual-runner fallback) only if A impractical with documented maintenance cost. If Strategy A: mark drizzle-migration-cutover cancelled in plan frontmatter with rationale. If Strategy B leaves dual-runner active: foundation PR must name drizzle-migration-cutover as required follow-up (merge after drizzle-queries, before generation-ui and operational-acceptance). Extend assistant:db:migrate and assistant:db:verify; assistant:db:generate script; tests/assistant-db.test.ts; docs/assistant/assistant-database.md + architecture-direction pointer. No retrieve/ingest/rate-limit query rewrites. Mark drizzle-foundation completed in plan frontmatter in this PR.
+Deliverables: Drizzle ORM + Drizzle Kit; db/schema.ts matching existing assistant tables; db/client.ts + temporary client.mjs shim; drizzle.config.ts; migration path per investigation — evaluate Strategy A (single-authority Drizzle migrate, legacy runner retired) first; Strategy B (dual-runner fallback) only if A impractical with documented maintenance cost. If Strategy A or same-PR cutover retires legacy runner: mark drizzle-migration-cutover cancelled in plan frontmatter with rationale. If Strategy B leaves dual-runner active: foundation PR must name drizzle-migration-cutover as required follow-up (merge after drizzle-queries, before generation-ui and operational-acceptance). Extend assistant:db:migrate and assistant:db:verify; assistant:db:generate script; tests/assistant-db.test.ts; docs/assistant/assistant-database.md + architecture-direction pointer. No retrieve/ingest/rate-limit query rewrites. Mark drizzle-foundation completed in plan frontmatter in this PR.
 
 Operator: do not run production Neon migrate unless operator-approved; document Neon baseline procedure for shipped strategy.
 
