@@ -31,17 +31,18 @@ The schema enables pgvector and creates assistant tables with `embedding vector(
 
 ### Migration strategy (Strategy A — single authority)
 
-| Scenario                                                                                                                         | `npm run assistant:db:migrate` behaviour                                                                           |
-| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **Fresh database** (no assistant tables)                                                                                         | Applies `drizzle/0000_assistant_initial.sql` via Drizzle migrator (`CREATE EXTENSION vector` + assistant tables)   |
-| **Existing database** (legacy runner already applied; `assistant_retrieval_units` present; empty `drizzle.__drizzle_migrations`) | **Journal baseline only** — inserts expected rows into `drizzle.__drizzle_migrations` without replaying CREATE DDL |
-| **Already baselined / migrated**                                                                                                 | No-op (idempotent)                                                                                                 |
+| Scenario                                                                                                                                                                                                | `npm run assistant:db:migrate` behaviour                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fresh database** (no assistant tables)                                                                                                                                                                | Applies `drizzle/0000_assistant_initial.sql` via Drizzle migrator (`CREATE EXTENSION vector` + assistant tables)                                                       |
+| **Existing database** (complete legacy runner history — all assistant tables, `vector` extension, every file in `db/migrations/` recorded in `schema_migrations`; empty `drizzle.__drizzle_migrations`) | **Journal baseline only** — inserts **only** the initial Drizzle migration (`0000_assistant_initial`) into `drizzle.__drizzle_migrations` without replaying CREATE DDL |
+| **Partial / ambiguous legacy shape** (some assistant tables or legacy migration records missing)                                                                                                        | **Fail closed** — migrate exits with an error; does **not** seed the Drizzle journal                                                                                   |
+| **Already baselined / migrated**                                                                                                                                                                        | No-op (idempotent)                                                                                                                                                     |
 
 Legacy `schema_migrations` rows on Neon or local databases that were migrated before Drizzle adoption may remain as **frozen history**; verify and forward DDL use **`drizzle.__drizzle_migrations` only**.
 
 **Neon baseline procedure (operator — explicit approval required):**
 
-1. Confirm production branch/database already has assistant tables from the prior legacy migration runner (do **not** drop or recreate).
+1. Confirm production branch/database already has the **complete legacy schema**: `vector` extension, all assistant tables, and every legacy SQL file recorded in `schema_migrations` (do **not** drop or recreate).
 2. Set `DATABASE_URL` to the **direct** (non-pooled) connection string for the target branch.
 3. Run `npm run assistant:db:migrate` once — expect log line `detected legacy assistant schema without Drizzle journal — baselining only` when the journal was empty.
 4. Run `npm run assistant:db:verify` — all checks must pass, including `drizzle_migration_journal` and all three assistant tables.

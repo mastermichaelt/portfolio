@@ -2,10 +2,15 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { drizzle } from "drizzle-orm/node-postgres";
-import { readMigrationFiles } from "drizzle-orm/migrator";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 import { createPool, getDatabaseUrl } from "./client.mjs";
+import {
+  assessLegacyBaselineEligibility,
+  hasAnyAssistantTable,
+  LegacyBaselineIneligibleError,
+  seedLegacyBaselineJournal,
+} from "./legacy-baseline.mjs";
 import {
   DRIZZLE_MIGRATIONS_SCHEMA,
   DRIZZLE_MIGRATIONS_TABLE,
@@ -22,25 +27,6 @@ export const assistantDrizzleMigrationConfig = {
   migrationsTable: DRIZZLE_MIGRATIONS_TABLE,
   migrationsSchema: DRIZZLE_MIGRATIONS_SCHEMA,
 };
-
-/**
- * @param {import("pg").Pool} pool
- * @returns {Promise<boolean>}
- */
-async function publicTableExists(pool, tableName) {
-  const result = await pool.query(
-    `
-    SELECT EXISTS (
-      SELECT 1
-      FROM information_schema.tables
-      WHERE table_schema = 'public'
-        AND table_name = $1
-    ) AS exists
-  `,
-    [tableName],
-  );
-  return result.rows[0]?.exists === true;
-}
 
 /**
  * @param {import("pg").Pool} pool
@@ -70,39 +56,6 @@ async function drizzleMigrationRowCount(pool) {
 }
 
 /**
- * Existing Neon/local databases migrated with the legacy runner already have
- * assistant tables but no Drizzle journal. Seed journal rows without replaying DDL.
- *
- * @param {import("pg").Pool} pool
- * @param {(message: string) => void} log
- */
-async function baselineDrizzleJournalForLegacyDatabase(pool, log) {
-  const migrations = readMigrationFiles(assistantDrizzleMigrationConfig);
-  if (migrations.length === 0) {
-    throw new Error("No Drizzle migration files found to baseline");
-  }
-
-  await pool.query(`CREATE SCHEMA IF NOT EXISTS ${DRIZZLE_MIGRATIONS_SCHEMA}`);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} (
-      id SERIAL PRIMARY KEY,
-      hash text NOT NULL,
-      created_at bigint
-    )
-  `);
-
-  for (const migration of migrations) {
-    await pool.query(
-      `INSERT INTO ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} (hash, created_at) VALUES ($1, $2)`,
-      [migration.hash, migration.folderMillis],
-    );
-    log(
-      `baselined ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} hash=${migration.hash.slice(0, 12)}…`,
-    );
-  }
-}
-
-/**
  * Strategy A: Drizzle Kit is the sole migration authority (`npm run assistant:db:migrate`).
  *
  * @param {import("pg").Pool} pool
@@ -110,18 +63,26 @@ async function baselineDrizzleJournalForLegacyDatabase(pool, log) {
  */
 export async function runMigrations(pool, options = {}) {
   const log = options.log ?? console.log;
-  const existingSchema = await publicTableExists(
-    pool,
-    "assistant_retrieval_units",
-  );
   const drizzleCount = await drizzleMigrationRowCount(pool);
 
-  if (existingSchema && drizzleCount === 0) {
-    log(
-      "detected legacy assistant schema without Drizzle journal — baselining only",
-    );
-    await baselineDrizzleJournalForLegacyDatabase(pool, log);
+  if (drizzleCount > 0) {
+    const db = drizzle(pool);
+    await migrate(db, assistantDrizzleMigrationConfig);
+    log("drizzle migrate complete");
     return;
+  }
+
+  const eligibility = await assessLegacyBaselineEligibility(pool);
+  if (eligibility.ok) {
+    log(
+      "detected complete legacy assistant schema without Drizzle journal — baselining initial migration only",
+    );
+    await seedLegacyBaselineJournal(pool, assistantDrizzleMigrationConfig, log);
+    return;
+  }
+
+  if (await hasAnyAssistantTable(pool)) {
+    throw new LegacyBaselineIneligibleError(eligibility.reason);
   }
 
   const db = drizzle(pool);
