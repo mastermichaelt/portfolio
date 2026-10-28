@@ -3,6 +3,11 @@ import pg from "pg";
 import { loadEnvFiles } from "./load-env.mjs";
 
 /**
+ * Temporary shim: pool + env helpers stay in this module until drizzle-queries
+ * consolidates imports on `db/client.ts` (typed Drizzle factory).
+ */
+
+/**
  * Load env files and return a trimmed DATABASE_URL when configured.
  *
  * @returns {string | undefined}

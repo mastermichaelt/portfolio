@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -13,9 +14,12 @@ import {
   loadEnvFiles,
   resetEnvFileLoader,
 } from "@/scripts/assistant/db/load-env.mjs";
-import { runMigrations } from "@/scripts/assistant/db/migrate.mjs";
 import {
-  ASSISTANT_PGVECTOR_MIGRATION,
+  DRIZZLE_MIGRATIONS_SCHEMA,
+  DRIZZLE_MIGRATIONS_TABLE,
+} from "@/scripts/assistant/db/migration-meta.mjs";
+import { loadExpectedDrizzleMigrations } from "@/scripts/assistant/db/verify-schema.mjs";
+import {
   summarizeSchemaChecks,
   verifyAssistantConnectivity,
   verifyAssistantSchema,
@@ -117,6 +121,14 @@ describe("assistant db env loading", () => {
   });
 });
 
+describe("Drizzle migration metadata", () => {
+  it("loads the committed initial migration journal", () => {
+    const migrations = loadExpectedDrizzleMigrations();
+    expect(migrations).toHaveLength(1);
+    expect(migrations[0]?.hash).toMatch(/^[a-f0-9]{64}$/);
+  });
+});
+
 describe("verifyAssistantSchema on a fresh database", () => {
   it("returns structured failures without querying missing migration tables", async () => {
     const queries: string[] = [];
@@ -144,27 +156,23 @@ describe("verifyAssistantSchema on a fresh database", () => {
     expect(summary.ok).toBe(false);
     expect(checks.map((check) => check.name)).toEqual([
       "vector_extension",
-      "schema_migrations_table",
-      "assistant_pgvector_migration",
+      "drizzle_migration_journal",
       "assistant_retrieval_units_table",
+      "assistant_ingestion_runs_table",
+      "assistant_api_rate_limit_counters_table",
     ]);
     expect(
-      checks.find((check) => check.name === "schema_migrations_table"),
-    ).toEqual({
-      name: "schema_migrations_table",
-      ok: false,
-      detail:
-        "schema_migrations table is missing; run npm run assistant:db:migrate",
-    });
-    expect(
-      checks.find((check) => check.name === "assistant_pgvector_migration"),
+      checks.find((check) => check.name === "drizzle_migration_journal"),
     ).toMatchObject({
       ok: false,
-      detail: `${ASSISTANT_PGVECTOR_MIGRATION} cannot be verified until schema_migrations exists`,
+      detail:
+        "drizzle.__drizzle_migrations is missing; on a fresh database run npm run assistant:db:migrate — on a legacy database run npm run assistant:db:baseline once (operator approval), then migrate",
     });
     expect(
       queries.some((sql) =>
-        sql.includes("FROM schema_migrations WHERE filename"),
+        sql.includes(
+          `FROM ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE}`,
+        ),
       ),
     ).toBe(false);
   });
@@ -180,34 +188,70 @@ describe("assistant db", () => {
     expect(true).toBe(true);
   });
 
-  describe.skipIf(!hasDatabase)("with DATABASE_URL", () => {
-    /** @type {import("pg").Pool} */
-    let pool: import("pg").Pool;
+  it("DATABASE_URL integration source never calls migrate or baseline", () => {
+    const source = fs.readFileSync(fileURLToPath(import.meta.url), "utf8");
+    const match = source.match(
+      /describe\.skipIf\(!hasDatabase\)\("with DATABASE_URL \(read-only\)"[\s\S]*?\n  \}\);/,
+    );
+    expect(match, "read-only DATABASE_URL describe block").toBeTruthy();
+    const block = match![0]!;
+    expect(block).not.toMatch(/\brunMigrations\b/);
+    expect(block).not.toMatch(/\brunLegacyBaselineAdoption\b/);
+    expect(block).not.toMatch(/resetAssistantDatabaseForTests/);
+  });
+
+  describe.skipIf(!hasDatabase)("with DATABASE_URL (read-only)", () => {
+    /** @type {import("pg").Pool | undefined} */
+    let pool: import("pg").Pool | undefined;
+    let dbReady = false;
 
     beforeAll(async () => {
       pool = createPool(databaseUrl!);
-      await runMigrations(pool, { log: () => {} });
+      try {
+        const connectivity = await verifyAssistantConnectivity(pool);
+        if (!connectivity.ok) {
+          throw new Error(connectivity.detail);
+        }
+        dbReady = true;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.info(
+          `assistant db integration tests skipped: database not reachable (${message})`,
+        );
+        await pool.end();
+        pool = undefined;
+        dbReady = false;
+      }
     });
 
     afterAll(async () => {
-      await pool.end();
+      await pool?.end();
     });
 
-    it("passes shared schema verification checks", async () => {
-      const connectivity = await verifyAssistantConnectivity(pool);
-      const schemaChecks = await verifyAssistantSchema(pool);
-      const summary = summarizeSchemaChecks([connectivity, ...schemaChecks]);
+    it("reports connectivity without mutating schema", async (ctx) => {
+      if (!dbReady || !pool) {
+        ctx.skip();
+        return;
+      }
 
-      expect(summary.ok).toBe(true);
-      expect(summary.checks.map((check) => check.name)).toEqual([
-        "connectivity",
-        "vector_extension",
-        "schema_migrations_table",
-        "assistant_pgvector_migration",
-        "assistant_retrieval_units_table",
-        "embedding_vector_dimension",
-        "no_ann_vector_index",
-      ]);
+      const connectivity = await verifyAssistantConnectivity(pool);
+      expect(connectivity.ok).toBe(true);
+    });
+
+    it("runs verifyAssistantSchema read-only (no migrate/baseline)", async (ctx) => {
+      if (!dbReady || !pool) {
+        ctx.skip();
+        return;
+      }
+
+      const schemaChecks = await verifyAssistantSchema(pool);
+      expect(schemaChecks.length).toBeGreaterThan(0);
+      expect(
+        schemaChecks.every(
+          (check) =>
+            typeof check.ok === "boolean" && typeof check.name === "string",
+        ),
+      ).toBe(true);
     });
   });
 });

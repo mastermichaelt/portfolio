@@ -19,13 +19,13 @@ todos:
     status: completed
   - id: drizzle-foundation
     content: "PR: Drizzle ORM schema, Kit config, migration strategy (Strategy A single-authority first; Strategy B fallback if documented), verify + assistant-database docs; no query rewrites"
-    status: pending
+    status: completed
   - id: drizzle-queries
     content: "PR: migrate retrieval search, ingest sync, parent fetch, and API rate limiting to typed Drizzle queries; behaviour-preserving"
     status: pending
   - id: drizzle-migration-cutover
-    content: "PR (conditional): retire legacy migration runner — required after drizzle-queries when foundation shipped Strategy B with dual-runner; merge before generation-ui and operational-acceptance; mark cancelled if Strategy A (or same-PR cutover in foundation)"
-    status: pending
+    content: "Cancelled — Strategy A shipped in drizzle-foundation (Drizzle-only migrate; legacy runner retired; journal baseline for existing DBs)"
+    status: cancelled
   - id: generation-ui
     content: "PR: dedicated /assistant page + nav — claims[], citations, compact per-answer token usage footer; reusable components; no floating widget"
     status: pending
@@ -526,9 +526,9 @@ scripts/assistant/db/     # migrate + verify (Drizzle-first or transitional dual
 On local Docker, prove (document commands and outcomes in the PR):
 
 - **Fresh DB:** `assistant:db:migrate` builds full assistant schema via **Drizzle only** (no legacy runner execution).
-- **Simulated existing DB:** legacy `schema_migrations` rows present, empty `__drizzle_migrations` → migrate baselines Drizzle journal **without** CREATE replay or data loss.
-- **Idempotency:** second migrate is a no-op success.
-- **Verify:** `assistant:db:verify` checks match the chosen single-authority model.
+- **Simulated existing DB:** legacy `schema_migrations` rows present, empty `drizzle.__drizzle_migrations` → **`assistant:db:migrate` refuses**; **`assistant:db:baseline`** seeds journal for tag `0000_assistant_initial` **without** CREATE replay or data loss.
+- **Idempotency:** after baseline (or fresh migrate), repeated `assistant:db:migrate` is a no-op success.
+- **Verify:** `assistant:db:verify` checks match single-authority model (journal + tables + pgvector).
 
 If Strategy A passes, **ship Strategy A** — retire legacy runner execution; keep legacy SQL files in Git as history only.
 
@@ -543,7 +543,7 @@ Do **not** ship any bridge that replays full CREATE on populated production.
 1. Dependencies: `drizzle-orm`; `drizzle-kit` (dev). Keep `pg`; use `drizzle-orm/node-postgres`.
 2. **`db/schema.ts`** — `assistant_retrieval_units`, `assistant_ingestion_runs`, `assistant_api_rate_limit_counters`; pgvector `embedding` via `customType` (or supported helper) at **1536** dimensions; indexes reflected for Kit diffs.
 3. **`db/client.ts`** + temporary **`scripts/assistant/db/client.mjs`** shim re-export so existing imports keep working until **`drizzle-queries`**.
-4. **`drizzle.config.ts`**; npm scripts e.g. `assistant:db:generate` (Kit generate), optional `assistant:db:studio`; **`assistant:db:migrate`** implements **Strategy A or B** per investigation (not both by default).
+4. **`drizzle.config.ts`**; npm scripts `assistant:db:generate`, optional `assistant:db:studio`; **`assistant:db:migrate`** (Drizzle migrator only); **`assistant:db:baseline`** (explicit one-time legacy adoption).
 5. **`drizzle/`** migration chain + meta per chosen strategy (Strategy A: substantive initial migration(s); Strategy B: no-op baseline + legacy runner still executes historical SQL on fresh DB).
 6. Extend **`verify-schema.mjs`** for the **chosen** strategy — **both Strategy A and Strategy B** must assert:
    - All assistant tables exist: **`assistant_retrieval_units`**, **`assistant_ingestion_runs`**, **`assistant_api_rate_limit_counters`**

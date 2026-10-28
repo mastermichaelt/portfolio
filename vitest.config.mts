@@ -13,6 +13,10 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
+    // Destructive assistant integration tests share ASSISTANT_TEST_DATABASE_URL.
+    ...(process.env.ASSISTANT_TEST_DATABASE_URL?.trim()
+      ? { fileParallelism: false }
+      : {}),
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],

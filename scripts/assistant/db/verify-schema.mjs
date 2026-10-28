@@ -1,9 +1,33 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { readMigrationFiles } from "drizzle-orm/migrator";
+
+import {
+  ASSISTANT_TABLES,
+  DRIZZLE_MIGRATIONS_SCHEMA,
+  DRIZZLE_MIGRATIONS_TABLE,
+} from "./migration-meta.mjs";
+
 /** @typedef {{ name: string, ok: boolean, detail: string }} SchemaCheck */
 
-export const ASSISTANT_PGVECTOR_MIGRATION =
-  "20261007100000_assistant_pgvector.sql";
-
 export const EXPECTED_EMBEDDING_DIMENSIONS = 1536;
+
+const migrationsFolder = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../../drizzle",
+);
+
+/**
+ * @returns {import("drizzle-orm/migrator").MigrationMeta[]}
+ */
+export function loadExpectedDrizzleMigrations() {
+  return readMigrationFiles({
+    migrationsFolder,
+    migrationsTable: DRIZZLE_MIGRATIONS_TABLE,
+    migrationsSchema: DRIZZLE_MIGRATIONS_SCHEMA,
+  });
+}
 
 /**
  * @param {import("pg").Pool | import("pg").PoolClient} db
@@ -27,6 +51,50 @@ async function publicTableExists(db, tableName) {
 
 /**
  * @param {import("pg").Pool | import("pg").PoolClient} db
+ * @returns {Promise<SchemaCheck>}
+ */
+async function verifyDrizzleMigrationJournal(db) {
+  const expected = loadExpectedDrizzleMigrations();
+  const tableExists = await db.query(
+    `
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.tables
+      WHERE table_schema = $1
+        AND table_name = $2
+    ) AS exists
+  `,
+    [DRIZZLE_MIGRATIONS_SCHEMA, DRIZZLE_MIGRATIONS_TABLE],
+  );
+
+  if (tableExists.rows[0]?.exists !== true) {
+    return {
+      name: "drizzle_migration_journal",
+      ok: false,
+      detail: `${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} is missing; on a fresh database run npm run assistant:db:migrate — on a legacy database run npm run assistant:db:baseline once (operator approval), then migrate`,
+    };
+  }
+
+  const result = await db.query(
+    `SELECT hash FROM ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} ORDER BY created_at ASC`,
+  );
+  const appliedHashes = result.rows.map((row) => row.hash);
+  const expectedHashes = expected.map((migration) => migration.hash);
+  const matches =
+    appliedHashes.length === expectedHashes.length &&
+    expectedHashes.every((hash, index) => appliedHashes[index] === hash);
+
+  return {
+    name: "drizzle_migration_journal",
+    ok: matches,
+    detail: matches
+      ? `${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} records ${appliedHashes.length} migration(s)`
+      : `expected Drizzle journal hashes ${expectedHashes.join(", ")}, found ${appliedHashes.join(", ") || "(empty)"}`,
+  };
+}
+
+/**
+ * @param {import("pg").Pool | import("pg").PoolClient} db
  * @returns {Promise<SchemaCheck[]>}
  */
 export async function verifyAssistantSchema(db) {
@@ -44,49 +112,25 @@ export async function verifyAssistantSchema(db) {
         : "pgvector extension is missing",
   });
 
-  const schemaMigrationsTableExists = await publicTableExists(
-    db,
-    "schema_migrations",
-  );
-  checks.push({
-    name: "schema_migrations_table",
-    ok: schemaMigrationsTableExists,
-    detail: schemaMigrationsTableExists
-      ? "schema_migrations table exists"
-      : "schema_migrations table is missing; run npm run assistant:db:migrate",
-  });
+  checks.push(await verifyDrizzleMigrationJournal(db));
 
-  if (schemaMigrationsTableExists) {
-    const migrationResult = await db.query(
-      "SELECT filename FROM schema_migrations WHERE filename = $1",
-      [ASSISTANT_PGVECTOR_MIGRATION],
-    );
+  for (const tableName of ASSISTANT_TABLES) {
+    const tableExists = await publicTableExists(db, tableName);
     checks.push({
-      name: "assistant_pgvector_migration",
-      ok: migrationResult.rows.length === 1,
-      detail:
-        migrationResult.rows.length === 1
-          ? `${ASSISTANT_PGVECTOR_MIGRATION} is recorded in schema_migrations`
-          : `${ASSISTANT_PGVECTOR_MIGRATION} has not been applied`,
-    });
-  } else {
-    checks.push({
-      name: "assistant_pgvector_migration",
-      ok: false,
-      detail: `${ASSISTANT_PGVECTOR_MIGRATION} cannot be verified until schema_migrations exists`,
+      name: `${tableName}_table`,
+      ok: tableExists,
+      detail: tableExists
+        ? `${tableName} table exists`
+        : `${tableName} table is missing`,
     });
   }
 
-  const tableExists = await publicTableExists(db, "assistant_retrieval_units");
-  checks.push({
-    name: "assistant_retrieval_units_table",
-    ok: tableExists,
-    detail: tableExists
-      ? "assistant_retrieval_units table exists"
-      : "assistant_retrieval_units table is missing",
-  });
+  const retrievalTableExists = await publicTableExists(
+    db,
+    "assistant_retrieval_units",
+  );
 
-  if (tableExists) {
+  if (retrievalTableExists) {
     const embeddingTypeResult = await db.query(
       `
       SELECT format_type(a.atttypid, a.atttypmod) AS embedding_type

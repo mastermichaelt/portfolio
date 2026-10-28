@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   isNeonPostgresHost,
   parsePostgresDatabaseName,
+  resolveAssistantIngestTestDatabaseUrl,
   validateAssistantIngestTestDatabaseUrl,
 } from "@/scripts/assistant/db/integration-test-database.mjs";
 import { resetEnvFileLoader } from "@/scripts/assistant/db/load-env.mjs";
@@ -105,5 +106,15 @@ describe("assistant ingest integration test database gate", () => {
       "postgresql://user:pass@ep-x.ap-southeast-2.aws.neon.tech/portfolio_assistant_test?sslmode=require",
     );
     expect(result).toEqual({ ok: true });
+  });
+
+  it("resolveAssistantIngestTestDatabaseUrl throws on unsafe configuration", () => {
+    process.env.DATABASE_URL =
+      "postgresql://portfolio:portfolio_dev@localhost:5433/portfolio_assistant_test";
+    process.env.ASSISTANT_TEST_DATABASE_URL =
+      "postgresql://portfolio:portfolio_dev@localhost:5433/portfolio_assistant_test";
+    expect(() => resolveAssistantIngestTestDatabaseUrl()).toThrow(
+      /Unsafe ASSISTANT_TEST_DATABASE_URL/,
+    );
   });
 });
