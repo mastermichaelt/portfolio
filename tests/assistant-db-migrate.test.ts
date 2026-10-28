@@ -35,6 +35,38 @@ try {
 }
 const hasMigrateTestDatabase = Boolean(migrateTestDatabaseUrl);
 
+describe("destructive assistant test database gate", () => {
+  it("refuses reset on non-_test database names", async () => {
+    const pool = createPool(
+      "postgresql://portfolio:portfolio_dev@127.0.0.1:5433/portfolio_assistant",
+    );
+    await expect(resetAssistantDatabaseForTests(pool)).rejects.toThrow(
+      /Unsafe assistant test database reset refused/,
+    );
+    await pool.end();
+  });
+
+  it("refuses reset when test URL equals DATABASE_URL", async () => {
+    const url =
+      "postgresql://portfolio:portfolio_dev@127.0.0.1:5433/portfolio_assistant_test";
+    const previousDev = process.env.DATABASE_URL;
+    process.env.DATABASE_URL = url;
+    try {
+      const pool = createPool(url);
+      await expect(resetAssistantDatabaseForTests(pool)).rejects.toThrow(
+        /must not equal DATABASE_URL/,
+      );
+      await pool.end();
+    } finally {
+      if (previousDev === undefined) {
+        delete process.env.DATABASE_URL;
+      } else {
+        process.env.DATABASE_URL = previousDev;
+      }
+    }
+  });
+});
+
 describe("legacy baseline eligibility (unit)", () => {
   it("requires pgvector, all assistant tables, and legacy schema_migrations rows", async () => {
     const tables = new Set([

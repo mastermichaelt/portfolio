@@ -38,7 +38,7 @@ export function isNeonPostgresHost(databaseUrl) {
 }
 
 /**
- * Guards for destructive ingest integration tests (full-corpus sync semantics).
+ * Guards for destructive assistant integration tests (ingest sync, migrate baselines, rate limits).
  *
  * @param {string} databaseUrl
  * @returns {ValidationResult}

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -14,14 +15,6 @@ import {
   resetEnvFileLoader,
 } from "@/scripts/assistant/db/load-env.mjs";
 import {
-  assistantDrizzleMigrationConfig,
-  runMigrations,
-} from "@/scripts/assistant/db/migrate.mjs";
-import {
-  LegacyAdoptionRequiredError,
-  runLegacyBaselineAdoption,
-} from "@/scripts/assistant/db/legacy-baseline.mjs";
-import {
   DRIZZLE_MIGRATIONS_SCHEMA,
   DRIZZLE_MIGRATIONS_TABLE,
 } from "@/scripts/assistant/db/migration-meta.mjs";
@@ -31,21 +24,6 @@ import {
   verifyAssistantConnectivity,
   verifyAssistantSchema,
 } from "@/scripts/assistant/db/verify-schema.mjs";
-
-async function ensureAssistantDatabaseMigrated(pool: import("pg").Pool) {
-  try {
-    await runMigrations(pool, { log: () => {} });
-  } catch (error) {
-    if (error instanceof LegacyAdoptionRequiredError) {
-      await runLegacyBaselineAdoption(pool, assistantDrizzleMigrationConfig, {
-        log: () => {},
-      });
-      await runMigrations(pool, { log: () => {} });
-      return;
-    }
-    throw error;
-  }
-}
 
 // Match migrate/verify entrypoints: load .env.local/.env before gating integration tests.
 const databaseUrl = resolveAssistantDatabaseUrl();
@@ -210,7 +188,19 @@ describe("assistant db", () => {
     expect(true).toBe(true);
   });
 
-  describe.skipIf(!hasDatabase)("with DATABASE_URL", () => {
+  it("DATABASE_URL integration source never calls migrate or baseline", () => {
+    const source = fs.readFileSync(fileURLToPath(import.meta.url), "utf8");
+    const match = source.match(
+      /describe\.skipIf\(!hasDatabase\)\("with DATABASE_URL \(read-only\)"[\s\S]*?\n  \}\);/,
+    );
+    expect(match, "read-only DATABASE_URL describe block").toBeTruthy();
+    const block = match![0]!;
+    expect(block).not.toMatch(/\brunMigrations\b/);
+    expect(block).not.toMatch(/\brunLegacyBaselineAdoption\b/);
+    expect(block).not.toMatch(/resetAssistantDatabaseForTests/);
+  });
+
+  describe.skipIf(!hasDatabase)("with DATABASE_URL (read-only)", () => {
     /** @type {import("pg").Pool | undefined} */
     let pool: import("pg").Pool | undefined;
     let dbReady = false;
@@ -222,7 +212,6 @@ describe("assistant db", () => {
         if (!connectivity.ok) {
           throw new Error(connectivity.detail);
         }
-        await ensureAssistantDatabaseMigrated(pool);
         dbReady = true;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -239,42 +228,30 @@ describe("assistant db", () => {
       await pool?.end();
     });
 
-    it("passes shared schema verification checks", async (ctx) => {
+    it("reports connectivity without mutating schema", async (ctx) => {
       if (!dbReady || !pool) {
         ctx.skip();
         return;
       }
 
       const connectivity = await verifyAssistantConnectivity(pool);
-      const schemaChecks = await verifyAssistantSchema(pool);
-      const summary = summarizeSchemaChecks([connectivity, ...schemaChecks]);
-
-      expect(summary.ok).toBe(true);
-      expect(summary.checks.map((check) => check.name)).toEqual([
-        "connectivity",
-        "vector_extension",
-        "drizzle_migration_journal",
-        "assistant_retrieval_units_table",
-        "assistant_ingestion_runs_table",
-        "assistant_api_rate_limit_counters_table",
-        "embedding_vector_dimension",
-        "no_ann_vector_index",
-      ]);
+      expect(connectivity.ok).toBe(true);
     });
 
-    it("treats a second migrate as a no-op success", async (ctx) => {
+    it("runs verifyAssistantSchema read-only (no migrate/baseline)", async (ctx) => {
       if (!dbReady || !pool) {
         ctx.skip();
         return;
       }
 
-      await expect(
-        runMigrations(pool, { log: () => {} }),
-      ).resolves.toBeUndefined();
-
       const schemaChecks = await verifyAssistantSchema(pool);
-      const summary = summarizeSchemaChecks(schemaChecks);
-      expect(summary.ok).toBe(true);
+      expect(schemaChecks.length).toBeGreaterThan(0);
+      expect(
+        schemaChecks.every(
+          (check) =>
+            typeof check.ok === "boolean" && typeof check.name === "string",
+        ),
+      ).toBe(true);
     });
   });
 });

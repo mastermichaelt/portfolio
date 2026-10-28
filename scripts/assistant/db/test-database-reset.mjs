@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { validateAssistantIngestTestDatabaseUrl } from "./integration-test-database.mjs";
 import {
   ASSISTANT_TABLES,
   LEGACY_ASSISTANT_MIGRATION_FILES,
@@ -15,7 +16,27 @@ const legacyMigrationsDir = path.join(
 /**
  * @param {import("pg").Pool} pool
  */
+function assertDestructiveTestDatabaseAllowed(pool) {
+  const connectionString = pool.options?.connectionString;
+  if (typeof connectionString !== "string" || !connectionString.trim()) {
+    throw new Error(
+      "Destructive assistant test helpers require a pool created with an explicit connectionString",
+    );
+  }
+
+  const validation = validateAssistantIngestTestDatabaseUrl(connectionString);
+  if (!validation.ok) {
+    throw new Error(
+      `Unsafe assistant test database reset refused: ${validation.reason}`,
+    );
+  }
+}
+
+/**
+ * @param {import("pg").Pool} pool
+ */
 export async function resetAssistantDatabaseForTests(pool) {
+  assertDestructiveTestDatabaseAllowed(pool);
   await pool.query("DROP SCHEMA IF EXISTS drizzle CASCADE");
   await pool.query("DROP TABLE IF EXISTS public.__drizzle_migrations CASCADE");
 
@@ -31,6 +52,7 @@ export async function resetAssistantDatabaseForTests(pool) {
  * @param {string[]} [filenames]
  */
 export async function applyLegacySqlMigrations(pool, filenames) {
+  assertDestructiveTestDatabaseAllowed(pool);
   const files = filenames ?? LEGACY_ASSISTANT_MIGRATION_FILES;
 
   await pool.query(`
