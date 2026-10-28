@@ -118,10 +118,23 @@ Expect **`262`**. Password/user: [`docker-compose.yml`](../../docker-compose.yml
 
 **Not in scope:** Deleting the Neon **project**, resetting the **Primary branch** object, or creating a recovery branch.
 
+### Wrong-database prevention (mandatory before delete)
+
+Complete this checklist **before** Option A or B. **Stop** if any item fails.
+
+| Step | Check                                                                                                                                    |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Neon Console URL / project picker shows **`portfolio-assistant`** (not Savepoints, site DB, or another project).                         |
+| 2    | Branch selector shows **`main`** / **Primary** — not a child or preview branch.                                                          |
+| 3    | **Databases** list: identify the row named exactly **`portfolio_assistant`**. Do **not** delete `neondb`, `postgres`, or any other name. |
+| 4    | Write the target name on operator notes: **`portfolio_assistant`** @ **`main`** @ **`portfolio-assistant`**.                             |
+| 5    | For SQL (Option B): parse `DATABASE_URL` — connected database name must **not** be `portfolio_assistant`.                                |
+| 6    | After delete, **create** database **`portfolio_assistant`** only — do not point migrate/import at `neondb` by mistake.                   |
+
 ### Option A — Neon Console (preferred)
 
-1. Console → project **`portfolio-assistant`** → branch **`main`**.
-2. **Databases** → delete **`portfolio_assistant`** (confirm name twice).
+1. Console → project **`portfolio-assistant`** → branch **`main`** (re-check checklist).
+2. **Databases** → delete **`portfolio_assistant`** only (read the row label; confirm dialog name matches **`portfolio_assistant`** exactly).
 3. **Create database** → name **`portfolio_assistant`** (same as before).
 4. Re-copy the **direct** connection string for the recreated database.
 
@@ -133,9 +146,18 @@ Expect **`262`**. Password/user: [`docker-compose.yml`](../../docker-compose.yml
 
 Connect to another database on **`main`** (Neon default is often **`neondb`**) using a **direct** URL — **not** to `portfolio_assistant` while dropping it.
 
-Terminate backends, then drop and recreate:
-
 ```sql
+-- Session must be attached to neondb (or another non-target DB), never portfolio_assistant.
+SELECT current_database() AS connected_db;
+-- connected_db must NOT be portfolio_assistant
+
+DO $$
+BEGIN
+  IF current_database() = 'portfolio_assistant' THEN
+    RAISE EXCEPTION 'refusing DROP: connect to neondb (or another database) first';
+  END IF;
+END $$;
+
 SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
 WHERE datname = 'portfolio_assistant'
@@ -145,7 +167,7 @@ DROP DATABASE portfolio_assistant;
 CREATE DATABASE portfolio_assistant;
 ```
 
-**Wrong-target guard:** Run `SELECT current_database();` on the session — must **not** be `portfolio_assistant` before `DROP DATABASE`.
+The `DROP` / `CREATE` names are literal — change them only if phase 1 inventory used a different **approved** database name (this runbook assumes **`portfolio_assistant`**).
 
 ### After recreate (verification)
 
@@ -208,42 +230,47 @@ Second **`migrate`** + **`verify`** confirms idempotency.
 
 ## Canonical integrity digest (phase 4 and 5)
 
-Use the **same** expressions on **local Docker (phase 4)** and **Neon inside phase 5** before `COMMIT`.
+Use the **identical** SQL on **local Docker (phase 4)** and **Neon inside phase 5** before `COMMIT`.
 
-| Rule       | Detail                                                             |
-| ---------- | ------------------------------------------------------------------ |
-| Columns    | All **16** on `assistant_retrieval_units`                          |
-| NULL text  | `coalesce(..., '')`                                                |
-| JSONB      | `coalesce(sources::text, '')`, `coalesce(metadata::text, '')`      |
-| Timestamps | `to_char(col AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')` |
-| Vector     | `embedding::text` (exact stored literal)                           |
-| Order      | `ORDER BY unit_id` in aggregates                                   |
-| Failure    | `RAISE EXCEPTION` in phase 5 before `COMMIT`                       |
+| Rule         | Detail                                                                                   |
+| ------------ | ---------------------------------------------------------------------------------------- |
+| Shape        | One **JSON array of 16 values** per row (`jsonb_build_array`), then `md5(payload::text)` |
+| NULL         | SQL `NULL` → JSON `null` (distinct from `""` or empty arrays/objects)                    |
+| Text         | Scalar columns passed through unchanged (no `coalesce` to `''`)                          |
+| JSONB        | `sources` and `metadata` embedded as JSON values (not flattened strings)                 |
+| Timestamps   | UTC text: `to_char(col AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`             |
+| Vector       | `embedding::text` (pgvector storage literal)                                             |
+| Table digest | `md5(string_agg(row_digest, E'\n' ORDER BY unit_id))`                                    |
+| Failure      | `RAISE EXCEPTION` in phase 5 before `COMMIT`                                             |
 
-**Per-row digest:**
+**Column order in the array (16):** `unit_id`, `okf_concept_id`, `okf_version`, `source_class`, `type`, `title`, `resource`, `retrieval_text`, `content_hash`, `embedding_model`, `embedding::text`, `sources`, `metadata`, `embedded_at` (UTC text), `created_at` (UTC text), `updated_at` (UTC text).
+
+**Per-row digest** — copy verbatim into phase 4 and phase 5:
 
 ```sql
 md5(
-  coalesce(unit_id, '') || E'\x1e' ||
-  coalesce(okf_concept_id, '') || E'\x1e' ||
-  coalesce(okf_version, '') || E'\x1e' ||
-  coalesce(source_class, '') || E'\x1e' ||
-  coalesce(type, '') || E'\x1e' ||
-  coalesce(title, '') || E'\x1e' ||
-  coalesce(resource, '') || E'\x1e' ||
-  coalesce(retrieval_text, '') || E'\x1e' ||
-  coalesce(content_hash, '') || E'\x1e' ||
-  coalesce(embedding_model, '') || E'\x1e' ||
-  coalesce(embedding::text, '') || E'\x1e' ||
-  coalesce(sources::text, '') || E'\x1e' ||
-  coalesce(metadata::text, '') || E'\x1e' ||
-  coalesce(to_char(embedded_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'), '') || E'\x1e' ||
-  coalesce(to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'), '') || E'\x1e' ||
-  coalesce(to_char(updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'), '')
+  jsonb_build_array(
+    unit_id,
+    okf_concept_id,
+    okf_version,
+    source_class,
+    type,
+    title,
+    resource,
+    retrieval_text,
+    content_hash,
+    embedding_model,
+    embedding::text,
+    sources,
+    metadata,
+    to_char(embedded_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+    to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+    to_char(updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  )::text
 )
 ```
 
-**Vector fingerprint:**
+**Vector fingerprint** (secondary; embeddings also covered in the JSON array):
 
 ```sql
 md5(string_agg(
@@ -252,7 +279,36 @@ md5(string_agg(
 ))
 ```
 
-**Full-table digest:** `md5(string_agg(row_digest, E'\n' ORDER BY unit_id))` using per-row digest above.
+**Full-table digest:**
+
+```sql
+SELECT md5(string_agg(row_digest, E'\n' ORDER BY unit_id)) AS expected_full_row_fp
+FROM (
+  SELECT
+    unit_id,
+    md5(
+      jsonb_build_array(
+        unit_id,
+        okf_concept_id,
+        okf_version,
+        source_class,
+        type,
+        title,
+        resource,
+        retrieval_text,
+        content_hash,
+        embedding_model,
+        embedding::text,
+        sources,
+        metadata,
+        to_char(embedded_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+        to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+        to_char(updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+      )::text
+    ) AS row_digest
+  FROM public.assistant_retrieval_units
+) s;
+```
 
 ---
 
@@ -270,7 +326,7 @@ Recompute constants for phase 5. Example from **2026-10-28** local Docker:
 | ---------------------- | ---------------------------------- |
 | `expected_rows`        | `262`                              |
 | `expected_vector_fp`   | `b98ec06f8ebfee83f81b8beae40cfd24` |
-| `expected_full_row_fp` | `593f2edc79f138fc6960f33dc7e13033` |
+| `expected_full_row_fp` | `48c1c24cdc928093e7d2a029f609a30b` |
 
 ```sql
 SELECT COUNT(*)::bigint FROM public.assistant_retrieval_units;
@@ -326,7 +382,7 @@ DECLARE
   full_row_fp text;
   expected_rows bigint := 262;
   expected_vector_fp text := 'b98ec06f8ebfee83f81b8beae40cfd24';
-  expected_full_row_fp text := '593f2edc79f138fc6960f33dc7e13033';
+  expected_full_row_fp text := '48c1c24cdc928093e7d2a029f609a30b';
 BEGIN
   SELECT COUNT(*) INTO row_count FROM public.assistant_retrieval_units;
   IF row_count <> expected_rows THEN
@@ -350,22 +406,24 @@ BEGIN
     SELECT
       unit_id,
       md5(
-        coalesce(unit_id, '') || E'\x1e' ||
-        coalesce(okf_concept_id, '') || E'\x1e' ||
-        coalesce(okf_version, '') || E'\x1e' ||
-        coalesce(source_class, '') || E'\x1e' ||
-        coalesce(type, '') || E'\x1e' ||
-        coalesce(title, '') || E'\x1e' ||
-        coalesce(resource, '') || E'\x1e' ||
-        coalesce(retrieval_text, '') || E'\x1e' ||
-        coalesce(content_hash, '') || E'\x1e' ||
-        coalesce(embedding_model, '') || E'\x1e' ||
-        coalesce(embedding::text, '') || E'\x1e' ||
-        coalesce(sources::text, '') || E'\x1e' ||
-        coalesce(metadata::text, '') || E'\x1e' ||
-        coalesce(to_char(embedded_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'), '') || E'\x1e' ||
-        coalesce(to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'), '') || E'\x1e' ||
-        coalesce(to_char(updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'), '')
+        jsonb_build_array(
+          unit_id,
+          okf_concept_id,
+          okf_version,
+          source_class,
+          type,
+          title,
+          resource,
+          retrieval_text,
+          content_hash,
+          embedding_model,
+          embedding::text,
+          sources,
+          metadata,
+          to_char(embedded_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+          to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+          to_char(updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+        )::text
       ) AS row_digest
     FROM public.assistant_retrieval_units
   ) ordered;
@@ -384,6 +442,8 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f import_atomic.sql
 ```
 
 Embeddings are preserved via `pg_dump` / `COPY` — **no** embedding API calls.
+
+All row-count, vector, and full-row checks run **inside the same transaction** before `COMMIT`; any mismatch aborts the import with no committed rows.
 
 ---
 
