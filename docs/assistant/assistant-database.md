@@ -31,26 +31,47 @@ The schema enables pgvector and creates assistant tables with `embedding vector(
 
 ### Migration strategy (Strategy A — single authority)
 
-| Scenario                                                                                                                                                                                                | `npm run assistant:db:migrate` behaviour                                                                                                                               |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Fresh database** (no assistant tables)                                                                                                                                                                | Applies `drizzle/0000_assistant_initial.sql` via Drizzle migrator (`CREATE EXTENSION vector` + assistant tables)                                                       |
-| **Existing database** (complete legacy runner history — all assistant tables, `vector` extension, every file in `db/migrations/` recorded in `schema_migrations`; empty `drizzle.__drizzle_migrations`) | **Journal baseline only** — inserts **only** the initial Drizzle migration (`0000_assistant_initial`) into `drizzle.__drizzle_migrations` without replaying CREATE DDL |
-| **Partial / ambiguous legacy shape** (some assistant tables or legacy migration records missing)                                                                                                        | **Fail closed** — migrate exits with an error; does **not** seed the Drizzle journal                                                                                   |
-| **Already baselined / migrated**                                                                                                                                                                        | No-op (idempotent)                                                                                                                                                     |
+Drizzle Kit is the **only** forward migration runner. Legacy SQL under `db/migrations/` is **read-only history** — not executed by repository commands.
 
-Legacy `schema_migrations` rows on Neon or local databases that were migrated before Drizzle adoption may remain as **frozen history**; verify and forward DDL use **`drizzle.__drizzle_migrations` only**.
+| Command                             | Purpose                                                                                                  |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **`npm run assistant:db:migrate`**  | Normal Drizzle migrator — fresh databases and forward migrations after adoption                          |
+| **`npm run assistant:db:baseline`** | **One-time** adoption of an existing legacy-runner database into the Drizzle journal (operator approval) |
 
-**Neon baseline procedure (operator — explicit approval required):**
+| Database state                                                                                                                           | `assistant:db:migrate`                                                            | `assistant:db:baseline`                                                                                 |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Fresh** (no assistant tables)                                                                                                          | Applies `drizzle/0000_assistant_initial.sql` (extension + tables)                 | Refuses — not a legacy-complete database                                                                |
+| **Legacy-complete** (all assistant tables, `vector`, every legacy file in `schema_migrations`; **empty** `drizzle.__drizzle_migrations`) | **Fails closed** (`LegacyAdoptionRequiredError`) — does **not** write the journal | Seeds **only** `0000_assistant_initial` in the journal (by tag + SQL hash) without replaying CREATE DDL |
+| **Partial / ambiguous legacy**                                                                                                           | Fails closed if assistant tables exist without a journal                          | Refuses eligibility — **no** journal writes                                                             |
+| **Already baselined / migrated**                                                                                                         | Idempotent forward migrate                                                        | Refuses — one-time only                                                                                 |
 
-1. Confirm production branch/database already has the **complete legacy schema**: `vector` extension, all assistant tables, and every legacy SQL file recorded in `schema_migrations` (do **not** drop or recreate).
-2. Set `DATABASE_URL` to the **direct** (non-pooled) connection string for the target branch.
-3. Run `npm run assistant:db:migrate` once — expect log line `detected legacy assistant schema without Drizzle journal — baselining only` when the journal was empty.
-4. Run `npm run assistant:db:verify` — all checks must pass, including `drizzle_migration_journal` and all three assistant tables.
-5. Run `npm run assistant:db:migrate` again — must complete with `drizzle migrate complete` and no DDL errors (idempotent).
+Journal location: **`drizzle.__drizzle_migrations`**. Legacy `schema_migrations` rows may remain as frozen history on Neon or local databases; verify and forward DDL use the Drizzle journal only.
 
-Agents must **not** run production Neon migrate unless the operator explicitly approves that session.
+#### Fresh database initialization (local Docker or empty Neon branch)
 
-**Forward schema changes:** edit `db/schema.ts`, run `npm run assistant:db:generate`, review SQL under `drizzle/`, commit, then operators run `npm run assistant:db:migrate`.
+1. Set `DATABASE_URL` to the target database (direct connection for migrate).
+2. `npm run assistant:db:migrate`
+3. `npm run assistant:db:verify`
+
+#### One-time adoption of an existing Neon (or local) legacy database
+
+Use when the database was created with the **retired custom runner** (`db/migrations/*.sql` + `schema_migrations`) and **`drizzle.__drizzle_migrations` is empty**.
+
+**Operator sequence (explicit approval required — agents must not run against production without approval):**
+
+1. Confirm target database and backup/recovery option.
+2. Inspect legacy schema and migration history (`vector`, all three assistant tables, every legacy filename in `schema_migrations`).
+3. Set `DATABASE_URL` to the **direct** (non-pooled) connection string for that branch.
+4. Run **`npm run assistant:db:baseline`** once — expect `legacy baseline adoption complete`; no CREATE replay on existing tables or embeddings.
+5. Run **`npm run assistant:db:verify`** — all checks pass, including `drizzle_migration_journal`.
+6. Run **`npm run assistant:db:migrate`** — applies any pending Drizzle migrations after the initial baseline tag.
+7. Run **`npm run assistant:db:verify`** again — confirm idempotent state.
+
+If baseline refuses, **do not** hand-edit the Drizzle journal — fix eligibility (complete legacy history) or use a fresh database path instead.
+
+#### Normal forward migrations after adoption
+
+Edit `db/schema.ts`, run `npm run assistant:db:generate`, review SQL under `drizzle/`, commit, then operators run **`npm run assistant:db:migrate`** (and verify). Baseline is **not** re-run.
 
 ## Local development (default)
 
@@ -74,7 +95,7 @@ Agents must **not** run production Neon migrate unless the operator explicitly a
    npm run assistant:db:verify
    ```
 
-Integration tests in `tests/assistant-db.test.ts` use `DATABASE_URL` and skip when unset.
+Integration tests in `tests/assistant-db.test.ts` use `DATABASE_URL` and skip when unset. **`tests/assistant-db-migrate.test.ts`** covers fresh migrate, legacy refusal, explicit baseline, and journal safety using **`ASSISTANT_TEST_DATABASE_URL` only** (destructive resets).
 
 **Ingest sync integration tests** (`tests/assistant-ingest.test.ts`) run full-corpus `runIngestSync()` semantics (including stale-row deletes). They use **`ASSISTANT_TEST_DATABASE_URL` only** — never `DATABASE_URL`. The database name must end in `_test` (for example `portfolio_assistant_test` on local Docker). Tests refuse Neon hosts unless `ASSISTANT_TEST_ALLOW_NEON=1` is set explicitly. Do not point ingest integration tests at the dev or hosted retrieval index.
 
@@ -416,15 +437,16 @@ After [career-inventory snapshots](../../tests/fixtures/assistant-okf/career-inv
 
 ## Commands
 
-| Command                         | Purpose                                                      |
-| ------------------------------- | ------------------------------------------------------------ |
-| `npm run assistant:db:migrate`  | Apply Drizzle Kit migrations via `DATABASE_URL` (Strategy A) |
-| `npm run assistant:db:verify`   | Schema + connectivity verification                           |
-| `npm run assistant:db:generate` | Generate SQL from `db/schema.ts` (Drizzle Kit)               |
-| `npm run assistant:db:studio`   | Optional Drizzle Studio (local schema inspection)            |
-| `npm run assistant:ingest`      | OKF build → derive → embed → upsert → delete stale           |
-| `npm run assistant:retrieve`    | Embed question + pgvector search (inspect retrieval)         |
-| `npm run assistant:answer`      | Shared RAG generation service (CLI adapter)                  |
-| `POST /api/assistant/generate`  | Same service via App Router (production visitor API)         |
+| Command                         | Purpose                                                               |
+| ------------------------------- | --------------------------------------------------------------------- |
+| `npm run assistant:db:migrate`  | Apply Drizzle Kit migrations via `DATABASE_URL` (Strategy A)          |
+| `npm run assistant:db:baseline` | One-time legacy database adoption into `drizzle.__drizzle_migrations` |
+| `npm run assistant:db:verify`   | Schema + connectivity verification                                    |
+| `npm run assistant:db:generate` | Generate SQL from `db/schema.ts` (Drizzle Kit)                        |
+| `npm run assistant:db:studio`   | Optional Drizzle Studio (local schema inspection)                     |
+| `npm run assistant:ingest`      | OKF build → derive → embed → upsert → delete stale                    |
+| `npm run assistant:retrieve`    | Embed question + pgvector search (inspect retrieval)                  |
+| `npm run assistant:answer`      | Shared RAG generation service (CLI adapter)                           |
+| `POST /api/assistant/generate`  | Same service via App Router (production visitor API)                  |
 
 Database commands are provider-neutral: they work against local Docker Postgres or hosted Neon depending solely on `DATABASE_URL`.

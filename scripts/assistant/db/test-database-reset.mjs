@@ -59,29 +59,3 @@ export async function applyLegacySqlMigrations(pool, filenames) {
     }
   }
 }
-
-/**
- * @param {import("pg").Pool} pool
- * @returns {Promise<number>}
- */
-export async function countDrizzleJournalRows(pool) {
-  const tableExists = await pool.query(
-    `
-    SELECT EXISTS (
-      SELECT 1
-      FROM information_schema.tables
-      WHERE table_schema = 'drizzle'
-        AND table_name = '__drizzle_migrations'
-    ) AS exists
-  `,
-  );
-
-  if (tableExists.rows[0]?.exists !== true) {
-    return 0;
-  }
-
-  const result = await pool.query(
-    "SELECT COUNT(*)::int AS count FROM drizzle.__drizzle_migrations",
-  );
-  return result.rows[0]?.count ?? 0;
-}

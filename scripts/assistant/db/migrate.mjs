@@ -5,11 +5,10 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 import { createPool, getDatabaseUrl } from "./client.mjs";
+import { countDrizzleJournalRows } from "./drizzle-journal.mjs";
 import {
-  assessLegacyBaselineEligibility,
   hasAnyAssistantTable,
-  LegacyBaselineIneligibleError,
-  seedLegacyBaselineJournal,
+  LegacyAdoptionRequiredError,
 } from "./legacy-baseline.mjs";
 import {
   DRIZZLE_MIGRATIONS_SCHEMA,
@@ -29,60 +28,21 @@ export const assistantDrizzleMigrationConfig = {
 };
 
 /**
- * @param {import("pg").Pool} pool
- * @returns {Promise<number>}
- */
-async function drizzleMigrationRowCount(pool) {
-  const tableExists = await pool.query(
-    `
-    SELECT EXISTS (
-      SELECT 1
-      FROM information_schema.tables
-      WHERE table_schema = $1
-        AND table_name = $2
-    ) AS exists
-  `,
-    [DRIZZLE_MIGRATIONS_SCHEMA, DRIZZLE_MIGRATIONS_TABLE],
-  );
-
-  if (tableExists.rows[0]?.exists !== true) {
-    return 0;
-  }
-
-  const result = await pool.query(
-    `SELECT COUNT(*)::int AS count FROM ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE}`,
-  );
-  return result.rows[0]?.count ?? 0;
-}
-
-/**
- * Strategy A: Drizzle Kit is the sole migration authority (`npm run assistant:db:migrate`).
+ * Strategy A: Drizzle Kit is the sole forward migration authority (`npm run assistant:db:migrate`).
+ * Legacy adoption is explicit via `npm run assistant:db:baseline`.
  *
  * @param {import("pg").Pool} pool
  * @param {{ log?: (message: string) => void }} [options]
  */
 export async function runMigrations(pool, options = {}) {
   const log = options.log ?? console.log;
-  const drizzleCount = await drizzleMigrationRowCount(pool);
+  const journalRows = await countDrizzleJournalRows(pool);
+  const hasTables = await hasAnyAssistantTable(pool);
 
-  if (drizzleCount > 0) {
-    const db = drizzle(pool);
-    await migrate(db, assistantDrizzleMigrationConfig);
-    log("drizzle migrate complete");
-    return;
-  }
-
-  const eligibility = await assessLegacyBaselineEligibility(pool);
-  if (eligibility.ok) {
-    log(
-      "detected complete legacy assistant schema without Drizzle journal — baselining initial migration only",
+  if (hasTables && journalRows === 0) {
+    throw new LegacyAdoptionRequiredError(
+      "Assistant tables exist without a Drizzle journal baseline. Run npm run assistant:db:baseline once with operator approval, then npm run assistant:db:migrate.",
     );
-    await seedLegacyBaselineJournal(pool, assistantDrizzleMigrationConfig, log);
-    return;
-  }
-
-  if (await hasAnyAssistantTable(pool)) {
-    throw new LegacyBaselineIneligibleError(eligibility.reason);
   }
 
   const db = drizzle(pool);

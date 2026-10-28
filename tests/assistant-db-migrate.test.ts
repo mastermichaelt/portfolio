@@ -1,11 +1,15 @@
+import { readMigrationFiles } from "drizzle-orm/migrator";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createPool } from "@/scripts/assistant/db/client.mjs";
 import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
 import {
   assessLegacyBaselineEligibility,
+  LegacyAdoptionRequiredError,
+  LegacyBaselineAlreadyAdoptedError,
   LegacyBaselineIneligibleError,
-  selectLegacyBaselineMigration,
+  resolveLegacyBaselineMigration,
+  runLegacyBaselineAdoption,
   seedLegacyBaselineJournal,
 } from "@/scripts/assistant/db/legacy-baseline.mjs";
 import {
@@ -15,9 +19,9 @@ import {
 import { LEGACY_ASSISTANT_MIGRATION_FILES } from "@/scripts/assistant/db/migration-meta.mjs";
 import {
   applyLegacySqlMigrations,
-  countDrizzleJournalRows,
   resetAssistantDatabaseForTests,
 } from "@/scripts/assistant/db/test-database-reset.mjs";
+import { countDrizzleJournalRows } from "@/scripts/assistant/db/drizzle-journal.mjs";
 import { verifyAssistantSchema } from "@/scripts/assistant/db/verify-schema.mjs";
 
 let migrateTestDatabaseUrl: string | undefined;
@@ -69,21 +73,24 @@ describe("legacy baseline eligibility (unit)", () => {
     }
   });
 
-  it("selectLegacyBaselineMigration returns only the first journal migration", () => {
-    const first = {
-      hash: "a".repeat(64),
-      folderMillis: 1,
-      sql: [],
-      bps: true,
-    };
-    const second = {
-      hash: "b".repeat(64),
-      folderMillis: 2,
-      sql: [],
-      bps: true,
-    };
+  it("resolveLegacyBaselineMigration matches journal tag by SQL hash, not file list order", () => {
+    const migrations = readMigrationFiles(assistantDrizzleMigrationConfig);
+    const baseline = resolveLegacyBaselineMigration(
+      assistantDrizzleMigrationConfig,
+    );
+    expect(baseline.hash).toBe(migrations[0]?.hash);
 
-    expect(selectLegacyBaselineMigration([first, second])).toBe(first);
+    const decoy = {
+      hash: "f".repeat(64),
+      folderMillis: 999_999,
+      sql: [],
+      bps: true,
+    };
+    const fromWrongOrder = resolveLegacyBaselineMigration(
+      assistantDrizzleMigrationConfig,
+      [decoy, baseline],
+    );
+    expect(fromWrongOrder.hash).toBe(baseline.hash);
   });
 
   it("seedLegacyBaselineJournal inserts a single journal row when multiple migrations exist", async () => {
@@ -95,17 +102,39 @@ describe("legacy baseline eligibility (unit)", () => {
         }
         return { rows: [] };
       },
+      connect: async () => ({
+        query: async (sql: string, params?: unknown[]) => {
+          if (typeof sql === "string" && sql.startsWith("BEGIN")) {
+            return { rows: [] };
+          }
+          if (typeof sql === "string" && sql.startsWith("COMMIT")) {
+            return { rows: [] };
+          }
+          if (typeof sql === "string" && sql.startsWith("ROLLBACK")) {
+            return { rows: [] };
+          }
+          if (typeof sql === "string" && sql.includes("INSERT INTO drizzle")) {
+            inserts.push(params ?? []);
+          }
+          if (
+            typeof sql === "string" &&
+            sql.includes("COUNT(*)") &&
+            sql.includes("__drizzle_migrations")
+          ) {
+            return { rows: [{ count: 0 }] };
+          }
+          return { rows: [] };
+        },
+        release: () => {},
+      }),
     };
 
-    const first = {
-      hash: "a".repeat(64),
-      folderMillis: 100,
-      sql: [],
-      bps: true,
-    };
-    const second = {
-      hash: "b".repeat(64),
-      folderMillis: 200,
+    const real = resolveLegacyBaselineMigration(
+      assistantDrizzleMigrationConfig,
+    );
+    const decoy = {
+      hash: "c".repeat(64),
+      folderMillis: 999,
       sql: [],
       bps: true,
     };
@@ -114,11 +143,11 @@ describe("legacy baseline eligibility (unit)", () => {
       pool as unknown as import("pg").Pool,
       assistantDrizzleMigrationConfig,
       () => {},
-      [first, second],
+      [decoy, real],
     );
 
     expect(inserts).toHaveLength(1);
-    expect(inserts[0]).toEqual([first.hash, first.folderMillis]);
+    expect(inserts[0]).toEqual([real.hash, real.folderMillis]);
   });
 });
 
@@ -136,7 +165,7 @@ describe.skipIf(!hasMigrateTestDatabase)(
       await pool.end();
     });
 
-    it("applies the initial Drizzle migration on a fresh empty database", async () => {
+    it("1 — fresh database: normal Drizzle migrate succeeds", async () => {
       await resetAssistantDatabaseForTests(pool);
       await runMigrations(pool, { log: () => {} });
 
@@ -145,28 +174,97 @@ describe.skipIf(!hasMigrateTestDatabase)(
       expect(checks.every((check) => check.ok)).toBe(true);
     });
 
-    it("baselines only the initial migration for a complete legacy schema", async () => {
+    it("2 — complete legacy database: migrate refuses adoption without journal writes", async () => {
       await resetAssistantDatabaseForTests(pool);
       await applyLegacySqlMigrations(pool);
 
-      await runMigrations(pool, { log: () => {} });
+      await expect(
+        runMigrations(pool, { log: () => {} }),
+      ).rejects.toBeInstanceOf(LegacyAdoptionRequiredError);
+      expect(await countDrizzleJournalRows(pool)).toBe(0);
+    });
+
+    it("3 — complete legacy database: explicit baseline succeeds", async () => {
+      await resetAssistantDatabaseForTests(pool);
+      await applyLegacySqlMigrations(pool);
+
+      await runLegacyBaselineAdoption(pool, assistantDrizzleMigrationConfig, {
+        log: () => {},
+      });
 
       expect(await countDrizzleJournalRows(pool)).toBe(1);
+      const checks = await verifyAssistantSchema(pool);
+      expect(checks.every((check) => check.ok)).toBe(true);
+    });
+
+    it("4 — baselined database: normal migrate succeeds repeatedly", async () => {
+      await resetAssistantDatabaseForTests(pool);
+      await applyLegacySqlMigrations(pool);
+      await runLegacyBaselineAdoption(pool, assistantDrizzleMigrationConfig, {
+        log: () => {},
+      });
+
       await expect(
         runMigrations(pool, { log: () => {} }),
       ).resolves.toBeUndefined();
+      await expect(
+        runMigrations(pool, { log: () => {} }),
+      ).resolves.toBeUndefined();
+      expect(await countDrizzleJournalRows(pool)).toBe(1);
     });
 
-    it("refuses baseline when legacy schema is partial", async () => {
+    it("5 — partial legacy database: baseline rejects without journal writes", async () => {
       await resetAssistantDatabaseForTests(pool);
       await applyLegacySqlMigrations(pool, [
         LEGACY_ASSISTANT_MIGRATION_FILES[0]!,
       ]);
 
       await expect(
-        runMigrations(pool, { log: () => {} }),
+        runLegacyBaselineAdoption(pool, assistantDrizzleMigrationConfig, {
+          log: () => {},
+        }),
       ).rejects.toBeInstanceOf(LegacyBaselineIneligibleError);
       expect(await countDrizzleJournalRows(pool)).toBe(0);
+    });
+
+    it("6 — already Drizzle-managed database: baseline rejects", async () => {
+      await resetAssistantDatabaseForTests(pool);
+      await runMigrations(pool, { log: () => {} });
+
+      await expect(
+        runLegacyBaselineAdoption(pool, assistantDrizzleMigrationConfig, {
+          log: () => {},
+        }),
+      ).rejects.toBeInstanceOf(LegacyBaselineAlreadyAdoptedError);
+    });
+
+    it("7 — multiple migration metadata: baseline registers only the initial tag", async () => {
+      await resetAssistantDatabaseForTests(pool);
+      await applyLegacySqlMigrations(pool);
+
+      const initial = resolveLegacyBaselineMigration(
+        assistantDrizzleMigrationConfig,
+      );
+      const pending = {
+        hash: "d".repeat(64),
+        folderMillis: initial.folderMillis + 1,
+        sql: [],
+        bps: true,
+      };
+
+      await seedLegacyBaselineJournal(
+        pool,
+        assistantDrizzleMigrationConfig,
+        () => {},
+        [pending, initial],
+      );
+
+      expect(await countDrizzleJournalRows(pool)).toBe(1);
+      const journal = await pool.query(
+        "SELECT hash, created_at FROM drizzle.__drizzle_migrations",
+      );
+      expect(journal.rows[0]?.hash).toBe(initial.hash);
+      expect(Number(journal.rows[0]?.created_at)).toBe(initial.folderMillis);
     });
   },
 );

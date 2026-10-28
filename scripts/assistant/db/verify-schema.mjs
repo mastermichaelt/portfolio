@@ -71,7 +71,7 @@ async function verifyDrizzleMigrationJournal(db) {
     return {
       name: "drizzle_migration_journal",
       ok: false,
-      detail: `${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} is missing; run npm run assistant:db:migrate`,
+      detail: `${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} is missing; on a fresh database run npm run assistant:db:migrate — on a legacy database run npm run assistant:db:baseline once (operator approval), then migrate`,
     };
   }
 

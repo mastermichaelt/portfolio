@@ -13,7 +13,14 @@ import {
   loadEnvFiles,
   resetEnvFileLoader,
 } from "@/scripts/assistant/db/load-env.mjs";
-import { runMigrations } from "@/scripts/assistant/db/migrate.mjs";
+import {
+  assistantDrizzleMigrationConfig,
+  runMigrations,
+} from "@/scripts/assistant/db/migrate.mjs";
+import {
+  LegacyAdoptionRequiredError,
+  runLegacyBaselineAdoption,
+} from "@/scripts/assistant/db/legacy-baseline.mjs";
 import {
   DRIZZLE_MIGRATIONS_SCHEMA,
   DRIZZLE_MIGRATIONS_TABLE,
@@ -24,6 +31,21 @@ import {
   verifyAssistantConnectivity,
   verifyAssistantSchema,
 } from "@/scripts/assistant/db/verify-schema.mjs";
+
+async function ensureAssistantDatabaseMigrated(pool: import("pg").Pool) {
+  try {
+    await runMigrations(pool, { log: () => {} });
+  } catch (error) {
+    if (error instanceof LegacyAdoptionRequiredError) {
+      await runLegacyBaselineAdoption(pool, assistantDrizzleMigrationConfig, {
+        log: () => {},
+      });
+      await runMigrations(pool, { log: () => {} });
+      return;
+    }
+    throw error;
+  }
+}
 
 // Match migrate/verify entrypoints: load .env.local/.env before gating integration tests.
 const databaseUrl = resolveAssistantDatabaseUrl();
@@ -166,7 +188,7 @@ describe("verifyAssistantSchema on a fresh database", () => {
     ).toMatchObject({
       ok: false,
       detail:
-        "drizzle.__drizzle_migrations is missing; run npm run assistant:db:migrate",
+        "drizzle.__drizzle_migrations is missing; on a fresh database run npm run assistant:db:migrate — on a legacy database run npm run assistant:db:baseline once (operator approval), then migrate",
     });
     expect(
       queries.some((sql) =>
@@ -200,7 +222,7 @@ describe("assistant db", () => {
         if (!connectivity.ok) {
           throw new Error(connectivity.detail);
         }
-        await runMigrations(pool, { log: () => {} });
+        await ensureAssistantDatabaseMigrated(pool);
         dbReady = true;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
