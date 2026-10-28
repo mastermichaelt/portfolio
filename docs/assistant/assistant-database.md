@@ -105,6 +105,12 @@ Integration tests in `tests/assistant-db.test.ts` use `DATABASE_URL` **read-only
 
 Neon provisioning is an account/dashboard action. The repository does not store Neon credentials or connection strings.
 
+### Production cutover (partial legacy + corpus transfer)
+
+When hosted Primary has **incomplete** legacy `schema_migrations` history, missing tables, an **empty** retrieval index, and a validated corpus on **local Docker**, use the one-time operator runbook — it covers legacy reconciliation (R1–R3), Drizzle baseline (B), atomic vector transfer (T), and verification (V). Strategy A commands in this doc still apply; the runbook does not add a second migration runner.
+
+[Production Neon cutover runbook](./production-neon-cutover-runbook.md)
+
 ### 0. Inventory before provisioning
 
 In the Neon org, confirm there is **no existing project** already dedicated to the portfolio assistant retrieval index. Other Neon projects (for example Savepoints canonical storage or future site `PortfolioRepository` persistence) are **not** interchangeable — they use different schemas, migrations, and `DATABASE_URL` values.
