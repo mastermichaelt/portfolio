@@ -4,10 +4,10 @@ Postgres + pgvector backing store for the assistant retrieval index and **durabl
 
 ## Two Postgres concerns (do not conflate)
 
-| Concern                       | Role                                          | Connection config                                               | Migrations                    |
-| ----------------------------- | --------------------------------------------- | --------------------------------------------------------------- | ----------------------------- |
-| **Site content persistence**  | Future `PortfolioRepository` adapter          | Not implemented (future env var, e.g. `PORTFOLIO_DATABASE_URL`) | Future site schema            |
-| **Assistant retrieval index** | Derived pgvector store for semantic retrieval | `DATABASE_URL` (assistant scripts only)                         | `db/migrations/` in this repo |
+| Concern                       | Role                                          | Connection config                                               | Migrations                                               |
+| ----------------------------- | --------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------- |
+| **Site content persistence**  | Future `PortfolioRepository` adapter          | Not implemented (future env var, e.g. `PORTFOLIO_DATABASE_URL`) | Future site schema                                       |
+| **Assistant retrieval index** | Derived pgvector store for semantic retrieval | `DATABASE_URL` (assistant scripts only)                         | Drizzle Kit (`drizzle/`, journal `__drizzle_migrations`) |
 
 Both may use Neon as a hosted Postgres provider, but they must remain **separate databases or branches, schemas, connection strings, and migration lifecycles**. Do not point site persistence and assistant retrieval at the same `DATABASE_URL` or share migration runners.
 
@@ -23,9 +23,33 @@ Hosted assistant retrieval index (persistent)
   DATABASE_URL → Neon connection string (env / secrets only)
 ```
 
-Repository-owned SQL under `db/migrations/` is the **only** source of truth for assistant schema creation. Do not hand-create `assistant_retrieval_units` in the Neon console.
+Repository-owned **Drizzle ORM schema** (`db/schema.ts`) and **Drizzle Kit migrations** under `drizzle/` are the **sole migration authority** for assistant schema (Strategy A — shipped in `drizzle-foundation`). Historical SQL under `db/migrations/` remains in Git as a **read-only audit trail**; the legacy custom runner is **not** executed by `npm run assistant:db:migrate`.
 
-The initial migration enables pgvector and creates `assistant_retrieval_units` with `embedding vector(1536)` for `text-embedding-3-small`. Changing model or dimensionality requires a new migration and full re-embed.
+Do not hand-create assistant tables in the Neon console.
+
+The schema enables pgvector and creates assistant tables with `embedding vector(1536)` for `text-embedding-3-small`. Changing model or dimensionality requires a new Drizzle migration and full re-embed.
+
+### Migration strategy (Strategy A — single authority)
+
+| Scenario                                                                                                                 | `npm run assistant:db:migrate` behaviour                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| **Fresh database** (no assistant tables)                                                                                 | Applies `drizzle/0000_assistant_initial.sql` via Drizzle migrator (`CREATE EXTENSION vector` + assistant tables) |
+| **Existing database** (legacy runner already applied; `assistant_retrieval_units` present; empty `__drizzle_migrations`) | **Journal baseline only** — inserts expected rows into `__drizzle_migrations` without replaying CREATE DDL       |
+| **Already baselined / migrated**                                                                                         | No-op (idempotent)                                                                                               |
+
+Legacy `schema_migrations` rows on Neon or local databases that were migrated before Drizzle adoption may remain as **frozen history**; verify and forward DDL use **`__drizzle_migrations` only**.
+
+**Neon baseline procedure (operator — explicit approval required):**
+
+1. Confirm production branch/database already has assistant tables from the prior legacy migration runner (do **not** drop or recreate).
+2. Set `DATABASE_URL` to the **direct** (non-pooled) connection string for the target branch.
+3. Run `npm run assistant:db:migrate` once — expect log line `detected legacy assistant schema without Drizzle journal — baselining only` when the journal was empty.
+4. Run `npm run assistant:db:verify` — all checks must pass, including `drizzle_migration_journal` and all three assistant tables.
+5. Run `npm run assistant:db:migrate` again — must complete with `drizzle migrate complete` and no DDL errors (idempotent).
+
+Agents must **not** run production Neon migrate unless the operator explicitly approves that session.
+
+**Forward schema changes:** edit `db/schema.ts`, run `npm run assistant:db:generate`, review SQL under `drizzle/`, commit, then operators run `npm run assistant:db:migrate`.
 
 ## Local development (default)
 
@@ -162,7 +186,7 @@ Ensure `DATABASE_URL` is the **direct** connection string for `BRANCH_NAME` on `
 npm run assistant:db:migrate
 ```
 
-This runs the same portable migration runner used for local Docker. All DDL comes from `db/migrations/*.sql` and is recorded on that branch's database only.
+This runs the **Drizzle Kit migrator** (Strategy A). All forward DDL comes from `drizzle/*.sql` and is recorded in `__drizzle_migrations` on that branch's database only. Legacy files under `db/migrations/` are not executed.
 
 ### 5. Verify schema
 
@@ -170,7 +194,7 @@ This runs the same portable migration runner used for local Docker. All DDL come
 npm run assistant:db:verify
 ```
 
-Confirms connectivity, `CREATE EXTENSION vector`, migration state, `assistant_retrieval_units`, `vector(1536)`, and absence of ANN indexes.
+Confirms connectivity, `CREATE EXTENSION vector`, Drizzle journal state (`__drizzle_migrations`), all assistant tables (`assistant_retrieval_units`, `assistant_ingestion_runs`, `assistant_api_rate_limit_counters`), `vector(1536)`, and absence of ANN indexes.
 
 JSON output for automation:
 
@@ -185,9 +209,7 @@ Equivalent checks without the CLI:
 ```sql
 SELECT extname FROM pg_extension WHERE extname = 'vector';
 
-SELECT filename
-FROM schema_migrations
-WHERE filename = '20261007100000_assistant_pgvector.sql';
+SELECT hash, created_at FROM __drizzle_migrations ORDER BY created_at;
 
 SELECT format_type(a.atttypid, a.atttypmod) AS embedding_type
 FROM pg_attribute a
@@ -207,8 +229,9 @@ Hosted deployment is complete when `npm run assistant:db:verify` reports **ok** 
 
 - connectivity
 - `vector` extension
-- `schema_migrations` and `20261007100000_assistant_pgvector.sql` recorded
-- `assistant_retrieval_units` with `embedding` type `vector(1536)`
+- `__drizzle_migrations` journal matches committed Drizzle migration(s)
+- `assistant_retrieval_units`, `assistant_ingestion_runs`, `assistant_api_rate_limit_counters`
+- `assistant_retrieval_units.embedding` type `vector(1536)`
 - no ANN vector index on `assistant_retrieval_units`
 
 CI does not require Neon; this verification is operator-run with secrets.
@@ -392,13 +415,15 @@ After [career-inventory snapshots](../../tests/fixtures/assistant-okf/career-inv
 
 ## Commands
 
-| Command                        | Purpose                                                 |
-| ------------------------------ | ------------------------------------------------------- |
-| `npm run assistant:db:migrate` | Apply `db/migrations/*.sql` in order via `DATABASE_URL` |
-| `npm run assistant:db:verify`  | Schema + connectivity verification                      |
-| `npm run assistant:ingest`     | OKF build → derive → embed → upsert → delete stale      |
-| `npm run assistant:retrieve`   | Embed question + pgvector search (inspect retrieval)    |
-| `npm run assistant:answer`     | Shared RAG generation service (CLI adapter)             |
-| `POST /api/assistant/generate` | Same service via App Router (production visitor API)    |
+| Command                         | Purpose                                                      |
+| ------------------------------- | ------------------------------------------------------------ |
+| `npm run assistant:db:migrate`  | Apply Drizzle Kit migrations via `DATABASE_URL` (Strategy A) |
+| `npm run assistant:db:verify`   | Schema + connectivity verification                           |
+| `npm run assistant:db:generate` | Generate SQL from `db/schema.ts` (Drizzle Kit)               |
+| `npm run assistant:db:studio`   | Optional Drizzle Studio (local schema inspection)            |
+| `npm run assistant:ingest`      | OKF build → derive → embed → upsert → delete stale           |
+| `npm run assistant:retrieve`    | Embed question + pgvector search (inspect retrieval)         |
+| `npm run assistant:answer`      | Shared RAG generation service (CLI adapter)                  |
+| `POST /api/assistant/generate`  | Same service via App Router (production visitor API)         |
 
 Database commands are provider-neutral: they work against local Docker Postgres or hosted Neon depending solely on `DATABASE_URL`.

@@ -209,12 +209,12 @@ They may share a Neon **account or organization** in development but must not sh
 
 **Local vs hosted assistant index (decision — vector retrieval experiment).**
 
-| Target                               | Role                                           | Configuration                                                                                                    |
-| ------------------------------------ | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Local Docker Postgres + pgvector** | Default development and migration verification | `docker compose up -d`; `DATABASE_URL` points at local container                                                 |
-| **Neon Postgres + pgvector**         | Persistent hosted assistant retrieval index    | `DATABASE_URL` via gitignored `.env` or secrets; same `db/migrations/` applied by `npm run assistant:db:migrate` |
+| Target                               | Role                                           | Configuration                                                                                                                                                 |
+| ------------------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Local Docker Postgres + pgvector** | Default development and migration verification | `docker compose up -d`; `DATABASE_URL` points at local container                                                                                              |
+| **Neon Postgres + pgvector**         | Persistent hosted assistant retrieval index    | `DATABASE_URL` via gitignored `.env` or secrets; Drizzle Kit migrations via `npm run assistant:db:migrate` ([assistant-database.md](./assistant-database.md)) |
 
-Repository-owned migrations under `db/migrations/` are the only source of truth for assistant schema creation — including on Neon. Operator workflow: [assistant-database.md](./assistant-database.md). Hosted Neon deployment is a dedicated plan slice (`neon-deployment`) and a **prerequisite before `ingest-sync`**.
+Typed schema and forward DDL for the assistant index use **Drizzle ORM** (`db/schema.ts`) and **Drizzle Kit** (`drizzle/`). Historical SQL under `db/migrations/` is read-only evidence. Operator workflow: [assistant-database.md](./assistant-database.md). Hosted Neon deployment is a dedicated plan slice (`neon-deployment`) and a **prerequisite before `ingest-sync`**.
 
 This is **directional**. It is not a commitment to any particular API shape forever. The active vector retrieval experiment uses direct primitives only — **no LangChain, LlamaIndex, or dedicated vector SaaS** (see experiment plan).
 

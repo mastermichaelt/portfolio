@@ -1,77 +1,115 @@
-import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { createPool, getDatabaseUrl } from "./client.mjs";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { readMigrationFiles } from "drizzle-orm/migrator";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 
-const migrationsDir = path.join(
+import { createPool, getDatabaseUrl } from "./client.mjs";
+import { DRIZZLE_MIGRATIONS_TABLE } from "./migration-meta.mjs";
+
+const migrationsFolder = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../../../db/migrations",
+  "../../../drizzle",
 );
 
+const migrationConfig = {
+  migrationsFolder,
+  migrationsTable: DRIZZLE_MIGRATIONS_TABLE,
+};
+
 /**
  * @param {import("pg").Pool} pool
+ * @returns {Promise<boolean>}
  */
-async function ensureMigrationsTable(pool) {
+async function publicTableExists(pool, tableName) {
+  const result = await pool.query(
+    `
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_name = $1
+    ) AS exists
+  `,
+    [tableName],
+  );
+  return result.rows[0]?.exists === true;
+}
+
+/**
+ * @param {import("pg").Pool} pool
+ * @returns {Promise<number>}
+ */
+async function drizzleMigrationRowCount(pool) {
+  const tableExists = await publicTableExists(pool, DRIZZLE_MIGRATIONS_TABLE);
+  if (!tableExists) {
+    return 0;
+  }
+
+  const result = await pool.query(
+    `SELECT COUNT(*)::int AS count FROM ${DRIZZLE_MIGRATIONS_TABLE}`,
+  );
+  return result.rows[0]?.count ?? 0;
+}
+
+/**
+ * Existing Neon/local databases migrated with the legacy runner already have
+ * assistant tables but no Drizzle journal. Seed journal rows without replaying DDL.
+ *
+ * @param {import("pg").Pool} pool
+ * @param {(message: string) => void} log
+ */
+async function baselineDrizzleJournalForLegacyDatabase(pool, log) {
+  const migrations = readMigrationFiles(migrationConfig);
+  if (migrations.length === 0) {
+    throw new Error("No Drizzle migration files found to baseline");
+  }
+
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS schema_migrations (
-      filename text PRIMARY KEY,
-      applied_at timestamptz NOT NULL DEFAULT now()
+    CREATE TABLE IF NOT EXISTS ${DRIZZLE_MIGRATIONS_TABLE} (
+      id SERIAL PRIMARY KEY,
+      hash text NOT NULL,
+      created_at bigint
     )
   `);
+
+  for (const migration of migrations) {
+    await pool.query(
+      `INSERT INTO ${DRIZZLE_MIGRATIONS_TABLE} (hash, created_at) VALUES ($1, $2)`,
+      [migration.hash, migration.folderMillis],
+    );
+    log(
+      `baselined ${DRIZZLE_MIGRATIONS_TABLE} hash=${migration.hash.slice(0, 12)}…`,
+    );
+  }
 }
 
 /**
- * @param {import("pg").Pool} pool
- * @returns {Promise<Set<string>>}
- */
-async function getAppliedMigrations(pool) {
-  const result = await pool.query(
-    "SELECT filename FROM schema_migrations ORDER BY filename",
-  );
-  return new Set(result.rows.map((row) => row.filename));
-}
-
-/**
+ * Strategy A: Drizzle Kit is the sole migration authority (`npm run assistant:db:migrate`).
+ *
  * @param {import("pg").Pool} pool
  * @param {{ log?: (message: string) => void }} [options]
  */
 export async function runMigrations(pool, options = {}) {
   const log = options.log ?? console.log;
+  const existingSchema = await publicTableExists(
+    pool,
+    "assistant_retrieval_units",
+  );
+  const drizzleCount = await drizzleMigrationRowCount(pool);
 
-  await ensureMigrationsTable(pool);
-  const applied = await getAppliedMigrations(pool);
-
-  const files = fs
-    .readdirSync(migrationsDir)
-    .filter((file) => file.endsWith(".sql"))
-    .sort();
-
-  for (const file of files) {
-    if (applied.has(file)) {
-      log(`skip ${file} (already applied)`);
-      continue;
-    }
-
-    const sql = fs.readFileSync(path.join(migrationsDir, file), "utf8");
-    const client = await pool.connect();
-
-    try {
-      await client.query("BEGIN");
-      await client.query(sql);
-      await client.query(
-        "INSERT INTO schema_migrations (filename) VALUES ($1)",
-        [file],
-      );
-      await client.query("COMMIT");
-      log(`applied ${file}`);
-    } catch (error) {
-      await client.query("ROLLBACK");
-      throw error;
-    } finally {
-      client.release();
-    }
+  if (existingSchema && drizzleCount === 0) {
+    log(
+      "detected legacy assistant schema without Drizzle journal — baselining only",
+    );
+    await baselineDrizzleJournalForLegacyDatabase(pool, log);
+    return;
   }
+
+  const db = drizzle(pool);
+  await migrate(db, migrationConfig);
+  log("drizzle migrate complete");
 }
 
 async function main() {

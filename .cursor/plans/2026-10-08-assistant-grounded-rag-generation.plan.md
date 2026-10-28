@@ -19,13 +19,13 @@ todos:
     status: completed
   - id: drizzle-foundation
     content: "PR: Drizzle ORM schema, Kit config, migration strategy (Strategy A single-authority first; Strategy B fallback if documented), verify + assistant-database docs; no query rewrites"
-    status: pending
+    status: completed
   - id: drizzle-queries
     content: "PR: migrate retrieval search, ingest sync, parent fetch, and API rate limiting to typed Drizzle queries; behaviour-preserving"
     status: pending
   - id: drizzle-migration-cutover
-    content: "PR (conditional): retire legacy migration runner — required after drizzle-queries when foundation shipped Strategy B with dual-runner; merge before generation-ui and operational-acceptance; mark cancelled if Strategy A (or same-PR cutover in foundation)"
-    status: pending
+    content: "Cancelled — Strategy A shipped in drizzle-foundation (Drizzle-only migrate; legacy runner retired; journal baseline for existing DBs)"
+    status: cancelled
   - id: generation-ui
     content: "PR: dedicated /assistant page + nav — claims[], citations, compact per-answer token usage footer; reusable components; no floating widget"
     status: pending
