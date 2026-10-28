@@ -472,7 +472,7 @@ scripts/assistant/db/     # migrate.mjs, verify-schema.mjs (extended)
 
 ---
 
-## Slice — `drizzle-foundation`
+## Slice — drizzle-foundation
 
 **Recommended authority:** Open PR only
 
@@ -520,7 +520,7 @@ If the default two-journal + no-op baseline model fails, adjust implementation a
 
 ---
 
-## Slice — `drizzle-queries`
+## Slice — drizzle-queries
 
 **Recommended authority:** Open PR only
 
