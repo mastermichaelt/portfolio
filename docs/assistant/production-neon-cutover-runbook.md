@@ -4,382 +4,223 @@ status: operator
 updated: 2026-10-28
 related:
   - docs/assistant/assistant-database.md
-  - db/migrations/
   - drizzle/0000_assistant_initial.sql
+  - db/schema.ts
 ---
 
 # Production Neon cutover runbook
 
-One-time **initialization and data transfer** for **portfolio-assistant** Neon Primary. The public assistant is **not in active production use** today: schema is reproducible from repository migrations, and the validated **262** retrieval units live on **local Docker** until this procedure loads them on Neon.
+One-time **initialization and corpus transfer** for the **portfolio-assistant** Neon project.
 
-Typical Primary state before cutover:
+**Context:** The public assistant is **not serving users** on Neon today. Primary holds a **partially initialized** schema (legacy artifacts possible), an **empty** retrieval table, and **no known irreplaceable data**. The validated **262** retrieval units (with existing embeddings) live on **local Docker**.
 
-- Legacy migration history is **incomplete** (only `20261007100000_assistant_pgvector.sql` recorded).
-- **`assistant_ingestion_runs`** is missing.
-- **`assistant_api_rate_limit_counters`** exists (possibly without a matching `schema_migrations` row).
-- **`assistant_retrieval_units`** is **empty** on Neon.
-- Drizzle **baseline** has not run (`drizzle.__drizzle_migrations` absent).
+**Strategy:** Replace the Neon **`portfolio_assistant`** database with a **fresh empty** database, initialize schema with **`npm run assistant:db:migrate`** (Drizzle only — no legacy reconciliation, no baseline adoption), then **data-only import** of retrieval units from Docker.
 
-This runbook does **not** replace [assistant-database.md](./assistant-database.md) Strategy A migration policy. It uses **manual SQL** for legacy reconciliation only — there is no second migration runner in the repository. Forward DDL remains **`npm run assistant:db:migrate`** after baseline.
+This runbook does **not** replace [assistant-database.md](./assistant-database.md) Strategy A. It intentionally **discards** incomplete legacy state on Neon rather than repairing `schema_migrations` or running `assistant:db:baseline`.
 
 **Agents must not run production steps without explicit operator approval.**
 
 ## Production safeguards
 
-Apply on every write phase (R2, R3, B, T):
-
-| Safeguard                  | Action                                                                                                                                                                           |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Correct target**         | Neon project **`portfolio-assistant`**, branch **`main` (Primary)**, database **`portfolio_assistant`**, **direct** endpoint (hostname must **not** contain `-pooler`).          |
-| **Identity before writes** | Re-run V0 Console checklist + `current_database()` + `\conninfo` immediately before R2, B, and T.                                                                                |
-| **Read-only inventory**    | Confirm table presence and row counts in R1/V0. **Stop** if `assistant_retrieval_units` is non-empty when initialization expects **0** rows, or if required objects are missing. |
-| **No destructive reset**   | Do **not** `DROP` or `CREATE` replacement tables for retrieval or rate limits. R2 creates only the missing ingestion table; R3 records history only.                             |
-| **Irreplaceable data**     | If Neon holds unexpected non-empty retrieval data (or other state that this runbook cannot reconcile without data loss), **stop** and resolve out of band — do not overwrite.    |
-| **Rate-limit data**        | Do **not** import, truncate, or `UPDATE` `assistant_api_rate_limit_counters`. Import touches **`assistant_retrieval_units` only**.                                               |
-| **Atomic import**          | Phase **T** uses one `psql` session (`BEGIN` … verification … `COMMIT`). Verification failures **`RAISE EXCEPTION`** before `COMMIT`.                                            |
-
-**Failure recovery:** Errors inside an open transaction (R2, R3, T with `ON_ERROR_STOP=1`) leave the transaction uncommitted; PostgreSQL discards that work when the session ends. Re-run the failed phase after fixing the cause. This is **not** a live-traffic migration — no Neon branch backup procedure is required.
+| Safeguard                                  | Action                                                                                                                                                               |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Correct target**                         | Project **`portfolio-assistant`**, branch **`main` (Primary)**, database **`portfolio_assistant`**, **direct** connection (hostname must **not** contain `-pooler`). |
+| **Inventory before destructive steps**     | Record schemas, application tables, and row counts. **Stop** if unexpected irreplaceable data appears.                                                               |
+| **No recovery branch**                     | Not required — empty/replaceable Neon state; corpus preserved on Docker.                                                                                             |
+| **No DROP/CREATE of tables during import** | Phase 5 imports into Drizzle-created tables only; do not hand-drop assistant tables to “fix” schema.                                                                 |
+| **Database vs branch vs project**          | Recreate the **database** on Primary. Do **not** delete the Primary **branch** or entire **project** when database replacement suffices.                             |
+| **Rate-limit data**                        | Not exported or imported. Fresh Drizzle schema creates an empty rate-limit table.                                                                                    |
+| **Local corpus**                           | Do **not** drop or reset local Docker **`portfolio_assistant`** (262 rows).                                                                                          |
 
 ## Sequence overview
 
-| Phase  | Purpose                                                                          |
-| ------ | -------------------------------------------------------------------------------- |
-| **V0** | Destination identity (before any write)                                          |
-| **R1** | Read-only preflight                                                              |
-| **R2** | Migration 2 DDL + `schema_migrations` (single transaction)                       |
-| **R3** | Rate-limit schema parity verification + migration 3 history (single transaction) |
-| **B**  | Drizzle baseline → verify → migrate → verify (**direct** URL)                    |
-| **T0** | Source export + integrity digests (local Docker, read-only)                      |
-| **T**  | Atomic data-only import of `assistant_retrieval_units` (single `psql` session)   |
-| **V**  | Post-cutover verification (Neon retrieval eval / CLI)                            |
+| Phase | Purpose                                                                    |
+| ----- | -------------------------------------------------------------------------- |
+| **1** | Production inventory (read-only)                                           |
+| **2** | Recreate Neon `portfolio_assistant` database (destructive to that DB only) |
+| **3** | Drizzle migrate + verify on empty database                                 |
+| **4** | Export retrieval corpus from local Docker (T0)                             |
+| **5** | Atomic data-only import into Neon (T)                                      |
+| **6** | Production verification (V)                                                |
 
-Repository commands referenced: `npm run assistant:db:baseline`, `assistant:db:verify`, `assistant:db:migrate` ([`scripts/assistant/db/`](../../scripts/assistant/db/)).
+Repository commands: `npm run assistant:db:migrate`, `npm run assistant:db:verify` ([`scripts/assistant/db/`](../../scripts/assistant/db/)).
+
+**Verified locally (2026-10-28):** Empty Postgres database `portfolio_assistant_fresh_init_test` on Docker pg16 → `assistant:db:migrate` → `assistant:db:verify --json` (`ok: true`, journal **1** row, three tables, `vector(1536)`, no `schema_migrations`) → second `migrate` idempotent. Disposable DB dropped after identity check. **Does not** prove Neon Console steps — operators must confirm branch/database names in Console before destructive work.
 
 ---
 
-## V0 — Destination identity (before any write)
+## Phase 1 — Production inventory
+
+Run on Neon **Primary**, **direct** URL only. **Stop** if inventory contradicts expectations below.
 
 ### Neon Console (human)
 
-Confirm all of the following **before** exporting credentials into a shell:
+| Check      | Expected                  |
+| ---------- | ------------------------- |
+| Project    | **`portfolio-assistant`** |
+| Branch     | **`main`** (Primary)      |
+| Database   | **`portfolio_assistant`** |
+| Connection | **Direct** (not pooler)   |
 
-| Check                  | Expected                                                              |
-| ---------------------- | --------------------------------------------------------------------- |
-| Organization / project | **`portfolio-assistant`**                                             |
-| Branch                 | **`main`** (shown as **Primary** in the UI)                           |
-| Database name          | **`portfolio_assistant`**                                             |
-| Connect string         | Copy the **direct** connection string (not **pooled** / not “pooler”) |
+Do **not** commit connection strings or passwords.
 
-Do **not** commit connection strings, passwords, or tokens.
-
-### SQL + psql identity (direct session, read-only)
-
-Set `DATABASE_URL` in the shell to the **direct** Neon URL only (never commit it). Then:
+### SQL identity (read-only)
 
 ```bash
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "SELECT current_database() AS database_name;"
 psql "$DATABASE_URL" -c '\conninfo'
 ```
 
-Operator checks (no secrets in logs shared publicly):
+Confirm `database_name = portfolio_assistant`, host matches Console **direct** endpoint, no `-pooler` in hostname.
 
-- `database_name` is **`portfolio_assistant`**.
-- `\conninfo` host matches the Neon Console **direct** endpoint for branch **`main`** (compare hostname visually).
-- Hostname must **not** contain **`-pooler`** (abort if pooled).
-- Project name is **not** encoded in SQL — the Console checklist above is authoritative for project/branch.
-
-Record baseline inventory on Primary (read-only). **Stop** if retrieval row count is not **0** for this initialization path:
+### Full inventory
 
 ```sql
-SELECT COUNT(*) AS retrieval_rows FROM public.assistant_retrieval_units;
--- Expect: 0 for initialization; stop if non-zero
+SELECT schema_name FROM information_schema.schemata
+WHERE schema_name NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
+ORDER BY schema_name;
 
-SELECT COUNT(*) AS rate_limit_rows FROM public.assistant_api_rate_limit_counters;
--- Informational only; do not modify rate-limit data in this runbook
+SELECT schemaname, relname AS table_name, n_live_tup AS approx_rows
+FROM pg_stat_user_tables
+ORDER BY schemaname, relname;
+
+SELECT COUNT(*) AS retrieval_rows FROM public.assistant_retrieval_units;
+-- Expect: 0 for this cutover path
 
 SELECT filename FROM public.schema_migrations ORDER BY filename;
+-- May show partial legacy rows; will be destroyed in phase 2
+
+SELECT COUNT(*) AS drizzle_journal_rows
+FROM drizzle.__drizzle_migrations;
+-- May error if drizzle schema absent pre-recreate; note state
 ```
+
+**Stop conditions:**
+
+- Non-zero **`assistant_retrieval_units`** rows unless operator explicitly accepts overwrite after phase 2.
+- Any other table row counts that look like **irreplaceable production data** (operator judgment).
+- Local Docker source no longer has **262** retrieval rows (see phase 4 preflight).
+
+### Local Docker source check (read-only)
+
+```bash
+docker exec portfolio-assistant-postgres-1 psql -U portfolio -d portfolio_assistant -v ON_ERROR_STOP=1 -t -A \
+  -c "SELECT COUNT(*) FROM public.assistant_retrieval_units;"
+```
+
+Expect **`262`**. Password/user: [`docker-compose.yml`](../../docker-compose.yml) (`POSTGRES_USER=portfolio`, `POSTGRES_PASSWORD=portfolio_dev`).
 
 ---
 
-## R1 — Read-only preflight
+## Phase 2 — Recreate the Neon database
 
-Run on **Primary** direct connection. **Stop** if any check fails.
+**Goal:** An empty **`portfolio_assistant`** database on branch **`main`**, same name as today so connection strings keep the same database segment (verify role/host unchanged in Console after recreate).
+
+**Not in scope:** Deleting the Neon **project**, resetting the **Primary branch** object, or creating a recovery branch.
+
+### Option A — Neon Console (preferred)
+
+1. Console → project **`portfolio-assistant`** → branch **`main`**.
+2. **Databases** → delete **`portfolio_assistant`** (confirm name twice).
+3. **Create database** → name **`portfolio_assistant`** (same as before).
+4. Re-copy the **direct** connection string for the recreated database.
+
+**Consequences:** All objects in the old database (legacy `schema_migrations`, partial tables, empty retrieval table, any rate-limit rows) are **permanently removed**. Branch compute, other databases on the branch, and the project remain.
+
+**Permissions:** Project member with database manage rights (typically owner/admin).
+
+### Option B — SQL (same branch, different database session)
+
+Connect to another database on **`main`** (Neon default is often **`neondb`**) using a **direct** URL — **not** to `portfolio_assistant` while dropping it.
+
+Terminate backends, then drop and recreate:
+
+```sql
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = 'portfolio_assistant'
+  AND pid <> pg_backend_pid();
+
+DROP DATABASE portfolio_assistant;
+CREATE DATABASE portfolio_assistant;
+```
+
+**Wrong-target guard:** Run `SELECT current_database();` on the session — must **not** be `portfolio_assistant` before `DROP DATABASE`.
+
+### After recreate (verification)
+
+New direct `DATABASE_URL` pointing at **`portfolio_assistant`**, then:
 
 ```sql
 SELECT current_database() AS db;
 
-SELECT filename FROM public.schema_migrations ORDER BY filename;
--- Expect exactly: 20261007100000_assistant_pgvector.sql
-
-SELECT COUNT(*) AS retrieval_rows FROM public.assistant_retrieval_units;
--- Expect: 0 — stop if unexpected rows (irreplaceable without explicit operator decision)
+SELECT COUNT(*) AS table_count
+FROM information_schema.tables
+WHERE table_schema = 'public';
+-- Expect: 0
 
 SELECT EXISTS (
-  SELECT 1 FROM information_schema.tables
-  WHERE table_schema = 'public' AND table_name = 'assistant_ingestion_runs'
-) AS ingestion_runs_exists;
+  SELECT 1 FROM information_schema.schemata WHERE schema_name = 'drizzle'
+) AS drizzle_schema_exists;
 -- Expect: false
-
-SELECT EXISTS (
-  SELECT 1 FROM information_schema.tables
-  WHERE table_schema = 'public' AND table_name = 'assistant_api_rate_limit_counters'
-) AS rate_limit_exists;
--- Expect: true
-
-SELECT extname FROM pg_extension WHERE extname = 'vector';
--- Expect: vector
-
-SELECT format_type(a.atttypid, a.atttypmod) AS embedding_type
-FROM pg_attribute a
-JOIN pg_class c ON a.attrelid = c.oid
-JOIN pg_namespace n ON c.relnamespace = n.oid
-WHERE n.nspname = 'public'
-  AND c.relname = 'assistant_retrieval_units'
-  AND a.attname = 'embedding'
-  AND NOT a.attisdropped;
--- Expect: vector(1536)
-
-SELECT indexname, indexdef
-FROM pg_indexes
-WHERE schemaname = 'public' AND tablename = 'assistant_retrieval_units'
-ORDER BY indexname;
--- Expect: assistant_retrieval_units_okf_concept_id_idx, assistant_retrieval_units_source_class_idx
 ```
+
+**Connection strings:** Database name unchanged → pooled and direct URLs usually need **no path change**; still re-copy from Console after recreate in case host/credentials rotated.
 
 ---
 
-## R2 — Migration 2 (atomic DDL + history)
+## Phase 3 — Initialize with Drizzle
 
-**Preconditions:** R1 passed; `assistant_ingestion_runs` absent; migration 2 not in `schema_migrations`.
+**Preconditions:** Phase 2 complete; public schema empty; V0 identity reconfirmed.
 
-Verbatim DDL from [`db/migrations/20261008100000_assistant_ingestion_runs.sql`](../../db/migrations/20261008100000_assistant_ingestion_runs.sql).
-
-```sql
-BEGIN;
-
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_name = 'assistant_ingestion_runs'
-  ) THEN
-    RAISE EXCEPTION 'assistant_ingestion_runs already exists';
-  END IF;
-  IF EXISTS (
-    SELECT 1 FROM public.schema_migrations
-    WHERE filename = '20261008100000_assistant_ingestion_runs.sql'
-  ) THEN
-    RAISE EXCEPTION 'migration 2 already recorded in schema_migrations';
-  END IF;
-END $$;
-
-CREATE TABLE assistant_ingestion_runs (
-  run_id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  okf_bundle_sha256   text NOT NULL,
-  embedding_model     text NOT NULL,
-  inserted_count      integer NOT NULL DEFAULT 0,
-  updated_count       integer NOT NULL DEFAULT 0,
-  deleted_count       integer NOT NULL DEFAULT 0,
-  skipped_count       integer NOT NULL DEFAULT 0,
-  started_at          timestamptz NOT NULL,
-  finished_at         timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE INDEX assistant_ingestion_runs_finished_at_idx
-  ON assistant_ingestion_runs (finished_at DESC);
-
-INSERT INTO public.schema_migrations (filename)
-VALUES ('20261008100000_assistant_ingestion_runs.sql');
-
-COMMIT;
-```
-
-Execute with `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f r2.sql`.
-
-See [Transaction semantics (`psql`)](#transaction-semantics-psql) below.
-
----
-
-## R3 — Rate-limit schema parity + migration 3 history only
-
-**Preconditions:** R2 committed; rate-limit table exists; migration 3 **not** recorded.
-
-Authoritative DDL: [`db/migrations/20261016100000_assistant_api_rate_limits.sql`](../../db/migrations/20261016100000_assistant_api_rate_limits.sql).
-
-### R3a — Schema parity (read-only; must pass before R3b)
-
-Run **`r3a_verify.sql`** on Primary. **Do not run R3b** unless this script completes with no error.
-
-```sql
--- r3a_verify.sql — psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f r3a_verify.sql
-DO $$
-DECLARE
-  col_type text;
-  col_notnull boolean;
-  col_default text;
-  idxdef text;
-  pkdef text;
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_name = 'assistant_api_rate_limit_counters'
-  ) THEN
-    RAISE EXCEPTION 'assistant_api_rate_limit_counters missing';
-  END IF;
-
-  IF (SELECT count(*) FROM information_schema.columns
-      WHERE table_schema = 'public' AND table_name = 'assistant_api_rate_limit_counters') <> 3 THEN
-    RAISE EXCEPTION 'expected exactly 3 columns on assistant_api_rate_limit_counters';
-  END IF;
-
-  SELECT format_type(a.atttypid, a.atttypmod), a.attnotnull, pg_get_expr(d.adbin, d.adrelid)
-  INTO col_type, col_notnull, col_default
-  FROM pg_attribute a
-  JOIN pg_class c ON c.oid = a.attrelid
-  JOIN pg_namespace n ON n.oid = c.relnamespace
-  LEFT JOIN pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
-  WHERE n.nspname = 'public' AND c.relname = 'assistant_api_rate_limit_counters'
-    AND a.attname = 'bucket_key' AND NOT a.attisdropped;
-  IF col_type IS NULL OR col_type <> 'text' OR NOT col_notnull THEN
-    RAISE EXCEPTION 'bucket_key must be text NOT NULL (got %, notnull %)', col_type, col_notnull;
-  END IF;
-
-  SELECT format_type(a.atttypid, a.atttypmod), a.attnotnull, pg_get_expr(d.adbin, d.adrelid)
-  INTO col_type, col_notnull, col_default
-  FROM pg_attribute a
-  JOIN pg_class c ON c.oid = a.attrelid
-  JOIN pg_namespace n ON n.oid = c.relnamespace
-  LEFT JOIN pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
-  WHERE n.nspname = 'public' AND c.relname = 'assistant_api_rate_limit_counters'
-    AND a.attname = 'count' AND NOT a.attisdropped;
-  IF col_type IS NULL OR col_type <> 'integer' OR NOT col_notnull OR col_default IS DISTINCT FROM '1' THEN
-    RAISE EXCEPTION 'count must be integer NOT NULL DEFAULT 1 (got type %, default %)', col_type, col_default;
-  END IF;
-
-  SELECT format_type(a.atttypid, a.atttypmod), a.attnotnull
-  INTO col_type, col_notnull
-  FROM pg_attribute a
-  JOIN pg_class c ON c.oid = a.attrelid
-  JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public' AND c.relname = 'assistant_api_rate_limit_counters'
-    AND a.attname = 'window_ends_at' AND NOT a.attisdropped;
-  IF col_type IS NULL OR col_type <> 'timestamp with time zone' OR NOT col_notnull THEN
-    RAISE EXCEPTION 'window_ends_at must be timestamptz NOT NULL';
-  END IF;
-
-  SELECT pg_get_constraintdef(con.oid)
-  INTO pkdef
-  FROM pg_constraint con
-  JOIN pg_class rel ON rel.oid = con.conrelid
-  JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
-  WHERE nsp.nspname = 'public'
-    AND rel.relname = 'assistant_api_rate_limit_counters'
-    AND con.contype = 'p';
-  IF pkdef IS DISTINCT FROM 'PRIMARY KEY (bucket_key)' THEN
-    RAISE EXCEPTION 'primary key mismatch (got %)', pkdef;
-  END IF;
-
-  SELECT indexdef INTO idxdef
-  FROM pg_indexes
-  WHERE schemaname = 'public'
-    AND tablename = 'assistant_api_rate_limit_counters'
-    AND indexname = 'assistant_api_rate_limit_counters_window_ends_at_idx';
-  IF idxdef IS DISTINCT FROM
-    'CREATE INDEX assistant_api_rate_limit_counters_window_ends_at_idx ON public.assistant_api_rate_limit_counters USING btree (window_ends_at)' THEN
-    RAISE EXCEPTION 'index assistant_api_rate_limit_counters_window_ends_at_idx mismatch (got %)', idxdef;
-  END IF;
-END $$;
-```
-
-If R3a raises, **stop**. Repair drift manually (outside this runbook’s automated steps) until parity matches the migration file, then re-run R3a.
-
-### R3b — History insert (only after R3a passes)
-
-```sql
-BEGIN;
-
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_name = 'assistant_api_rate_limit_counters'
-  ) THEN
-    RAISE EXCEPTION 'assistant_api_rate_limit_counters missing';
-  END IF;
-  IF EXISTS (
-    SELECT 1 FROM public.schema_migrations
-    WHERE filename = '20261016100000_assistant_api_rate_limits.sql'
-  ) THEN
-    RAISE EXCEPTION 'migration 3 already recorded';
-  END IF;
-END $$;
-
-INSERT INTO public.schema_migrations (filename)
-VALUES ('20261016100000_assistant_api_rate_limits.sql');
-
-COMMIT;
-```
-
-Execute with `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f r3b.sql`.
-
-### Baseline eligibility check
-
-```sql
-SELECT filename FROM public.schema_migrations
-WHERE filename IN (
-  '20261007100000_assistant_pgvector.sql',
-  '20261008100000_assistant_ingestion_runs.sql',
-  '20261016100000_assistant_api_rate_limits.sql'
-)
-ORDER BY filename;
--- Expect 3 rows
-```
-
-Matches [`assessLegacyBaselineEligibility`](../../scripts/assistant/db/legacy-baseline.mjs) table + history requirements.
-
----
-
-## B — Drizzle baseline (direct URL only)
-
-**Preconditions:** R1–R3 complete; `drizzle.__drizzle_migrations` empty; V0 identity checks passed.
+From repository root, **direct** Neon URL only:
 
 ```bash
 cd /path/to/portfolio
 export DATABASE_URL='…direct neon…'   # never commit
 
-npm run assistant:db:baseline
+npm run assistant:db:migrate
 npm run assistant:db:verify -- --json
 npm run assistant:db:migrate
 npm run assistant:db:verify -- --json
 ```
 
-**Expected:**
+**Do not run:**
 
-- Baseline: `legacy baseline adoption complete`
-- Verify: `"ok": true`, `drizzle_migration_journal` records **1** migration
-- Migrate: `drizzle migrate complete` (no-op if journal already current)
-- Vercel **pooled** `DATABASE_URL` is unchanged; only operator shell uses direct for B.
+- `npm run assistant:db:baseline`
+- Legacy SQL under `db/migrations/`
+- Manual `INSERT` into `public.schema_migrations`
 
-If `LegacyBaselineIneligibleError` or `LegacyAdoptionRequiredError`, stop and re-read R1–R3.
+**Expected after first migrate** (matches [`drizzle/0000_assistant_initial.sql`](../../drizzle/0000_assistant_initial.sql)):
+
+- `CREATE EXTENSION vector` (via migration)
+- Tables: `assistant_retrieval_units`, `assistant_ingestion_runs`, `assistant_api_rate_limit_counters`
+- `embedding` column **`vector(1536)`**
+- Primary keys and indexes from migration (including rate-limit window index, ingestion `finished_at`, retrieval `source_class` / `okf_concept_id`)
+- `drizzle.__drizzle_migrations` records **1** migration
+- No requirement for legacy `schema_migrations`
+
+**Fresh-database guard in code:** [`runMigrations`](../../scripts/assistant/db/migrate.mjs) only refuses when assistant tables exist **without** a Drizzle journal (`LegacyAdoptionRequiredError`). Empty database → normal migrate.
+
+Second **`migrate`** + **`verify`** confirms idempotency.
 
 ---
 
-## Canonical integrity digest (T0 and T)
+## Canonical integrity digest (phase 4 and 5)
 
-Use the **same** expressions on **local Docker (T0)** and **Neon inside phase T** before `COMMIT`.
+Use the **same** expressions on **local Docker (phase 4)** and **Neon inside phase 5** before `COMMIT`.
 
-Rules:
+| Rule       | Detail                                                             |
+| ---------- | ------------------------------------------------------------------ |
+| Columns    | All **16** on `assistant_retrieval_units`                          |
+| NULL text  | `coalesce(..., '')`                                                |
+| JSONB      | `coalesce(sources::text, '')`, `coalesce(metadata::text, '')`      |
+| Timestamps | `to_char(col AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')` |
+| Vector     | `embedding::text` (exact stored literal)                           |
+| Order      | `ORDER BY unit_id` in aggregates                                   |
+| Failure    | `RAISE EXCEPTION` in phase 5 before `COMMIT`                       |
 
-- **All 16 columns** on `assistant_retrieval_units` (see migration 1).
-- **NULL text fields:** `coalesce(..., '')`.
-- **JSONB (`sources`, `metadata`):** `coalesce(column::text, '')` — PostgreSQL emits canonical JSON text for `jsonb`.
-- **Timestamps (`embedded_at`, `created_at`, `updated_at`):** UTC-normalized via `to_char(col AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')` so digest does not depend on session `TimeZone`.
-- **Vector (`embedding`):** `embedding::text` — exact pgvector literal form used in storage.
-- **Ordering:** aggregate with `ORDER BY unit_id`.
-- **Failure:** `RAISE EXCEPTION` in phase T if row count, vector fingerprint, or full-row digest does not match T0 constants (never reach `COMMIT`).
-
-**Per-row digest** (inner `md5`):
+**Per-row digest:**
 
 ```sql
 md5(
@@ -402,7 +243,7 @@ md5(
 )
 ```
 
-**Vector fingerprint** (secondary check; embedding preserved via `::text`):
+**Vector fingerprint:**
 
 ```sql
 md5(string_agg(
@@ -411,41 +252,35 @@ md5(string_agg(
 ))
 ```
 
-**Full-table digest:**
-
-```sql
-md5(string_agg(row_digest, E'\n' ORDER BY unit_id))
--- where row_digest is the per-row md5 above
-```
+**Full-table digest:** `md5(string_agg(row_digest, E'\n' ORDER BY unit_id))` using per-row digest above.
 
 ---
 
-## T0 — Source export and digests (local Docker)
+## Phase 4 — Export retrieval corpus (local Docker)
 
-Source: `localhost:5433`, database `portfolio_assistant`, user `portfolio`, container `portfolio-assistant-postgres-1` ([`docker-compose.yml`](../../docker-compose.yml)).
+**Source:** `localhost:5433`, database **`portfolio_assistant`**, container **`portfolio-assistant-postgres-1`**.
 
-### Integrity queries (run on source immediately before export)
+**Do not export:** legacy `schema_migrations`, `drizzle.*`, rate-limit counters, ingestion-run history.
 
-Replace constants in phase **T** with these results. Example values from **2026-10-28** local Docker (recompute every cutover):
+### Integrity (immediately before export)
 
-| Constant               | Example (2026-10-28)               |
+Recompute constants for phase 5. Example from **2026-10-28** local Docker:
+
+| Constant               | Example                            |
 | ---------------------- | ---------------------------------- |
 | `expected_rows`        | `262`                              |
 | `expected_vector_fp`   | `b98ec06f8ebfee83f81b8beae40cfd24` |
 | `expected_full_row_fp` | `593f2edc79f138fc6960f33dc7e13033` |
 
-**Row count:**
-
 ```sql
-SELECT COUNT(*)::bigint AS expected_rows FROM public.assistant_retrieval_units;
+SELECT COUNT(*)::bigint FROM public.assistant_retrieval_units;
+-- plus canonical digest queries above
 ```
-
-Run the [canonical integrity digest](#canonical-integrity-digest-t0-and-t) queries for `expected_vector_fp` and `expected_full_row_fp`.
 
 ### Data-only export
 
 ```bash
-export PGPASSWORD='…'   # local Docker: see docker-compose POSTGRES_PASSWORD; do not commit
+export PGPASSWORD='…'   # POSTGRES_PASSWORD from docker-compose; do not commit
 
 pg_dump \
   -h localhost -p 5433 -U portfolio -d portfolio_assistant \
@@ -455,19 +290,18 @@ pg_dump \
   -f assistant_retrieval_units_data.sql
 ```
 
-Inspect the file: must contain `COPY public.assistant_retrieval_units` (or equivalent data statements) and **must not** contain `CREATE TABLE`.
+File must contain **`COPY public.assistant_retrieval_units`** (or equivalent) and **must not** contain `CREATE TABLE`.
 
 ---
 
-## T — Atomic data import (single `psql` session)
+## Phase 5 — Atomic import (single `psql` session)
 
-**Preconditions:** Phase B complete; Neon retrieval table empty; export file present; digests recorded; V0 identity reconfirmed.
+**Preconditions:** Phase 3 complete; Neon **`assistant_retrieval_units`** empty; export + digests ready; direct URL.
 
-Create **`import_atomic.sql`** in the **same directory** as `assistant_retrieval_units_data.sql`. Set the three `expected_*` constants from T0.
+Create **`import_atomic.sql`** beside the dump. Set `expected_*` from phase 4.
 
 ```sql
--- import_atomic.sql — run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f import_atomic.sql
--- DATABASE_URL must be Neon DIRECT (non-pooler).
+-- import_atomic.sql — psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f import_atomic.sql
 
 BEGIN;
 
@@ -544,42 +378,37 @@ END $$;
 COMMIT;
 ```
 
-**Execution:**
-
 ```bash
 cd /path/to/directory/containing/sql/files
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f import_atomic.sql
 ```
 
-**Out of scope for import:** `schema_migrations`, `assistant_ingestion_runs`, `drizzle.*`, and **`assistant_api_rate_limit_counters`** (no reads or writes in this transaction).
+Embeddings are preserved via `pg_dump` / `COPY` — **no** embedding API calls.
 
 ---
 
 ## Transaction semantics (`psql`)
 
-Use **`psql -v ON_ERROR_STOP=1`** for R2, R3b, and T scripts.
+Use **`psql -v ON_ERROR_STOP=1`** for phase 5 (and optional phase 2 SQL).
 
-| Behavior               | Detail                                                                                                                                                                                |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Single session (T)** | Empty check, `\i` data file, and digest verification share one `BEGIN` … `COMMIT`. Do not split across separate `psql` invocations.                                                   |
-| **On error**           | `ON_ERROR_STOP=1` makes `psql` exit immediately with a non-zero status on the first SQL error or `RAISE EXCEPTION`. Remaining script lines (including `COMMIT`) are **not** executed. |
-| **Rollback**           | The transaction stays **aborted** until the session ends. Uncommitted work (including a failed `COPY`) is **discarded** when the connection closes — nothing is partially committed.  |
-| **After a failed T**   | Reconnect read-only; confirm `assistant_retrieval_units` is still **empty** (or empty again). Fix export/digest/constants; re-run **T** from a clean empty table.                     |
-| **Lock (T)**           | `LOCK TABLE … IN EXCLUSIVE MODE` blocks concurrent writes to `assistant_retrieval_units` until `COMMIT` or session rollback.                                                          |
-| **Success path**       | `COMMIT` runs only after all verification `DO` blocks complete without raising.                                                                                                       |
+| Behavior                | Detail                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| **Single session**      | `BEGIN`, empty check, `\i`, verification, `COMMIT` in one file — do not split.  |
+| **On error**            | `psql` exits non-zero; **`COMMIT` is not run**.                                 |
+| **Rollback**            | Failed transaction rolls back on disconnect; no partial corpus committed.       |
+| **After failed import** | Reconnect; confirm retrieval table **empty**; fix dump/digests; re-run phase 5. |
+| **Lock**                | `EXCLUSIVE` on `assistant_retrieval_units` until commit or rollback.            |
 
 ---
 
-## V — Post-cutover verification
+## Phase 6 — Verify production
 
-1. Re-run V0 identity queries (read-only) — confirm still Primary direct DB.
-2. `npm run assistant:db:verify -- --json` on Neon direct URL — expect `"ok": true`.
+1. Re-run phase 1 identity queries (read-only).
+2. `npm run assistant:db:verify -- --json` on Neon direct URL — `"ok": true`.
 3. Optional SQL:
 
 ```sql
 SELECT COUNT(*) FROM public.assistant_retrieval_units;
-SELECT md5(string_agg(unit_id, ',' ORDER BY unit_id)) AS unit_id_set_hash
-FROM public.assistant_retrieval_units;
 ```
 
 4. Retrieval eval (requires `OPENAI_API_KEY`):
@@ -595,27 +424,28 @@ npm run test -- tests/assistant-retrieval-eval.test.ts
 npm run assistant:retrieve -- "experimentation infrastructure" --top-k 3
 ```
 
-**Stop conditions:** verify fails; eval regressions without review; fingerprint mismatch on re-check.
+6. **Vercel / production app:** Confirm existing **`DATABASE_URL`** still targets the same Neon project, branch, and database name after recreate. **Do not** change Vercel env vars in this runbook without explicit approval — only verify whether Console recreate invalidated secrets or hostnames.
+
+**Stop if:** verify fails, digest mismatch on re-check, or eval regressions without review.
 
 ---
 
 ## Unresolved operational risks
 
-| Risk                                         | Mitigation                                                                                   |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Rate-limit DDL drift on Primary              | R3a parity script; no migration 3 row until it passes                                        |
-| Wrong Neon branch / pooler URL               | V0 Console + `\conninfo` pooler check before every write phase                               |
-| Stale digest constants                       | Re-run T0 immediately before T; UTC + JSONB rules must match exactly                         |
-| Local Docker corpus changes after T0         | Re-export and recompute digests                                                              |
-| Failed import mid-transaction                | Session rollback leaves empty table; re-run T (no backup branch required)                    |
-| Committed import with wrong constants        | Operator must deliberately repair (e.g. delete rows) before re-import — avoid by matching T0 |
-| `gen_random_uuid()` unavailable on Neon      | R2 fails before commit if `pgcrypto`/function missing                                        |
-| Production API empty index until T completes | Expected for initialization; validate in V before pointing traffic                           |
+| Risk                                 | Mitigation                                                                              |
+| ------------------------------------ | --------------------------------------------------------------------------------------- |
+| Wrong Neon project/branch/database   | Phase 1 Console + `\conninfo` before every destructive step                             |
+| `DROP DATABASE` on wrong session     | Connect to `neondb` (or other), not `portfolio_assistant`                               |
+| Stale digest constants               | Recompute in phase 4 immediately before phase 5                                         |
+| Local corpus drift                   | Re-export if Docker rows ≠ 262                                                          |
+| Active connections block drop        | `pg_terminate_backend` before `DROP DATABASE`                                           |
+| Committed bad import                 | Manual delete rows or repeat phase 2+ (destructive) — prevention via pre-commit digests |
+| `gen_random_uuid()` on fresh migrate | Required by Drizzle migration; Neon provides it (via `pgcrypto`)                        |
 
 ---
 
 ## After cutover
 
-- Resume **`drizzle-queries`** implementation on `main` (test DB / local Docker).
-- Schedule **operational-acceptance** only after Neon corpus + verify + eval pass.
-- Future ingests on Neon: run `npm run assistant:ingest` with operator-approved direct `DATABASE_URL` after schema is complete (ingestion runs table empty until first Neon ingest).
+- Resume **`drizzle-queries`** on `main` using local / `*_test` databases.
+- Schedule operational acceptance after phase 6 passes.
+- First Neon **`npm run assistant:ingest`** (operator-approved direct URL) will populate `assistant_ingestion_runs` when you choose to sync OKF on hosted index.

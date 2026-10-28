@@ -59,7 +59,7 @@ Use when the database was created with the **retired custom runner** (`db/migrat
 
 **Operator sequence (explicit approval required — agents must not run against production without approval):**
 
-1. Confirm target database and backup/recovery option.
+1. Confirm target database and operator rollback plan (transaction rollback, or fresh database path — not necessarily a Neon branch backup).
 2. Inspect legacy schema and migration history (`vector`, all three assistant tables, every legacy filename in `schema_migrations`).
 3. Set `DATABASE_URL` to the **direct** (non-pooled) connection string for that branch.
 4. Run **`npm run assistant:db:baseline`** once — expect `legacy baseline adoption complete`; no CREATE replay on existing tables or embeddings.
@@ -105,9 +105,11 @@ Integration tests in `tests/assistant-db.test.ts` use `DATABASE_URL` **read-only
 
 Neon provisioning is an account/dashboard action. The repository does not store Neon credentials or connection strings.
 
-### Production cutover (partial legacy + corpus transfer)
+### Production cutover (fresh Drizzle + corpus transfer)
 
-When hosted Primary has **incomplete** legacy `schema_migrations` history, missing tables, an **empty** retrieval index, and a validated corpus on **local Docker**, use the one-time operator runbook — it covers legacy reconciliation (R1–R3), Drizzle baseline (B), atomic vector transfer (T), and verification (V). Strategy A commands in this doc still apply; the runbook does not add a second migration runner.
+When hosted Primary has **no irreplaceable production data**, an **empty** (or discardable) retrieval index, and the validated **262**-unit corpus on **local Docker**, use the one-time operator runbook: **recreate** the Neon `portfolio_assistant` database, run **`npm run assistant:db:migrate`** only (no baseline, no legacy SQL reconciliation), then atomic **data-only** import of retrieval units. This path **intentionally discards** partial legacy schema/history on Neon.
+
+For databases still on the **retired custom runner** with complete legacy history and data you must preserve, use **one-time baseline adoption** (above) instead of the cutover runbook.
 
 [Production Neon cutover runbook](./production-neon-cutover-runbook.md)
 
