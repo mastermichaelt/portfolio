@@ -18,7 +18,7 @@ todos:
     content: "PR: Next.js server API route — thin adapter over shared service; validation, rate limits, public answer + allowlisted usage object, safe errors; no client secrets"
     status: completed
   - id: drizzle-foundation
-    content: "PR: Drizzle ORM schema, Drizzle Kit config, migration baselining + bridge, verify + assistant-database docs; no query rewrites"
+    content: "PR: Drizzle ORM schema, Kit config, migration strategy (Strategy A single-authority first; Strategy B fallback if documented), verify + assistant-database docs; no query rewrites"
     status: pending
   - id: drizzle-queries
     content: "PR: migrate retrieval search, ingest sync, parent fetch, and API rate limiting to typed Drizzle queries; behaviour-preserving"
@@ -51,7 +51,9 @@ isProject: false
 
 **Plan amendment (2026-10-16, production Neon corpus):** Hosted assistant generation on michaeltruong.ai requires a **populated production retrieval index** on Neon — not only schema/migrations. **Production corpus ingestion and verification** are an **operator-controlled operational prerequisite** inside **`operational-acceptance`**, executed **before deployed E2E acceptance**. They use the existing `okf:build` → `assistant:ingest` workflow ([assistant-database.md](../../docs/assistant/assistant-database.md)); **not** a new implementation slice, **not** triggered by Vercel deploys, and **not** agent-executable without explicit operator approval.
 
-**Plan amendment (2026-10-28, Drizzle ORM):** Adopt **Drizzle ORM** and **Drizzle Kit** as the **long-term schema, query, and forward-migration authority** for the assistant Postgres + pgvector database (`DATABASE_URL` scope only — not site `PortfolioRepository` persistence). Two implementation slices (**`drizzle-foundation`**, **`drizzle-queries`**) land **after `generation-api` and before `generation-ui`**. Preserve historical SQL under `db/migrations/`, existing `schema_migrations` records, retrieval semantics, ingest idempotency, generation contract, and operator-controlled Neon operations. **Do not** recreate the database, squash legacy DDL, or change embedding model / `vector(1536)` in these slices.
+**Plan amendment (2026-10-28, Drizzle ORM):** Adopt **Drizzle ORM** and **Drizzle Kit** as the **long-term schema, query, and migration authority** for the assistant Postgres + pgvector database (`DATABASE_URL` scope only — not site `PortfolioRepository` persistence). **Intent:** retire the custom legacy migration runner once a safe cutover is verified — not maintain two migration systems indefinitely. Two implementation slices (**`drizzle-foundation`**, **`drizzle-queries`**) land **after `generation-api` and before `generation-ui`**. Preserve historical SQL under `db/migrations/` as **read-only evidence** (do not delete or rewrite files), existing `schema_migrations` rows on populated databases, retrieval semantics, ingest idempotency, generation contract, and operator-controlled Neon operations. **Do not** recreate the database, change embedding model / `vector(1536)`, or replay full CREATE DDL on populated production in these slices.
+
+**Plan amendment (2026-10-28, migration ownership):** **`drizzle-foundation`** must **evaluate a single-authority Drizzle Kit migration path first** (one operator command, one journal, custom runner retired or reduced to a thin Drizzle wrapper). A **dual-journal / dual-runner transitional bridge** is an **acceptable fallback only** if single-authority is documented impractical, together with **ongoing maintenance cost** and a note on when the fallback can be removed.
 
 This document amends the active plan in place; do not fork a competing plan.
 
@@ -65,23 +67,23 @@ This document amends the active plan in place; do not fork a competing plan.
 
 Preserve unless a future plan amendment explicitly revises them.
 
-| Topic                  | Decision                                                                                                                                                                                                                                                                                                                                                             |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Chat model             | `gpt-4o-mini` default (`ASSISTANT_GENERATION_MODEL` override); **native fetch** Chat Completions (mirror embeddings adapter); no LangChain/LlamaIndex                                                                                                                                                                                                                |
-| Shared service         | **One** RAG generation implementation: query validation → retrieve → assemble → generate → parse → citation integrity → abstention/diagnostics. **`assistant:answer` CLI and App Router API route are thin adapters** — no shell-out, no duplicate generation paths                                                                                                  |
-| Default assembly       | **Bounded full-parent** at **OKF concept** boundary (`okf_concept_id`); Postgres-backed parent units                                                                                                                                                                                                                                                                 |
-| Eval baseline assembly | `top_k_only` (non-default for operators/eval)                                                                                                                                                                                                                                                                                                                        |
-| Generation retrieve K  | Default **10** (`--top-k` / service default); retrieve CLI default **5** unchanged                                                                                                                                                                                                                                                                                   |
-| Budget                 | Truncate **unmatched** chunks only, or **`EvidenceBudgetExceeded`** — never silently drop top-K matched units                                                                                                                                                                                                                                                        |
-| Generation philosophy  | **Evidence-aware** — general technical knowledge allowed; **personal/professional facts about Michael** require corpus grounding or explicit uncertainty; model-declared attribution is observable output, not proof of internal reasoning                                                                                                                           |
-| Citations              | **Integrity** (deterministic: `evidence_id`, `unit_id`, approved URLs) in contract + runtime; **support** and **attribution accuracy** (semantic) in generation-eval only — structural validity ≠ factual support                                                                                                                                                    |
-| Response contract      | Model: ordered nonempty **`claims[]`** + **`support_level`** (evidence coverage) + **`abstained`** / **`abstention_reason`** when refusing; service derives **`answer_text`** and deduped **`citations[]`** — see [Contract amendment (generation-cli)](#contract-amendment-generation-cli)                                                                          |
-| Visitor-visible usage  | **`generation-api`** returns allowlisted **`usage`** (`model`, OpenAI `prompt_tokens`, `completion_tokens`, optional `total_tokens`) on **successful** responses only; omit fields when unavailable — **never** coerce missing counts to zero; **no** prompt/evidence/diagnostics in the client payload                                                              |
-| Resource bounds        | Configurable evidence char budget (120k = **dev default**), approximate prompt token cap, max output tokens, timeouts, max question/body size — no tokenizer-exact budgeting this milestone                                                                                                                                                                          |
-| Eval baselines         | **`no_retrieval`** (model-only), **`top_k_only`**, **`full_parent`** — `no_retrieval` is eval-only, not production architecture                                                                                                                                                                                                                                      |
-| Index + corpus         | **Neon pgvector** + existing operator-controlled `okf:build` → `assistant:ingest` workflow; no automatic corpus updates; **production Neon must be ingested and verified** before deployed assistant E2E ([operational-acceptance](#slice--operational-acceptance))                                                                                                  |
-| Assistant DB schema    | **Drizzle ORM + Drizzle Kit** (assistant `DATABASE_URL` only): typed `db/schema.ts`; **forward DDL** via Drizzle Kit output under `drizzle/`; historical SQL in `db/migrations/` preserved and still applied for fresh DB bootstrap; **production migrate/verify remains operator-controlled** ([assistant-database.md](../../docs/assistant/assistant-database.md)) |
-| Deployment target      | **michaeltruong.ai** (Vercel production); server-only `DATABASE_URL`, `OPENAI_API_KEY`, and generation config                                                                                                                                                                                                                                                        |
+| Topic                  | Decision                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chat model             | `gpt-4o-mini` default (`ASSISTANT_GENERATION_MODEL` override); **native fetch** Chat Completions (mirror embeddings adapter); no LangChain/LlamaIndex                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Shared service         | **One** RAG generation implementation: query validation → retrieve → assemble → generate → parse → citation integrity → abstention/diagnostics. **`assistant:answer` CLI and App Router API route are thin adapters** — no shell-out, no duplicate generation paths                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Default assembly       | **Bounded full-parent** at **OKF concept** boundary (`okf_concept_id`); Postgres-backed parent units                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Eval baseline assembly | `top_k_only` (non-default for operators/eval)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Generation retrieve K  | Default **10** (`--top-k` / service default); retrieve CLI default **5** unchanged                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Budget                 | Truncate **unmatched** chunks only, or **`EvidenceBudgetExceeded`** — never silently drop top-K matched units                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Generation philosophy  | **Evidence-aware** — general technical knowledge allowed; **personal/professional facts about Michael** require corpus grounding or explicit uncertainty; model-declared attribution is observable output, not proof of internal reasoning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Citations              | **Integrity** (deterministic: `evidence_id`, `unit_id`, approved URLs) in contract + runtime; **support** and **attribution accuracy** (semantic) in generation-eval only — structural validity ≠ factual support                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Response contract      | Model: ordered nonempty **`claims[]`** + **`support_level`** (evidence coverage) + **`abstained`** / **`abstention_reason`** when refusing; service derives **`answer_text`** and deduped **`citations[]`** — see [Contract amendment (generation-cli)](#contract-amendment-generation-cli)                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Visitor-visible usage  | **`generation-api`** returns allowlisted **`usage`** (`model`, OpenAI `prompt_tokens`, `completion_tokens`, optional `total_tokens`) on **successful** responses only; omit fields when unavailable — **never** coerce missing counts to zero; **no** prompt/evidence/diagnostics in the client payload                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Resource bounds        | Configurable evidence char budget (120k = **dev default**), approximate prompt token cap, max output tokens, timeouts, max question/body size — no tokenizer-exact budgeting this milestone                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Eval baselines         | **`no_retrieval`** (model-only), **`top_k_only`**, **`full_parent`** — `no_retrieval` is eval-only, not production architecture                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Index + corpus         | **Neon pgvector** + existing operator-controlled `okf:build` → `assistant:ingest` workflow; no automatic corpus updates; **production Neon must be ingested and verified** before deployed assistant E2E ([operational-acceptance](#slice--operational-acceptance))                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Assistant DB schema    | **Drizzle ORM + Drizzle Kit** (assistant `DATABASE_URL` only): typed `db/schema.ts`; **all forward and fresh-bootstrap DDL** via Drizzle Kit under `drizzle/`; **`npm run assistant:db:migrate` is a single Drizzle-backed operator path** after foundation (legacy custom runner **retired** when single-authority cutover is verified). Historical SQL in `db/migrations/` **preserved read-only** (audit/history — not an ongoing second migration authority). **Production migrate/verify remains operator-controlled** ([assistant-database.md](../../docs/assistant/assistant-database.md)). If single-authority is impractical, dual-runner fallback is allowed only with documented maintenance cost in the foundation PR + runbook. |
+| Deployment target      | **michaeltruong.ai** (Vercel production); server-only `DATABASE_URL`, `OPENAI_API_KEY`, and generation config                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 ## Recommended execution authority
 
@@ -414,36 +416,47 @@ Streaming, neighbour expansion, automatic ingest on deploy, external web search,
 
 **Scope:** Assistant retrieval index + API rate-limit tables on **`DATABASE_URL` only**. Site `PortfolioRepository` persistence (future Milestone 4) remains a separate connection, schema, and migration lifecycle.
 
-**Long-term authority:**
+**Long-term authority (target end state):**
 
-| Concern                                        | Authority                                                                                 |
-| ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Typed schema + queries                         | **Drizzle ORM** (`db/schema.ts`, shared `db/client.ts`)                                   |
-| **Forward** DDL (new columns, tables, indexes) | **Drizzle Kit** (`drizzle.config.ts` → SQL under `drizzle/`)                              |
-| Historical bootstrap DDL                       | Preserved **`db/migrations/*.sql`** (read-only history; still applied on fresh databases) |
-| Operator entrypoint                            | Unchanged: `npm run assistant:db:migrate`, `npm run assistant:db:verify`                  |
+| Concern                                         | Authority                                                                                                            |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Typed schema + queries                          | **Drizzle ORM** (`db/schema.ts`, shared `db/client.ts`)                                                              |
+| **All** DDL (fresh bootstrap + forward changes) | **Drizzle Kit** (`drizzle.config.ts` → SQL under `drizzle/`, journal `__drizzle_migrations`)                         |
+| Operator entrypoint                             | **`npm run assistant:db:migrate`** → Drizzle migrator only (custom legacy runner **removed** after verified cutover) |
+| Historical SQL files                            | **`db/migrations/*.sql`** preserved **read-only** in Git (audit trail; not executed after cutover)                   |
+| Legacy `schema_migrations` on existing DBs      | **Frozen** — historical record on Neon/local DBs already migrated; not the authority for new DDL                     |
 
-**Migration transition (safe baseline — investigate before locking implementation):**
+**Migration transition — investigation gate (required before locking `drizzle-foundation` implementation):**
 
-The **`drizzle-foundation`** PR must **spike and verify** the bridge on (1) a **fresh** local Docker database and (2) a database that **already has** all legacy rows in `schema_migrations` but an **empty** Drizzle journal — mirroring production Neon today. Do **not** commit to a specific bridge implementation until that verification passes. Document the chosen approach in the PR and [assistant-database.md](../../docs/assistant/assistant-database.md).
+Do **not** treat dual-runner / dual-journal as the default. The foundation PR must **evaluate strategies in order** and document results in the PR + [assistant-database.md](../../docs/assistant/assistant-database.md).
 
-**Target model (default hypothesis — revise if spike disproves):**
+**Strategy A — single-authority Drizzle (evaluate first; preferred):**
 
-- Two journals coexist: **`schema_migrations`** (legacy filenames) and **`__drizzle_migrations`** (Drizzle Kit).
-- **`npm run assistant:db:migrate`** runs **legacy runner first**, then **Drizzle migrator** (single operator command).
-- **Fresh DB:** legacy SQL creates extension + tables; first Drizzle migration is a **no-op baseline** (no `CREATE TABLE` / `CREATE EXTENSION`) so the Drizzle journal initializes without double DDL.
-- **Existing Neon / local DB:** legacy runner skips applied files; baseline migration records in Drizzle journal **without** recreating objects.
-- **Forward changes:** edit `db/schema.ts` → `npm run assistant:db:generate` → new file under `drizzle/` → migrate.
+- **Fresh database:** `assistant:db:migrate` applies Drizzle Kit migrations only (initial migration(s) reproduce current schema + `vector` extension — sourced from `db/schema.ts`, not by re-running legacy files at runtime).
+- **Existing database** (legacy `schema_migrations` populated, Drizzle journal empty — production Neon shape today): baseline without replaying CREATE — e.g. mark initial Drizzle migration(s) applied / journal seeding procedure that **does not** recreate tables or re-enable extension on populated DBs.
+- **Verify:** idempotent second migrate; `assistant:db:verify` aligned with chosen journal; local Docker spike + documented operator Neon procedure (operator runs production migrate — agents do not by default).
+- **Cutover:** remove or reduce [`scripts/assistant/db/migrate.mjs`](../../scripts/assistant/db/migrate.mjs) legacy loop to a thin Drizzle wrapper; legacy SQL files stay in repo but are **not** executed on fresh installs after cutover.
+
+**Strategy B — dual-runner transitional bridge (fallback only if Strategy A is impractical):**
+
+Use only when Strategy A is **documented impractical** (concrete blockers: pgvector baseline in Kit, Neon baseline seeding, verify contract, etc.).
+
+- Two journals: **`schema_migrations`** (legacy filenames) + **`__drizzle_migrations`** (Drizzle Kit).
+- **`assistant:db:migrate`** runs legacy runner then Drizzle migrator until a follow-up plan slice retires legacy execution.
+- Fresh DB: legacy SQL creates schema; first Drizzle migration is **no-op baseline** (no duplicate CREATE).
+- Existing DB: legacy skipped; Drizzle baseline seeds journal only.
+
+**Fallback maintenance cost (required in docs if Strategy B ships):** two runners to test, dual verify rules, operator confusion risk, and every future schema change must consider both journals until legacy execution is removed. State explicit **exit criteria** (e.g. single Drizzle migration chain proven on fresh + baseline on Neon → delete legacy runner path in a follow-up PR).
 
 ```mermaid
-flowchart LR
-  migrateCmd["assistant:db:migrate"]
-  legacy["Legacy runner db/migrations"]
-  legacyTable["schema_migrations"]
-  drizzleRun["Drizzle migrator drizzle/"]
-  drizzleTable["__drizzle_migrations"]
-  migrateCmd --> legacy --> legacyTable
-  migrateCmd --> drizzleRun --> drizzleTable
+flowchart TD
+  spike["drizzle-foundation spike"]
+  strategyA["Strategy A: Drizzle-only migrate"]
+  strategyB["Strategy B: dual-runner fallback"]
+  spike --> strategyA
+  strategyA -->|verified| shipA["Ship: retire legacy runner"]
+  strategyA -->|impractical documented| strategyB
+  strategyB --> shipB["Ship: document maintenance cost + exit criteria"]
 ```
 
 **Operator controls (unchanged invariants):**
@@ -466,8 +479,8 @@ db/schema.ts              # Drizzle tables (assistant scope)
 db/client.ts              # pool + drizzle(db) factory
 drizzle/                  # Kit-generated SQL + meta
 drizzle.config.ts
-db/migrations/            # legacy SQL (preserved)
-scripts/assistant/db/     # migrate.mjs, verify-schema.mjs (extended)
+db/migrations/            # legacy SQL (read-only history; execution depends on Strategy A vs B)
+scripts/assistant/db/     # migrate + verify (Drizzle-first or transitional dual-runner)
 ```
 
 ---
@@ -486,35 +499,44 @@ scripts/assistant/db/     # migrate.mjs, verify-schema.mjs (extended)
 
 **Dependencies:** `generation-api` merged on `main`.
 
-**Investigation gate (required in this slice):**
+**Investigation gate (required in this slice — order matters):**
 
-Before merging, prove on local Docker (and document procedure for operator Neon baseline):
+**1. Strategy A (single-authority Drizzle) — must evaluate first**
 
-1. Fresh DB: legacy migrate creates schema; Drizzle baseline applies without duplicate DDL.
-2. Simulated existing DB: all three legacy filenames in `schema_migrations`, empty `__drizzle_migrations` → single migrate seeds Drizzle journal only.
-3. Second migrate run is idempotent (no errors, no duplicate DDL).
+On local Docker, prove (document commands and outcomes in the PR):
 
-If the default two-journal + no-op baseline model fails, adjust implementation and docs — **do not** ship a bridge that replays CREATE on production.
+- **Fresh DB:** `assistant:db:migrate` builds full assistant schema via **Drizzle only** (no legacy runner execution).
+- **Simulated existing DB:** legacy `schema_migrations` rows present, empty `__drizzle_migrations` → migrate baselines Drizzle journal **without** CREATE replay or data loss.
+- **Idempotency:** second migrate is a no-op success.
+- **Verify:** `assistant:db:verify` checks match the chosen single-authority model.
+
+If Strategy A passes, **ship Strategy A** — retire legacy runner execution; keep legacy SQL files in Git as history only.
+
+**2. Strategy B (dual-runner fallback) — only if Strategy A fails**
+
+Document **why** Strategy A is impractical (specific blockers). Then prove the dual-bridge scenarios (fresh DB + simulated existing DB + idempotency) without CREATE replay on populated DBs. **Required addition:** [assistant-database.md](../../docs/assistant/assistant-database.md) section on **ongoing maintenance cost** and **exit criteria** for removing the legacy runner.
+
+Do **not** ship any bridge that replays full CREATE on populated production.
 
 **Deliverables:**
 
 1. Dependencies: `drizzle-orm`; `drizzle-kit` (dev). Keep `pg`; use `drizzle-orm/node-postgres`.
 2. **`db/schema.ts`** — `assistant_retrieval_units`, `assistant_ingestion_runs`, `assistant_api_rate_limit_counters`; pgvector `embedding` via `customType` (or supported helper) at **1536** dimensions; indexes reflected for Kit diffs.
 3. **`db/client.ts`** + temporary **`scripts/assistant/db/client.mjs`** shim re-export so existing imports keep working until **`drizzle-queries`**.
-4. **`drizzle.config.ts`**; npm scripts e.g. `assistant:db:generate` (Kit generate), optional `assistant:db:studio`; extend **`assistant:db:migrate`** (legacy + Drizzle migrator).
-5. **`drizzle/`** baseline migration + meta (no-op DDL per verified bridge).
-6. Extend **`verify-schema.mjs`**: Drizzle baseline present; all three legacy migrations recorded; tables for ingestion runs + rate limits; existing vector ext / `vector(1536)` / no-ANN checks unchanged.
-7. Tests: extend **`tests/assistant-db.test.ts`** for dual journals + idempotent migrate.
-8. Docs: [assistant-database.md](../../docs/assistant/assistant-database.md) (migration authority story, operator workflow, baseline semantics); short pointer in [architecture-direction.md](../../docs/assistant/architecture-direction.md).
-9. Optional hardening: test/assert baseline SQL contains no `CREATE TABLE` / `CREATE EXTENSION`.
+4. **`drizzle.config.ts`**; npm scripts e.g. `assistant:db:generate` (Kit generate), optional `assistant:db:studio`; **`assistant:db:migrate`** implements **Strategy A or B** per investigation (not both by default).
+5. **`drizzle/`** migration chain + meta per chosen strategy (Strategy A: substantive initial migration(s); Strategy B: no-op baseline + legacy runner still executes historical SQL on fresh DB).
+6. Extend **`verify-schema.mjs`** for the **chosen** strategy (Drizzle journal + schema invariants; Strategy B also checks legacy filenames recorded).
+7. Tests: extend **`tests/assistant-db.test.ts`** for migrate idempotency and verify rules of the **shipped** strategy.
+8. Docs: [assistant-database.md](../../docs/assistant/assistant-database.md) (single-authority target, investigation outcome, operator workflow, Neon baseline procedure); short pointer in [architecture-direction.md](../../docs/assistant/architecture-direction.md). If Strategy B: maintenance cost + exit criteria.
+9. If Strategy B: optional hardening — assert baseline SQL contains no `CREATE TABLE` / `CREATE EXTENSION`.
 10. Mark **`drizzle-foundation`** `completed` in plan frontmatter in this PR.
 
 **Acceptance:**
 
 - `npm run typecheck`, `npm test`, `npm run format:check` pass.
-- With local `DATABASE_URL`: `assistant:db:migrate` + `assistant:db:verify` pass; investigation gate scenarios documented in PR.
+- With local `DATABASE_URL`: `assistant:db:migrate` + `assistant:db:verify` pass; **Strategy A or documented Strategy B** with investigation notes in PR.
 - No changes to retrieval SQL, ingest sync, rate-limit logic, or generation service behaviour (queries still raw `pg` in this slice).
-- Production operator story: first post-deploy migrate on existing Neon may seed Drizzle journal only — **operator runs migrate**; agents do not mutate production without approval.
+- Production operator story documented for the **shipped** strategy — **operator runs migrate** on Neon when adopting; agents do not mutate production without approval.
 
 **PR boundary:** Drizzle tooling, schema, migration bridge, verify, tests, docs only.
 
@@ -615,16 +637,16 @@ If the default two-journal + no-op baseline model fails, adjust implementation a
 
 **Checklist** (commands and workflows: [assistant-database.md](../../docs/assistant/assistant-database.md)):
 
-| Step | Action                                                                                                                                                                                                                                                                                                                                                             |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1    | **Confirm target** — Neon project `portfolio-assistant`, intended branch (`main`), database `portfolio_assistant`, and that `DATABASE_URL` is the **assistant retrieval** connection only (not site persistence or other Neon projects).                                                                                                                           |
-| 2    | **Schema** — `npm run assistant:db:migrate` and `npm run assistant:db:verify` against production `DATABASE_URL` (direct connection for migrate). After **`drizzle-foundation`** ships, verify reports legacy + Drizzle baseline journals; operator runs migrate once to seed Drizzle journal on existing Neon if needed — **no agent-default production migrate**. |
-| 3    | **Canonical corpus** — `npm run okf:build` (or verify `content/assistant/okf` / manifest matches the intended release).                                                                                                                                                                                                                                            |
-| 4    | **Ingest** — `npm run assistant:ingest` with production `DATABASE_URL` set (operator session only; never commit secrets).                                                                                                                                                                                                                                          |
-| 5    | **Post-ingest verify** — non-zero `assistant_retrieval_units` count; ingest summary (upsert/skip/delete); `assistant_ingestion_runs` row with expected `bundle_sha256`; spot-check provenance fields on sample units.                                                                                                                                              |
-| 6    | **Retrieval smoke** — `npm run assistant:retrieve --` known portfolio questions (e.g. Savepoints, Codenames AI); confirm relevant hits and sane distances.                                                                                                                                                                                                         |
-| 7    | **Idempotent re-ingest** — second `assistant:ingest` run: expect high skip count, no unintended mass delete; row count stable unless corpus changed.                                                                                                                                                                                                               |
-| 8    | **Generation smoke (hosted index)** — `npm run assistant:answer` against production `DATABASE_URL`: one **grounded** portfolio question (citations + `evidence_supported` claims) and one **unsupported personal** question (valid abstention, no fabricated citations).                                                                                           |
+| Step | Action                                                                                                                                                                                                                                                                                                                                     |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1    | **Confirm target** — Neon project `portfolio-assistant`, intended branch (`main`), database `portfolio_assistant`, and that `DATABASE_URL` is the **assistant retrieval** connection only (not site persistence or other Neon projects).                                                                                                   |
+| 2    | **Schema** — `npm run assistant:db:migrate` and `npm run assistant:db:verify` against production `DATABASE_URL` (direct connection for migrate), per **`drizzle-foundation`** outcome (single-authority or documented fallback). Operator runs production migrate when adopting Drizzle on Neon — **no agent-default production migrate**. |
+| 3    | **Canonical corpus** — `npm run okf:build` (or verify `content/assistant/okf` / manifest matches the intended release).                                                                                                                                                                                                                    |
+| 4    | **Ingest** — `npm run assistant:ingest` with production `DATABASE_URL` set (operator session only; never commit secrets).                                                                                                                                                                                                                  |
+| 5    | **Post-ingest verify** — non-zero `assistant_retrieval_units` count; ingest summary (upsert/skip/delete); `assistant_ingestion_runs` row with expected `bundle_sha256`; spot-check provenance fields on sample units.                                                                                                                      |
+| 6    | **Retrieval smoke** — `npm run assistant:retrieve --` known portfolio questions (e.g. Savepoints, Codenames AI); confirm relevant hits and sane distances.                                                                                                                                                                                 |
+| 7    | **Idempotent re-ingest** — second `assistant:ingest` run: expect high skip count, no unintended mass delete; row count stable unless corpus changed.                                                                                                                                                                                       |
+| 8    | **Generation smoke (hosted index)** — `npm run assistant:answer` against production `DATABASE_URL`: one **grounded** portfolio question (citations + `evidence_supported` claims) and one **unsupported personal** question (valid abstention, no fabricated citations).                                                                   |
 
 **Phase A acceptance criteria (measurable):**
 
@@ -726,11 +748,11 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: Drizzle ORM + Drizzle Kit; db/schema.ts matching existing assistant tables; db/client.ts + temporary client.mjs shim; drizzle.config.ts; drizzle/ baseline + migration bridge (verify on fresh DB and simulated existing schema_migrations-only DB before merging); extend assistant:db:migrate and assistant:db:verify; assistant:db:generate script; tests/assistant-db.test.ts; docs/assistant/assistant-database.md + architecture-direction pointer. No retrieve/ingest/rate-limit query rewrites. Mark drizzle-foundation completed in plan frontmatter in this PR.
+Deliverables: Drizzle ORM + Drizzle Kit; db/schema.ts matching existing assistant tables; db/client.ts + temporary client.mjs shim; drizzle.config.ts; migration path per investigation — evaluate Strategy A (single-authority Drizzle migrate, legacy runner retired) first; Strategy B (dual-runner fallback) only if A impractical with documented maintenance cost + exit criteria; extend assistant:db:migrate and assistant:db:verify; assistant:db:generate script; tests/assistant-db.test.ts; docs/assistant/assistant-database.md + architecture-direction pointer. No retrieve/ingest/rate-limit query rewrites. Mark drizzle-foundation completed in plan frontmatter in this PR.
 
-Operator: do not run production Neon migrate unless operator-approved; document Neon baseline procedure.
+Operator: do not run production Neon migrate unless operator-approved; document Neon baseline procedure for shipped strategy.
 
-Verification: npm run typecheck; npm test; npm run format:check; local Docker migrate + verify with DATABASE_URL; document investigation gate results in PR.
+Verification: npm run typecheck; npm test; npm run format:check; local Docker migrate + verify with DATABASE_URL; PR documents Strategy A evaluation and outcome (or Strategy B blockers + maintenance cost).
 ```
 
 ### drizzle-queries
