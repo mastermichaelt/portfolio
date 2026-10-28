@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createPool } from "@/scripts/assistant/db/client.mjs";
 import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
-import { runMigrations } from "@/scripts/assistant/db/migrate.mjs";
+import { prepareAssistantIntegrationTestDatabase } from "@/scripts/assistant/db/prepare-integration-test-database.mjs";
 import { EXPECTED_EMBEDDING_DIMENSIONS } from "@/scripts/assistant/embeddings/index-config.mjs";
 import { formatVectorLiteral } from "@/scripts/assistant/ingest/vector-format.mjs";
 import {
@@ -159,7 +159,7 @@ describe("assistant retrieve search", () => {
 
       beforeAll(async () => {
         pool = createPool(retrieveTestDatabaseUrl!);
-        await runMigrations(pool, { log: () => {} });
+        await prepareAssistantIntegrationTestDatabase(pool, { log: () => {} });
 
         await upsertTestUnit(pool, TEST_UNIT_IDS[0], "about", axisVector(0));
         await upsertTestUnit(pool, TEST_UNIT_IDS[1], "about", axisVector(1));

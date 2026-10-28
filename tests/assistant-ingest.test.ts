@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { createPool } from "@/scripts/assistant/db/client.mjs";
 import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
-import { runMigrations } from "@/scripts/assistant/db/migrate.mjs";
+import { prepareAssistantIntegrationTestDatabase } from "@/scripts/assistant/db/prepare-integration-test-database.mjs";
 import { EXPECTED_EMBEDDING_DIMENSIONS } from "@/scripts/assistant/embeddings/index-config.mjs";
 import { readOkfBundleSha256 } from "@/scripts/assistant/ingest/manifest.mjs";
 import {
@@ -154,7 +154,7 @@ describe("assistant ingest sync", () => {
 
       beforeAll(async () => {
         pool = createPool(ingestTestDatabaseUrl!);
-        await runMigrations(pool, { log: () => {} });
+        await prepareAssistantIntegrationTestDatabase(pool, { log: () => {} });
         await pool.query(
           `DELETE FROM assistant_retrieval_units WHERE unit_id = ANY($1::text[])`,
           [TEST_UNIT_IDS],

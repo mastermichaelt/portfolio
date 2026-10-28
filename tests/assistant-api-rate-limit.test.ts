@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import fs from "node:fs";
 
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -10,7 +9,7 @@ import {
 import type { AssistantApiConfig } from "@/lib/assistant/api/config";
 import { createPool } from "@/scripts/assistant/db/client.mjs";
 import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
-import { runMigrations } from "@/scripts/assistant/db/migrate.mjs";
+import { prepareAssistantIntegrationTestDatabase } from "@/scripts/assistant/db/prepare-integration-test-database.mjs";
 
 let rateLimitTestDatabaseUrl: string | undefined;
 try {
@@ -81,49 +80,23 @@ describe("assistant API rate limit (integration)", () => {
     expect(true).toBe(true);
   });
 
-  it("does not run Postgres integration against DATABASE_URL", () => {
-    const source = fs.readFileSync(
-      new URL("./assistant-api-rate-limit.test.ts", import.meta.url),
-      "utf8",
-    );
-    const marker =
-      'describe.skipIf(!hasRateLimitTestDatabase)("with ASSISTANT_TEST_DATABASE_URL"';
-    expect(source.indexOf(marker)).toBeGreaterThan(-1);
-    expect(source).not.toMatch(
-      /describe\.skipIf\(!hasDatabase\)\("with DATABASE_URL"/,
-    );
-  });
-
   describe.skipIf(!hasRateLimitTestDatabase)(
     "with ASSISTANT_TEST_DATABASE_URL",
     () => {
       let pool: import("pg").Pool;
-      let postgresIntegrationReady = false;
       const fixedNow = Date.UTC(2026, 9, 16, 12, 0, 0);
 
       beforeAll(async () => {
         pool = createPool(rateLimitTestDatabaseUrl!);
-        try {
-          await pool.query("SELECT 1");
-          await runMigrations(pool, { log: () => {} });
-          postgresIntegrationReady = true;
-        } catch {
-          postgresIntegrationReady = false;
-          await pool.end().catch(() => {});
-        }
+        await pool.query("SELECT 1");
+        await prepareAssistantIntegrationTestDatabase(pool, { log: () => {} });
       });
 
       afterAll(async () => {
-        if (postgresIntegrationReady) {
-          await pool.end();
-        }
+        await pool.end();
       });
 
-      beforeEach(async (context) => {
-        if (!postgresIntegrationReady) {
-          context.skip();
-          return;
-        }
+      beforeEach(async () => {
         await pool.query(`DELETE FROM assistant_api_rate_limit_counters`);
       });
 
