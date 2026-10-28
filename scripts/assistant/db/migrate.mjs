@@ -6,16 +6,21 @@ import { readMigrationFiles } from "drizzle-orm/migrator";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 import { createPool, getDatabaseUrl } from "./client.mjs";
-import { DRIZZLE_MIGRATIONS_TABLE } from "./migration-meta.mjs";
+import {
+  DRIZZLE_MIGRATIONS_SCHEMA,
+  DRIZZLE_MIGRATIONS_TABLE,
+} from "./migration-meta.mjs";
 
 const migrationsFolder = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "../../../drizzle",
 );
 
-const migrationConfig = {
+/** @type {import("drizzle-orm/migrator").MigrationConfig} */
+export const assistantDrizzleMigrationConfig = {
   migrationsFolder,
   migrationsTable: DRIZZLE_MIGRATIONS_TABLE,
+  migrationsSchema: DRIZZLE_MIGRATIONS_SCHEMA,
 };
 
 /**
@@ -42,13 +47,24 @@ async function publicTableExists(pool, tableName) {
  * @returns {Promise<number>}
  */
 async function drizzleMigrationRowCount(pool) {
-  const tableExists = await publicTableExists(pool, DRIZZLE_MIGRATIONS_TABLE);
-  if (!tableExists) {
+  const tableExists = await pool.query(
+    `
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.tables
+      WHERE table_schema = $1
+        AND table_name = $2
+    ) AS exists
+  `,
+    [DRIZZLE_MIGRATIONS_SCHEMA, DRIZZLE_MIGRATIONS_TABLE],
+  );
+
+  if (tableExists.rows[0]?.exists !== true) {
     return 0;
   }
 
   const result = await pool.query(
-    `SELECT COUNT(*)::int AS count FROM ${DRIZZLE_MIGRATIONS_TABLE}`,
+    `SELECT COUNT(*)::int AS count FROM ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE}`,
   );
   return result.rows[0]?.count ?? 0;
 }
@@ -61,13 +77,14 @@ async function drizzleMigrationRowCount(pool) {
  * @param {(message: string) => void} log
  */
 async function baselineDrizzleJournalForLegacyDatabase(pool, log) {
-  const migrations = readMigrationFiles(migrationConfig);
+  const migrations = readMigrationFiles(assistantDrizzleMigrationConfig);
   if (migrations.length === 0) {
     throw new Error("No Drizzle migration files found to baseline");
   }
 
+  await pool.query(`CREATE SCHEMA IF NOT EXISTS ${DRIZZLE_MIGRATIONS_SCHEMA}`);
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS ${DRIZZLE_MIGRATIONS_TABLE} (
+    CREATE TABLE IF NOT EXISTS ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} (
       id SERIAL PRIMARY KEY,
       hash text NOT NULL,
       created_at bigint
@@ -76,11 +93,11 @@ async function baselineDrizzleJournalForLegacyDatabase(pool, log) {
 
   for (const migration of migrations) {
     await pool.query(
-      `INSERT INTO ${DRIZZLE_MIGRATIONS_TABLE} (hash, created_at) VALUES ($1, $2)`,
+      `INSERT INTO ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} (hash, created_at) VALUES ($1, $2)`,
       [migration.hash, migration.folderMillis],
     );
     log(
-      `baselined ${DRIZZLE_MIGRATIONS_TABLE} hash=${migration.hash.slice(0, 12)}…`,
+      `baselined ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} hash=${migration.hash.slice(0, 12)}…`,
     );
   }
 }
@@ -108,7 +125,7 @@ export async function runMigrations(pool, options = {}) {
   }
 
   const db = drizzle(pool);
-  await migrate(db, migrationConfig);
+  await migrate(db, assistantDrizzleMigrationConfig);
   log("drizzle migrate complete");
 }
 

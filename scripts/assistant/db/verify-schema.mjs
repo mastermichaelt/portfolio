@@ -5,6 +5,7 @@ import { readMigrationFiles } from "drizzle-orm/migrator";
 
 import {
   ASSISTANT_TABLES,
+  DRIZZLE_MIGRATIONS_SCHEMA,
   DRIZZLE_MIGRATIONS_TABLE,
 } from "./migration-meta.mjs";
 
@@ -24,6 +25,7 @@ export function loadExpectedDrizzleMigrations() {
   return readMigrationFiles({
     migrationsFolder,
     migrationsTable: DRIZZLE_MIGRATIONS_TABLE,
+    migrationsSchema: DRIZZLE_MIGRATIONS_SCHEMA,
   });
 }
 
@@ -53,18 +55,28 @@ async function publicTableExists(db, tableName) {
  */
 async function verifyDrizzleMigrationJournal(db) {
   const expected = loadExpectedDrizzleMigrations();
-  const tableExists = await publicTableExists(db, DRIZZLE_MIGRATIONS_TABLE);
+  const tableExists = await db.query(
+    `
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.tables
+      WHERE table_schema = $1
+        AND table_name = $2
+    ) AS exists
+  `,
+    [DRIZZLE_MIGRATIONS_SCHEMA, DRIZZLE_MIGRATIONS_TABLE],
+  );
 
-  if (!tableExists) {
+  if (tableExists.rows[0]?.exists !== true) {
     return {
       name: "drizzle_migration_journal",
       ok: false,
-      detail: `${DRIZZLE_MIGRATIONS_TABLE} is missing; run npm run assistant:db:migrate`,
+      detail: `${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} is missing; run npm run assistant:db:migrate`,
     };
   }
 
   const result = await db.query(
-    `SELECT hash FROM ${DRIZZLE_MIGRATIONS_TABLE} ORDER BY created_at ASC`,
+    `SELECT hash FROM ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} ORDER BY created_at ASC`,
   );
   const appliedHashes = result.rows.map((row) => row.hash);
   const expectedHashes = expected.map((migration) => migration.hash);
@@ -76,7 +88,7 @@ async function verifyDrizzleMigrationJournal(db) {
     name: "drizzle_migration_journal",
     ok: matches,
     detail: matches
-      ? `${DRIZZLE_MIGRATIONS_TABLE} records ${appliedHashes.length} migration(s)`
+      ? `${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE} records ${appliedHashes.length} migration(s)`
       : `expected Drizzle journal hashes ${expectedHashes.join(", ")}, found ${appliedHashes.join(", ") || "(empty)"}`,
   };
 }

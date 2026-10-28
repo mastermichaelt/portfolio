@@ -14,6 +14,10 @@ import {
   resetEnvFileLoader,
 } from "@/scripts/assistant/db/load-env.mjs";
 import { runMigrations } from "@/scripts/assistant/db/migrate.mjs";
+import {
+  DRIZZLE_MIGRATIONS_SCHEMA,
+  DRIZZLE_MIGRATIONS_TABLE,
+} from "@/scripts/assistant/db/migration-meta.mjs";
 import { loadExpectedDrizzleMigrations } from "@/scripts/assistant/db/verify-schema.mjs";
 import {
   summarizeSchemaChecks,
@@ -162,10 +166,14 @@ describe("verifyAssistantSchema on a fresh database", () => {
     ).toMatchObject({
       ok: false,
       detail:
-        "__drizzle_migrations is missing; run npm run assistant:db:migrate",
+        "drizzle.__drizzle_migrations is missing; run npm run assistant:db:migrate",
     });
     expect(
-      queries.some((sql) => sql.includes("FROM __drizzle_migrations")),
+      queries.some((sql) =>
+        sql.includes(
+          `FROM ${DRIZZLE_MIGRATIONS_SCHEMA}.${DRIZZLE_MIGRATIONS_TABLE}`,
+        ),
+      ),
     ).toBe(false);
   });
 });

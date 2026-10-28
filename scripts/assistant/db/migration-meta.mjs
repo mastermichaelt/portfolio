@@ -5,6 +5,8 @@ export const LEGACY_ASSISTANT_MIGRATION_FILES = [
   "20261016100000_assistant_api_rate_limits.sql",
 ];
 
+export const DRIZZLE_MIGRATIONS_SCHEMA = "drizzle";
+
 export const DRIZZLE_MIGRATIONS_TABLE = "__drizzle_migrations";
 
 export const ASSISTANT_TABLES = [

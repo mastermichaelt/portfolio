@@ -15,7 +15,7 @@ Verify assistant retrieval database schema against DATABASE_URL.
 Checks:
   - connectivity
   - pgvector extension enabled
-  - Drizzle migration journal (__drizzle_migrations)
+  - Drizzle migration journal (drizzle.__drizzle_migrations)
   - assistant_retrieval_units, assistant_ingestion_runs, assistant_api_rate_limit_counters
   - embedding column is vector(1536)
   - no ANN vector index (exact-search baseline)
