@@ -101,9 +101,18 @@ function isPublicCitation(value: unknown): boolean {
   return true;
 }
 
+const CLAIM_PUBLIC_KEYS = ["text", "attribution", "citations"] as const;
+
 function isPublicClaim(value: unknown): boolean {
   if (!isPlainObject(value)) {
     return false;
+  }
+  for (const key of Object.keys(value)) {
+    if (
+      !CLAIM_PUBLIC_KEYS.includes(key as (typeof CLAIM_PUBLIC_KEYS)[number])
+    ) {
+      return false;
+    }
   }
   if (typeof value.text !== "string" || !value.text.trim()) {
     return false;

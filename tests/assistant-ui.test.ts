@@ -93,6 +93,38 @@ describe("parseAssistantGenerateSuccessBody", () => {
     ).toBeNull();
   });
 
+  it("rejects claims with disallowed extra keys", () => {
+    expect(
+      parseAssistantGenerateSuccessBody({
+        answer: {
+          ...valid.answer,
+          claims: [
+            {
+              ...valid.answer.claims[0],
+              internal_reasoning: "leak",
+            },
+          ],
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it("accepts claims without citations", () => {
+    expect(
+      parseAssistantGenerateSuccessBody({
+        answer: {
+          ...valid.answer,
+          claims: [
+            {
+              text: "General knowledge claim.",
+              attribution: "general_knowledge",
+            },
+          ],
+        },
+      }),
+    ).not.toBeNull();
+  });
+
   it("rejects non-http source_url values", () => {
     expect(
       parseAssistantGenerateSuccessBody({
