@@ -1,6 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { createPool } from "@/scripts/assistant/db/client.mjs";
+import {
+  createAssistantDb,
+  createPool,
+} from "@/scripts/assistant/db/client.mjs";
 import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
 import { prepareAssistantIntegrationTestDatabase } from "@/scripts/assistant/db/prepare-integration-test-database.mjs";
 import { EXPECTED_EMBEDDING_DIMENSIONS } from "@/scripts/assistant/embeddings/index-config.mjs";
@@ -156,9 +159,12 @@ describe("assistant retrieve search", () => {
     () => {
       /** @type {import("pg").Pool} */
       let pool: import("pg").Pool;
+      /** @type {ReturnType<typeof createAssistantDb>} */
+      let db: ReturnType<typeof createAssistantDb>;
 
       beforeAll(async () => {
         pool = createPool(retrieveTestDatabaseUrl!);
+        db = createAssistantDb(pool);
         await prepareAssistantIntegrationTestDatabase(pool, { log: () => {} });
 
         await upsertTestUnit(pool, TEST_UNIT_IDS[0], "about", axisVector(0));
@@ -180,7 +186,7 @@ describe("assistant retrieve search", () => {
       });
 
       it("orders hits by cosine distance for a fixed query embedding", async () => {
-        const results = await searchRetrievalUnits(pool, {
+        const results = await searchRetrievalUnits(db, {
           queryEmbedding: axisVector(1),
           topK: 3,
         });
@@ -193,7 +199,7 @@ describe("assistant retrieve search", () => {
       });
 
       it("filters by source_class when requested", async () => {
-        const results = await searchRetrievalUnits(pool, {
+        const results = await searchRetrievalUnits(db, {
           queryEmbedding: axisVector(2),
           topK: 5,
           sourceClass: "portfolio",

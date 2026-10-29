@@ -42,9 +42,9 @@
     "assistant:db:verify": "node scripts/assistant/db/verify.mjs",
     "assistant:db:generate": "drizzle-kit generate",
     "assistant:db:studio": "drizzle-kit studio",
-    "assistant:ingest": "node scripts/assistant/ingest.mjs",
-    "assistant:retrieve": "node scripts/assistant/retrieve.mjs",
-    "assistant:answer": "node scripts/assistant/answer.mjs",
+    "assistant:ingest": "node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs scripts/assistant/ingest.mjs",
+    "assistant:retrieve": "node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs scripts/assistant/retrieve.mjs",
+    "assistant:answer": "node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs scripts/assistant/answer.mjs",
     "renovate:freshness-poll": "renovate-workflow freshness-poll"
   },
   "dependencies": {

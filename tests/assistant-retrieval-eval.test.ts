@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
+  createAssistantDb,
   createPool,
   resolveAssistantDatabaseUrl,
 } from "@/scripts/assistant/db/client.mjs";
@@ -321,10 +322,13 @@ describe("assistant retrieval eval integration", () => {
     () => {
       /** @type {import("pg").Pool} */
       let pool: import("pg").Pool;
+      /** @type {ReturnType<typeof createAssistantDb>} */
+      let db: ReturnType<typeof createAssistantDb>;
       const cases = loadEvalCases();
 
       beforeAll(() => {
         pool = createPool(evalDatabaseUrl!);
+        db = createAssistantDb(pool);
       });
 
       afterAll(async () => {
@@ -349,7 +353,7 @@ describe("assistant retrieval eval integration", () => {
         const failures: string[] = [];
         for (const case_ of baselineCases) {
           const [queryEmbedding] = await embedTexts([case_.question]);
-          const hits = await searchRetrievalUnits(pool, {
+          const hits = await searchRetrievalUnits(db, {
             queryEmbedding,
             topK: case_.top_k,
           });
@@ -366,7 +370,7 @@ describe("assistant retrieval eval integration", () => {
           const [queryEmbedding] = await embedTexts([case_.question]);
           expect(queryEmbedding).toBeTruthy();
 
-          const hits = await searchRetrievalUnits(pool, {
+          const hits = await searchRetrievalUnits(db, {
             queryEmbedding,
             topK: case_.top_k,
           });
@@ -410,11 +414,11 @@ describe("assistant retrieval eval integration", () => {
         const [positiveEmbedding] = await embedTexts([positive!.question]);
         const [negativeEmbedding] = await embedTexts([negative!.question]);
 
-        const positiveHits = await searchRetrievalUnits(pool, {
+        const positiveHits = await searchRetrievalUnits(db, {
           queryEmbedding: positiveEmbedding,
           topK: positive!.top_k,
         });
-        const negativeHits = await searchRetrievalUnits(pool, {
+        const negativeHits = await searchRetrievalUnits(db, {
           queryEmbedding: negativeEmbedding,
           topK: negative!.top_k,
         });

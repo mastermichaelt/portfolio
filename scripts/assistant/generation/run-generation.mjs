@@ -1,4 +1,8 @@
-import { createPool, getDatabaseUrl } from "../db/client.mjs";
+import {
+  createAssistantDb,
+  createPool,
+  getDatabaseUrl,
+} from "../db/client.mjs";
 import { embedTexts } from "../embeddings/openai-embeddings.mjs";
 import { searchRetrievalUnits } from "../retrieve/search.mjs";
 import { classifyGenerationFailure } from "./classify-generation-failure.mjs";
@@ -204,6 +208,7 @@ export async function runRagGeneration(options) {
     (skipRetrieval
       ? undefined
       : createPool(options.databaseUrl ?? getDatabaseUrl()));
+  const db = pool ? createAssistantDb(pool) : undefined;
 
   let packet;
   const retrievalStarted = performance.now();
@@ -231,7 +236,7 @@ export async function runRagGeneration(options) {
         throw new Error("Embedding API returned no vector for the question");
       }
 
-      const hits = await searchRetrievalUnits(pool, {
+      const hits = await searchRetrievalUnits(db, {
         queryEmbedding,
         topK,
         sourceClass: options.sourceClass,
@@ -244,7 +249,7 @@ export async function runRagGeneration(options) {
       const assemblyStarted = performance.now();
       const fetchParentUnits =
         options.fetchParentUnits ??
-        (async (conceptId) => fetchParentUnitsForConcept(pool, conceptId));
+        (async (conceptId) => fetchParentUnitsForConcept(db, conceptId));
 
       packet = await assembleEvidencePacket({
         matchedHits: hits,

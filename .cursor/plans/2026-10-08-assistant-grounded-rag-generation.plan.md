@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: drizzle-queries
     content: "PR: migrate retrieval search, ingest sync, parent fetch, and API rate limiting to typed Drizzle queries; behaviour-preserving"
-    status: pending
+    status: completed
   - id: drizzle-migration-cutover
     content: "Cancelled — Strategy A shipped in drizzle-foundation (Drizzle-only migrate; legacy runner retired; journal baseline for existing DBs)"
     status: cancelled
@@ -53,6 +53,8 @@ isProject: false
 **Plan amendment (2026-10-16, visitor-visible token usage):** Expose **OpenAI-reported** model and token counts to visitors on successful `/assistant` answers (compact usage footer). The **`generation-api`** slice returns an explicit, allowlisted `usage` object alongside the public answer; **`generation-ui`** renders it using portfolio design conventions informed by [Codenames AI](https://codenames-ai.com) per-turn token display (muted secondary typography, locale-formatted counts, omit when unavailable). **Server-side PostHog** telemetry (operator tooling) remains independent — no duplicate browser analytics for tokens. Internal `diagnostics` stay server/CLI-only.
 
 **Plan amendment (2026-10-16, production Neon corpus):** Hosted assistant generation on michaeltruong.ai requires a **populated production retrieval index** on Neon — not only schema/migrations. **Production corpus ingestion and verification** are an **operator-controlled operational prerequisite** inside **`operational-acceptance`**, executed **before deployed E2E acceptance**. They use the existing `okf:build` → `assistant:ingest` workflow ([assistant-database.md](../../docs/assistant/assistant-database.md)); **not** a new implementation slice, **not** triggered by Vercel deploys, and **not** agent-executable without explicit operator approval.
+
+**Plan amendment (2026-10-29, production Neon cutover):** One-time operator migration from local Docker to Neon **`portfolio-assistant`** completed successfully (**262** retrieval units, Drizzle fresh schema, no embedding regeneration). Historical record: [`docs/archive/production-neon-cutover-2026.md`](../../docs/archive/production-neon-cutover-2026.md). Routine schema work remains **`assistant:db:migrate`** / **`assistant:db:verify`** only — do not repeat the database-recreation procedure.
 
 **Plan amendment (2026-10-28, Drizzle ORM):** Adopt **Drizzle ORM** and **Drizzle Kit** as the **long-term schema, query, and migration authority** for the assistant Postgres + pgvector database (`DATABASE_URL` scope only — not site `PortfolioRepository` persistence). **Intent:** retire the custom legacy migration runner once a safe cutover is verified — not maintain two migration systems indefinitely. Two implementation slices (**`drizzle-foundation`**, **`drizzle-queries`**) land **after `generation-api` and before `generation-ui`**. Preserve historical SQL under `db/migrations/` as **read-only evidence** (do not delete or rewrite files), existing `schema_migrations` rows on populated databases, retrieval semantics, ingest idempotency, generation contract, and operator-controlled Neon operations. **Do not** recreate the database, change embedding model / `vector(1536)`, or replay full CREATE DDL on populated production in these slices.
 

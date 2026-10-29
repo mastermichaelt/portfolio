@@ -1,16 +1,12 @@
-import pg from "pg";
-
 import { loadEnvFiles } from "./load-env.mjs";
 
-/**
- * Temporary shim: pool + env helpers stay in this module until drizzle-queries
- * consolidates imports on `db/client.ts` (typed Drizzle factory).
- */
+import {
+  createAssistantDb as createAssistantDbFromDb,
+  createPool as createPoolFromDb,
+} from "@/db/client.ts";
 
 /**
  * Load env files and return a trimmed DATABASE_URL when configured.
- *
- * @returns {string | undefined}
  */
 export function resolveAssistantDatabaseUrl() {
   loadEnvFiles();
@@ -36,5 +32,12 @@ export function getDatabaseUrl() {
  * @returns {import("pg").Pool}
  */
 export function createPool(databaseUrl = getDatabaseUrl()) {
-  return new pg.Pool({ connectionString: databaseUrl });
+  return createPoolFromDb(databaseUrl);
+}
+
+/**
+ * @param {import("pg").Pool} pool
+ */
+export function createAssistantDb(pool) {
+  return createAssistantDbFromDb(pool);
 }
