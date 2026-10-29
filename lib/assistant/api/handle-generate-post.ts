@@ -16,6 +16,11 @@ import {
 import { buildEvidenceDisplayByCitationKey } from "./citation-display";
 import { readBoundedUtf8Body } from "./read-request-body";
 import { checkAssistantApiRateLimit } from "./rate-limit";
+import {
+  buildEvaluationRecordFromFailure,
+  buildEvaluationRecordFromSuccess,
+} from "@/lib/assistant/evaluation/build-record";
+import { persistGenerationEvaluationSafely } from "@/lib/assistant/evaluation/persist";
 
 export type AssistantGenerateRequestBody = {
   question?: unknown;
@@ -26,6 +31,7 @@ export type HandleAssistantGenerateDeps = {
   createPool: (databaseUrl?: string) => Pool;
   resolveConfig: typeof resolveAssistantApiConfig;
   checkRateLimit: typeof checkAssistantApiRateLimit;
+  persistGenerationEvaluation: typeof persistGenerationEvaluationSafely;
 };
 
 const defaultDeps: HandleAssistantGenerateDeps = {
@@ -33,6 +39,7 @@ const defaultDeps: HandleAssistantGenerateDeps = {
   createPool,
   resolveConfig: resolveAssistantApiConfig,
   checkRateLimit: checkAssistantApiRateLimit,
+  persistGenerationEvaluation: persistGenerationEvaluationSafely,
 };
 
 function parseQuestionBody(
@@ -129,6 +136,7 @@ export async function handleAssistantGeneratePost(
 
   const clientKey = resolveClientKeyFromHeaders(request.headers);
   let pool: Pool | undefined;
+  let acceptedForEvaluation = false;
 
   try {
     pool = deps.createPool();
@@ -150,6 +158,8 @@ export async function handleAssistantGeneratePost(
       });
     }
 
+    acceptedForEvaluation = true;
+
     const result = await deps.runRagGeneration({
       question: normalizedQuestion,
       executionContext: "api",
@@ -157,12 +167,31 @@ export async function handleAssistantGeneratePost(
     });
 
     if (!result.response) {
+      await deps.persistGenerationEvaluation(
+        pool,
+        buildEvaluationRecordFromFailure({
+          question: normalizedQuestion,
+          error: new Error("generation_empty_response"),
+          packet: result.packet,
+          diagnostics: result.diagnostics,
+        }),
+      );
       return jsonError(
         502,
         "generation_failed",
         "The assistant could not produce a valid answer. Please try again.",
       );
     }
+
+    await deps.persistGenerationEvaluation(
+      pool,
+      buildEvaluationRecordFromSuccess({
+        question: normalizedQuestion,
+        response: result.response,
+        packet: result.packet,
+        diagnostics: result.diagnostics,
+      }),
+    );
 
     await result.flushTelemetry();
 
@@ -184,6 +213,15 @@ export async function handleAssistantGeneratePost(
 
     return Response.json(payload, { status: 200 });
   } catch (error) {
+    if (pool && acceptedForEvaluation) {
+      await deps.persistGenerationEvaluation(
+        pool,
+        buildEvaluationRecordFromFailure({
+          question: normalizedQuestion,
+          error,
+        }),
+      );
+    }
     return mapGenerationErrorToResponse(error);
   } finally {
     if (pool) {

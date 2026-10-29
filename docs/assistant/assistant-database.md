@@ -9,6 +9,8 @@ Postgres + pgvector backing store for the assistant retrieval index and **durabl
 | **Site content persistence**  | Future `PortfolioRepository` adapter          | Not implemented (future env var, e.g. `PORTFOLIO_DATABASE_URL`) | Future site schema                                               |
 | **Assistant retrieval index** | Derived pgvector store for semantic retrieval | `DATABASE_URL` (assistant scripts only)                         | Drizzle Kit (`drizzle/`, journal `drizzle.__drizzle_migrations`) |
 
+Evaluation question/answer rows for operator review live in the same assistant database (`assistant_generation_evaluations`) — see [evaluation-observability.md](./evaluation-observability.md).
+
 Both may use Neon as a hosted Postgres provider, but they must remain **separate databases or branches, schemas, connection strings, and migration lifecycles**. Do not point site persistence and assistant retrieval at the same `DATABASE_URL` or share migration runners.
 
 ## Deployment topology

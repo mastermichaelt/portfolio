@@ -26,6 +26,7 @@ const sampleResponse = {
 function createDeps(overrides: {
   runRagGeneration?: ReturnType<typeof vi.fn>;
   checkRateLimit?: ReturnType<typeof vi.fn>;
+  persistGenerationEvaluation?: ReturnType<typeof vi.fn>;
   pool?: { end: ReturnType<typeof vi.fn> };
 }): HandleAssistantGenerateDeps & {
   pool: { end: ReturnType<typeof vi.fn> };
@@ -57,6 +58,8 @@ function createDeps(overrides: {
     checkRateLimit:
       overrides.checkRateLimit ??
       vi.fn(async () => ({ allowed: true as const })),
+    persistGenerationEvaluation:
+      overrides.persistGenerationEvaluation ?? vi.fn(async () => {}),
     pool,
   } as unknown as HandleAssistantGenerateDeps & {
     pool: { end: ReturnType<typeof vi.fn> };
@@ -469,5 +472,79 @@ describe("assistant generation API handler", () => {
     const service =
       await import("@/scripts/assistant/generation/run-generation.mjs");
     expect(service.runRagGeneration).toBeTypeOf("function");
+  });
+
+  it("persists evaluation on successful generation", async () => {
+    const persistGenerationEvaluation = vi.fn(async () => {});
+    const deps = createDeps({ persistGenerationEvaluation });
+
+    await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Who is Michael?" }),
+      }),
+      deps,
+    );
+
+    expect(persistGenerationEvaluation).toHaveBeenCalledTimes(1);
+    expect(persistGenerationEvaluation).toHaveBeenCalledWith(
+      deps.pool,
+      expect.objectContaining({
+        status: "completed",
+        question: "Who is Michael?",
+      }),
+    );
+  });
+
+  it("does not persist evaluation when rate limited", async () => {
+    const persistGenerationEvaluation = vi.fn(async () => {});
+    const deps = createDeps({
+      checkRateLimit: vi.fn(async () => ({
+        allowed: false,
+        retryAfterSeconds: 30,
+        window: "minute",
+      })),
+      persistGenerationEvaluation,
+    });
+
+    await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Hi" }),
+      }),
+      deps,
+    );
+
+    expect(persistGenerationEvaluation).not.toHaveBeenCalled();
+  });
+
+  it("persists failed evaluation when generation throws", async () => {
+    const persistGenerationEvaluation = vi.fn(async () => {});
+    const deps = createDeps({
+      runRagGeneration: vi.fn(async () => {
+        throw new Error("boom");
+      }),
+      persistGenerationEvaluation,
+    });
+
+    await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Fail?" }),
+      }),
+      deps,
+    );
+
+    expect(persistGenerationEvaluation).toHaveBeenCalledTimes(1);
+    expect(persistGenerationEvaluation).toHaveBeenCalledWith(
+      deps.pool,
+      expect.objectContaining({
+        status: "failed",
+        question: "Fail?",
+      }),
+    );
   });
 });

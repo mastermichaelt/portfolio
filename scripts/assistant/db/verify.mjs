@@ -16,7 +16,7 @@ Checks:
   - connectivity
   - pgvector extension enabled
   - Drizzle migration journal (drizzle.__drizzle_migrations)
-  - assistant_retrieval_units, assistant_ingestion_runs, assistant_api_rate_limit_counters
+  - assistant_retrieval_units, assistant_ingestion_runs, assistant_api_rate_limit_counters, assistant_generation_evaluations
   - embedding column is vector(1536)
   - no ANN vector index (exact-search baseline)
 

@@ -4,6 +4,8 @@ import { useId } from "react";
 
 const STATELESS_DISCLAIMER =
   "Each question is answered independently from published sources. Earlier messages in this view are not sent to the model.";
+const EVALUATION_DISCLOSURE =
+  "Questions and answers may be stored for up to 30 days to improve the assistant. They are not shared in analytics events.";
 const SUBJECT_HINT =
   "For follow-ups, name the subject in your question (for example the project or topic).";
 
@@ -79,6 +81,7 @@ export function AssistantComposer({
       </form>
       <div id={statelessId} className="assistant-stateless-hints">
         <p>{STATELESS_DISCLAIMER}</p>
+        <p>{EVALUATION_DISCLOSURE}</p>
         <p>{SUBJECT_HINT}</p>
       </div>
     </div>
