@@ -122,11 +122,25 @@ describe("assistant evaluation observability", () => {
     expect(refs.evidenceIds).toEqual(["E1", "E2"]);
   });
 
-  it("does not default cleanup retention days from observability config", () => {
+  it("returns null for resolveEvaluationCleanupRetentionDays when env is unset", () => {
     const prev = process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
     delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
     expect(resolveEvaluationObservabilityConfig()).toEqual({ enabled: false });
     expect(resolveEvaluationCleanupRetentionDays()).toBeNull();
+    if (prev === undefined) {
+      delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
+    } else {
+      process.env.ASSISTANT_EVALUATION_RETENTION_DAYS = prev;
+    }
+  });
+
+  it("requires explicit age window for cleanup when argv and env are both unset", () => {
+    const prev = process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
+    delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
+    expect(resolveEvaluationCleanupRetentionDaysForRun([])).toEqual({
+      error:
+        "Evaluation cleanup requires an explicit age window: pass --days <n> or set ASSISTANT_EVALUATION_RETENTION_DAYS.",
+    });
     if (prev === undefined) {
       delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
     } else {

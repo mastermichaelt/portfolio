@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   EVALUATION_REMOVAL_REQUEST_PATH,
   formatEvaluationDisclosureCopy,
+  resolveEvaluationDisclosurePresentation,
 } from "@/lib/assistant/evaluation/disclosure-copy";
 
 describe("formatEvaluationDisclosureCopy", () => {
@@ -20,5 +21,12 @@ describe("formatEvaluationDisclosureCopy", () => {
 
   it("links removal requests to the about contact surface", () => {
     expect(EVALUATION_REMOVAL_REQUEST_PATH).toBe("/about");
+    expect(resolveEvaluationDisclosurePresentation({ enabled: true })).toEqual({
+      kind: "link",
+      lead: "Questions and responses may be stored to improve this assistant. You can ",
+      linkHref: "/about",
+      linkLabel: "request their removal",
+      trail: ".",
+    });
   });
 });
