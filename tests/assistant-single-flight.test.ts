@@ -283,11 +283,11 @@ describe("transcript request guard (clear / abort)", () => {
 });
 
 describe("transcript scroll follow (unchanged)", () => {
-  it("follows new content when pinned before update", () => {
+  it("follows new content when follow intent is active", () => {
     expect(
       shouldAutoScrollTranscript({
         userJustSubmitted: false,
-        wasNearBottomBeforeUpdate: true,
+        followConversation: true,
       }),
     ).toBe(true);
   });

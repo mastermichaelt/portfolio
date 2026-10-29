@@ -309,17 +309,17 @@ describe("transcript scroll", () => {
     ).toBe(false);
   });
 
-  it("follows new content when the visitor was pinned before the update", () => {
+  it("follows new content when follow intent is active", () => {
     expect(
       shouldAutoScrollTranscript({
         userJustSubmitted: false,
-        wasNearBottomBeforeUpdate: true,
+        followConversation: true,
       }),
     ).toBe(true);
     expect(
       shouldAutoScrollTranscript({
         userJustSubmitted: false,
-        wasNearBottomBeforeUpdate: false,
+        followConversation: false,
       }),
     ).toBe(false);
   });

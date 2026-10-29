@@ -3,14 +3,18 @@
 import { useEffect, useRef } from "react";
 
 import {
+  followConversationAfterProgrammaticScroll,
   isTranscriptNearBottom,
   shouldAutoScrollTranscript,
   TRANSCRIPT_NEAR_BOTTOM_PX,
+  updateFollowConversationOnScroll,
 } from "@/lib/assistant/ui/transcript-scroll";
 import type { TranscriptTurn } from "@/lib/assistant/ui/transcript-turns";
 
 import { AssistantAssistantMessage } from "./AssistantAssistantMessage";
 import { AssistantUserMessage } from "./AssistantUserMessage";
+
+const PROGRAMMATIC_SCROLL_FALLBACK_MS = 600;
 
 export function AssistantTranscript({
   turns,
@@ -27,8 +31,8 @@ export function AssistantTranscript({
   const endRef = useRef<HTMLDivElement | null>(null);
   const focusRef = useRef<HTMLDivElement | null>(null);
   const lastScrollGenerationRef = useRef(scrollGeneration);
-  /** Updated on scroll — reflects position before the next content height change. */
-  const wasNearBottomRef = useRef(true);
+  const followConversationRef = useRef(true);
+  const programmaticScrollRef = useRef(false);
 
   useEffect(() => {
     const root = transcriptRef.current;
@@ -36,21 +40,24 @@ export function AssistantTranscript({
       return;
     }
 
-    const syncNearBottom = () => {
-      wasNearBottomRef.current = isTranscriptNearBottom(
-        root,
-        TRANSCRIPT_NEAR_BOTTOM_PX,
-      );
+    const onScroll = () => {
+      followConversationRef.current = updateFollowConversationOnScroll({
+        isNearBottom: isTranscriptNearBottom(root, TRANSCRIPT_NEAR_BOTTOM_PX),
+        programmaticScrollInProgress: programmaticScrollRef.current,
+        currentFollow: followConversationRef.current,
+      });
     };
 
-    syncNearBottom();
-    root.addEventListener("scroll", syncNearBottom, { passive: true });
-    return () => root.removeEventListener("scroll", syncNearBottom);
+    onScroll();
+    root.addEventListener("scroll", onScroll, { passive: true });
+    return () => root.removeEventListener("scroll", onScroll);
   }, [turns.length]);
 
   useEffect(() => {
+    const root = transcriptRef.current;
     if (turns.length === 0) {
-      wasNearBottomRef.current = true;
+      followConversationRef.current = true;
+      programmaticScrollRef.current = false;
       return;
     }
 
@@ -59,23 +66,61 @@ export function AssistantTranscript({
     lastScrollGenerationRef.current = scrollGeneration;
 
     if (userJustSubmitted) {
-      wasNearBottomRef.current = true;
+      followConversationRef.current = true;
     }
 
     const shouldScroll = shouldAutoScrollTranscript({
       userJustSubmitted,
-      wasNearBottomBeforeUpdate: wasNearBottomRef.current,
+      followConversation: followConversationRef.current,
     });
 
-    if (!shouldScroll) {
+    if (!shouldScroll || !root) {
       return;
     }
 
+    programmaticScrollRef.current = true;
     endRef.current?.scrollIntoView({
       behavior: userJustSubmitted ? "smooth" : "auto",
       block: "nearest",
     });
-    wasNearBottomRef.current = true;
+
+    const finishProgrammaticScroll = () => {
+      if (!programmaticScrollRef.current) {
+        return;
+      }
+      programmaticScrollRef.current = false;
+      const container = transcriptRef.current;
+      if (!container) {
+        return;
+      }
+      followConversationRef.current = followConversationAfterProgrammaticScroll(
+        isTranscriptNearBottom(container, TRANSCRIPT_NEAR_BOTTOM_PX),
+      );
+    };
+
+    let fallbackTimeout: ReturnType<typeof setTimeout> | undefined;
+    const onScrollEnd = () => {
+      finishProgrammaticScroll();
+    };
+
+    if (typeof root.onscrollend !== "undefined") {
+      root.addEventListener("scrollend", onScrollEnd, { once: true });
+      fallbackTimeout = setTimeout(
+        finishProgrammaticScroll,
+        PROGRAMMATIC_SCROLL_FALLBACK_MS,
+      );
+    } else {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(finishProgrammaticScroll);
+      });
+    }
+
+    return () => {
+      if (fallbackTimeout) {
+        clearTimeout(fallbackTimeout);
+      }
+      root.removeEventListener("scrollend", onScrollEnd);
+    };
   }, [turns, scrollGeneration]);
 
   useEffect(() => {

@@ -93,9 +93,13 @@ export function AssistantExperience() {
   );
 
   useEffect(() => {
-    const controller = abortRef.current;
+    const lock = submissionLockRef.current;
     return () => {
-      controller?.abort();
+      clearAssistantSession({
+        lock,
+        sessionEpoch: sessionEpochRef,
+        abortRef,
+      });
     };
   }, []);
 
