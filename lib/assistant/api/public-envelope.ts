@@ -1,10 +1,27 @@
 import type { AssistantGenerationResponse } from "@/scripts/assistant/generation/response-schema.mjs";
 
+import {
+  type CitationDisplayMetadata,
+  lookupCitationDisplay,
+} from "./citation-display";
+
+/** Allowlisted visitor-safe fields on each citation (integrity ids + server-enriched display). */
+export type AssistantPublicCitation = {
+  evidence_id: string;
+  unit_id: string;
+  source_label?: string;
+  source_url?: string;
+};
+
 /** Visitor-safe answer payload (no evidence packets or internal diagnostics). */
 export type AssistantPublicAnswer = {
-  claims: AssistantGenerationResponse["claims"];
+  claims: Array<
+    Omit<AssistantGenerationResponse["claims"][number], "citations"> & {
+      citations?: AssistantPublicCitation[];
+    }
+  >;
   answer_text: string;
-  citations: AssistantGenerationResponse["citations"];
+  citations: AssistantPublicCitation[];
   support_level: AssistantGenerationResponse["support_level"];
   abstained: boolean;
   abstention_reason?: AssistantGenerationResponse["abstention_reason"];
@@ -30,24 +47,56 @@ const USAGE_ALLOWLIST = new Set([
   "total_tokens",
 ]);
 
-type PublicCitation = AssistantGenerationResponse["citations"][number];
-type PublicClaim = AssistantGenerationResponse["claims"][number];
+const CITATION_ALLOWLIST = new Set([
+  "evidence_id",
+  "unit_id",
+  "source_label",
+  "source_url",
+]);
 
-function projectPublicCitation(citation: PublicCitation): PublicCitation {
-  return {
+type ModelCitation = AssistantGenerationResponse["citations"][number];
+type ModelClaim = AssistantGenerationResponse["claims"][number];
+
+function projectPublicCitation(
+  citation: ModelCitation,
+  displayByKey?: Map<string, CitationDisplayMetadata>,
+): AssistantPublicCitation {
+  const projected: AssistantPublicCitation = {
     evidence_id: citation.evidence_id,
     unit_id: citation.unit_id,
   };
+
+  const display = displayByKey
+    ? lookupCitationDisplay(
+        displayByKey,
+        citation.evidence_id,
+        citation.unit_id,
+      )
+    : undefined;
+
+  if (display?.source_label) {
+    projected.source_label = display.source_label;
+  }
+  if (display?.source_url) {
+    projected.source_url = display.source_url;
+  }
+
+  return projected;
 }
 
-function projectPublicClaim(claim: PublicClaim): PublicClaim {
-  const projected: PublicClaim = {
+function projectPublicClaim(
+  claim: ModelClaim,
+  displayByKey?: Map<string, CitationDisplayMetadata>,
+): AssistantPublicAnswer["claims"][number] {
+  const projected: AssistantPublicAnswer["claims"][number] = {
     text: claim.text,
     attribution: claim.attribution,
   };
 
   if (claim.citations !== undefined) {
-    projected.citations = claim.citations.map(projectPublicCitation);
+    projected.citations = claim.citations.map((citation) =>
+      projectPublicCitation(citation, displayByKey),
+    );
   }
 
   return projected;
@@ -55,9 +104,14 @@ function projectPublicClaim(claim: PublicClaim): PublicClaim {
 
 export function buildPublicAnswer(
   response: AssistantGenerationResponse,
+  displayByKey?: Map<string, CitationDisplayMetadata>,
 ): AssistantPublicAnswer {
-  const claims = response.claims.map(projectPublicClaim);
-  const citations = response.citations.map(projectPublicCitation);
+  const claims = response.claims.map((claim) =>
+    projectPublicClaim(claim, displayByKey),
+  );
+  const citations = response.citations.map((citation) =>
+    projectPublicCitation(citation, displayByKey),
+  );
 
   const answer: AssistantPublicAnswer = {
     claims,
@@ -139,6 +193,20 @@ export const DISALLOWED_PUBLIC_RESPONSE_KEYS = [
   "stackTrace",
 ] as const;
 
+function assertCitationObject(value: unknown, path: string): string[] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return [`${path} must be an object`];
+  }
+
+  const violations: string[] = [];
+  for (const key of Object.keys(value)) {
+    if (!CITATION_ALLOWLIST.has(key)) {
+      violations.push(`${path}.${key}`);
+    }
+  }
+  return violations;
+}
+
 export function assertNoDisallowedPublicKeys(
   value: unknown,
   path = "",
@@ -170,6 +238,18 @@ export function assertNoDisallowedPublicKeys(
         }
       }
       violations.push(...assertNoDisallowedPublicKeys(nested, fullPath));
+      continue;
+    }
+
+    if (key === "citations" && Array.isArray(nested)) {
+      for (const [index, citation] of nested.entries()) {
+        violations.push(
+          ...assertCitationObject(citation, `${fullPath}[${index}]`),
+        );
+        violations.push(
+          ...assertNoDisallowedPublicKeys(citation, `${fullPath}[${index}]`),
+        );
+      }
       continue;
     }
 

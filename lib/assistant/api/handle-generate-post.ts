@@ -13,6 +13,7 @@ import {
   buildPublicAnswer,
   buildPublicUsageFromDiagnostics,
 } from "./public-envelope";
+import { buildEvidenceDisplayByCitationKey } from "./citation-display";
 import { readBoundedUtf8Body } from "./read-request-body";
 import { checkAssistantApiRateLimit } from "./rate-limit";
 
@@ -165,7 +166,10 @@ export async function handleAssistantGeneratePost(
 
     await result.flushTelemetry();
 
-    const answer = buildPublicAnswer(result.response);
+    const displayByKey = buildEvidenceDisplayByCitationKey(
+      result.packet.entries,
+    );
+    const answer = buildPublicAnswer(result.response, displayByKey);
     const usage = buildPublicUsageFromDiagnostics(result.diagnostics);
     const payload = usage ? { answer, usage } : { answer };
 

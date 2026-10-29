@@ -6,6 +6,7 @@ export const STATIC_SITEMAP_PATHS = [
   "/articles",
   "/ecosystem",
   "/connect",
+  "/assistant",
 ] as const;
 
 /**
@@ -21,7 +22,7 @@ export const PROJECT_SITEMAP_SLUGS = [
 
 export type ProjectSitemapSlug = (typeof PROJECT_SITEMAP_SLUGS)[number];
 
-/** All pathname entries for the sitemap (6 static + 4 project). */
+/** All pathname entries for the sitemap (7 static + 4 project). */
 export function getSitemapPaths(): readonly string[] {
   return [
     ...STATIC_SITEMAP_PATHS,

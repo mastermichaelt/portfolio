@@ -28,7 +28,7 @@ todos:
     status: cancelled
   - id: generation-ui
     content: "PR: dedicated /assistant page + nav — claims[], citations, compact per-answer token usage footer; reusable components; no floating widget"
-    status: pending
+    status: completed
   - id: operational-acceptance
     content: "Manual verification gate — production Neon corpus ingest + verify (operator-approved), then local + deployed E2E on michaeltruong.ai; operator sign-off before public-ready"
     status: pending
@@ -55,6 +55,8 @@ isProject: false
 **Plan amendment (2026-10-16, production Neon corpus):** Hosted assistant generation on michaeltruong.ai requires a **populated production retrieval index** on Neon — not only schema/migrations. **Production corpus ingestion and verification** are an **operator-controlled operational prerequisite** inside **`operational-acceptance`**, executed **before deployed E2E acceptance**. They use the existing `okf:build` → `assistant:ingest` workflow ([assistant-database.md](../../docs/assistant/assistant-database.md)); **not** a new implementation slice, **not** triggered by Vercel deploys, and **not** agent-executable without explicit operator approval.
 
 **Plan amendment (2026-10-29, production Neon cutover):** One-time operator migration from local Docker to Neon **`portfolio-assistant`** completed successfully (**262** retrieval units, Drizzle fresh schema, no embedding regeneration). Historical record: [`docs/archive/production-neon-cutover-2026.md`](../../docs/archive/production-neon-cutover-2026.md). Routine schema work remains **`assistant:db:migrate`** / **`assistant:db:verify`** only — do not repeat the database-recreation procedure.
+
+**Plan amendment (2026-10-29, conversational UI follow-up):** Product-design work to make `/assistant` feel conversational (session-local transcript, chat composer) while keeping **stateless single-turn** generation is tracked separately in [2026-10-29-assistant-conversational-ui.plan.md](./2026-10-29-assistant-conversational-ui.plan.md). Does not expand **`generation-ui`** acceptance, **`operational-acceptance`**, or RAG architecture scope.
 
 **Plan amendment (2026-10-28, Drizzle ORM):** Adopt **Drizzle ORM** and **Drizzle Kit** as the **long-term schema, query, and migration authority** for the assistant Postgres + pgvector database (`DATABASE_URL` scope only — not site `PortfolioRepository` persistence). **Intent:** retire the custom legacy migration runner once a safe cutover is verified — not maintain two migration systems indefinitely. Two implementation slices (**`drizzle-foundation`**, **`drizzle-queries`**) land **after `generation-api` and before `generation-ui`**. Preserve historical SQL under `db/migrations/` as **read-only evidence** (do not delete or rewrite files), existing `schema_migrations` rows on populated databases, retrieval semantics, ingest idempotency, generation contract, and operator-controlled Neon operations. **Do not** recreate the database, change embedding model / `vector(1536)`, or replay full CREATE DDL on populated production in these slices.
 

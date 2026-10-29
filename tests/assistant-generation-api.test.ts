@@ -392,6 +392,70 @@ describe("assistant generation API handler", () => {
     expect(response.status).toBe(413);
   });
 
+  it("enriches public citations from the evidence packet, not claim prose URLs", async () => {
+    const savepointsEntry = {
+      evidence_id: "E1",
+      unit_id: "unit/portfolio/savepoints-architecture-b02-capture",
+      okf_concept_id: "portfolio/savepoints-architecture",
+      title: "Savepoints durable capture",
+      resource: "https://michaeltruong.ai/projects/savepoints",
+      retrieval_text: "Savepoints captures durable learnings.",
+      content_hash: "hash-savepoints-b02",
+      matched_retrieval: true,
+    };
+
+    const deps = createDeps({
+      runRagGeneration: vi.fn(async () => ({
+        response: {
+          claims: [
+            {
+              text: "Savepoints captures learnings. Visit https://codenames-ai.com.",
+              attribution: "evidence_supported",
+              citations: [
+                {
+                  evidence_id: "E1",
+                  unit_id: savepointsEntry.unit_id,
+                },
+              ],
+            },
+          ],
+          answer_text:
+            "Savepoints captures learnings. Visit https://codenames-ai.com.",
+          citations: [{ evidence_id: "E1", unit_id: savepointsEntry.unit_id }],
+          support_level: "full",
+          abstained: false,
+        },
+        packet: { entries: [savepointsEntry], matched_hits: [] },
+        diagnostics: {
+          model: "gpt-4o-mini",
+          prompt_tokens: 10,
+          completion_tokens: 5,
+          total_tokens: 15,
+        },
+        flushTelemetry: vi.fn(async () => {}),
+      })),
+    });
+
+    const response = await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "How does Savepoints capture?" }),
+      }),
+      deps,
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.answer.claims[0].citations[0]).toEqual({
+      evidence_id: "E1",
+      unit_id: savepointsEntry.unit_id,
+      source_label: "Savepoints durable capture",
+      source_url: "https://michaeltruong.ai/projects/savepoints",
+    });
+    expect(assertNoDisallowedPublicKeys(body)).toEqual([]);
+  });
+
   it("uses the first x-forwarded-for entry as the rate-limit client key", () => {
     const headers = new Headers({
       "x-forwarded-for": "203.0.113.44, 198.51.100.1",
