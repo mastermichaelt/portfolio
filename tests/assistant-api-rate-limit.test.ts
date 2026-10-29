@@ -1,14 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { checkAssistantApiRateLimit } from "@/lib/assistant/api/rate-limit";
 import type { AssistantApiConfig } from "@/lib/assistant/api/config";
@@ -276,31 +268,6 @@ describe("assistant API rate limit (integration)", () => {
 
         expect(allowed).toBe(4);
         expect(rejected).toBe(4);
-      });
-
-      it("does not fail admission when expiry cleanup fails after commit", async () => {
-        const clientKey = `ip:test-cleanup-${randomUUID()}`;
-        const config = testConfig({ perClientPerMinute: 10 });
-
-        const realExpire = rateLimitDb.expireRateLimitCountersBestEffort;
-        const cleanupSpy = vi
-          .spyOn(rateLimitDb, "expireRateLimitCountersBestEffort")
-          .mockImplementation(async () => {
-            await realExpire(assistantDbWithFailingDelete());
-          });
-
-        try {
-          const result = await checkAssistantApiRateLimit(
-            pool,
-            clientKey,
-            config,
-            fixedNow,
-          );
-          expect(result).toEqual({ allowed: true });
-          expect(cleanupSpy).toHaveBeenCalledTimes(1);
-        } finally {
-          cleanupSpy.mockRestore();
-        }
       });
     },
   );

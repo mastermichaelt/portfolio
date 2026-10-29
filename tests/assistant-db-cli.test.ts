@@ -8,6 +8,7 @@ import {
   createPool,
   resolveAssistantDatabaseUrl,
 } from "@/scripts/assistant/db/client.mjs";
+import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -16,6 +17,17 @@ const repoRoot = path.resolve(
 
 const operationalDatabaseUrl = resolveAssistantDatabaseUrl();
 const hasOperationalDatabase = Boolean(operationalDatabaseUrl);
+
+let assistantTestDatabaseUrl: string | undefined;
+try {
+  assistantTestDatabaseUrl = resolveAssistantIngestTestDatabaseUrl();
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  throw new Error(
+    `Misconfigured ASSISTANT_TEST_DATABASE_URL for assistant db CLI tests: ${message}`,
+  );
+}
+const hasAssistantTestDatabase = Boolean(assistantTestDatabaseUrl);
 
 function importUnderPlainNode(relativeModulePath: string) {
   return spawnSync(
@@ -38,11 +50,15 @@ function importUnderPlainNode(relativeModulePath: string) {
   );
 }
 
-function runNpmScript(script: string, args: string[] = []) {
+function runNpmScript(
+  script: string,
+  args: string[] = [],
+  env: NodeJS.ProcessEnv = process.env,
+) {
   return spawnSync("npm", ["run", "-s", script, "--", ...args], {
     cwd: repoRoot,
     encoding: "utf8",
-    env: process.env,
+    env,
   });
 }
 
@@ -66,7 +82,7 @@ describe("assistant db operational npm scripts", () => {
   });
 
   describe.skipIf(!hasOperationalDatabase)(
-    "with DATABASE_URL (connectivity required)",
+    "read-only verify (DATABASE_URL)",
     () => {
       it("runs assistant:db:verify --json via npm script", () => {
         const result = runNpmScript("assistant:db:verify", ["--json"]);
@@ -74,12 +90,6 @@ describe("assistant db operational npm scripts", () => {
 
         const summary = JSON.parse(result.stdout) as { ok?: boolean };
         expect(summary.ok).toBe(true);
-      });
-
-      it("runs assistant:db:migrate via npm script", () => {
-        const result = runNpmScript("assistant:db:migrate");
-        expect(result.status, result.stderr || result.stdout).toBe(0);
-        expect(result.stdout).toContain("drizzle migrate complete");
       });
 
       it("opens a pool via client.mjs createPool", async () => {
@@ -90,6 +100,20 @@ describe("assistant db operational npm scripts", () => {
         } finally {
           await pool.end();
         }
+      });
+    },
+  );
+
+  describe.skipIf(!hasAssistantTestDatabase)(
+    "mutating migrate (ASSISTANT_TEST_DATABASE_URL only)",
+    () => {
+      it("runs assistant:db:migrate via npm script against the disposable test database", () => {
+        const result = runNpmScript("assistant:db:migrate", [], {
+          ...process.env,
+          DATABASE_URL: assistantTestDatabaseUrl!,
+        });
+        expect(result.status, result.stderr || result.stdout).toBe(0);
+        expect(result.stdout).toContain("drizzle migrate complete");
       });
     },
   );
