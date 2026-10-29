@@ -232,6 +232,8 @@ Second **`migrate`** + **`verify`** confirms idempotency.
 
 Use the **identical** SQL on **local Docker (phase 4)** and **Neon inside phase 5** before `COMMIT`.
 
+**Collation:** Every ordered aggregate must use `ORDER BY unit_id COLLATE "C"`. Default database collations differ between local Docker Postgres and Neon (and can differ from JavaScript sort order), so plain `ORDER BY unit_id` produces environment-local MD5 digests even when row data is identical. Explicit `"C"` sort makes source, dump-import, and destination fingerprints comparable.
+
 | Rule         | Detail                                                                                   |
 | ------------ | ---------------------------------------------------------------------------------------- |
 | Shape        | One **JSON array of 16 values** per row (`jsonb_build_array`), then `md5(payload::text)` |
@@ -240,7 +242,7 @@ Use the **identical** SQL on **local Docker (phase 4)** and **Neon inside phase 
 | JSONB        | `sources` and `metadata` embedded as JSON values (not flattened strings)                 |
 | Timestamps   | UTC text: `to_char(col AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`             |
 | Vector       | `embedding::text` (pgvector storage literal)                                             |
-| Table digest | `md5(string_agg(row_digest, E'\n' ORDER BY unit_id))`                                    |
+| Table digest | `md5(string_agg(row_digest, E'\n' ORDER BY unit_id COLLATE "C"))`                        |
 | Failure      | `RAISE EXCEPTION` in phase 5 before `COMMIT`                                             |
 
 **Column order in the array (16):** `unit_id`, `okf_concept_id`, `okf_version`, `source_class`, `type`, `title`, `resource`, `retrieval_text`, `content_hash`, `embedding_model`, `embedding::text`, `sources`, `metadata`, `embedded_at` (UTC text), `created_at` (UTC text), `updated_at` (UTC text).
@@ -275,14 +277,14 @@ md5(
 ```sql
 md5(string_agg(
   unit_id || '|' || content_hash || '|' || embedding::text,
-  E'\n' ORDER BY unit_id
+  E'\n' ORDER BY unit_id COLLATE "C"
 ))
 ```
 
 **Full-table digest:**
 
 ```sql
-SELECT md5(string_agg(row_digest, E'\n' ORDER BY unit_id)) AS expected_full_row_fp
+SELECT md5(string_agg(row_digest, E'\n' ORDER BY unit_id COLLATE "C")) AS expected_full_row_fp
 FROM (
   SELECT
     unit_id,
@@ -325,8 +327,8 @@ Recompute constants for phase 5. Example from **2026-10-28** local Docker:
 | Constant               | Example                            |
 | ---------------------- | ---------------------------------- |
 | `expected_rows`        | `262`                              |
-| `expected_vector_fp`   | `b98ec06f8ebfee83f81b8beae40cfd24` |
-| `expected_full_row_fp` | `48c1c24cdc928093e7d2a029f609a30b` |
+| `expected_vector_fp`   | `93b7730bc543b9dd498005a5d66aba9f` |
+| `expected_full_row_fp` | `c298f24809625b9f6894822656e7945a` |
 
 ```sql
 SELECT COUNT(*)::bigint FROM public.assistant_retrieval_units;
@@ -381,8 +383,8 @@ DECLARE
   vector_fp text;
   full_row_fp text;
   expected_rows bigint := 262;
-  expected_vector_fp text := 'b98ec06f8ebfee83f81b8beae40cfd24';
-  expected_full_row_fp text := '48c1c24cdc928093e7d2a029f609a30b';
+  expected_vector_fp text := '93b7730bc543b9dd498005a5d66aba9f';
+  expected_full_row_fp text := 'c298f24809625b9f6894822656e7945a';
 BEGIN
   SELECT COUNT(*) INTO row_count FROM public.assistant_retrieval_units;
   IF row_count <> expected_rows THEN
@@ -391,7 +393,7 @@ BEGIN
 
   SELECT md5(string_agg(
     unit_id || '|' || content_hash || '|' || embedding::text,
-    E'\n' ORDER BY unit_id
+    E'\n' ORDER BY unit_id COLLATE "C"
   ))
   INTO vector_fp
   FROM public.assistant_retrieval_units;
@@ -400,7 +402,7 @@ BEGIN
     RAISE EXCEPTION 'vector fingerprint mismatch (got %, expected %)', vector_fp, expected_vector_fp;
   END IF;
 
-  SELECT md5(string_agg(row_digest, E'\n' ORDER BY unit_id))
+  SELECT md5(string_agg(row_digest, E'\n' ORDER BY unit_id COLLATE "C"))
   INTO full_row_fp
   FROM (
     SELECT
