@@ -12,7 +12,16 @@ function attributionClass(attribution: Claim["attribution"]): string {
   return `assistant-claim assistant-claim--${attribution.replace(/_/g, "-")}`;
 }
 
-export function AssistantClaimBlock({ claim }: { claim: Claim }) {
+export function AssistantClaimBlock({
+  claim,
+  presentation = "inspectable",
+}: {
+  claim: Claim;
+  presentation?: "inspectable" | "conversational";
+}) {
+  if (presentation === "conversational") {
+    return null;
+  }
   const showQualifier =
     claim.attribution === "uncertain" ||
     claim.attribution === "evidence_inferred";

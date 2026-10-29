@@ -4,7 +4,7 @@ overview: Product-design follow-up to generation-ui — reshape /assistant into 
 todos:
   - id: conversational-ui
     content: "PR: session transcript, sticky composer, prose + inline [n] citations, Sources & attribution details; no API/RAG changes"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after conversational-ui merges — # Shipped note, archive plan, optional prior-art.md UX addendum"
     status: pending

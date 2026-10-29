@@ -6,7 +6,7 @@ import type {
 } from "@/lib/assistant/api/public-envelope";
 import { abstentionMessage } from "@/lib/assistant/ui/attribution-copy";
 
-import { AssistantClaimList } from "./AssistantClaimList";
+import { AssistantMessageBody } from "./AssistantMessageBody";
 import { AssistantUsageFooter } from "./AssistantUsageFooter";
 
 export function AssistantAnswerPanel({
@@ -28,7 +28,7 @@ export function AssistantAnswerPanel({
         </div>
       ) : null}
 
-      <AssistantClaimList claims={answer.claims} />
+      <AssistantMessageBody claims={answer.claims} />
 
       <AssistantUsageFooter usage={usage} />
     </section>

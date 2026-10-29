@@ -6,6 +6,217 @@
   max-width: 42rem;
 }
 
+.assistant-shell--chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-lg);
+  min-height: min(70vh, 40rem);
+}
+
+.assistant-shell--chat:has(.assistant-transcript) {
+  max-height: min(70vh, 40rem);
+}
+
+.assistant-transcript {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  gap: var(--gap-lg);
+  padding-bottom: var(--gap-sm);
+  scroll-padding-bottom: var(--gap-md);
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.assistant-turn {
+  display: grid;
+  gap: var(--gap-md);
+}
+
+.assistant-message {
+  padding: var(--gap-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.assistant-message--user {
+  border-color: var(--border-strong);
+}
+
+.assistant-message--assistant {
+  background: var(--bg);
+}
+
+.assistant-message-label {
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 var(--gap-sm);
+}
+
+.assistant-message-text,
+.assistant-message-status {
+  margin: 0;
+  color: var(--fg-2);
+  line-height: 1.55;
+}
+
+.assistant-message--user .assistant-message-text {
+  color: var(--fg);
+}
+
+.assistant-message-status {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  font-size: var(--fs-meta);
+  color: var(--muted);
+}
+
+.assistant-message-prose {
+  display: grid;
+  gap: var(--gap-md);
+}
+
+.assistant-message-paragraph {
+  margin: 0;
+  color: var(--fg);
+  line-height: 1.6;
+  max-width: 65ch;
+}
+
+.assistant-inline-citation {
+  font-family: var(--font-mono-stack);
+  font-size: 0.85em;
+  font-weight: 400;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.assistant-inline-citation--link {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.assistant-inline-citation--link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.assistant-sources-details {
+  margin-top: var(--gap-md);
+  border-top: 1px solid var(--border);
+  padding-top: var(--gap-sm);
+}
+
+.assistant-sources-details summary {
+  cursor: pointer;
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  color: var(--muted);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.assistant-sources-details summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.assistant-sources-panel {
+  display: grid;
+  gap: var(--gap-md);
+  padding-top: var(--gap-sm);
+}
+
+.assistant-sources-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--fg-2);
+  line-height: 1.5;
+}
+
+.assistant-sources-index {
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  color: var(--accent);
+}
+
+.assistant-sources-claims .assistant-claim:first-child {
+  padding-top: var(--gap-md);
+  border-top: 1px solid var(--border);
+}
+
+.assistant-composer-wrap {
+  display: grid;
+  gap: var(--gap-sm);
+}
+
+.assistant-stateless-hints {
+  margin: 0;
+  font-size: var(--fs-meta);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.assistant-stateless-hints p {
+  margin: 0 0 var(--gap-xs);
+}
+
+.assistant-stateless-hints p:last-child {
+  margin-bottom: 0;
+}
+
+.assistant-transcript-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.assistant-clear {
+  min-height: 44px;
+}
+
+.assistant-submit {
+  min-height: 44px;
+  min-width: 5.5rem;
+}
+
+.assistant-transcript-end {
+  height: 1px;
+}
+
+@media (max-width: 600px) {
+  .assistant-shell--chat:has(.assistant-transcript) {
+    min-height: calc(100dvh - 11rem);
+    max-height: calc(100dvh - 11rem);
+  }
+
+  .assistant-composer-wrap {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    flex-shrink: 0;
+    margin-top: var(--gap-xs);
+    padding-top: var(--gap-md);
+    padding-bottom: max(var(--gap-sm), env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .assistant-transcript {
+    padding-bottom: var(--gap-md);
+  }
+
+  .assistant-stateless-hints {
+    font-size: var(--fs-meta);
+  }
+}
+
 .assistant-intro h1 {
   margin-top: var(--gap-sm);
 }
@@ -215,7 +426,7 @@
 }
 
 .assistant-usage {
-  margin: var(--gap-lg) 0 0;
+  margin: var(--gap-md) 0 0;
   font-family: var(--font-mono-stack);
   font-size: var(--fs-meta);
   color: var(--muted);
