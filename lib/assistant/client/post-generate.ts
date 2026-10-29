@@ -20,6 +20,121 @@ export type AssistantGenerateResult =
 
 const GENERATE_PATH = "/api/assistant/generate";
 
+const CLAIM_ATTRIBUTIONS = new Set([
+  "evidence_supported",
+  "evidence_inferred",
+  "general_knowledge",
+  "uncertain",
+]);
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isPublicUsage(value: unknown): value is AssistantPublicUsage {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+  const allowed = [
+    "model",
+    "prompt_tokens",
+    "completion_tokens",
+    "total_tokens",
+  ];
+  for (const key of Object.keys(value)) {
+    if (!allowed.includes(key)) {
+      return false;
+    }
+  }
+  if (value.model !== undefined && typeof value.model !== "string") {
+    return false;
+  }
+  for (const key of [
+    "prompt_tokens",
+    "completion_tokens",
+    "total_tokens",
+  ] as const) {
+    if (value[key] !== undefined && typeof value[key] !== "number") {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isPublicClaim(value: unknown): boolean {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+  if (typeof value.text !== "string" || !value.text.trim()) {
+    return false;
+  }
+  if (
+    typeof value.attribution !== "string" ||
+    !CLAIM_ATTRIBUTIONS.has(value.attribution)
+  ) {
+    return false;
+  }
+  if (value.citations !== undefined) {
+    if (!Array.isArray(value.citations)) {
+      return false;
+    }
+    for (const citation of value.citations) {
+      if (!isPlainObject(citation)) {
+        return false;
+      }
+      if (
+        typeof citation.evidence_id !== "string" ||
+        !citation.evidence_id ||
+        typeof citation.unit_id !== "string" ||
+        !citation.unit_id
+      ) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+/** Minimum shape check for a successful generation API payload. */
+export function parseAssistantGenerateSuccessBody(
+  raw: unknown,
+): AssistantGenerateSuccessBody | null {
+  if (!isPlainObject(raw) || !isPlainObject(raw.answer)) {
+    return null;
+  }
+
+  const answer = raw.answer;
+  if (!Array.isArray(answer.claims) || answer.claims.length === 0) {
+    return null;
+  }
+  if (!answer.claims.every(isPublicClaim)) {
+    return null;
+  }
+  if (typeof answer.answer_text !== "string") {
+    return null;
+  }
+  if (!Array.isArray(answer.citations)) {
+    return null;
+  }
+  if (typeof answer.support_level !== "string") {
+    return null;
+  }
+  if (typeof answer.abstained !== "boolean") {
+    return null;
+  }
+  if (
+    answer.abstention_reason !== undefined &&
+    typeof answer.abstention_reason !== "string"
+  ) {
+    return null;
+  }
+  if (raw.usage !== undefined && !isPublicUsage(raw.usage)) {
+    return null;
+  }
+
+  return raw as AssistantGenerateSuccessBody;
+}
+
 export async function postAssistantGenerate(
   question: string,
   signal?: AbortSignal,
@@ -51,7 +166,30 @@ export async function postAssistantGenerate(
   }
 
   if (response.ok) {
-    const body = (await response.json()) as AssistantGenerateSuccessBody;
+    let raw: unknown;
+    try {
+      raw = await response.json();
+    } catch {
+      return {
+        ok: false,
+        status: response.status,
+        code: "invalid_response",
+        message:
+          "The assistant returned an unreadable response. Please try again.",
+      };
+    }
+
+    const body = parseAssistantGenerateSuccessBody(raw);
+    if (!body) {
+      return {
+        ok: false,
+        status: response.status,
+        code: "invalid_response",
+        message:
+          "The assistant returned an unexpected response. Please try again.",
+      };
+    }
+
     return {
       ok: true,
       answer: body.answer,

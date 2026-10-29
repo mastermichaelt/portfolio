@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 
 import { ExternalLink } from "@/components/ExternalLink";
 import { normalizeHttpUrl } from "@/lib/assistant/ui/extract-http-urls";
-import { toVisitorHref } from "@/lib/assistant/ui/citation-href";
+import { toVisitorHref } from "@/lib/assistant/ui/visitor-href";
 
 type TextSegment =
   { kind: "text"; value: string } | { kind: "url"; value: string };

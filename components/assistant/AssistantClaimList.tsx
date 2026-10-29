@@ -35,10 +35,7 @@ export function AssistantClaimBlock({ claim }: { claim: Claim }) {
         <SafeClaimText text={claim.text} />
       </p>
       {claim.citations?.length ? (
-        <AssistantCitationLinks
-          claimText={claim.text}
-          citations={claim.citations}
-        />
+        <AssistantCitationLinks citations={claim.citations} />
       ) : null}
     </article>
   );
