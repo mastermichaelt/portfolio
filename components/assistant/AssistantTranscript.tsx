@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import {
   isTranscriptNearBottom,
+  shouldAutoScrollTranscript,
   TRANSCRIPT_NEAR_BOTTOM_PX,
 } from "@/lib/assistant/ui/transcript-scroll";
 import type { TranscriptTurn } from "@/lib/assistant/ui/transcript-turns";
@@ -26,10 +27,30 @@ export function AssistantTranscript({
   const endRef = useRef<HTMLDivElement | null>(null);
   const focusRef = useRef<HTMLDivElement | null>(null);
   const lastScrollGenerationRef = useRef(scrollGeneration);
+  /** Updated on scroll — reflects position before the next content height change. */
+  const wasNearBottomRef = useRef(true);
 
   useEffect(() => {
     const root = transcriptRef.current;
-    if (!root || turns.length === 0) {
+    if (!root) {
+      return;
+    }
+
+    const syncNearBottom = () => {
+      wasNearBottomRef.current = isTranscriptNearBottom(
+        root,
+        TRANSCRIPT_NEAR_BOTTOM_PX,
+      );
+    };
+
+    syncNearBottom();
+    root.addEventListener("scroll", syncNearBottom, { passive: true });
+    return () => root.removeEventListener("scroll", syncNearBottom);
+  }, [turns.length]);
+
+  useEffect(() => {
+    if (turns.length === 0) {
+      wasNearBottomRef.current = true;
       return;
     }
 
@@ -37,9 +58,14 @@ export function AssistantTranscript({
       scrollGeneration !== lastScrollGenerationRef.current;
     lastScrollGenerationRef.current = scrollGeneration;
 
-    const shouldScroll =
-      userJustSubmitted ||
-      isTranscriptNearBottom(root, TRANSCRIPT_NEAR_BOTTOM_PX);
+    if (userJustSubmitted) {
+      wasNearBottomRef.current = true;
+    }
+
+    const shouldScroll = shouldAutoScrollTranscript({
+      userJustSubmitted,
+      wasNearBottomBeforeUpdate: wasNearBottomRef.current,
+    });
 
     if (!shouldScroll) {
       return;
@@ -49,6 +75,7 @@ export function AssistantTranscript({
       behavior: userJustSubmitted ? "smooth" : "auto",
       block: "nearest",
     });
+    wasNearBottomRef.current = true;
   }, [turns, scrollGeneration]);
 
   useEffect(() => {

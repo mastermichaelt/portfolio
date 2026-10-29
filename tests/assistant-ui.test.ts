@@ -7,6 +7,7 @@ import {
 } from "@/lib/assistant/ui/citation-numbering";
 import {
   isTranscriptNearBottom,
+  shouldAutoScrollTranscript,
   TRANSCRIPT_NEAR_BOTTOM_PX,
 } from "@/lib/assistant/ui/transcript-scroll";
 import {
@@ -305,6 +306,21 @@ describe("transcript scroll", () => {
         { ...element, scrollTop: 100 } as HTMLElement,
         TRANSCRIPT_NEAR_BOTTOM_PX,
       ),
+    ).toBe(false);
+  });
+
+  it("follows new content when the visitor was pinned before the update", () => {
+    expect(
+      shouldAutoScrollTranscript({
+        userJustSubmitted: false,
+        wasNearBottomBeforeUpdate: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldAutoScrollTranscript({
+        userJustSubmitted: false,
+        wasNearBottomBeforeUpdate: false,
+      }),
     ).toBe(false);
   });
 });

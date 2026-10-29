@@ -9,3 +9,11 @@ export function isTranscriptNearBottom(
     element.scrollHeight - element.scrollTop - element.clientHeight;
   return distanceFromBottom <= thresholdPx;
 }
+
+/** Use pre-update "following" state — not post-render geometry after content grows. */
+export function shouldAutoScrollTranscript(options: {
+  userJustSubmitted: boolean;
+  wasNearBottomBeforeUpdate: boolean;
+}): boolean {
+  return options.userJustSubmitted || options.wasNearBottomBeforeUpdate;
+}
