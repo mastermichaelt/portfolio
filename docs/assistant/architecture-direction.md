@@ -2,8 +2,8 @@
 title: Portfolio assistant architecture direction
 subtitle: Another view over published knowledge — not a site redesign
 status: draft
-version: 0.4.1
-updated: 2026-10-12
+version: 0.4.2
+updated: 2026-10-29
 related:
   - docs/assistant/prior-art.md
   - docs/assistant/rag-generation-direction.md
@@ -141,6 +141,28 @@ Do not add live DEV fetching in the OKF build path without an explicit slice; pr
 **Architectural direction (decision).** Exclude agent docs, planning artifacts, private sibling-repo references, and internal review provenance (e.g. `CaseFigure.source` / inventory fact ids used only for editorial verification).
 
 **Future acceptance milestone.** Timeline and production-line metaphor may enter the corpus when content ships and retrieval eval shows gaps.
+
+## Future direction — Corpus synchronization
+
+**Deferred architectural direction — not an approved implementation plan.** This section captures intent only. It does **not** authorize automatic production ingestion, does **not** add scope to the active [grounded RAG generation plan](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md), and does **not** change the shipped `okf:build` → `assistant:ingest` pipeline, database schema, GitHub Actions workflows, or application code.
+
+**Goal.** Keep the **production** Neon retrieval index synchronized with changes to its source repositories (portfolio `content/`, pinned OKF fixtures, editorial-hub published bodies, cross-repository snapshots, and future deliberately selected sources) **without requiring manual operator ingest** for every source change. Today, operators run `okf:build` → `assistant:ingest` explicitly; deployments and CI do **not** mutate the hosted index ([assistant-database.md](./assistant-database.md)).
+
+**Proposed approach (direction only).**
+
+- **Reuse existing pipeline** — same OKF build, structure-aware derive, embedding ingest, stale-unit delete, and `assistant:db:verify` gates; no parallel ingestion service in the first iteration.
+- **Triggering** — initially prefer **scheduled and manually triggered GitHub Actions** over a dedicated long-running ingestion service; final schedule and event strategy remain **open decisions** (not prescribed here).
+- **Incremental embeddings** — rely on ingest idempotency (`content_hash` skip) so unchanged units do not re-call the Embeddings API.
+- **Multi-repository completeness** — treat a full, intentional corpus build as an explicit **safety requirement** before applying production deletes; **prevent partial source collection** (failed clone, missing fixture checkout, truncated OKF manifest) from pruning valid production retrieval units.
+- **Pre-apply validation** — validate corpus integrity (concept/unit counts, manifest digest, optional diff against last accepted run) **before** writing to production `DATABASE_URL`.
+- **Operator credentials** — preserve human control over production database credentials and write permissions; unattended production writes require explicit approval workflow and recovery design first.
+- **Observability** — surface run outcomes: added, updated, unchanged, deleted, failures, and embedding API cost; record runs in `assistant_ingestion_runs` (or successor metadata) for audit.
+- **Failure recovery** — define retry, partial-failure, and rollback behaviour **before** enabling unattended production sync (open decision: fail closed on incomplete corpus vs staged apply).
+
+**Boundaries.**
+
+- Corpus synchronization is **future work** — plan it in a fresh `.cursor/plans/` slice when operator pain justifies it, not as part of the current generation milestone.
+- Related but separate: **fixture refresh** from editorial hub or sibling repos (today manual) and **live fetch at build time** remain out of scope until explicitly sliced; sync automation should not silently widen corpus policy.
 
 ## Architectural direction — pipeline shape
 
@@ -378,6 +400,7 @@ These are **not** scheduled slices. They name areas future experiments may touch
 - **Context-aware retrieval** — after basic corpus retrieval is understood, evaluate whether the visitor's current portfolio context should influence retrieval (e.g. `/about` for career context, `/projects/savepoints` biasing toward Savepoints evidence, an article route making that article particularly relevant; landing page remains global corpus search). Current page or interaction context may become an additional retrieval signal without making the assistant incapable of retrieving relevant evidence elsewhere in the corpus. Not part of initial RAG; no filtering, metadata schemas, routing algorithms, or weighting strategies prescribed here.
 - **Retrieval + answer evaluation** — after real retrieval behaviour exists, evolve from manual inspection toward repeatable evaluation cases built from observed questions. Potential evidence per case: question, expected/relevant evidence, retrieved units, retrieval ranking/signals, generated answer, citations, comparison with existing ChatGPT + web baseline where useful. Field-report follow-ons (rank/distance diagnostics, evidence sufficiency, generation-aligned eval) live in [rag-generation-direction.md](./rag-generation-direction.md) — not a technique catalogue in this note. No evaluation framework, metrics suite, test schema, or vendor selection yet.
 - **Public assistant hardening** — once the assistant is a public portfolio feature, evaluate production concerns based on observed behaviour and usage: streaming response UX, rate limiting / abuse protection, latency, token/model cost, reliability / failure behaviour, provider/model fallback if justified. No Redis, queues, rate-limit providers, fallback architecture, or infrastructure prescribed yet. **Streaming / SSE** — server-to-client answer streaming is a natural future experiment (SSE or framework-provided streaming primitives not committed yet): portfolio UX benefit (visitors read before generation completes) and systems-learning exercise (long-lived HTTP, incremental delivery, disconnects, cancellation, proxies/timeouts, failure behaviour). Delivery of generated output to the browser is separate from retrieval itself.
+- **Automated corpus synchronization** — **deferred** — production Neon index updates today are operator-controlled ingest only; future unattended sync intent in [Future direction — Corpus synchronization](#future-direction--corpus-synchronization)
 
 Directional sequencing only — not a roadmap or fixed phases:
 
@@ -441,6 +464,7 @@ later experiments as justified:
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                 |
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-29 | Deferred future direction: automated corpus synchronization (production Neon index vs source repos); no implementation authorization                                                                                                                                                                                   |
 | 2026-10-12 | Point field-report follow-ons to rag-generation-direction (avoid duplicating hypotheses in this note)                                                                                                                                                                                                                  |
 | 2026-10-08 | Shipped cross-repository corpus ([cross-repository-source-inventory.md](./cross-repository-source-inventory.md), [archived plan](../../.cursor/plans/archive/2026-10-08-assistant-cross-repository-corpus.plan.md), [eval findings](./cross-repository-corpus-eval-findings.md)); superseded career-only plan archived |
 | 2026-10-08 | Archived [corpus coverage expansion](../../.cursor/plans/archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md) — findings [corpus-coverage-expansion.md](./corpus-coverage-expansion.md); operator acceptance completed 2026-10-08                                                                           |

@@ -3,7 +3,7 @@ title: Portfolio assistant — RAG generation direction
 subtitle: Design considerations between retrieval and grounded answers (not implemented)
 status: draft
 version: 0.2.5
-updated: 2026-10-16
+updated: 2026-10-29
 related:
   - docs/assistant/architecture-direction.md
   - docs/assistant/assistant-database.md
@@ -29,7 +29,7 @@ Sections use the same labels as [architecture-direction.md](./architecture-direc
 
 ## Implemented retrieval boundary (today)
 
-**Current implementation.** Visitor-facing RAG does not exist. The production Next.js app has no `app/api/` assistant routes and no chat UI.
+**Current implementation.** Grounded generation ships server-side via `npm run assistant:answer` and **`POST /api/assistant/generate`** ([`generation-api`](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md) slice). There is **no visitor chat UI** yet (`generation-ui` / `/assistant` outstanding). **Production retrieval index updates** remain operator-controlled `assistant:ingest` — automated corpus synchronization is a **deferred** direction in [architecture-direction.md](./architecture-direction.md#future-direction--corpus-synchronization), outside this generation milestone.
 
 **Current implementation (assistant dev tooling).** The bounded-corpus retrieval pipeline is shipped as CLIs outside the app bundle:
 
@@ -44,7 +44,7 @@ npm run assistant:ingest   → OpenAI embeddings + Postgres pgvector (derived in
         ↓
 npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
         ↓
-(answer generation)        → not implemented — hard stop
+assistant:answer / POST /api/assistant/generate → grounded answers (no visitor UI yet)
 ```
 
 **Current implementation.** Retrieval-unit derivation is **structure-aware 1:N** from OKF concept bodies: deterministic `unit_id`, `content_hash`, parent `okf_concept_id`, optional `section_heading`, `chunk_index` / `chunk_count`, and OKF `sources` / `resource` on every unit. Chunking lives in `scripts/assistant/retrieval/` only — not in OKF producers. Ingest is granularity-agnostic (upsert/skip/delete by derived `unit_id` set).
@@ -63,7 +63,7 @@ npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
 | **Evidence assembly** | Selecting, expanding, grouping, budgeting context for the LLM                          | Rewriting canonical sources as truth         |
 | **Generation**        | Evidence-aware answer text, claim-level attribution, citation surfacing, abstention UX | OKF normalization, embedding index schema    |
 
-**Architectural direction.** `PortfolioRepository` and page routes must not depend on retrieval or generation. Future `app/api/` (or equivalent) may call retrieval + assembly + generation; the browsable site remains valid with the assistant removed.
+**Architectural direction.** `PortfolioRepository` and page routes must not depend on retrieval or generation. `POST /api/assistant/generate` calls the shared generation service; the browsable site remains valid with the assistant removed.
 
 **Open decision.** Whether evidence assembly runs in the same server process as retrieval, a dedicated module, or a durable workflow step — defer until generation milestone planning.
 
@@ -269,6 +269,7 @@ Visitors should be able to **begin with natural-language questions** rather than
 
 | Date       | Change                                                                                                                                                                                    |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-29 | Current implementation: record shipped `POST /api/assistant/generate`; visitor `/assistant` UI still outstanding; corpus sync cross-ref unchanged                                         |
 | 2026-10-16 | Visitor-visible OpenAI token usage on `/assistant` (API `usage` object + UI footer); Codenames AI as behavioural reference; PostHog server telemetry remains operator-only                |
 | 2026-10-16 | Deferred future direction: AI-first conversational portfolio (product/UX milestone); current RAG milestone ships `/assistant` first — homepage integration out of scope                   |
 | 2026-10-16 | Canonical `claims[]` with service-derived `answer_text`/`citations[]`; abstention orthogonal to `support_level`; reject overlong structured JSON (plan contract tightening)               |
