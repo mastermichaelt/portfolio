@@ -6,6 +6,14 @@ import {
   numbersForClaimCitations,
 } from "@/lib/assistant/ui/citation-numbering";
 import {
+  isTranscriptNearBottom,
+  TRANSCRIPT_NEAR_BOTTOM_PX,
+} from "@/lib/assistant/ui/transcript-scroll";
+import {
+  isTranscriptRequestStillActive,
+  turnExists,
+} from "@/lib/assistant/ui/transcript-request-guard";
+import {
   appendLoadingTurn,
   resolveTurn,
 } from "@/lib/assistant/ui/transcript-turns";
@@ -246,5 +254,57 @@ describe("transcript turns", () => {
     });
     expect(done[0]?.status).toBe("success");
     expect(done[0]?.answer?.claims[0]?.text).toBe("Grounded claim.");
+  });
+});
+
+describe("transcript request guard", () => {
+  it("rejects results after session epoch bump (clear conversation)", () => {
+    const controller = new AbortController();
+    expect(
+      isTranscriptRequestStillActive({
+        epochAtStart: 0,
+        currentEpoch: 1,
+        controller,
+        activeController: controller,
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects when a newer request replaced the active controller", () => {
+    const first = new AbortController();
+    const second = new AbortController();
+    expect(
+      isTranscriptRequestStillActive({
+        epochAtStart: 0,
+        currentEpoch: 0,
+        controller: first,
+        activeController: second,
+      }),
+    ).toBe(false);
+  });
+
+  it("does not resolve turns that were cleared from the transcript", () => {
+    const loading = appendLoadingTurn([], "Hi", "t1");
+    expect(turnExists(loading, "t1")).toBe(true);
+    expect(turnExists([], "t1")).toBe(false);
+  });
+});
+
+describe("transcript scroll", () => {
+  it("detects when the visitor is near the bottom", () => {
+    const element = {
+      scrollHeight: 1000,
+      scrollTop: 900,
+      clientHeight: 80,
+    } as HTMLElement;
+    expect(isTranscriptNearBottom(element, TRANSCRIPT_NEAR_BOTTOM_PX)).toBe(
+      true,
+    );
+    expect(
+      isTranscriptNearBottom(
+        { ...element, scrollTop: 100 } as HTMLElement,
+        TRANSCRIPT_NEAR_BOTTOM_PX,
+      ),
+    ).toBe(false);
   });
 });

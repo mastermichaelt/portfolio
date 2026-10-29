@@ -2,6 +2,10 @@
 
 import { useEffect, useRef } from "react";
 
+import {
+  isTranscriptNearBottom,
+  TRANSCRIPT_NEAR_BOTTOM_PX,
+} from "@/lib/assistant/ui/transcript-scroll";
 import type { TranscriptTurn } from "@/lib/assistant/ui/transcript-turns";
 
 import { AssistantAssistantMessage } from "./AssistantAssistantMessage";
@@ -9,19 +13,43 @@ import { AssistantUserMessage } from "./AssistantUserMessage";
 
 export function AssistantTranscript({
   turns,
+  scrollGeneration,
   focusTurnId,
   onFocusTurnHandled,
 }: {
   turns: TranscriptTurn[];
+  scrollGeneration: number;
   focusTurnId: string | null;
   onFocusTurnHandled: () => void;
 }) {
+  const transcriptRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
   const focusRef = useRef<HTMLDivElement | null>(null);
+  const lastScrollGenerationRef = useRef(scrollGeneration);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [turns]);
+    const root = transcriptRef.current;
+    if (!root || turns.length === 0) {
+      return;
+    }
+
+    const userJustSubmitted =
+      scrollGeneration !== lastScrollGenerationRef.current;
+    lastScrollGenerationRef.current = scrollGeneration;
+
+    const shouldScroll =
+      userJustSubmitted ||
+      isTranscriptNearBottom(root, TRANSCRIPT_NEAR_BOTTOM_PX);
+
+    if (!shouldScroll) {
+      return;
+    }
+
+    endRef.current?.scrollIntoView({
+      behavior: userJustSubmitted ? "smooth" : "auto",
+      block: "nearest",
+    });
+  }, [turns, scrollGeneration]);
 
   useEffect(() => {
     if (!focusTurnId) {
@@ -40,6 +68,7 @@ export function AssistantTranscript({
 
   return (
     <div
+      ref={transcriptRef}
       className="assistant-transcript"
       role="log"
       aria-label="Conversation"

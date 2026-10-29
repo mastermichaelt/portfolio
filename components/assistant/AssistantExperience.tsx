@@ -4,6 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { postAssistantGenerate } from "@/lib/assistant/client/post-generate";
 import {
+  isTranscriptRequestStillActive,
+  turnExists,
+} from "@/lib/assistant/ui/transcript-request-guard";
+import {
   appendLoadingTurn,
   createTurnId,
   resolveTurn,
@@ -18,7 +22,9 @@ export function AssistantExperience() {
   const [question, setQuestion] = useState("");
   const [turns, setTurns] = useState<TranscriptTurn[]>([]);
   const [focusTurnId, setFocusTurnId] = useState<string | null>(null);
+  const [scrollGeneration, setScrollGeneration] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
+  const sessionEpochRef = useRef(0);
 
   const hasInteracted = turns.length > 0;
   const inFlight = turns.some((turn) => turn.status === "loading");
@@ -32,41 +38,83 @@ export function AssistantExperience() {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+    const epochAtStart = sessionEpochRef.current;
 
     const turnId = createTurnId();
+    setScrollGeneration((value) => value + 1);
     setTurns((prev) => appendLoadingTurn(prev, trimmed, turnId));
     setQuestion("");
 
     const result = await postAssistantGenerate(trimmed, controller.signal);
 
+    const stillActive = (prev: TranscriptTurn[]) =>
+      isTranscriptRequestStillActive({
+        epochAtStart,
+        currentEpoch: sessionEpochRef.current,
+        controller,
+        activeController: abortRef.current,
+      }) && turnExists(prev, turnId);
+
     if (!result.ok && result.code === "aborted") {
-      setTurns((prev) =>
-        resolveTurn(prev, turnId, {
+      setTurns((prev) => {
+        if (!stillActive(prev)) {
+          return prev;
+        }
+        return resolveTurn(prev, turnId, {
           status: "error",
           errorMessage: "Request cancelled.",
-        }),
-      );
+        });
+      });
+      return;
+    }
+
+    if (
+      !isTranscriptRequestStillActive({
+        epochAtStart,
+        currentEpoch: sessionEpochRef.current,
+        controller,
+        activeController: abortRef.current,
+      })
+    ) {
       return;
     }
 
     if (result.ok) {
-      setTurns((prev) =>
-        resolveTurn(prev, turnId, {
+      setTurns((prev) => {
+        if (!stillActive(prev)) {
+          return prev;
+        }
+        return resolveTurn(prev, turnId, {
           status: "success",
           answer: result.answer,
           usage: result.usage,
-        }),
-      );
-      setFocusTurnId(turnId);
+        });
+      });
+      setFocusTurnId((current) => {
+        if (
+          !isTranscriptRequestStillActive({
+            epochAtStart,
+            currentEpoch: sessionEpochRef.current,
+            controller,
+            activeController: abortRef.current,
+          })
+        ) {
+          return current;
+        }
+        return turnId;
+      });
       return;
     }
 
-    setTurns((prev) =>
-      resolveTurn(prev, turnId, {
+    setTurns((prev) => {
+      if (!stillActive(prev)) {
+        return prev;
+      }
+      return resolveTurn(prev, turnId, {
         status: "error",
         errorMessage: result.message,
-      }),
-    );
+      });
+    });
   }, []);
 
   useEffect(() => {
@@ -77,6 +125,8 @@ export function AssistantExperience() {
 
   const clearConversation = useCallback(() => {
     abortRef.current?.abort();
+    abortRef.current = null;
+    sessionEpochRef.current += 1;
     setTurns([]);
     setFocusTurnId(null);
     setQuestion("");
@@ -111,6 +161,7 @@ export function AssistantExperience() {
 
       <AssistantTranscript
         turns={turns}
+        scrollGeneration={scrollGeneration}
         focusTurnId={focusTurnId}
         onFocusTurnHandled={handleFocusTurnHandled}
       />
@@ -120,7 +171,6 @@ export function AssistantExperience() {
           <button
             type="button"
             className="btn btn-ghost assistant-clear"
-            disabled={inFlight}
             onClick={clearConversation}
           >
             Clear conversation
