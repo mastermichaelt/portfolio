@@ -13,6 +13,10 @@
   min-height: min(70vh, 40rem);
 }
 
+.assistant-shell--chat:has(.assistant-transcript) {
+  max-height: min(70vh, 40rem);
+}
+
 .assistant-transcript {
   flex: 1 1 auto;
   min-height: 0;
@@ -20,6 +24,8 @@
   display: grid;
   gap: var(--gap-lg);
   padding-bottom: var(--gap-sm);
+  scroll-padding-bottom: var(--gap-md);
+  scrollbar-color: var(--border-strong) transparent;
 }
 
 .assistant-turn {
@@ -57,6 +63,10 @@
   line-height: 1.55;
 }
 
+.assistant-message--user .assistant-message-text {
+  color: var(--fg);
+}
+
 .assistant-message-status {
   display: flex;
   align-items: center;
@@ -72,13 +82,15 @@
 
 .assistant-message-paragraph {
   margin: 0;
-  color: var(--fg-2);
-  line-height: 1.55;
+  color: var(--fg);
+  line-height: 1.6;
+  max-width: 65ch;
 }
 
 .assistant-inline-citation {
   font-family: var(--font-mono-stack);
-  font-size: 0.92em;
+  font-size: 0.85em;
+  font-weight: 400;
   color: var(--accent);
   white-space: nowrap;
 }
@@ -109,6 +121,11 @@
   min-height: 44px;
   display: flex;
   align-items: center;
+}
+
+.assistant-sources-details summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .assistant-sources-panel {
@@ -174,20 +191,29 @@
 }
 
 @media (max-width: 600px) {
+  .assistant-shell--chat:has(.assistant-transcript) {
+    min-height: calc(100dvh - 11rem);
+    max-height: calc(100dvh - 11rem);
+  }
+
   .assistant-composer-wrap {
     position: sticky;
     bottom: 0;
     z-index: 2;
+    flex-shrink: 0;
+    margin-top: var(--gap-xs);
+    padding-top: var(--gap-md);
     padding-bottom: max(var(--gap-sm), env(safe-area-inset-bottom));
-    background: linear-gradient(
-      to top,
-      var(--bg) 70%,
-      color-mix(in srgb, var(--bg) 85%, transparent)
-    );
+    border-top: 1px solid var(--border);
+    background: var(--bg);
   }
 
   .assistant-transcript {
     padding-bottom: var(--gap-md);
+  }
+
+  .assistant-stateless-hints {
+    font-size: var(--fs-meta);
   }
 }
 
@@ -400,7 +426,7 @@
 }
 
 .assistant-usage {
-  margin: var(--gap-lg) 0 0;
+  margin: var(--gap-md) 0 0;
   font-family: var(--font-mono-stack);
   font-size: var(--fs-meta);
   color: var(--muted);
