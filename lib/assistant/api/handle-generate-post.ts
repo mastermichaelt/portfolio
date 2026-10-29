@@ -16,6 +16,12 @@ import {
 import { buildEvidenceDisplayByCitationKey } from "./citation-display";
 import { readBoundedUtf8Body } from "./read-request-body";
 import { checkAssistantApiRateLimit } from "./rate-limit";
+import {
+  buildEvaluationRecordFromFailure,
+  buildEvaluationRecordFromSuccess,
+  type GenerationEvaluationInsert,
+} from "@/lib/assistant/evaluation/build-record";
+import { persistGenerationEvaluationSafely } from "@/lib/assistant/evaluation/persist";
 
 export type AssistantGenerateRequestBody = {
   question?: unknown;
@@ -26,6 +32,7 @@ export type HandleAssistantGenerateDeps = {
   createPool: (databaseUrl?: string) => Pool;
   resolveConfig: typeof resolveAssistantApiConfig;
   checkRateLimit: typeof checkAssistantApiRateLimit;
+  persistGenerationEvaluation: typeof persistGenerationEvaluationSafely;
 };
 
 const defaultDeps: HandleAssistantGenerateDeps = {
@@ -33,6 +40,7 @@ const defaultDeps: HandleAssistantGenerateDeps = {
   createPool,
   resolveConfig: resolveAssistantApiConfig,
   checkRateLimit: checkAssistantApiRateLimit,
+  persistGenerationEvaluation: persistGenerationEvaluationSafely,
 };
 
 function parseQuestionBody(
@@ -93,6 +101,19 @@ async function readJsonBody(
   }
 }
 
+async function persistEvaluationTerminal(
+  pool: Pool,
+  deps: HandleAssistantGenerateDeps,
+  evaluationState: { persisted: boolean },
+  record: GenerationEvaluationInsert,
+): Promise<void> {
+  if (evaluationState.persisted) {
+    return;
+  }
+  await deps.persistGenerationEvaluation(pool, record);
+  evaluationState.persisted = true;
+}
+
 /**
  * POST /api/assistant/generate — thin adapter over {@link runRagGeneration}.
  */
@@ -129,6 +150,8 @@ export async function handleAssistantGeneratePost(
 
   const clientKey = resolveClientKeyFromHeaders(request.headers);
   let pool: Pool | undefined;
+  let acceptedForEvaluation = false;
+  const evaluationState = { persisted: false };
 
   try {
     pool = deps.createPool();
@@ -150,6 +173,8 @@ export async function handleAssistantGeneratePost(
       });
     }
 
+    acceptedForEvaluation = true;
+
     const result = await deps.runRagGeneration({
       question: normalizedQuestion,
       executionContext: "api",
@@ -157,6 +182,17 @@ export async function handleAssistantGeneratePost(
     });
 
     if (!result.response) {
+      await persistEvaluationTerminal(
+        pool,
+        deps,
+        evaluationState,
+        buildEvaluationRecordFromFailure({
+          question: normalizedQuestion,
+          error: new Error("generation_empty_response"),
+          packet: result.packet,
+          diagnostics: result.diagnostics,
+        }),
+      );
       return jsonError(
         502,
         "generation_failed",
@@ -164,26 +200,79 @@ export async function handleAssistantGeneratePost(
       );
     }
 
-    await result.flushTelemetry();
+    try {
+      await result.flushTelemetry();
 
-    const displayByKey = buildEvidenceDisplayByCitationKey(
-      result.packet.entries,
-    );
-    const answer = buildPublicAnswer(result.response, displayByKey);
-    const usage = buildPublicUsageFromDiagnostics(result.diagnostics);
-    const payload = usage ? { answer, usage } : { answer };
+      const displayByKey = buildEvidenceDisplayByCitationKey(
+        result.packet.entries,
+      );
+      const answer = buildPublicAnswer(result.response, displayByKey);
+      const usage = buildPublicUsageFromDiagnostics(result.diagnostics);
+      const payload = usage ? { answer, usage } : { answer };
 
-    const violations = assertNoDisallowedPublicKeys(payload);
-    if (violations.length > 0) {
+      const violations = assertNoDisallowedPublicKeys(payload);
+      if (violations.length > 0) {
+        await persistEvaluationTerminal(
+          pool,
+          deps,
+          evaluationState,
+          buildEvaluationRecordFromFailure({
+            question: normalizedQuestion,
+            error: new Error("public_envelope_validation"),
+            packet: result.packet,
+            diagnostics: result.diagnostics,
+          }),
+        );
+        return jsonError(
+          500,
+          "generation_failed",
+          "The assistant could not complete your request. Please try again.",
+        );
+      }
+
+      await persistEvaluationTerminal(
+        pool,
+        deps,
+        evaluationState,
+        buildEvaluationRecordFromSuccess({
+          question: normalizedQuestion,
+          response: result.response,
+          packet: result.packet,
+          diagnostics: result.diagnostics,
+        }),
+      );
+
+      return Response.json(payload, { status: 200 });
+    } catch (postGenerationError) {
+      await persistEvaluationTerminal(
+        pool,
+        deps,
+        evaluationState,
+        buildEvaluationRecordFromFailure({
+          question: normalizedQuestion,
+          error: postGenerationError,
+          packet: result.packet,
+          diagnostics: result.diagnostics,
+        }),
+      );
       return jsonError(
         500,
         "generation_failed",
         "The assistant could not complete your request. Please try again.",
       );
     }
-
-    return Response.json(payload, { status: 200 });
   } catch (error) {
+    if (pool && acceptedForEvaluation && !evaluationState.persisted) {
+      await persistEvaluationTerminal(
+        pool,
+        deps,
+        evaluationState,
+        buildEvaluationRecordFromFailure({
+          question: normalizedQuestion,
+          error,
+        }),
+      );
+    }
     return mapGenerationErrorToResponse(error);
   } finally {
     if (pool) {

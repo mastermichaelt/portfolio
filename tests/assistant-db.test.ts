@@ -124,7 +124,7 @@ describe("assistant db env loading", () => {
 describe("Drizzle migration metadata", () => {
   it("loads the committed initial migration journal", () => {
     const migrations = loadExpectedDrizzleMigrations();
-    expect(migrations).toHaveLength(1);
+    expect(migrations).toHaveLength(2);
     expect(migrations[0]?.hash).toMatch(/^[a-f0-9]{64}$/);
   });
 });
@@ -160,6 +160,7 @@ describe("verifyAssistantSchema on a fresh database", () => {
       "assistant_retrieval_units_table",
       "assistant_ingestion_runs_table",
       "assistant_api_rate_limit_counters_table",
+      "assistant_generation_evaluations_table",
     ]);
     expect(
       checks.find((check) => check.name === "drizzle_migration_journal"),

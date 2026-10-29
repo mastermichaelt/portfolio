@@ -15,4 +15,5 @@ export const ASSISTANT_TABLES = [
   "assistant_retrieval_units",
   "assistant_ingestion_runs",
   "assistant_api_rate_limit_counters",
+  "assistant_generation_evaluations",
 ];

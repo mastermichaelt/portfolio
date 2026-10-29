@@ -6,7 +6,7 @@ import {
 } from "./errors.mjs";
 
 /**
- * @typedef {'output_truncated' | 'output_too_large' | 'malformed_json' | 'structural_validation' | 'evidence_budget_exceeded' | 'query_validation' | 'prompt_budget_exceeded' | 'openai_timeout' | 'openai_api_error' | 'unknown'} GenerationFailureCategory
+ * @typedef {'output_truncated' | 'output_too_large' | 'malformed_json' | 'structural_validation' | 'evidence_budget_exceeded' | 'query_validation' | 'prompt_budget_exceeded' | 'openai_timeout' | 'openai_api_error' | 'generation_empty_response' | 'public_envelope_validation' | 'unknown'} GenerationFailureCategory
  */
 
 /**
@@ -79,6 +79,18 @@ export function classifyGenerationFailure(error, context = {}) {
   }
 
   if (error instanceof Error) {
+    if (error.message === "generation_empty_response") {
+      return {
+        failure_category: "generation_empty_response",
+        finish_reason: null,
+      };
+    }
+    if (error.message === "public_envelope_validation") {
+      return {
+        failure_category: "public_envelope_validation",
+        finish_reason: null,
+      };
+    }
     if (error.message.includes("timed out after")) {
       return { failure_category: "openai_timeout", finish_reason: null };
     }

@@ -45,6 +45,8 @@
     "assistant:ingest": "node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs scripts/assistant/ingest.mjs",
     "assistant:retrieve": "node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs scripts/assistant/retrieve.mjs",
     "assistant:answer": "node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs scripts/assistant/answer.mjs",
+    "assistant:evaluation:review": "node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs scripts/assistant/evaluation/review.mjs",
+    "assistant:evaluation:cleanup": "node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs scripts/assistant/evaluation/cleanup-expired.mjs",
     "renovate:freshness-poll": "renovate-workflow freshness-poll"
   },
   "dependencies": {

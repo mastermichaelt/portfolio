@@ -1,4 +1,5 @@
 import {
+  boolean,
   index,
   integer,
   jsonb,
@@ -80,6 +81,47 @@ export const assistantApiRateLimitCounters = pgTable(
   (table) => [
     index("assistant_api_rate_limit_counters_window_ends_at_idx").on(
       table.windowEndsAt,
+    ),
+  ],
+);
+
+/** Question-level evaluation rows for operator review (API generation only). */
+export const assistantGenerationEvaluations = pgTable(
+  "assistant_generation_evaluations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }).notNull(),
+    status: text("status").notNull(),
+    question: text("question").notNull(),
+    questionLength: integer("question_length").notNull(),
+    answerText: text("answer_text"),
+    supportLevel: text("support_level"),
+    abstained: boolean("abstained").notNull().default(false),
+    abstentionReason: text("abstention_reason"),
+    failureCategory: text("failure_category"),
+    evidenceUnitIds: jsonb("evidence_unit_ids").notNull().default([]),
+    evidenceIds: jsonb("evidence_ids").notNull().default([]),
+    retrievedEvidenceCount: integer("retrieved_evidence_count"),
+    attributionCounts: jsonb("attribution_counts"),
+    model: text("model"),
+    promptTokens: integer("prompt_tokens"),
+    completionTokens: integer("completion_tokens"),
+    totalTokens: integer("total_tokens"),
+    retrievalLatencyMs: integer("retrieval_latency_ms"),
+    assemblyLatencyMs: integer("assembly_latency_ms"),
+    generationLatencyMs: integer("generation_latency_ms"),
+    totalLatencyMs: integer("total_latency_ms"),
+  },
+  (table) => [
+    index("assistant_generation_evaluations_created_at_idx").on(
+      table.createdAt.desc(),
+    ),
+    index("assistant_generation_evaluations_status_idx").on(table.status),
+    index("assistant_generation_evaluations_support_level_idx").on(
+      table.supportLevel,
     ),
   ],
 );

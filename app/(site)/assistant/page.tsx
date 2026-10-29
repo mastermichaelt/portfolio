@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AssistantExperience } from "@/components/assistant/AssistantExperience";
+import { resolveEvaluationObservabilityConfig } from "@/lib/assistant/evaluation/config";
 import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
@@ -14,11 +15,13 @@ export const metadata: Metadata = {
 };
 
 export default function AssistantPage() {
+  const evaluationDisclosure = resolveEvaluationObservabilityConfig();
+
   return (
     <main id="content">
       <section className="section hero hero-compact">
         <div className="container">
-          <AssistantExperience />
+          <AssistantExperience evaluationDisclosure={evaluationDisclosure} />
         </div>
       </section>
     </main>

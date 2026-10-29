@@ -115,6 +115,37 @@ export function outputTokenUtilization(completionTokens, maxOutputTokens) {
   return Math.round((completionTokens / maxOutputTokens) * 1000) / 1000;
 }
 
+/** Property names that must never appear on generation PostHog events. */
+export const GENERATION_TELEMETRY_FORBIDDEN_PROPERTY_KEYS = [
+  "question",
+  "normalized_question",
+  "user_question",
+  "answer_text",
+  "answer",
+  "evidence_packet",
+  "retrieval_text",
+  "prompt",
+  "system_prompt",
+  "user_prompt",
+  "citation_text",
+  "claim_text",
+];
+
+/**
+ * @param {Record<string, unknown>} properties
+ * @returns {string[]}
+ */
+export function findForbiddenGenerationTelemetryPropertyKeys(properties) {
+  /** @type {string[]} */
+  const found = [];
+  for (const key of Object.keys(properties)) {
+    if (GENERATION_TELEMETRY_FORBIDDEN_PROPERTY_KEYS.includes(key)) {
+      found.push(key);
+    }
+  }
+  return found;
+}
+
 /**
  * @returns {GenerationTelemetry}
  */
@@ -129,6 +160,10 @@ export function createNoOpGenerationTelemetry() {
  * @param {{
  *   executionContext?: GenerationExecutionContext,
  *   fetch?: typeof fetch,
+ *   onCapture?: (
+ *     event: string,
+ *     properties: Record<string, string | number | boolean>,
+ *   ) => void,
  * }} [options]
  * @returns {GenerationTelemetry}
  */
@@ -146,14 +181,16 @@ export function createGenerationTelemetry(options = {}) {
   return {
     capture(event, properties) {
       try {
+        const sanitized = sanitizeTelemetryProperties({
+          ...properties,
+          execution_context: executionContext,
+          analytics_environment: "assistant_generation_tooling",
+          telemetry_schema_version: 1,
+        });
+        options.onCapture?.(event, sanitized);
         queue.push({
           event,
-          properties: sanitizeTelemetryProperties({
-            ...properties,
-            execution_context: executionContext,
-            analytics_environment: "assistant_generation_tooling",
-            telemetry_schema_version: 1,
-          }),
+          properties: sanitized,
         });
       } catch {
         // Telemetry must never fail generation.

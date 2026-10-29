@@ -5,10 +5,12 @@ import {
   type HandleAssistantGenerateDeps,
   handleAssistantGeneratePost,
 } from "@/lib/assistant/api/handle-generate-post";
+import * as publicEnvelope from "@/lib/assistant/api/public-envelope";
 import {
   assertNoDisallowedPublicKeys,
   buildPublicUsageFromDiagnostics,
 } from "@/lib/assistant/api/public-envelope";
+import { persistGenerationEvaluationSafely } from "@/lib/assistant/evaluation/persist";
 
 const sampleResponse = {
   claims: [
@@ -26,6 +28,7 @@ const sampleResponse = {
 function createDeps(overrides: {
   runRagGeneration?: ReturnType<typeof vi.fn>;
   checkRateLimit?: ReturnType<typeof vi.fn>;
+  persistGenerationEvaluation?: ReturnType<typeof vi.fn>;
   pool?: { end: ReturnType<typeof vi.fn> };
 }): HandleAssistantGenerateDeps & {
   pool: { end: ReturnType<typeof vi.fn> };
@@ -57,6 +60,8 @@ function createDeps(overrides: {
     checkRateLimit:
       overrides.checkRateLimit ??
       vi.fn(async () => ({ allowed: true as const })),
+    persistGenerationEvaluation:
+      overrides.persistGenerationEvaluation ?? vi.fn(async () => {}),
     pool,
   } as unknown as HandleAssistantGenerateDeps & {
     pool: { end: ReturnType<typeof vi.fn> };
@@ -469,5 +474,252 @@ describe("assistant generation API handler", () => {
     const service =
       await import("@/scripts/assistant/generation/run-generation.mjs");
     expect(service.runRagGeneration).toBeTypeOf("function");
+  });
+
+  it("persists evaluation on successful generation", async () => {
+    const persistGenerationEvaluation = vi.fn(async () => {});
+    const deps = createDeps({ persistGenerationEvaluation });
+
+    await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Who is Michael?" }),
+      }),
+      deps,
+    );
+
+    expect(persistGenerationEvaluation).toHaveBeenCalledTimes(1);
+    expect(persistGenerationEvaluation).toHaveBeenCalledWith(
+      deps.pool,
+      expect.objectContaining({
+        status: "completed",
+        question: "Who is Michael?",
+      }),
+    );
+  });
+
+  it("does not persist evaluation when rate limited", async () => {
+    const persistGenerationEvaluation = vi.fn(async () => {});
+    const deps = createDeps({
+      checkRateLimit: vi.fn(async () => ({
+        allowed: false,
+        retryAfterSeconds: 30,
+        window: "minute",
+      })),
+      persistGenerationEvaluation,
+    });
+
+    await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Hi" }),
+      }),
+      deps,
+    );
+
+    expect(persistGenerationEvaluation).not.toHaveBeenCalled();
+  });
+
+  it("persists failed evaluation when generation throws", async () => {
+    const persistGenerationEvaluation = vi.fn(async () => null);
+    const deps = createDeps({
+      runRagGeneration: vi.fn(async () => {
+        throw new Error("boom");
+      }),
+      persistGenerationEvaluation,
+    });
+
+    await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Fail?" }),
+      }),
+      deps,
+    );
+
+    expect(persistGenerationEvaluation).toHaveBeenCalledTimes(1);
+    expect(persistGenerationEvaluation).toHaveBeenCalledWith(
+      deps.pool,
+      expect.objectContaining({
+        status: "failed",
+        question: "Fail?",
+      }),
+    );
+  });
+
+  it("persists one abstained evaluation row", async () => {
+    const persistGenerationEvaluation = vi.fn(async () => null);
+    const deps = createDeps({
+      runRagGeneration: vi.fn(async () => ({
+        response: {
+          claims: [
+            {
+              text: "I cannot answer that.",
+              attribution: "uncertain",
+            },
+          ],
+          support_level: "none" as const,
+          abstained: true,
+          abstention_reason: "unsupported_personal_claim",
+          answer_text: "I cannot answer that.",
+          citations: [],
+        },
+        packet: { entries: [], matched_hits: [] },
+        diagnostics: { evidence_entry_count: 0 },
+        flushTelemetry: vi.fn(async () => {}),
+      })),
+      persistGenerationEvaluation,
+    });
+
+    const response = await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Personal?" }),
+      }),
+      deps,
+    );
+
+    expect(response.status).toBe(200);
+    expect(persistGenerationEvaluation).toHaveBeenCalledTimes(1);
+    expect(persistGenerationEvaluation).toHaveBeenCalledWith(
+      deps.pool,
+      expect.objectContaining({ status: "abstained" }),
+    );
+  });
+
+  it("persists one failed row when public envelope validation fails", async () => {
+    const persistGenerationEvaluation = vi.fn(async () => null);
+    const envelopeSpy = vi
+      .spyOn(publicEnvelope, "assertNoDisallowedPublicKeys")
+      .mockReturnValue(["secret_field"]);
+
+    const deps = createDeps({ persistGenerationEvaluation });
+
+    const response = await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Who is Michael?" }),
+      }),
+      deps,
+    );
+
+    expect(response.status).toBe(500);
+    expect(persistGenerationEvaluation).toHaveBeenCalledTimes(1);
+    expect(persistGenerationEvaluation).toHaveBeenCalledWith(
+      deps.pool,
+      expect.objectContaining({
+        status: "failed",
+        failureCategory: "public_envelope_validation",
+      }),
+    );
+
+    envelopeSpy.mockRestore();
+  });
+
+  it("persists one failed row when public answer construction throws", async () => {
+    const persistGenerationEvaluation = vi.fn(async () => null);
+    const buildSpy = vi
+      .spyOn(publicEnvelope, "buildPublicAnswer")
+      .mockImplementation(() => {
+        throw new Error("public_answer_construction");
+      });
+
+    const deps = createDeps({ persistGenerationEvaluation });
+
+    const response = await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Who is Michael?" }),
+      }),
+      deps,
+    );
+
+    expect(response.status).toBe(500);
+    expect(persistGenerationEvaluation).toHaveBeenCalledTimes(1);
+    expect(persistGenerationEvaluation).toHaveBeenCalledWith(
+      deps.pool,
+      expect.objectContaining({
+        status: "failed",
+        evidenceUnitIds: [],
+      }),
+    );
+
+    buildSpy.mockRestore();
+  });
+
+  it("returns 200 when evaluation persistence fails (fail-open)", async () => {
+    const persistGenerationEvaluation = vi.fn(
+      (pool: import("pg").Pool, record: unknown) =>
+        persistGenerationEvaluationSafely(pool, record as never, {
+          insert: async () => {
+            throw new Error("db down");
+          },
+        }),
+    );
+    const deps = createDeps({ persistGenerationEvaluation });
+
+    const response = await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Who is Michael?" }),
+      }),
+      deps,
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  it("does not persist evaluation when question validation fails", async () => {
+    const persistGenerationEvaluation = vi.fn(async () => null);
+    const deps = createDeps({ persistGenerationEvaluation });
+
+    await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "" }),
+      }),
+      deps,
+    );
+
+    expect(persistGenerationEvaluation).not.toHaveBeenCalled();
+  });
+
+  it("classifies empty generation responses in failed evaluation rows", async () => {
+    const persistGenerationEvaluation = vi.fn(async () => null);
+    const deps = createDeps({
+      runRagGeneration: vi.fn(async () => ({
+        response: undefined,
+        packet: { entries: [{ unit_id: "u1", evidence_id: "E1" }] },
+        diagnostics: { evidence_entry_count: 1 },
+        flushTelemetry: vi.fn(async () => {}),
+      })),
+      persistGenerationEvaluation,
+    });
+
+    await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Empty?" }),
+      }),
+      deps,
+    );
+
+    expect(persistGenerationEvaluation).toHaveBeenCalledWith(
+      deps.pool,
+      expect.objectContaining({
+        status: "failed",
+        failureCategory: "generation_empty_response",
+        evidenceUnitIds: ["u1"],
+      }),
+    );
   });
 });

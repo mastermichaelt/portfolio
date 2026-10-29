@@ -14,6 +14,7 @@ import { classifyGenerationFailure } from "@/scripts/assistant/generation/classi
 import {
   createGenerationTelemetry,
   createNoOpGenerationTelemetry,
+  findForbiddenGenerationTelemetryPropertyKeys,
 } from "@/scripts/assistant/generation/generation-telemetry.mjs";
 import { runRagGeneration } from "@/scripts/assistant/generation/run-generation.mjs";
 import { validateAndNormalizeQuestion } from "@/scripts/assistant/generation/validate-query.mjs";
@@ -188,6 +189,12 @@ describe("OpenAI chat adapter", () => {
   });
 });
 
+function assertNoForbiddenTelemetryProperties(
+  properties: Record<string, string | number | boolean>,
+) {
+  expect(findForbiddenGenerationTelemetryPropertyKeys(properties)).toEqual([]);
+}
+
 describe("generation telemetry delivery", () => {
   it("warns when PostHog capture returns a non-OK HTTP status", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -207,6 +214,63 @@ describe("generation telemetry delivery", () => {
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("HTTP 500"));
 
     warnSpy.mockRestore();
+    vi.unstubAllEnvs();
+  });
+
+  it("createGenerationTelemetry capture uses sanitized properties without forbidden keys", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN", "phc_test_token");
+    vi.stubEnv("ASSISTANT_GENERATION_TELEMETRY", "true");
+
+    const captured: Array<{
+      event: string;
+      properties: Record<string, string | number | boolean>;
+    }> = [];
+
+    const telemetry = createGenerationTelemetry({
+      executionContext: "api",
+      fetch: vi.fn(async () => new Response("ok", { status: 200 })),
+      onCapture: (event, properties) => {
+        captured.push({ event, properties });
+      },
+    });
+
+    telemetry.capture("assistant_generation_completed", {
+      model: "gpt-4o-mini",
+      assembly_mode: "full_parent",
+      support_level: "full",
+      abstained: false,
+      claim_count: 1,
+      prompt_tokens: 100,
+      completion_tokens: 50,
+      total_tokens: 150,
+      max_output_tokens: 2048,
+      output_token_utilization: 0.024,
+      retrieval_latency_ms: 10,
+      assembly_latency_ms: 5,
+      generation_latency_ms: 400,
+      total_latency_ms: 900,
+      evidence_entry_count: 3,
+      evidence_character_count: 1200,
+    });
+
+    telemetry.capture("assistant_generation_failed", {
+      model: "gpt-4o-mini",
+      assembly_mode: "full_parent",
+      failure_category: "structural_validation",
+      total_latency_ms: 400,
+      generation_latency_ms: 200,
+      max_output_tokens: 2048,
+    });
+
+    await telemetry.flush();
+
+    expect(captured.length).toBeGreaterThanOrEqual(2);
+    for (const { properties } of captured) {
+      assertNoForbiddenTelemetryProperties(properties);
+      expect(properties.execution_context).toBe("api");
+      expect(properties.telemetry_schema_version).toBe(1);
+    }
+
     vi.unstubAllEnvs();
   });
 });
@@ -240,10 +304,14 @@ describe("generation failure classification", () => {
     ).toBe("prompt_budget_exceeded");
 
     expect(
-      classifyGenerationFailure(
-        new Error("OpenAI chat request timed out after 400ms"),
-      ).failure_category,
-    ).toBe("openai_timeout");
+      classifyGenerationFailure(new Error("OpenAI chat request failed"))
+        .failure_category,
+    ).toBe("openai_api_error");
+
+    expect(
+      classifyGenerationFailure(new Error("generation_empty_response"))
+        .failure_category,
+    ).toBe("generation_empty_response");
   });
 });
 
@@ -733,6 +801,10 @@ describe("runRagGeneration service", () => {
     expect(serialized).not.toContain(secretQuestion);
     expect(serialized).not.toContain("Alpha body");
     expect(serialized).not.toContain(TEST_OPENAI_API_KEY);
+
+    for (const { properties } of events) {
+      assertNoForbiddenTelemetryProperties(properties);
+    }
   });
 
   it("succeeds when telemetry flush fails", async () => {

@@ -18,8 +18,13 @@ import {
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantSuggestedQuestions } from "./AssistantSuggestedQuestions";
 import { AssistantTranscript } from "./AssistantTranscript";
+import type { EvaluationDisclosureConfig } from "@/lib/assistant/evaluation/disclosure-copy";
 
-export function AssistantExperience() {
+export function AssistantExperience({
+  evaluationDisclosure,
+}: {
+  evaluationDisclosure: EvaluationDisclosureConfig;
+}) {
   const [question, setQuestion] = useState("");
   const [turns, setTurns] = useState<TranscriptTurn[]>([]);
   const [focusTurnId, setFocusTurnId] = useState<string | null>(null);
@@ -164,6 +169,7 @@ export function AssistantExperience() {
       <AssistantComposer
         question={question}
         submitDisabled={inFlight}
+        evaluationDisclosure={evaluationDisclosure}
         onQuestionChange={setQuestion}
         onSubmit={() => void submitQuestion(question)}
       />
