@@ -7,11 +7,11 @@ import {
 import { resolveEvaluationObservabilityConfig } from "@/lib/assistant/evaluation/config";
 import { extractEvidenceRefs } from "@/lib/assistant/evaluation/extract-evidence-refs";
 import {
+  computeEvaluationRetentionCutoff,
   deleteExpiredGenerationEvaluations,
   insertGenerationEvaluation,
   persistGenerationEvaluationSafely,
 } from "@/lib/assistant/evaluation/persist";
-import * as reviewQueries from "@/lib/assistant/evaluation/review-queries";
 
 const minimalRecord = {
   completedAt: new Date(),
@@ -116,26 +116,6 @@ describe("assistant evaluation observability", () => {
     expect(refs.evidenceIds).toEqual(["E1", "E2"]);
   });
 
-  it("generation telemetry events omit raw question and answer fields", () => {
-    const completedEvent = {
-      model: "gpt-4o-mini",
-      support_level: "full",
-      abstained: false,
-      claim_count: 2,
-      prompt_tokens: 100,
-      total_latency_ms: 900,
-    };
-    const failedEvent = {
-      model: "gpt-4o-mini",
-      failure_category: "structural_validation",
-      total_latency_ms: 400,
-    };
-    for (const payload of [completedEvent, failedEvent]) {
-      expect(Object.keys(payload)).not.toContain("question");
-      expect(Object.keys(payload)).not.toContain("answer_text");
-    }
-  });
-
   it("defaults retention to 30 days", () => {
     const prev = process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
     delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
@@ -147,34 +127,44 @@ describe("assistant evaluation observability", () => {
     }
   });
 
-  it("persistGenerationEvaluationSafely does not throw when insert fails", async () => {
-    const spy = vi
-      .spyOn(
-        await import("@/lib/assistant/evaluation/persist"),
-        "insertGenerationEvaluation",
-      )
-      .mockRejectedValueOnce(new Error("db down"));
+  it("persistGenerationEvaluationSafely does not throw when insert throws", async () => {
+    const insert = vi.fn(async () => {
+      throw new Error("db down");
+    });
 
     await expect(
-      persistGenerationEvaluationSafely({} as import("pg").Pool, minimalRecord),
-    ).resolves.toBeUndefined();
-    spy.mockRestore();
+      persistGenerationEvaluationSafely(
+        {} as import("pg").Pool,
+        minimalRecord,
+        {
+          insert,
+        },
+      ),
+    ).resolves.toBeNull();
+    expect(insert).toHaveBeenCalledTimes(1);
   });
 
-  it("deleteExpiredGenerationEvaluations applies retention window", async () => {
-    const spy = vi
-      .spyOn(reviewQueries, "deleteEvaluationsOlderThan")
-      .mockResolvedValueOnce(2);
+  it("computeEvaluationRetentionCutoff matches retention window", () => {
     const now = new Date("2026-10-29T00:00:00.000Z");
-    const count = await deleteExpiredGenerationEvaluations(
-      {} as import("pg").Pool,
-      30,
-      now,
-    );
-    expect(count).toBe(2);
-    const cutoff = spy.mock.calls[0]?.[1] as Date;
+    const cutoff = computeEvaluationRetentionCutoff(now, 30);
     expect(cutoff.getTime()).toBe(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    spy.mockRestore();
+  });
+
+  it("deleteExpiredGenerationEvaluations delegates cutoff to deleteOlderThan", async () => {
+    const now = new Date("2026-10-29T00:00:00.000Z");
+    const deleteOlderThan = vi.fn(async () => 2);
+    const pool = {} as import("pg").Pool;
+
+    const count = await deleteExpiredGenerationEvaluations(pool, 30, now, {
+      deleteOlderThan,
+    });
+
+    expect(count).toBe(2);
+    expect(deleteOlderThan).toHaveBeenCalledTimes(1);
+    expect(deleteOlderThan).toHaveBeenCalledWith(
+      pool,
+      computeEvaluationRetentionCutoff(now, 30),
+    );
   });
 
   it("skips insert when evaluation disabled", async () => {

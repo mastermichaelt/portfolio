@@ -7,6 +7,23 @@ import type { GenerationEvaluationInsert } from "./build-record";
 import { resolveEvaluationObservabilityConfig } from "./config";
 import { deleteEvaluationsOlderThan } from "./review-queries";
 
+export type GenerationEvaluationInserter = (
+  pool: Pool,
+  record: GenerationEvaluationInsert,
+) => Promise<string | null>;
+
+export type DeleteEvaluationsOlderThan = (
+  pool: Pool,
+  cutoff: Date,
+) => Promise<number>;
+
+export function computeEvaluationRetentionCutoff(
+  now: Date,
+  retentionDays: number,
+): Date {
+  return new Date(now.getTime() - retentionDays * 24 * 60 * 60 * 1000);
+}
+
 export function warnEvaluationPersistenceFailure(message: string): void {
   console.warn(`[assistant-evaluation] ${message}`);
 }
@@ -60,17 +77,21 @@ export async function insertGenerationEvaluation(
 
 /**
  * Fail-open wrapper for API handlers — never throws.
+ * Returns the persisted row id when insert succeeds (for tests and future feedback wiring).
  */
 export async function persistGenerationEvaluationSafely(
   pool: Pool,
   record: GenerationEvaluationInsert,
-): Promise<void> {
+  deps: { insert?: GenerationEvaluationInserter } = {},
+): Promise<string | null> {
+  const insert = deps.insert ?? insertGenerationEvaluation;
   try {
-    await insertGenerationEvaluation(pool, record);
+    return await insert(pool, record);
   } catch {
     warnEvaluationPersistenceFailure(
       "Unexpected error during evaluation persistence.",
     );
+    return null;
   }
 }
 
@@ -78,7 +99,9 @@ export async function deleteExpiredGenerationEvaluations(
   pool: Pool,
   retentionDays: number,
   now: Date = new Date(),
+  deps: { deleteOlderThan?: DeleteEvaluationsOlderThan } = {},
 ): Promise<number> {
-  const cutoff = new Date(now.getTime() - retentionDays * 24 * 60 * 60 * 1000);
-  return deleteEvaluationsOlderThan(pool, cutoff);
+  const cutoff = computeEvaluationRetentionCutoff(now, retentionDays);
+  const deleteOlderThan = deps.deleteOlderThan ?? deleteEvaluationsOlderThan;
+  return deleteOlderThan(pool, cutoff);
 }

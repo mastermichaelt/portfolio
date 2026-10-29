@@ -20,7 +20,7 @@ POST /api/assistant/generate
 ```
 
 - **Single terminal insert** after generation completes or fails (no pending rows).
-- **UUID `id`** is the future anchor for visitor feedback on a specific answer (not implemented in this slice).
+- **UUID `id`** is generated in Postgres for each row; reserved for a future visitor-feedback slice (see [Future feedback](#future-feedback-explicit-integration-task)). The public API does **not** return this id yet.
 - Writes use the same `DATABASE_URL` pool as retrieval and rate limits; they do not alter the model response or public envelope.
 
 ## Schema
@@ -44,7 +44,7 @@ No evidence packet bodies, prompts, IP addresses, or client identifiers.
 ## Privacy and retention
 
 - Composer disclosure: questions and answers may be stored up to 30 days to improve the assistant (see `AssistantComposer`).
-- **PostHog:** generation events remain aggregate-only; do not add question or answer text to telemetry properties.
+- **PostHog:** generation events remain aggregate-only; do not add question or answer text to telemetry properties. Contract enforced in `generation-telemetry.mjs` (`findForbiddenGenerationTelemetryPropertyKeys`) and tested via `createGenerationTelemetry` + `runRagGeneration` in `tests/assistant-generation-service.test.ts`.
 - **Retention default:** 30 days (`ASSISTANT_EVALUATION_RETENTION_DAYS`).
 - **Cleanup:** `npm run assistant:evaluation:cleanup` deletes rows with `created_at` older than the retention window. **Not automatic** — schedule operator cron or Vercel Cron in production; setting the env var alone does not delete data.
 - **Disable:** `ASSISTANT_EVALUATION_ENABLED=false` or unset `DATABASE_URL`.
@@ -71,9 +71,21 @@ No public HTTP route exposes these rows.
 3. Schedule `npm run assistant:evaluation:cleanup` (daily recommended).
 4. Confirm production `DATABASE_URL` on the generate route.
 
-## Future feedback
+## Future feedback (explicit integration task)
 
-Associate visitor ratings with `assistant_generation_evaluations.id` via a future authenticated or signed feedback endpoint. This slice only reserves stable row identity.
+**Current behavior (this slice):**
+
+- Postgres assigns `assistant_generation_evaluations.id` (UUID) on insert.
+- `persistGenerationEvaluationSafely()` returns that id internally but **does not** expose it on the public `POST /api/assistant/generate` JSON envelope — by design for this slice.
+- The browser has no stable handle to attach thumbs-up/down to a specific answer yet.
+
+**Follow-up slice (not implemented here):**
+
+1. Decide a client-visible correlation mechanism (e.g. allowlisted `evaluation_id` on success responses, or a signed opaque token).
+2. Add a feedback endpoint that accepts rating + that id, validates the row exists and is within retention, and stores feedback in a separate table keyed by `assistant_generation_evaluations.id`.
+3. Keep fail-open generation if feedback persistence fails; do not block the answer.
+
+Until that slice ships, operator review uses CLI/SQL only; visitors see the composer retention disclosure but cannot submit structured feedback.
 
 ## Related docs
 

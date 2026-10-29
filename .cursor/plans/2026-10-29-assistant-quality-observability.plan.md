@@ -103,3 +103,8 @@ Deliverables: verify slice todos, add # Shipped note, move plan to .cursor/plans
 
 Verification: confirm quality-observability merged before archiving; plan-validator passes.
 ```
+
+## Explicit follow-ups (outside this PR)
+
+- **Claude Design:** polish composer retention disclosure layout/copy.
+- **Visitor feedback integration:** document in [evaluation-observability.md](../docs/assistant/evaluation-observability.md#future-feedback-explicit-integration-task) — return a client correlation id on generate responses and add a feedback endpoint keyed by `assistant_generation_evaluations.id`. Public API envelope unchanged in this slice.
