@@ -29,7 +29,7 @@ Sections use the same labels as [architecture-direction.md](./architecture-direc
 
 ## Implemented retrieval boundary (today)
 
-**Current implementation.** Visitor-facing RAG does not exist. The production Next.js app has no `app/api/` assistant routes and no chat UI.
+**Current implementation.** Visitor-facing RAG does not exist. The production Next.js app has no `app/api/` assistant routes and no chat UI. **Production retrieval index updates** remain operator-controlled `assistant:ingest` — automated corpus synchronization is a **deferred** direction in [architecture-direction.md](./architecture-direction.md#future-direction--corpus-synchronization), outside this generation milestone.
 
 **Current implementation (assistant dev tooling).** The bounded-corpus retrieval pipeline is shipped as CLIs outside the app bundle:
 
