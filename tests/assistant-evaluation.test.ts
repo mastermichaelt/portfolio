@@ -7,6 +7,8 @@ import {
 import {
   parseEvaluationCleanupRetentionDays,
   resolveEvaluationCleanupRetentionDays,
+  resolveEvaluationCleanupRetentionDaysForRun,
+  resolveEvaluationCleanupRetentionDaysFromArgv,
   resolveEvaluationObservabilityConfig,
 } from "@/lib/assistant/evaluation/config";
 import { extractEvidenceRefs } from "@/lib/assistant/evaluation/extract-evidence-refs";
@@ -137,6 +139,35 @@ describe("assistant evaluation observability", () => {
     expect(parseEvaluationCleanupRetentionDays("")).toBeNull();
     expect(parseEvaluationCleanupRetentionDays("14.9")).toBe(14);
     expect(parseEvaluationCleanupRetentionDays("0")).toBeNull();
+    expect(parseEvaluationCleanupRetentionDays("0.5")).toBeNull();
+  });
+
+  it("rejects invalid explicit --days without env fallback", () => {
+    const prev = process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
+    process.env.ASSISTANT_EVALUATION_RETENTION_DAYS = "30";
+    expect(
+      resolveEvaluationCleanupRetentionDaysFromArgv(["--days", "0"]),
+    ).toEqual({
+      source: "invalid",
+      message:
+        'Evaluation cleanup: invalid --days value "0" (use a positive integer).',
+    });
+    const resolved = resolveEvaluationCleanupRetentionDaysForRun([
+      "--days",
+      "0",
+    ]);
+    expect(resolved).toEqual({
+      error:
+        'Evaluation cleanup: invalid --days value "0" (use a positive integer).',
+    });
+    expect(
+      resolveEvaluationCleanupRetentionDaysForRun(["--days", "14"]),
+    ).toEqual({ days: 14 });
+    if (prev === undefined) {
+      delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
+    } else {
+      process.env.ASSISTANT_EVALUATION_RETENTION_DAYS = prev;
+    }
   });
 
   it("persistGenerationEvaluationSafely does not throw when insert throws", async () => {
