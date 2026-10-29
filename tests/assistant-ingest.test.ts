@@ -4,10 +4,8 @@ import path from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import {
-  createAssistantDb,
-  createPool,
-} from "@/scripts/assistant/db/client.mjs";
+import { createAssistantDb } from "@/db/client";
+import { createPool } from "@/scripts/assistant/db/client.mjs";
 import type { AssistantDb } from "@/db/client";
 import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
 import { prepareAssistantIntegrationTestDatabase } from "@/scripts/assistant/db/prepare-integration-test-database.mjs";

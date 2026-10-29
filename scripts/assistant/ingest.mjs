@@ -4,7 +4,8 @@ import { execSync } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { createAssistantDb, createPool, getDatabaseUrl } from "./db/client.mjs";
+import { createAssistantDb } from "./db/app-client.mjs";
+import { createPool, getDatabaseUrl } from "./db/client.mjs";
 import { embedTexts } from "./embeddings/openai-embeddings.mjs";
 import { readOkfBundleSha256 } from "./ingest/manifest.mjs";
 import { runIngestSync } from "./ingest/sync.mjs";

@@ -3,8 +3,8 @@ import path from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { createAssistantDb } from "@/db/client";
 import {
-  createAssistantDb,
   createPool,
   resolveAssistantDatabaseUrl,
 } from "@/scripts/assistant/db/client.mjs";

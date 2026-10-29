@@ -7,10 +7,8 @@ import {
   expireRateLimitCountersBestEffort,
 } from "@/lib/assistant/api/rate-limit";
 import type { AssistantApiConfig } from "@/lib/assistant/api/config";
-import {
-  createAssistantDb,
-  createPool,
-} from "@/scripts/assistant/db/client.mjs";
+import { createAssistantDb } from "@/db/client";
+import { createPool } from "@/scripts/assistant/db/client.mjs";
 import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
 import { prepareAssistantIntegrationTestDatabase } from "@/scripts/assistant/db/prepare-integration-test-database.mjs";
 
@@ -265,9 +263,11 @@ describe("assistant API rate limit (integration)", () => {
           queryText: unknown,
           values?: unknown,
         ) => {
+          const normalizedQuery =
+            typeof queryText === "string" ? queryText.toLowerCase() : "";
           if (
-            typeof queryText === "string" &&
-            queryText.includes("DELETE FROM assistant_api_rate_limit_counters")
+            normalizedQuery.includes("delete from") &&
+            normalizedQuery.includes("assistant_api_rate_limit_counters")
           ) {
             throw new Error("simulated cleanup failure");
           }

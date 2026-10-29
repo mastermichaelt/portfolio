@@ -3,7 +3,8 @@
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { createAssistantDb, createPool, getDatabaseUrl } from "./db/client.mjs";
+import { createAssistantDb } from "./db/app-client.mjs";
+import { createPool, getDatabaseUrl } from "./db/client.mjs";
 import { embedTexts } from "./embeddings/openai-embeddings.mjs";
 import {
   PGVECTOR_COSINE_DISTANCE_OPERATOR,

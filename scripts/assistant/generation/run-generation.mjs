@@ -1,8 +1,5 @@
-import {
-  createAssistantDb,
-  createPool,
-  getDatabaseUrl,
-} from "../db/client.mjs";
+import { createAssistantDb } from "../db/app-client.mjs";
+import { createPool, getDatabaseUrl } from "../db/client.mjs";
 import { embedTexts } from "../embeddings/openai-embeddings.mjs";
 import { searchRetrievalUnits } from "../retrieve/search.mjs";
 import { classifyGenerationFailure } from "./classify-generation-failure.mjs";

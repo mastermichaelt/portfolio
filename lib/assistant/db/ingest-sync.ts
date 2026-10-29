@@ -263,6 +263,8 @@ export async function runIngestSync(
   };
 
   const result = await db.transaction(async (tx) => {
+    const provenanceLog: string[] = [];
+
     for (const unit of plan.toEmbed) {
       const vector = vectorsByUnitId.get(unit.unit_id);
       if (!vector) {
@@ -281,7 +283,7 @@ export async function runIngestSync(
       } else {
         counts.updated += 1;
       }
-      log(formatProvenanceLine(unit, embeddingModel));
+      provenanceLog.push(formatProvenanceLine(unit, embeddingModel));
     }
 
     for (const unit of units) {
@@ -289,7 +291,9 @@ export async function runIngestSync(
         continue;
       }
       if (existing.has(unit.unit_id)) {
-        log(`skip unchanged ${formatProvenanceLine(unit, embeddingModel)}`);
+        provenanceLog.push(
+          `skip unchanged ${formatProvenanceLine(unit, embeddingModel)}`,
+        );
       }
     }
 
@@ -310,12 +314,22 @@ export async function runIngestSync(
       okfBundleSha256: options.okfBundleSha256,
       embeddingModel,
       counts,
+      provenanceLog,
     };
   });
+
+  for (const line of result.provenanceLog) {
+    log(line);
+  }
 
   log(
     `Ingest complete: inserted=${result.counts.inserted} updated=${result.counts.updated} deleted=${result.counts.deleted} skipped=${result.counts.skipped} run_id=${result.runId}`,
   );
 
-  return result;
+  return {
+    runId: result.runId,
+    okfBundleSha256: result.okfBundleSha256,
+    embeddingModel: result.embeddingModel,
+    counts: result.counts,
+  };
 }

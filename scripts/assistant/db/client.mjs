@@ -1,9 +1,12 @@
+import pg from "pg";
+
 import { loadEnvFiles } from "./load-env.mjs";
 
-import {
-  createAssistantDb as createAssistantDbFromDb,
-  createPool as createPoolFromDb,
-} from "@/db/client.ts";
+/**
+ * Plain-Node pool + env helpers for operational DB tooling (migrate, verify, baseline)
+ * and shared Postgres connectivity. Typed Drizzle access lives in `@/db/client.ts` —
+ * import via `app-client.mjs` from application scripts run with strip-types + tsconfig paths.
+ */
 
 /**
  * Load env files and return a trimmed DATABASE_URL when configured.
@@ -32,12 +35,5 @@ export function getDatabaseUrl() {
  * @returns {import("pg").Pool}
  */
 export function createPool(databaseUrl = getDatabaseUrl()) {
-  return createPoolFromDb(databaseUrl);
-}
-
-/**
- * @param {import("pg").Pool} pool
- */
-export function createAssistantDb(pool) {
-  return createAssistantDbFromDb(pool);
+  return new pg.Pool({ connectionString: databaseUrl });
 }
