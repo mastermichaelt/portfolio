@@ -73,6 +73,7 @@ describe("legacy baseline eligibility (unit)", () => {
       "assistant_retrieval_units",
       "assistant_ingestion_runs",
       "assistant_api_rate_limit_counters",
+      "assistant_generation_evaluations",
       "schema_migrations",
     ]);
     const legacyFiles = new Set([LEGACY_ASSISTANT_MIGRATION_FILES[0]!]);
