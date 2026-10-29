@@ -163,7 +163,7 @@ export function AssistantExperience() {
 
       <AssistantComposer
         question={question}
-        disabled={inFlight}
+        submitDisabled={inFlight}
         onQuestionChange={setQuestion}
         onSubmit={() => void submitQuestion(question)}
       />

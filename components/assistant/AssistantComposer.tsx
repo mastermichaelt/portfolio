@@ -9,12 +9,13 @@ const SUBJECT_HINT =
 
 export function AssistantComposer({
   question,
-  disabled,
+  submitDisabled,
   onQuestionChange,
   onSubmit,
 }: {
   question: string;
-  disabled: boolean;
+  /** Blocks Send / Enter submit while a generation request is in flight. */
+  submitDisabled: boolean;
   onQuestionChange: (value: string) => void;
   onSubmit: () => void;
 }) {
@@ -28,6 +29,9 @@ export function AssistantComposer({
         className="assistant-form assistant-composer"
         onSubmit={(event) => {
           event.preventDefault();
+          if (submitDisabled || question.trim().length === 0) {
+            return;
+          }
           onSubmit();
         }}
       >
@@ -45,7 +49,6 @@ export function AssistantComposer({
           className="assistant-input"
           rows={3}
           value={question}
-          disabled={disabled}
           aria-describedby={`${hintId} ${statelessId}`}
           onChange={(event) => onQuestionChange(event.target.value)}
           onKeyDown={(event) => {
@@ -57,7 +60,7 @@ export function AssistantComposer({
               return;
             }
             event.preventDefault();
-            if (disabled || question.trim().length === 0) {
+            if (submitDisabled || question.trim().length === 0) {
               return;
             }
             onSubmit();
@@ -68,9 +71,9 @@ export function AssistantComposer({
           <button
             type="submit"
             className="btn btn-primary assistant-submit"
-            disabled={disabled || question.trim().length === 0}
+            disabled={submitDisabled || question.trim().length === 0}
           >
-            {disabled ? "Thinking…" : "Send"}
+            {submitDisabled ? "Thinking…" : "Send"}
           </button>
         </div>
       </form>

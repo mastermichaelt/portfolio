@@ -119,10 +119,7 @@ export function AssistantMessageBody({
             numbering.keyToNumber,
           );
           return (
-            <p
-              key={`${index}-${claim.text.slice(0, 24)}`}
-              className="assistant-message-paragraph"
-            >
+            <p key={index} className="assistant-message-paragraph">
               <SafeClaimText text={claim.text} />
               {numbers.map((number) => {
                 const citation = numbering.ordered.find(
@@ -152,7 +149,7 @@ export function AssistantMessageBody({
             <div className="assistant-sources-claims">
               {claims.map((claim, index) => (
                 <AssistantClaimBlock
-                  key={`detail-${index}-${claim.text.slice(0, 24)}`}
+                  key={index}
                   claim={claim}
                   presentation="inspectable"
                 />
