@@ -61,3 +61,19 @@ export function buildGenerationMessages(question, packet) {
     user: `Question:\n${trimmedQuestion}\n\nEvidence packet:\n${formatEvidencePacketForPrompt(packet)}`,
   };
 }
+
+/**
+ * @param {string} baseUserMessage
+ * @param {string[]} validationErrors
+ * @returns {string}
+ */
+export function buildGenerationRetryUserMessage(
+  baseUserMessage,
+  validationErrors,
+) {
+  const trimmed = validationErrors
+    .slice(0, 12)
+    .map((error) => `- ${error}`)
+    .join("\n");
+  return `${baseUserMessage}\n\nYour previous JSON response failed validation. Return one corrected JSON object only (no markdown fences). Fix these issues:\n${trimmed || "- See schema requirements in the system instructions."}`;
+}

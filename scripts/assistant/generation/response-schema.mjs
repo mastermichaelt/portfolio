@@ -67,6 +67,15 @@ export const ABSTENTION_REASONS = /** @type {const} */ ([
  * @property {number} [evidence_character_budget]
  * @property {Record<string, number>} [attribution_counts]
  * @property {string} [error_category]
+ * @property {boolean} [recovery_deterministic_repair_applied]
+ * @property {boolean} [recovery_model_retry_attempted]
+ * @property {boolean} [recovery_model_retry_succeeded]
+ * @property {boolean} [recovery_graceful_degradation_applied]
+ * @property {string} [recovery_validation_stage]
+ * @property {number} [recovery_validation_issue_count]
+ * @property {string} [recovery_validation_issue_codes]
+ * @property {number} [recovery_claims_removed_count]
+ * @property {number} [recovery_citations_normalized_count]
  */
 
 /**

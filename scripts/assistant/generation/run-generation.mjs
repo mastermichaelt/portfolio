@@ -16,15 +16,93 @@ import {
   outputTokenUtilization,
 } from "./generation-telemetry.mjs";
 import { requestChatCompletionJson } from "./openai-chat.mjs";
-import { buildGenerationMessages } from "./prompt-templates.mjs";
+import {
+  buildGenerationMessages,
+  buildGenerationRetryUserMessage,
+} from "./prompt-templates.mjs";
+import {
+  logGenerationRecoveryDiagnostics,
+  resolveValidatedModelResponse,
+} from "./recover-generation-response.mjs";
 import { repairAssistantModelGenerationJson } from "./repair-model-response.mjs";
 import {
   buildPublicGenerationResponse,
   countAttributions,
-  parseAssistantModelGenerationResponse,
 } from "./response-schema.mjs";
 import { validateAndNormalizeQuestion } from "./validate-query.mjs";
-import { validateGenerationResponse } from "./validate-response.mjs";
+
+/**
+ * @param {import("./response-schema.mjs").AssistantGenerationDiagnostics} diagnostics
+ * @param {import("./recover-generation-response.mjs").RecoveryDiagnostics} recovery
+ */
+function applyRecoveryDiagnostics(diagnostics, recovery) {
+  if (recovery.deterministic_repair_applied) {
+    diagnostics.recovery_deterministic_repair_applied = true;
+  }
+  if (recovery.model_retry_attempted) {
+    diagnostics.recovery_model_retry_attempted = true;
+  }
+  if (recovery.model_retry_succeeded) {
+    diagnostics.recovery_model_retry_succeeded = true;
+  }
+  if (recovery.graceful_degradation_applied) {
+    diagnostics.recovery_graceful_degradation_applied = true;
+  }
+  if (recovery.validation_stage) {
+    diagnostics.recovery_validation_stage = recovery.validation_stage;
+  }
+  if (typeof recovery.validation_issue_count === "number") {
+    diagnostics.recovery_validation_issue_count =
+      recovery.validation_issue_count;
+  }
+  if (recovery.validation_issue_codes) {
+    diagnostics.recovery_validation_issue_codes =
+      recovery.validation_issue_codes;
+  }
+  if (typeof recovery.claims_removed_count === "number") {
+    diagnostics.recovery_claims_removed_count = recovery.claims_removed_count;
+  }
+  if (typeof recovery.citations_normalized_count === "number") {
+    diagnostics.recovery_citations_normalized_count =
+      recovery.citations_normalized_count;
+  }
+}
+
+/**
+ * @param {{
+ *   content: string,
+ *   packet: import("./evidence-packet.mjs").EvidencePacket,
+ *   recovery?: import("./recover-generation-response.mjs").RecoveryDiagnostics,
+ * }} input
+ */
+function parseRepairAndResolveModelResponse(input) {
+  let modelJson;
+  try {
+    modelJson = JSON.parse(input.content);
+  } catch {
+    /** @type {import("./recover-generation-response.mjs").RecoveryDiagnostics} */
+    const meta = {
+      deterministic_repair_applied:
+        input.recovery?.deterministic_repair_applied ?? false,
+      model_retry_attempted: input.recovery?.model_retry_attempted ?? false,
+      model_retry_succeeded: input.recovery?.model_retry_succeeded ?? false,
+      graceful_degradation_applied:
+        input.recovery?.graceful_degradation_applied ?? false,
+      validation_stage: "schema_parse",
+      validation_issue_count: 1,
+      validation_issue_codes: "schema",
+    };
+    return {
+      ok: false,
+      stage: "schema_parse",
+      errors: ["Model response is not valid JSON"],
+      recovery: meta,
+    };
+  }
+
+  modelJson = repairAssistantModelGenerationJson(modelJson);
+  return resolveValidatedModelResponse(modelJson, input.packet, input.recovery);
+}
 
 /** @typedef {import("./evidence-packet.mjs").AssemblyMode} AssemblyMode */
 /** @typedef {import("./evidence-packet.mjs").EvidencePacket} EvidencePacket */
@@ -289,16 +367,106 @@ export async function runRagGeneration(options) {
     }
 
     generationStarted = performance.now();
-    const completion = await requestChatCompletionJson({
-      system: messages.system,
-      user: messages.user,
-      model: config.model,
-      maxOutputTokens: config.maxOutputTokens,
-      requestTimeoutMs: config.requestTimeoutMs,
-      maxModelResponseJsonChars: config.maxModelResponseJsonChars,
-      fetch: options.fetch,
-      apiKey: options.apiKey,
+    /** @type {import("./recover-generation-response.mjs").RecoveryDiagnostics} */
+    let recoveryMeta = {
+      deterministic_repair_applied: false,
+      model_retry_attempted: false,
+      model_retry_succeeded: false,
+      graceful_degradation_applied: false,
+    };
+
+    const runCompletionPass = async (userMessage) => {
+      return requestChatCompletionJson({
+        system: messages.system,
+        user: userMessage,
+        model: config.model,
+        maxOutputTokens: config.maxOutputTokens,
+        requestTimeoutMs: config.requestTimeoutMs,
+        maxModelResponseJsonChars: config.maxModelResponseJsonChars,
+        fetch: options.fetch,
+        apiKey: options.apiKey,
+      });
+    };
+
+    let completion = await runCompletionPass(messages.user);
+    let resolved = parseRepairAndResolveModelResponse({
+      content: completion.content,
+      packet,
+      recovery: recoveryMeta,
     });
+
+    if (!resolved.ok) {
+      recoveryMeta.model_retry_attempted = true;
+      const retryUser = buildGenerationRetryUserMessage(
+        messages.user,
+        resolved.errors,
+      );
+      try {
+        const retryCompletion = await runCompletionPass(retryUser);
+        const retryResolved = parseRepairAndResolveModelResponse({
+          content: retryCompletion.content,
+          packet,
+          recovery: {
+            ...recoveryMeta,
+            model_retry_attempted: true,
+          },
+        });
+        if (retryResolved.ok) {
+          recoveryMeta = {
+            ...retryResolved.recovery,
+            model_retry_attempted: true,
+            model_retry_succeeded: true,
+          };
+          resolved = retryResolved;
+          completion = retryCompletion;
+        } else {
+          recoveryMeta = retryResolved.recovery;
+          logGenerationRecoveryDiagnostics(recoveryMeta, retryResolved.errors);
+        }
+      } catch (retryError) {
+        logGenerationRecoveryDiagnostics(recoveryMeta, resolved.errors);
+        throw retryError;
+      }
+    }
+
+    if (!resolved.ok) {
+      logGenerationRecoveryDiagnostics(recoveryMeta, resolved.errors);
+      if (
+        resolved.errors.some((error) =>
+          error.includes("Model response is not valid JSON"),
+        )
+      ) {
+        throw new GenerationParseError("Model response is not valid JSON");
+      }
+      throw new GenerationValidationError(
+        "Model response failed validation after recovery",
+        resolved.errors,
+      );
+    }
+
+    recoveryMeta = {
+      ...resolved.recovery,
+      model_retry_attempted:
+        recoveryMeta.model_retry_attempted ||
+        resolved.recovery.model_retry_attempted,
+      model_retry_succeeded:
+        recoveryMeta.model_retry_succeeded ||
+        resolved.recovery.model_retry_succeeded,
+      deterministic_repair_applied:
+        recoveryMeta.deterministic_repair_applied ||
+        resolved.recovery.deterministic_repair_applied,
+      graceful_degradation_applied:
+        recoveryMeta.graceful_degradation_applied ||
+        resolved.recovery.graceful_degradation_applied,
+    };
+    applyRecoveryDiagnostics(diagnostics, recoveryMeta);
+    if (
+      recoveryMeta.deterministic_repair_applied ||
+      recoveryMeta.graceful_degradation_applied ||
+      recoveryMeta.model_retry_attempted
+    ) {
+      logGenerationRecoveryDiagnostics(recoveryMeta);
+    }
 
     generationLatencyMs = Math.round(performance.now() - generationStarted);
     diagnostics.generation_latency_ms = generationLatencyMs;
@@ -307,32 +475,7 @@ export async function runRagGeneration(options) {
     diagnostics.completion_tokens = completion.usage.completion_tokens;
     diagnostics.total_tokens = completion.usage.total_tokens;
 
-    let modelJson;
-    try {
-      modelJson = JSON.parse(completion.content);
-    } catch {
-      throw new GenerationParseError("Model response is not valid JSON");
-    }
-
-    modelJson = repairAssistantModelGenerationJson(modelJson);
-
-    const parsedModel = parseAssistantModelGenerationResponse(modelJson);
-    if (!parsedModel.ok) {
-      throw new GenerationValidationError(
-        "Model response failed structural parse",
-        parsedModel.errors,
-      );
-    }
-
-    const validation = validateGenerationResponse(parsedModel.value, packet);
-    if (!validation.valid) {
-      throw new GenerationValidationError(
-        "Model response failed validation",
-        validation.errors,
-      );
-    }
-
-    const response = buildPublicGenerationResponse(parsedModel.value);
+    const response = buildPublicGenerationResponse(resolved.model);
     diagnostics.attribution_counts = countAttributions(response.claims);
     diagnostics.total_latency_ms = Math.round(performance.now() - runStarted);
 
@@ -359,6 +502,19 @@ export async function runRagGeneration(options) {
       total_latency_ms: diagnostics.total_latency_ms,
       evidence_entry_count: diagnostics.evidence_entry_count,
       evidence_character_count: diagnostics.evidence_character_count,
+      recovery_deterministic_repair_applied:
+        diagnostics.recovery_deterministic_repair_applied === true,
+      recovery_model_retry_attempted:
+        diagnostics.recovery_model_retry_attempted === true,
+      recovery_model_retry_succeeded:
+        diagnostics.recovery_model_retry_succeeded === true,
+      recovery_graceful_degradation_applied:
+        diagnostics.recovery_graceful_degradation_applied === true,
+      recovery_validation_stage: diagnostics.recovery_validation_stage,
+      recovery_validation_issue_count:
+        diagnostics.recovery_validation_issue_count,
+      recovery_validation_issue_codes:
+        diagnostics.recovery_validation_issue_codes,
     });
 
     return { response, packet, diagnostics, flushTelemetry };
