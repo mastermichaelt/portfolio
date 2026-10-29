@@ -1,14 +1,29 @@
 ---
-title: Production Neon cutover runbook
-status: operator
-updated: 2026-10-28
+title: Production Neon cutover (2026)
+status: archived
+updated: 2026-10-29
 related:
   - docs/assistant/assistant-database.md
   - drizzle/0000_assistant_initial.sql
   - db/schema.ts
 ---
 
-# Production Neon cutover runbook
+# Production Neon cutover (archived)
+
+> **Shipped 2026-10-29.** This document is a **historical record** of a one-time operator migration. It is **not** the ongoing schema workflow — use Drizzle migrations (`npm run assistant:db:migrate`) and `npm run assistant:db:verify` per [assistant-database.md](../assistant/assistant-database.md).
+
+|                 |                                                                              |
+| --------------- | ---------------------------------------------------------------------------- |
+| **Completed**   | 2026-10-29                                                                   |
+| **Source**      | Local Docker PostgreSQL (`portfolio_assistant`, 262 retrieval units)         |
+| **Destination** | Neon PostgreSQL, project `portfolio-assistant`, Drizzle-managed schema       |
+| **Result**      | 262 retrieval units migrated successfully                                    |
+| **Integrity**   | Vector and full-row MD5 digests matched using `ORDER BY unit_id COLLATE "C"` |
+| **Outcome**     | No embedding regeneration required                                           |
+
+---
+
+# Production Neon cutover runbook (original)
 
 One-time **initialization and corpus transfer** for the **portfolio-assistant** Neon project.
 
@@ -16,7 +31,7 @@ One-time **initialization and corpus transfer** for the **portfolio-assistant** 
 
 **Strategy:** Replace the Neon **`portfolio_assistant`** database with a **fresh empty** database, initialize schema with **`npm run assistant:db:migrate`** (Drizzle only — no legacy reconciliation, no baseline adoption), then **data-only import** of retrieval units from Docker.
 
-This runbook does **not** replace [assistant-database.md](./assistant-database.md) Strategy A. It intentionally **discards** incomplete legacy state on Neon rather than repairing `schema_migrations` or running `assistant:db:baseline`.
+This runbook does **not** replace [assistant-database.md](../assistant/assistant-database.md) Strategy A. It intentionally **discards** incomplete legacy state on Neon rather than repairing `schema_migrations` or running `assistant:db:baseline`.
 
 **Agents must not run production steps without explicit operator approval.**
 
@@ -506,8 +521,8 @@ npm run assistant:retrieve -- "experimentation infrastructure" --top-k 3
 
 ---
 
-## After cutover
+## After cutover (historical — completed 2026-10-29)
 
-- Resume **`drizzle-queries`** on `main` using local / `*_test` databases.
-- Schedule operational acceptance after phase 6 passes.
-- First Neon **`npm run assistant:ingest`** (operator-approved direct URL) will populate `assistant_ingestion_runs` when you choose to sync OKF on hosted index.
+- Cutover phases 1–6 completed; hosted index holds **262** units with verified retrieval eval and CLI smoke against Neon.
+- Ongoing schema changes: **`npm run assistant:db:migrate`** + **`npm run assistant:db:verify`** only — not database recreation.
+- First Neon **`npm run assistant:ingest`** (operator-approved direct URL) will populate `assistant_ingestion_runs` when you choose to sync OKF on the hosted index.
