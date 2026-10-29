@@ -13,13 +13,14 @@ POST /api/assistant/generate
   → validate question (no row if rejected)
   → rate limit (no row if limited)
   → runRagGeneration (unchanged)
-  → build evaluation record (terminal write)
-  → insert assistant_generation_evaluations (fail-open)
+  → build public answer + envelope validation
+  → insert assistant_generation_evaluations (terminal, fail-open)
   → flush PostHog generation telemetry (unchanged)
   → return public JSON (unchanged)
 ```
 
-- **Single terminal insert** after generation completes or fails (no pending rows).
+- **Single terminal insert** after the API knows the outcome (success, abstention, public-envelope failure, or generation failure). No `completed`/`abstained` row is written if the handler returns a generation-related 500 from envelope validation or post-generation errors.
+- **At most one row per accepted request** — a guard prevents a second insert when a terminal record was already written (including fail-open attempts).
 - **UUID `id`** is generated in Postgres for each row; reserved for a future visitor-feedback slice (see [Future feedback](#future-feedback-explicit-integration-task)). The public API does **not** return this id yet.
 - Writes use the same `DATABASE_URL` pool as retrieval and rate limits; they do not alter the model response or public envelope.
 
@@ -41,9 +42,11 @@ Drizzle table `assistant_generation_evaluations` (migration `drizzle/0001_assist
 
 No evidence packet bodies, prompts, IP addresses, or client identifiers.
 
+**Failed rows when `runRagGeneration` throws:** the outer handler persists `failed` with `failure_category` from the error only — evidence IDs and latency fields are included when `runRagGeneration` returned a result but post-processing failed (empty response, envelope validation, or public answer construction). When generation throws before a result object exists, partial diagnostics are not available without redesigning error propagation; operator review may show sparser failed rows for those paths.
+
 ## Privacy and retention
 
-- Composer disclosure: questions and answers may be stored up to 30 days to improve the assistant (see `AssistantComposer`).
+- Composer disclosure: server-rendered from `resolveEvaluationObservabilityConfig()` on `/assistant` (enabled flag + retention days only).
 - **PostHog:** generation events remain aggregate-only; do not add question or answer text to telemetry properties. Contract enforced in `generation-telemetry.mjs` (`findForbiddenGenerationTelemetryPropertyKeys`) and tested via `createGenerationTelemetry` + `runRagGeneration` in `tests/assistant-generation-service.test.ts`.
 - **Retention default:** 30 days (`ASSISTANT_EVALUATION_RETENTION_DAYS`).
 - **Cleanup:** `npm run assistant:evaluation:cleanup` deletes rows with `created_at` older than the retention window. **Not automatic** — schedule operator cron or Vercel Cron in production; setting the env var alone does not delete data.

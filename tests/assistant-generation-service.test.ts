@@ -304,10 +304,14 @@ describe("generation failure classification", () => {
     ).toBe("prompt_budget_exceeded");
 
     expect(
-      classifyGenerationFailure(
-        new Error("OpenAI chat request timed out after 400ms"),
-      ).failure_category,
-    ).toBe("openai_timeout");
+      classifyGenerationFailure(new Error("OpenAI chat request failed"))
+        .failure_category,
+    ).toBe("openai_api_error");
+
+    expect(
+      classifyGenerationFailure(new Error("generation_empty_response"))
+        .failure_category,
+    ).toBe("generation_empty_response");
   });
 });
 
