@@ -4,9 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { postAssistantGenerate } from "@/lib/assistant/client/post-generate";
 import {
-  isTranscriptRequestStillActive,
-  turnExists,
-} from "@/lib/assistant/ui/transcript-request-guard";
+  clearAssistantSession,
+  submitAssistantQuestionSingleFlight,
+} from "@/lib/assistant/ui/single-flight-submit";
+import type { SubmissionLockState } from "@/lib/assistant/ui/submission-lock";
 import {
   appendLoadingTurn,
   createTurnId,
@@ -23,110 +24,88 @@ export function AssistantExperience() {
   const [turns, setTurns] = useState<TranscriptTurn[]>([]);
   const [focusTurnId, setFocusTurnId] = useState<string | null>(null);
   const [scrollGeneration, setScrollGeneration] = useState(0);
+  const turnsRef = useRef(turns);
+
+  const syncTurnsRef = useCallback((next: TranscriptTurn[]) => {
+    turnsRef.current = next;
+    return next;
+  }, []);
+
   const abortRef = useRef<AbortController | null>(null);
   const sessionEpochRef = useRef(0);
+  const submissionLockRef = useRef<SubmissionLockState>({
+    inFlight: false,
+    ownerId: null,
+  });
 
   const hasInteracted = turns.length > 0;
   const inFlight = turns.some((turn) => turn.status === "loading");
 
-  const submitQuestion = useCallback(async (raw: string) => {
-    const trimmed = raw.trim();
-    if (!trimmed) {
-      return;
-    }
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    const epochAtStart = sessionEpochRef.current;
-
-    const turnId = createTurnId();
-    setScrollGeneration((value) => value + 1);
-    setTurns((prev) => appendLoadingTurn(prev, trimmed, turnId));
-    setQuestion("");
-
-    const result = await postAssistantGenerate(trimmed, controller.signal);
-
-    const stillActive = (prev: TranscriptTurn[]) =>
-      isTranscriptRequestStillActive({
-        epochAtStart,
-        currentEpoch: sessionEpochRef.current,
-        controller,
-        activeController: abortRef.current,
-      }) && turnExists(prev, turnId);
-
-    if (!result.ok && result.code === "aborted") {
-      setTurns((prev) => {
-        if (!stillActive(prev)) {
-          return prev;
-        }
-        return resolveTurn(prev, turnId, {
-          status: "error",
-          errorMessage: "Request cancelled.",
-        });
+  const submitQuestion = useCallback(
+    async (raw: string) => {
+      await submitAssistantQuestionSingleFlight(raw, {
+        lock: submissionLockRef.current,
+        sessionEpoch: sessionEpochRef,
+        abortRef,
+        createId: createTurnId,
+        postGenerate: postAssistantGenerate,
+        callbacks: {
+          bumpScrollGeneration: () => {
+            setScrollGeneration((value) => value + 1);
+          },
+          appendLoadingTurn: (turnId, trimmed) => {
+            setTurns((prev) =>
+              syncTurnsRef(appendLoadingTurn(prev, trimmed, turnId)),
+            );
+          },
+          clearComposer: () => {
+            setQuestion("");
+          },
+          getTurns: () => turnsRef.current,
+          resolveTurnSuccess: (turnId, answer, usage) => {
+            setTurns((prev) =>
+              syncTurnsRef(
+                resolveTurn(prev, turnId, {
+                  status: "success",
+                  answer,
+                  usage,
+                }),
+              ),
+            );
+          },
+          resolveTurnError: (turnId, message) => {
+            setTurns((prev) =>
+              syncTurnsRef(
+                resolveTurn(prev, turnId, {
+                  status: "error",
+                  errorMessage: message,
+                }),
+              ),
+            );
+          },
+          focusSuccessTurn: (turnId) => {
+            setFocusTurnId(turnId);
+          },
+        },
       });
-      return;
-    }
-
-    if (
-      !isTranscriptRequestStillActive({
-        epochAtStart,
-        currentEpoch: sessionEpochRef.current,
-        controller,
-        activeController: abortRef.current,
-      })
-    ) {
-      return;
-    }
-
-    if (result.ok) {
-      setTurns((prev) => {
-        if (!stillActive(prev)) {
-          return prev;
-        }
-        return resolveTurn(prev, turnId, {
-          status: "success",
-          answer: result.answer,
-          usage: result.usage,
-        });
-      });
-      setFocusTurnId((current) => {
-        if (
-          !isTranscriptRequestStillActive({
-            epochAtStart,
-            currentEpoch: sessionEpochRef.current,
-            controller,
-            activeController: abortRef.current,
-          })
-        ) {
-          return current;
-        }
-        return turnId;
-      });
-      return;
-    }
-
-    setTurns((prev) => {
-      if (!stillActive(prev)) {
-        return prev;
-      }
-      return resolveTurn(prev, turnId, {
-        status: "error",
-        errorMessage: result.message,
-      });
-    });
-  }, []);
+    },
+    [syncTurnsRef],
+  );
 
   useEffect(() => {
+    const controller = abortRef.current;
     return () => {
-      abortRef.current?.abort();
+      controller?.abort();
     };
   }, []);
 
   const clearConversation = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    sessionEpochRef.current += 1;
+    clearAssistantSession({
+      lock: submissionLockRef.current,
+      sessionEpoch: sessionEpochRef,
+      abortRef,
+    });
+    turnsRef.current = [];
     setTurns([]);
     setFocusTurnId(null);
     setQuestion("");

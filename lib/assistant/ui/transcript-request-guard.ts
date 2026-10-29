@@ -1,4 +1,4 @@
-/** Returns false when clear/submit superseded this in-flight POST before applying results. */
+/** Returns false after Clear conversation (epoch) or when the request was aborted. */
 export function isTranscriptRequestStillActive(options: {
   epochAtStart: number;
   currentEpoch: number;

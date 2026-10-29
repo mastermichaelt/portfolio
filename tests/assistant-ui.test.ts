@@ -271,15 +271,15 @@ describe("transcript request guard", () => {
     ).toBe(false);
   });
 
-  it("rejects when a newer request replaced the active controller", () => {
-    const first = new AbortController();
-    const second = new AbortController();
+  it("rejects after clear aborts the in-flight controller", () => {
+    const controller = new AbortController();
+    controller.abort();
     expect(
       isTranscriptRequestStillActive({
         epochAtStart: 0,
         currentEpoch: 0,
-        controller: first,
-        activeController: second,
+        controller,
+        activeController: null,
       }),
     ).toBe(false);
   });
