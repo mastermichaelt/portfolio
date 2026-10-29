@@ -105,13 +105,13 @@ Integration tests in `tests/assistant-db.test.ts` use `DATABASE_URL` **read-only
 
 Neon provisioning is an account/dashboard action. The repository does not store Neon credentials or connection strings.
 
-### Production cutover (fresh Drizzle + corpus transfer)
+### Production cutover (completed 2026-10-29)
 
-When hosted Primary has **no irreplaceable production data**, an **empty** (or discardable) retrieval index, and the validated **262**-unit corpus on **local Docker**, use the one-time operator runbook: **recreate** the Neon `portfolio_assistant` database, run **`npm run assistant:db:migrate`** only (no baseline, no legacy SQL reconciliation), then atomic **data-only** import of retrieval units. This path **intentionally discards** partial legacy schema/history on Neon.
+The one-time **fresh Drizzle + corpus transfer** from local Docker to Neon **`portfolio-assistant`** / **`portfolio_assistant`** completed successfully (**262** retrieval units, Phase 6 verification passed). **Do not repeat** the database-recreation procedure for routine schema work — use **`npm run assistant:db:migrate`** and **`npm run assistant:db:verify`** per Strategy A above.
 
-For databases still on the **retired custom runner** with complete legacy history and data you must preserve, use **one-time baseline adoption** (above) instead of the cutover runbook.
+Historical operator record (phases 1–6, integrity digests, lessons learned): [`../archive/production-neon-cutover-2026.md`](../archive/production-neon-cutover-2026.md).
 
-[Production Neon cutover runbook](./production-neon-cutover-runbook.md)
+For databases still on the **retired custom runner** with complete legacy history and data you must preserve (not the completed cutover path), use **one-time baseline adoption** (above) instead.
 
 ### 0. Inventory before provisioning
 
