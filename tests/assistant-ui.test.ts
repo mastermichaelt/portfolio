@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import { parseAssistantGenerateSuccessBody } from "@/lib/assistant/client/post-generate";
-import { resolveCitationHref } from "@/lib/assistant/ui/citation-href";
 import {
   buildUsageFooterParts,
   formatModelDisplayName,
@@ -20,17 +19,6 @@ describe("extractHttpUrlsFromText", () => {
   });
 });
 
-describe("resolveCitationHref", () => {
-  it("returns null until the public API exposes authoritative citation URLs", () => {
-    expect(
-      resolveCitationHref({
-        evidence_id: "E1",
-        unit_id: "unit/portfolio/savepoints-architecture-b02",
-      }),
-    ).toBeNull();
-  });
-});
-
 describe("toVisitorHref", () => {
   it("strips origin for michaeltruong.ai links", () => {
     expect(toVisitorHref("https://michaeltruong.ai/articles")).toBe(
@@ -46,11 +34,25 @@ describe("parseAssistantGenerateSuccessBody", () => {
         {
           text: "Grounded claim.",
           attribution: "evidence_supported",
-          citations: [{ evidence_id: "E1", unit_id: "unit/a" }],
+          citations: [
+            {
+              evidence_id: "E1",
+              unit_id: "unit/a",
+              source_label: "Savepoints durable capture",
+              source_url: "https://michaeltruong.ai/projects/savepoints",
+            },
+          ],
         },
       ],
       answer_text: "Grounded claim.",
-      citations: [{ evidence_id: "E1", unit_id: "unit/a" }],
+      citations: [
+        {
+          evidence_id: "E1",
+          unit_id: "unit/a",
+          source_label: "Savepoints durable capture",
+          source_url: "https://michaeltruong.ai/projects/savepoints",
+        },
+      ],
       support_level: "full",
       abstained: false,
     },
@@ -72,6 +74,40 @@ describe("parseAssistantGenerateSuccessBody", () => {
   it("rejects malformed JSON shapes", () => {
     expect(parseAssistantGenerateSuccessBody(null)).toBeNull();
     expect(parseAssistantGenerateSuccessBody("{")).toBeNull();
+  });
+
+  it("rejects citations with disallowed extra keys", () => {
+    expect(
+      parseAssistantGenerateSuccessBody({
+        answer: {
+          ...valid.answer,
+          citations: [
+            {
+              evidence_id: "E1",
+              unit_id: "unit/a",
+              packet: "leak",
+            },
+          ],
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it("rejects non-http source_url values", () => {
+    expect(
+      parseAssistantGenerateSuccessBody({
+        answer: {
+          ...valid.answer,
+          citations: [
+            {
+              evidence_id: "E1",
+              unit_id: "unit/a",
+              source_url: "javascript:alert(1)",
+            },
+          ],
+        },
+      }),
+    ).toBeNull();
   });
 });
 

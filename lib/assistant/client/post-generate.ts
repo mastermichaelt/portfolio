@@ -61,6 +61,46 @@ function isPublicUsage(value: unknown): value is AssistantPublicUsage {
   return true;
 }
 
+function isPublicCitation(value: unknown): boolean {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+  const allowed = ["evidence_id", "unit_id", "source_label", "source_url"];
+  for (const key of Object.keys(value)) {
+    if (!allowed.includes(key)) {
+      return false;
+    }
+  }
+  if (
+    typeof value.evidence_id !== "string" ||
+    !value.evidence_id ||
+    typeof value.unit_id !== "string" ||
+    !value.unit_id
+  ) {
+    return false;
+  }
+  if (
+    value.source_label !== undefined &&
+    typeof value.source_label !== "string"
+  ) {
+    return false;
+  }
+  if (value.source_url !== undefined) {
+    if (typeof value.source_url !== "string") {
+      return false;
+    }
+    try {
+      const parsed = new URL(value.source_url);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return false;
+      }
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
+
 function isPublicClaim(value: unknown): boolean {
   if (!isPlainObject(value)) {
     return false;
@@ -79,15 +119,7 @@ function isPublicClaim(value: unknown): boolean {
       return false;
     }
     for (const citation of value.citations) {
-      if (!isPlainObject(citation)) {
-        return false;
-      }
-      if (
-        typeof citation.evidence_id !== "string" ||
-        !citation.evidence_id ||
-        typeof citation.unit_id !== "string" ||
-        !citation.unit_id
-      ) {
+      if (!isPublicCitation(citation)) {
         return false;
       }
     }
@@ -114,6 +146,9 @@ export function parseAssistantGenerateSuccessBody(
     return null;
   }
   if (!Array.isArray(answer.citations)) {
+    return null;
+  }
+  if (!answer.citations.every(isPublicCitation)) {
     return null;
   }
   if (typeof answer.support_level !== "string") {
