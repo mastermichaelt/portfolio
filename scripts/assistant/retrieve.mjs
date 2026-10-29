@@ -3,6 +3,7 @@
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { createAssistantDb } from "./db/app-client.mjs";
 import { createPool, getDatabaseUrl } from "./db/client.mjs";
 import { embedTexts } from "./embeddings/openai-embeddings.mjs";
 import {
@@ -130,8 +131,9 @@ export async function runAssistantRetrieve(options) {
   const ownsPool = !options.pool;
   const pool =
     options.pool ?? createPool(options.databaseUrl ?? getDatabaseUrl());
+  const db = createAssistantDb(pool);
   try {
-    const results = await searchRetrievalUnits(pool, {
+    const results = await searchRetrievalUnits(db, {
       queryEmbedding,
       topK: options.topK ?? DEFAULT_TOP_K,
       sourceClass: options.sourceClass,

@@ -3,14 +3,13 @@ import pg from "pg";
 import { loadEnvFiles } from "./load-env.mjs";
 
 /**
- * Temporary shim: pool + env helpers stay in this module until drizzle-queries
- * consolidates imports on `db/client.ts` (typed Drizzle factory).
+ * Plain-Node pool + env helpers for operational DB tooling (migrate, verify, baseline)
+ * and shared Postgres connectivity. Typed Drizzle access lives in `@/db/client.ts` —
+ * import via `app-client.mjs` from application scripts run with strip-types + tsconfig paths.
  */
 
 /**
  * Load env files and return a trimmed DATABASE_URL when configured.
- *
- * @returns {string | undefined}
  */
 export function resolveAssistantDatabaseUrl() {
   loadEnvFiles();

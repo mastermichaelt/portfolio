@@ -4,7 +4,9 @@ import path from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { createAssistantDb } from "@/db/client";
 import { createPool } from "@/scripts/assistant/db/client.mjs";
+import type { AssistantDb } from "@/db/client";
 import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
 import { prepareAssistantIntegrationTestDatabase } from "@/scripts/assistant/db/prepare-integration-test-database.mjs";
 import { EXPECTED_EMBEDDING_DIMENSIONS } from "@/scripts/assistant/embeddings/index-config.mjs";
@@ -118,11 +120,10 @@ describe("assistant ingest helpers", () => {
   });
 
   it("rejects zero derived units before any database access", async () => {
-    const pool = { query: vi.fn() };
     const embedTexts = vi.fn(async () => []);
 
     await expect(
-      runIngestSync(pool as unknown as import("pg").Pool, [], {
+      runIngestSync({} as AssistantDb, [], {
         okfBundleSha256: "test-empty",
         embeddingModel: "text-embedding-3-small",
         embedTexts,
@@ -131,7 +132,6 @@ describe("assistant ingest helpers", () => {
       "Ingestion aborted: zero retrieval units derived. Refusing to delete the index.",
     );
 
-    expect(pool.query).not.toHaveBeenCalled();
     expect(embedTexts).not.toHaveBeenCalled();
   });
 });
@@ -151,9 +151,12 @@ describe("assistant ingest sync", () => {
     () => {
       /** @type {import("pg").Pool} */
       let pool: import("pg").Pool;
+      /** @type {AssistantDb} */
+      let db: AssistantDb;
 
       beforeAll(async () => {
         pool = createPool(ingestTestDatabaseUrl!);
+        db = createAssistantDb(pool);
         await prepareAssistantIntegrationTestDatabase(pool, { log: () => {} });
         await pool.query(
           `DELETE FROM assistant_retrieval_units WHERE unit_id = ANY($1::text[])`,
@@ -180,7 +183,7 @@ describe("assistant ingest sync", () => {
           return texts.map((_, index) => fakeVector(index + 1));
         };
 
-        await runIngestSync(pool, [alpha, beta, stale], {
+        await runIngestSync(db, [alpha, beta, stale], {
           okfBundleSha256: "test-bundle-1",
           embeddingModel: "text-embedding-3-small",
           embedTexts,
@@ -190,12 +193,12 @@ describe("assistant ingest sync", () => {
         expect(embedCalls).toHaveLength(1);
         expect(embedCalls[0]).toHaveLength(3);
 
-        const afterFirst = await loadExistingUnitFingerprints(pool);
+        const afterFirst = await loadExistingUnitFingerprints(db);
         expect(afterFirst.has(alpha.unit_id)).toBe(true);
         expect(afterFirst.has(stale.unit_id)).toBe(true);
 
         embedCalls.length = 0;
-        const second = await runIngestSync(pool, [alpha, beta], {
+        const second = await runIngestSync(db, [alpha, beta], {
           okfBundleSha256: "test-bundle-2",
           embeddingModel: "text-embedding-3-small",
           embedTexts,
@@ -208,7 +211,7 @@ describe("assistant ingest sync", () => {
 
         const alphaChanged = makeTestUnit("alpha", "alpha v2");
         embedCalls.length = 0;
-        const third = await runIngestSync(pool, [alphaChanged, beta], {
+        const third = await runIngestSync(db, [alphaChanged, beta], {
           okfBundleSha256: "test-bundle-3",
           embeddingModel: "text-embedding-3-small",
           embedTexts,
@@ -232,18 +235,18 @@ describe("assistant ingest sync", () => {
         const embedTexts = async (texts: string[]) =>
           texts.map((_, index) => fakeVector(index + 10));
 
-        await runIngestSync(pool, [seed], {
+        await runIngestSync(db, [seed], {
           okfBundleSha256: "test-empty-guard-seed",
           embeddingModel: "text-embedding-3-small",
           embedTexts,
           log: () => {},
         });
 
-        const before = await loadExistingUnitFingerprints(pool);
+        const before = await loadExistingUnitFingerprints(db);
         expect(before.has(seed.unit_id)).toBe(true);
 
         await expect(
-          runIngestSync(pool, [], {
+          runIngestSync(db, [], {
             okfBundleSha256: "test-empty-guard",
             embeddingModel: "text-embedding-3-small",
             embedTexts,
@@ -251,7 +254,7 @@ describe("assistant ingest sync", () => {
           }),
         ).rejects.toThrow(/zero retrieval units derived/);
 
-        const after = await loadExistingUnitFingerprints(pool);
+        const after = await loadExistingUnitFingerprints(db);
         expect(after.has(seed.unit_id)).toBe(true);
         expect(after.size).toBe(before.size);
 

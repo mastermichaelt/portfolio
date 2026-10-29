@@ -2,11 +2,10 @@ import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import {
-  checkAssistantApiRateLimit,
-  expireRateLimitCountersBestEffort,
-} from "@/lib/assistant/api/rate-limit";
+import { checkAssistantApiRateLimit } from "@/lib/assistant/api/rate-limit";
 import type { AssistantApiConfig } from "@/lib/assistant/api/config";
+import type { AssistantDb } from "@/db/client";
+import * as rateLimitDb from "@/lib/assistant/db/rate-limit";
 import { createPool } from "@/scripts/assistant/db/client.mjs";
 import { resolveAssistantIngestTestDatabaseUrl } from "@/scripts/assistant/db/integration-test-database.mjs";
 import { prepareAssistantIntegrationTestDatabase } from "@/scripts/assistant/db/prepare-integration-test-database.mjs";
@@ -49,6 +48,24 @@ async function readCounter(
   }
   return Number(result.rows[0]?.count ?? 0);
 }
+
+function assistantDbWithFailingDelete(): AssistantDb {
+  return {
+    delete: () => ({
+      where: () => Promise.reject(new Error("simulated cleanup failure")),
+    }),
+  } as unknown as AssistantDb;
+}
+
+describe("expireRateLimitCountersBestEffort", () => {
+  it("swallows delete failures without throwing", async () => {
+    await expect(
+      rateLimitDb.expireRateLimitCountersBestEffort(
+        assistantDbWithFailingDelete(),
+      ),
+    ).resolves.toBeUndefined();
+  });
+});
 
 describe("assistant API rate limit", () => {
   it("fails closed when pool.connect() cannot reach Postgres", async () => {
@@ -251,41 +268,6 @@ describe("assistant API rate limit (integration)", () => {
 
         expect(allowed).toBe(4);
         expect(rejected).toBe(4);
-      });
-
-      it("does not fail admission when expiry cleanup fails after commit", async () => {
-        const clientKey = `ip:test-cleanup-${randomUUID()}`;
-        const config = testConfig({ perClientPerMinute: 10 });
-
-        const originalQuery = pool.query.bind(pool);
-        (pool as { query: typeof pool.query }).query = ((
-          queryText: unknown,
-          values?: unknown,
-        ) => {
-          if (
-            typeof queryText === "string" &&
-            queryText.includes("DELETE FROM assistant_api_rate_limit_counters")
-          ) {
-            throw new Error("simulated cleanup failure");
-          }
-          return originalQuery(queryText as string, values as never);
-        }) as typeof pool.query;
-
-        try {
-          const result = await checkAssistantApiRateLimit(
-            pool,
-            clientKey,
-            config,
-            fixedNow,
-          );
-          expect(result).toEqual({ allowed: true });
-        } finally {
-          pool.query = originalQuery;
-        }
-
-        await expect(
-          expireRateLimitCountersBestEffort(pool),
-        ).resolves.toBeUndefined();
       });
     },
   );

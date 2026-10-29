@@ -4,6 +4,7 @@ import { execSync } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { createAssistantDb } from "./db/app-client.mjs";
 import { createPool, getDatabaseUrl } from "./db/client.mjs";
 import { embedTexts } from "./embeddings/openai-embeddings.mjs";
 import { readOkfBundleSha256 } from "./ingest/manifest.mjs";
@@ -53,8 +54,9 @@ export async function runAssistantIngest(options = {}) {
   log(`Derived ${units.length} retrieval units (bundle ${okfBundleSha256})`);
 
   const pool = createPool(getDatabaseUrl());
+  const db = createAssistantDb(pool);
   try {
-    return await runIngestSync(pool, units, {
+    return await runIngestSync(db, units, {
       okfBundleSha256,
       embedTexts,
       log,
