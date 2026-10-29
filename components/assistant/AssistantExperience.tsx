@@ -3,32 +3,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { postAssistantGenerate } from "@/lib/assistant/client/post-generate";
-import type {
-  AssistantPublicAnswer,
-  AssistantPublicUsage,
-} from "@/lib/assistant/api/public-envelope";
+import {
+  appendLoadingTurn,
+  createTurnId,
+  resolveTurn,
+  type TranscriptTurn,
+} from "@/lib/assistant/ui/transcript-turns";
 
-import { AssistantAnswerPanel } from "./AssistantAnswerPanel";
-import { AssistantQuestionForm } from "./AssistantQuestionForm";
+import { AssistantComposer } from "./AssistantComposer";
 import { AssistantSuggestedQuestions } from "./AssistantSuggestedQuestions";
-
-type UiState =
-  | { kind: "idle" }
-  | { kind: "loading" }
-  | {
-      kind: "success";
-      answer: AssistantPublicAnswer;
-      usage?: AssistantPublicUsage;
-    }
-  | { kind: "error"; message: string };
+import { AssistantTranscript } from "./AssistantTranscript";
 
 export function AssistantExperience() {
   const [question, setQuestion] = useState("");
-  const [state, setState] = useState<UiState>({ kind: "idle" });
+  const [turns, setTurns] = useState<TranscriptTurn[]>([]);
+  const [focusTurnId, setFocusTurnId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const answerRef = useRef<HTMLDivElement | null>(null);
 
-  const loading = state.kind === "loading";
+  const hasInteracted = turns.length > 0;
+  const inFlight = turns.some((turn) => turn.status === "loading");
 
   const submitQuestion = useCallback(async (raw: string) => {
     const trimmed = raw.trim();
@@ -40,36 +33,41 @@ export function AssistantExperience() {
     const controller = new AbortController();
     abortRef.current = controller;
 
-    setState({ kind: "loading" });
+    const turnId = createTurnId();
+    setTurns((prev) => appendLoadingTurn(prev, trimmed, turnId));
+    setQuestion("");
 
     const result = await postAssistantGenerate(trimmed, controller.signal);
 
-    if (controller.signal.aborted) {
+    if (!result.ok && result.code === "aborted") {
+      setTurns((prev) =>
+        resolveTurn(prev, turnId, {
+          status: "error",
+          errorMessage: "Request cancelled.",
+        }),
+      );
       return;
     }
 
     if (result.ok) {
-      setState({
-        kind: "success",
-        answer: result.answer,
-        usage: result.usage,
-      });
+      setTurns((prev) =>
+        resolveTurn(prev, turnId, {
+          status: "success",
+          answer: result.answer,
+          usage: result.usage,
+        }),
+      );
+      setFocusTurnId(turnId);
       return;
     }
 
-    if (result.code === "aborted") {
-      setState({ kind: "idle" });
-      return;
-    }
-
-    setState({ kind: "error", message: result.message });
+    setTurns((prev) =>
+      resolveTurn(prev, turnId, {
+        status: "error",
+        errorMessage: result.message,
+      }),
+    );
   }, []);
-
-  useEffect(() => {
-    if (state.kind === "success" && answerRef.current) {
-      answerRef.current.focus({ preventScroll: true });
-    }
-  }, [state.kind]);
 
   useEffect(() => {
     return () => {
@@ -77,55 +75,65 @@ export function AssistantExperience() {
     };
   }, []);
 
-  return (
-    <div className="assistant-shell fade-in">
-      <header className="assistant-intro">
-        <p className="eyebrow">Assistant · grounded answers</p>
-        <h1>Ask about Michael&apos;s published work.</h1>
-        <p className="lead measure">
-          Questions run against the same indexed portfolio corpus used for
-          retrieval experiments — answers show claim-level attribution and
-          citations when evidence supports them.
-        </p>
-      </header>
+  const clearConversation = useCallback(() => {
+    abortRef.current?.abort();
+    setTurns([]);
+    setFocusTurnId(null);
+    setQuestion("");
+  }, []);
 
-      <AssistantSuggestedQuestions
-        disabled={loading}
-        onSelect={(value) => {
-          setQuestion(value);
-          void submitQuestion(value);
-        }}
+  const handleFocusTurnHandled = useCallback(() => {
+    setFocusTurnId(null);
+  }, []);
+
+  return (
+    <div className="assistant-shell assistant-shell--chat fade-in">
+      {!hasInteracted ? (
+        <>
+          <header className="assistant-intro">
+            <p className="eyebrow">Assistant · grounded answers</p>
+            <h1>Ask about Michael&apos;s published work.</h1>
+            <p className="lead measure">
+              Questions run against the same indexed portfolio corpus used for
+              retrieval experiments — answers show claim-level attribution and
+              citations when evidence supports them.
+            </p>
+          </header>
+
+          <AssistantSuggestedQuestions
+            disabled={inFlight}
+            onSelect={(value) => {
+              void submitQuestion(value);
+            }}
+          />
+        </>
+      ) : null}
+
+      <AssistantTranscript
+        turns={turns}
+        focusTurnId={focusTurnId}
+        onFocusTurnHandled={handleFocusTurnHandled}
       />
 
-      <AssistantQuestionForm
+      {hasInteracted ? (
+        <div className="assistant-transcript-actions">
+          <button
+            type="button"
+            className="btn btn-ghost assistant-clear"
+            disabled={inFlight}
+            onClick={clearConversation}
+          >
+            Clear conversation
+          </button>
+        </div>
+      ) : null}
+
+      <AssistantComposer
         question={question}
-        disabled={loading}
+        disabled={inFlight}
         onQuestionChange={setQuestion}
         onSubmit={() => void submitQuestion(question)}
       />
-
-      {loading ? (
-        <p className="assistant-status" role="status" aria-live="polite">
-          <span className="assistant-spinner" aria-hidden="true" />
-          Searching evidence and drafting an answer…
-        </p>
-      ) : null}
-
-      {state.kind === "error" ? (
-        <div
-          className="assistant-callout assistant-callout--error"
-          role="alert"
-        >
-          <p className="assistant-callout-title">Something went wrong</p>
-          <p>{state.message}</p>
-        </div>
-      ) : null}
-
-      {state.kind === "success" ? (
-        <div ref={answerRef} tabIndex={-1} className="assistant-answer-focus">
-          <AssistantAnswerPanel answer={state.answer} usage={state.usage} />
-        </div>
-      ) : null}
     </div>
   );
 }

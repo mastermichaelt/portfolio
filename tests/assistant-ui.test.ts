@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  buildCitationNumbering,
+  citationIdentityKey,
+  numbersForClaimCitations,
+} from "@/lib/assistant/ui/citation-numbering";
+import {
+  appendLoadingTurn,
+  resolveTurn,
+} from "@/lib/assistant/ui/transcript-turns";
 import { parseAssistantGenerateSuccessBody } from "@/lib/assistant/client/post-generate";
 import {
   buildUsageFooterParts,
@@ -163,5 +172,79 @@ describe("format usage footer", () => {
     expect(formatUsageFooterLine(parts!)).toBe(
       "GPT-4o mini · 1,842 input tokens",
     );
+  });
+});
+
+describe("citation numbering", () => {
+  const claims = [
+    {
+      text: "First claim.",
+      attribution: "evidence_supported" as const,
+      citations: [
+        {
+          evidence_id: "E1",
+          unit_id: "u1",
+          source_label: "A",
+        },
+        {
+          evidence_id: "E2",
+          unit_id: "u2",
+          source_label: "B",
+        },
+      ],
+    },
+    {
+      text: "Second claim.",
+      attribution: "evidence_supported" as const,
+      citations: [
+        {
+          evidence_id: "E1",
+          unit_id: "u1",
+          source_label: "A",
+        },
+      ],
+    },
+  ];
+
+  it("dedupes citations across claims for stable inline numbers", () => {
+    const numbering = buildCitationNumbering(claims);
+    expect(numbering.ordered).toHaveLength(2);
+    expect(
+      numbering.keyToNumber.get(citationIdentityKey(claims[0].citations![0])),
+    ).toBe(1);
+    expect(
+      numbersForClaimCitations(claims[1].citations, numbering.keyToNumber),
+    ).toEqual([1]);
+  });
+});
+
+describe("transcript turns", () => {
+  it("appends loading then resolves success", () => {
+    const body = parseAssistantGenerateSuccessBody({
+      answer: {
+        claims: [
+          {
+            text: "Grounded claim.",
+            attribution: "evidence_supported",
+          },
+        ],
+        answer_text: "Grounded claim.",
+        citations: [],
+        support_level: "full",
+        abstained: false,
+      },
+    });
+    expect(body).not.toBeNull();
+
+    const withLoading = appendLoadingTurn([], "Hello?", "t1");
+    expect(withLoading).toHaveLength(1);
+    expect(withLoading[0]?.status).toBe("loading");
+
+    const done = resolveTurn(withLoading, "t1", {
+      status: "success",
+      answer: body!.answer,
+    });
+    expect(done[0]?.status).toBe("success");
+    expect(done[0]?.answer?.claims[0]?.text).toBe("Grounded claim.");
   });
 });
