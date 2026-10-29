@@ -4,7 +4,13 @@ import {
   buildEvaluationRecordFromFailure,
   buildEvaluationRecordFromSuccess,
 } from "@/lib/assistant/evaluation/build-record";
-import { resolveEvaluationObservabilityConfig } from "@/lib/assistant/evaluation/config";
+import {
+  parseEvaluationCleanupRetentionDays,
+  resolveEvaluationCleanupRetentionDays,
+  resolveEvaluationCleanupRetentionDaysForRun,
+  resolveEvaluationCleanupRetentionDaysFromArgv,
+  resolveEvaluationObservabilityConfig,
+} from "@/lib/assistant/evaluation/config";
 import { extractEvidenceRefs } from "@/lib/assistant/evaluation/extract-evidence-refs";
 import {
   computeEvaluationRetentionCutoff,
@@ -116,10 +122,61 @@ describe("assistant evaluation observability", () => {
     expect(refs.evidenceIds).toEqual(["E1", "E2"]);
   });
 
-  it("defaults retention to 30 days", () => {
+  it("returns null for resolveEvaluationCleanupRetentionDays when env is unset", () => {
     const prev = process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
     delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
-    expect(resolveEvaluationObservabilityConfig().retentionDays).toBe(30);
+    expect(resolveEvaluationObservabilityConfig()).toEqual({ enabled: false });
+    expect(resolveEvaluationCleanupRetentionDays()).toBeNull();
+    if (prev === undefined) {
+      delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
+    } else {
+      process.env.ASSISTANT_EVALUATION_RETENTION_DAYS = prev;
+    }
+  });
+
+  it("requires explicit age window for cleanup when argv and env are both unset", () => {
+    const prev = process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
+    delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
+    expect(resolveEvaluationCleanupRetentionDaysForRun([])).toEqual({
+      error:
+        "Evaluation cleanup requires an explicit age window: pass --days <n> or set ASSISTANT_EVALUATION_RETENTION_DAYS.",
+    });
+    if (prev === undefined) {
+      delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
+    } else {
+      process.env.ASSISTANT_EVALUATION_RETENTION_DAYS = prev;
+    }
+  });
+
+  it("parses optional cleanup retention days for manual deletion", () => {
+    expect(parseEvaluationCleanupRetentionDays(undefined)).toBeNull();
+    expect(parseEvaluationCleanupRetentionDays("")).toBeNull();
+    expect(parseEvaluationCleanupRetentionDays("14.9")).toBe(14);
+    expect(parseEvaluationCleanupRetentionDays("0")).toBeNull();
+    expect(parseEvaluationCleanupRetentionDays("0.5")).toBeNull();
+  });
+
+  it("rejects invalid explicit --days without env fallback", () => {
+    const prev = process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
+    process.env.ASSISTANT_EVALUATION_RETENTION_DAYS = "30";
+    expect(
+      resolveEvaluationCleanupRetentionDaysFromArgv(["--days", "0"]),
+    ).toEqual({
+      source: "invalid",
+      message:
+        'Evaluation cleanup: invalid --days value "0" (use a positive integer).',
+    });
+    const resolved = resolveEvaluationCleanupRetentionDaysForRun([
+      "--days",
+      "0",
+    ]);
+    expect(resolved).toEqual({
+      error:
+        'Evaluation cleanup: invalid --days value "0" (use a positive integer).',
+    });
+    expect(
+      resolveEvaluationCleanupRetentionDaysForRun(["--days", "14"]),
+    ).toEqual({ days: 14 });
     if (prev === undefined) {
       delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
     } else {

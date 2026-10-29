@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useId } from "react";
 
 import type { EvaluationDisclosureConfig } from "@/lib/assistant/evaluation/disclosure-copy";
-import { formatEvaluationDisclosureCopy } from "@/lib/assistant/evaluation/disclosure-copy";
+import { resolveEvaluationDisclosurePresentation } from "@/lib/assistant/evaluation/disclosure-copy";
 
 const STATELESS_DISCLAIMER =
   "Each question is answered independently from published sources. Earlier messages in this view are not sent to the model.";
@@ -27,7 +28,8 @@ export function AssistantComposer({
   const fieldId = useId();
   const hintId = `${fieldId}-hint`;
   const statelessId = `${fieldId}-stateless`;
-  const evaluationCopy = formatEvaluationDisclosureCopy(evaluationDisclosure);
+  const evaluationPresentation =
+    resolveEvaluationDisclosurePresentation(evaluationDisclosure);
 
   return (
     <div className="assistant-composer-wrap">
@@ -85,7 +87,17 @@ export function AssistantComposer({
       </form>
       <div id={statelessId} className="assistant-stateless-hints">
         <p>{STATELESS_DISCLAIMER}</p>
-        <p>{evaluationCopy}</p>
+        {evaluationPresentation.kind === "link" ? (
+          <p>
+            {evaluationPresentation.lead}
+            <Link href={evaluationPresentation.linkHref}>
+              {evaluationPresentation.linkLabel}
+            </Link>
+            {evaluationPresentation.trail}
+          </p>
+        ) : (
+          <p>{evaluationPresentation.text}</p>
+        )}
         <p>{SUBJECT_HINT}</p>
       </div>
     </div>

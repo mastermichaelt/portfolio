@@ -226,7 +226,7 @@ This runs the **Drizzle Kit migrator** (Strategy A). All forward DDL comes from 
 npm run assistant:db:verify
 ```
 
-Confirms connectivity, `CREATE EXTENSION vector`, Drizzle journal state (`drizzle.__drizzle_migrations`), all assistant tables (`assistant_retrieval_units`, `assistant_ingestion_runs`, `assistant_api_rate_limit_counters`), `vector(1536)`, and absence of ANN indexes.
+Confirms connectivity, `CREATE EXTENSION vector`, Drizzle journal state (`drizzle.__drizzle_migrations`), all assistant tables (`assistant_retrieval_units`, `assistant_ingestion_runs`, `assistant_api_rate_limit_counters`, `assistant_generation_evaluations`), `vector(1536)`, and absence of ANN indexes.
 
 JSON output for automation:
 
@@ -262,7 +262,7 @@ Hosted deployment is complete when `npm run assistant:db:verify` reports **ok** 
 - connectivity
 - `vector` extension
 - `drizzle.__drizzle_migrations` journal matches committed Drizzle migration(s)
-- `assistant_retrieval_units`, `assistant_ingestion_runs`, `assistant_api_rate_limit_counters`
+- `assistant_retrieval_units`, `assistant_ingestion_runs`, `assistant_api_rate_limit_counters`, `assistant_generation_evaluations`
 - `assistant_retrieval_units.embedding` type `vector(1536)`
 - no ANN vector index on `assistant_retrieval_units`
 

@@ -21,7 +21,7 @@ Single merge-safe PR (`quality-observability`).
 - **Same Postgres** as retrieval/rate limits (`DATABASE_URL`); dedicated table, not corpus schema.
 - **Fail-open** persistence; public API contract unchanged.
 - **PostHog unchanged** — no question/answer text in generation telemetry events.
-- **Retention** via explicit scheduled `assistant:evaluation:cleanup` (default 30-day window).
+- **Retention:** evaluation records are retained until explicitly deleted. There is no automatic cleanup schedule in the repository. Manual `assistant:evaluation:cleanup` requires an explicit age window (`--days` or `ASSISTANT_EVALUATION_RETENTION_DAYS`).
 
 Full detail: [docs/assistant/evaluation-observability.md](../docs/assistant/evaluation-observability.md).
 
