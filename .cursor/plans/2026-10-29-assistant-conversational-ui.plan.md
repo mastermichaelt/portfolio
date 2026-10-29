@@ -346,6 +346,40 @@ Implement in order within one slice; split into multiple PRs only if review size
 
 ---
 
+## Slice — conversational-ui
+
+**Recommended authority:** Open PR only
+
+**Rationale:** Product-design follow-up after **`generation-ui`** merges; reshapes visitor UX without changing RAG or API contracts.
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Goal:** Session-local chat transcript on `/assistant` with prose-first answers, visible inline `[n]` citations, expandable **Sources & attribution**, sticky mobile composer, and stateless UX copy — one independent `POST /api/assistant/generate` per turn.
+
+**Dependencies:** PR #103 **`generation-ui`** merged to `main`. Do not start on the #103 branch for review isolation.
+
+**Non-goals:** API/RAG/DB changes; streaming; memory; homepage integration.
+
+**Acceptance:** Per section 9 (transcript, composer keyboard rules, inline citations, collapsed attribution panel, disclaimer + subject hint, tests green, manual desktop + 375px).
+
+**PR boundary:** `components/assistant/*`, `app/styles/assistant.css`, tests — no generation service or route contract changes.
+
+---
+
+## Slice — plan-closure
+
+**Recommended authority:** Open PR only
+
+**Rationale:** Docs-only archival after **`conversational-ui`** merges; keeps `.cursor/plans/` for active work only.
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Prerequisites:** **`conversational-ui`** merged on `main`.
+
+**Deliverables:** `# Shipped` note; move plan to `.cursor/plans/archive/2026-10-29-assistant-conversational-ui.plan.md`; mark `plan-closure` completed; optional nyaomaru UX note in [prior-art.md](../../docs/assistant/prior-art.md).
+
+---
+
 ## Adopt / adapt / avoid (nyaomaru UX)
 
 | Prior art pattern | Recommendation                                                                                                                                                                                                         |
@@ -398,5 +432,9 @@ Plan-closure only after conversational-ui merges. Do not implement UI in this PR
 
 Authority: Open PR only — open docs PR; do not merge.
 
-Deliverables: # Shipped note; move plan to .cursor/plans/archive/; mark plan-closure completed; optional short UX paragraph in docs/assistant/prior-art.md (nyaomaru live UX observations); mark conversational-ui completed if not already.
+Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
+
+Deliverables: # Shipped note; move plan to .cursor/plans/archive/2026-10-29-assistant-conversational-ui.plan.md; mark plan-closure completed; optional short UX paragraph in docs/assistant/prior-art.md (nyaomaru live UX observations); verify conversational-ui todo completed.
+
+Verification: confirm conversational-ui merged before archiving; plan-validator passes on active plans after archive move.
 ```
