@@ -28,7 +28,7 @@ todos:
     status: cancelled
   - id: generation-ui
     content: "PR: dedicated /assistant page + nav — claims[], citations, compact per-answer token usage footer; reusable components; no floating widget"
-    status: pending
+    status: completed
   - id: operational-acceptance
     content: "Manual verification gate — production Neon corpus ingest + verify (operator-approved), then local + deployed E2E on michaeltruong.ai; operator sign-off before public-ready"
     status: pending
