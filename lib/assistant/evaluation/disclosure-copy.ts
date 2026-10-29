@@ -1,11 +1,12 @@
 export type EvaluationDisclosureConfig = {
   enabled: boolean;
-  retentionDays: number;
 };
 
+/** Contact surface for removal requests (About identity rail — no separate privacy route). */
+export const EVALUATION_REMOVAL_REQUEST_PATH = "/about";
+
 /**
- * Visitor-facing copy for the assistant composer. Derived from server config only
- * (enabled flag + retention days) — never includes secrets.
+ * Visitor-facing copy when evaluation collection is disabled.
  */
 export function formatEvaluationDisclosureCopy(
   config: EvaluationDisclosureConfig,
@@ -14,10 +15,5 @@ export function formatEvaluationDisclosureCopy(
     return "Questions and answers are not stored to improve the assistant in this environment.";
   }
 
-  const days = config.retentionDays;
-  if (days === 1) {
-    return "Questions and answers may be stored for up to 1 day to improve the assistant. They are not shared in analytics events.";
-  }
-
-  return `Questions and answers may be stored for up to ${days} days to improve the assistant. They are not shared in analytics events.`;
+  return "Questions and responses may be stored to improve this assistant. You can request their removal.";
 }

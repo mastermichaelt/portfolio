@@ -1,20 +1,31 @@
-const DEFAULT_RETENTION_DAYS = 30;
-
 export function resolveEvaluationObservabilityConfig(): {
   enabled: boolean;
-  retentionDays: number;
 } {
   const explicitOff =
     process.env.ASSISTANT_EVALUATION_ENABLED?.trim().toLowerCase() === "false";
   const enabled = !explicitOff && Boolean(process.env.DATABASE_URL?.trim());
 
-  const parsed = Number(
-    process.env.ASSISTANT_EVALUATION_RETENTION_DAYS ?? DEFAULT_RETENTION_DAYS,
-  );
-  const retentionDays =
-    Number.isFinite(parsed) && parsed > 0
-      ? Math.floor(parsed)
-      : DEFAULT_RETENTION_DAYS;
+  return { enabled };
+}
 
-  return { enabled, retentionDays };
+/**
+ * Optional age window for manual operator cleanup only — not a retention policy default.
+ */
+export function parseEvaluationCleanupRetentionDays(
+  raw: string | undefined,
+): number | null {
+  if (raw === undefined || raw.trim() === "") {
+    return null;
+  }
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+  return Math.floor(parsed);
+}
+
+export function resolveEvaluationCleanupRetentionDays(): number | null {
+  return parseEvaluationCleanupRetentionDays(
+    process.env.ASSISTANT_EVALUATION_RETENTION_DAYS,
+  );
 }

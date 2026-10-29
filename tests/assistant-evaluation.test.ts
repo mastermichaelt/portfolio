@@ -4,7 +4,11 @@ import {
   buildEvaluationRecordFromFailure,
   buildEvaluationRecordFromSuccess,
 } from "@/lib/assistant/evaluation/build-record";
-import { resolveEvaluationObservabilityConfig } from "@/lib/assistant/evaluation/config";
+import {
+  parseEvaluationCleanupRetentionDays,
+  resolveEvaluationCleanupRetentionDays,
+  resolveEvaluationObservabilityConfig,
+} from "@/lib/assistant/evaluation/config";
 import { extractEvidenceRefs } from "@/lib/assistant/evaluation/extract-evidence-refs";
 import {
   computeEvaluationRetentionCutoff,
@@ -116,15 +120,23 @@ describe("assistant evaluation observability", () => {
     expect(refs.evidenceIds).toEqual(["E1", "E2"]);
   });
 
-  it("defaults retention to 30 days", () => {
+  it("does not default cleanup retention days from observability config", () => {
     const prev = process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
     delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
-    expect(resolveEvaluationObservabilityConfig().retentionDays).toBe(30);
+    expect(resolveEvaluationObservabilityConfig()).toEqual({ enabled: false });
+    expect(resolveEvaluationCleanupRetentionDays()).toBeNull();
     if (prev === undefined) {
       delete process.env.ASSISTANT_EVALUATION_RETENTION_DAYS;
     } else {
       process.env.ASSISTANT_EVALUATION_RETENTION_DAYS = prev;
     }
+  });
+
+  it("parses optional cleanup retention days for manual deletion", () => {
+    expect(parseEvaluationCleanupRetentionDays(undefined)).toBeNull();
+    expect(parseEvaluationCleanupRetentionDays("")).toBeNull();
+    expect(parseEvaluationCleanupRetentionDays("14.9")).toBe(14);
+    expect(parseEvaluationCleanupRetentionDays("0")).toBeNull();
   });
 
   it("persistGenerationEvaluationSafely does not throw when insert throws", async () => {

@@ -1,9 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useId } from "react";
 
 import type { EvaluationDisclosureConfig } from "@/lib/assistant/evaluation/disclosure-copy";
-import { formatEvaluationDisclosureCopy } from "@/lib/assistant/evaluation/disclosure-copy";
+import {
+  EVALUATION_REMOVAL_REQUEST_PATH,
+  formatEvaluationDisclosureCopy,
+} from "@/lib/assistant/evaluation/disclosure-copy";
 
 const STATELESS_DISCLAIMER =
   "Each question is answered independently from published sources. Earlier messages in this view are not sent to the model.";
@@ -85,7 +89,18 @@ export function AssistantComposer({
       </form>
       <div id={statelessId} className="assistant-stateless-hints">
         <p>{STATELESS_DISCLAIMER}</p>
-        <p>{evaluationCopy}</p>
+        {evaluationDisclosure.enabled ? (
+          <p>
+            Questions and responses may be stored to improve this assistant. You
+            can{" "}
+            <Link href={EVALUATION_REMOVAL_REQUEST_PATH}>
+              request their removal
+            </Link>
+            .
+          </p>
+        ) : (
+          <p>{evaluationCopy}</p>
+        )}
         <p>{SUBJECT_HINT}</p>
       </div>
     </div>
