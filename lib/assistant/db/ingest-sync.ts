@@ -262,7 +262,7 @@ export async function runIngestSync(
     skipped: plan.skipped,
   };
 
-  return db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     for (const unit of plan.toEmbed) {
       const vector = vectorsByUnitId.get(unit.unit_id);
       if (!vector) {
@@ -305,10 +305,6 @@ export async function runIngestSync(
       startedAt,
     });
 
-    log(
-      `Ingest complete: inserted=${counts.inserted} updated=${counts.updated} deleted=${counts.deleted} skipped=${counts.skipped} run_id=${runId}`,
-    );
-
     return {
       runId,
       okfBundleSha256: options.okfBundleSha256,
@@ -316,4 +312,10 @@ export async function runIngestSync(
       counts,
     };
   });
+
+  log(
+    `Ingest complete: inserted=${result.counts.inserted} updated=${result.counts.updated} deleted=${result.counts.deleted} skipped=${result.counts.skipped} run_id=${result.runId}`,
+  );
+
+  return result;
 }
