@@ -175,7 +175,7 @@ Topology: PR #107 branch targets main; verify diff is recovery-only per PR scope
 
 Deliverables: merge PR #107 when authorized; mark generation-recovery-pr107 completed in this plan frontmatter in the merge PR or a follow-up docs PR if plan file updated separately.
 
-Verification: npm test (assistant-generation-recovery, generation-service, generation-api, assistant-evaluation); lint, typecheck, build.
+Verification: Only after PR #107 merges to main (assistant-generation-recovery.test.ts not on main until then) — PR merged; npm test for recovery, generation-service, generation-api, generation-contract, assistant-evaluation; lint, typecheck, build; recovery and evidence-integrity preserved; evaluation observability compatible; no blocking reliability regression. Do not mark generation-recovery-pr107 or Phase 1 complete before this on main.
 ```
 
 ### plan-closure

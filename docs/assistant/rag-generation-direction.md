@@ -1,9 +1,9 @@
 ---
 title: Portfolio assistant — RAG generation direction
-subtitle: Design considerations between retrieval and grounded answers (not implemented)
+subtitle: Design considerations for grounded answers after retrieval (shipped on main; roadmap follow-ons)
 status: draft
-version: 0.2.5
-updated: 2026-10-29
+version: 0.2.6
+updated: 2026-10-30
 related:
   - docs/assistant/architecture-direction.md
   - docs/assistant/assistant-database.md
@@ -22,9 +22,9 @@ This note captures answer-generation architecture for the portfolio assistant. *
 
 Sections use the same labels as [architecture-direction.md](./architecture-direction.md): **current implementation**, **proposed design option**, **open decision**, **architectural direction**.
 
-**Explicit non-goals for this document:** changing active `.cursor/plans/` scope, implementing chat UI, or shipping generation code.
+**Explicit non-goals for this document:** opening new `.cursor/plans/` scope or changing shipped generation behaviour (model, retrieval policy, evidence-integrity rules). **Deferred capabilities** (not commitments): streaming answers, persistent conversational memory across sessions, agentic tool execution, live web search in the answer path — see [architecture-direction.md](./architecture-direction.md). **Shipped** generation code, `POST /api/assistant/generate`, and `/assistant` conversational UI are documented under **current implementation** below.
 
-**Prerequisite corpus work (direction).** Grounded answers about career history should not rely on `content/about.ts` alone. Curated career inventory from `mastermichaelt/resumes` (`facts/`, `roles/`, allowlisted `meta/`) with an explicit **publication boundary** (no `applications/**`, `out/`, `stories/`, or per-variant résumé prose) should ship in OKF **before** this generation milestone — see [career-inventory-corpus-direction.md](./career-inventory-corpus-direction.md).
+**Prerequisite corpus work (satisfied for the shipped milestone).** Grounded answers about career history should not rely on `content/about.ts` alone. Curated career inventory from `mastermichaelt/resumes` (`facts/`, `roles/`, allowlisted `meta/`) with an explicit **publication boundary** (no `applications/**`, `out/`, `stories/`, or per-variant résumé prose) **shipped in OKF before** grounded RAG generation landed on `main` (cross-repository corpus work, 2026-10-08) — see [career-inventory-corpus-direction.md](./career-inventory-corpus-direction.md). This is **historical gating** for the shipped milestone, not a blocker for current work.
 
 ---
 
@@ -54,9 +54,9 @@ assistant:answer / POST /api/assistant/generate → grounded answers (/assistant
 
 **Current implementation.** Active experiment work includes **retrieval evaluation** (question fixtures against the ingested index) — measuring retrieval quality, not grounded answers.
 
-### Boundary with future answer generation
+### Boundary with answer generation (shipped)
 
-**Architectural direction (decision).** Treat **retrieval** and **generation** as separate subsystems with a narrow, typed handoff:
+**Current implementation.** **Retrieval** and **generation** are separate subsystems with a narrow, typed handoff on `main`:
 
 | Stage                 | Owns                                                                                   | Does not own                                 |
 | --------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------- |
@@ -64,9 +64,9 @@ assistant:answer / POST /api/assistant/generate → grounded answers (/assistant
 | **Evidence assembly** | Selecting, expanding, grouping, budgeting context for the LLM                          | Rewriting canonical sources as truth         |
 | **Generation**        | Evidence-aware answer text, claim-level attribution, citation surfacing, abstention UX | OKF normalization, embedding index schema    |
 
-**Architectural direction.** `PortfolioRepository` and page routes must not depend on retrieval or generation. `POST /api/assistant/generate` calls the shared generation service; the browsable site remains valid with the assistant removed.
+**Current implementation.** `PortfolioRepository` and page routes do not depend on retrieval or generation. `POST /api/assistant/generate` calls the shared generation service; the browsable site remains valid with the assistant removed.
 
-**Open decision.** Whether evidence assembly runs in the same server process as retrieval, a dedicated module, or a durable workflow step — defer until generation milestone planning.
+**Open decision (future).** Whether evidence assembly should move to a dedicated module or durable workflow — defer to Phase 2 consolidation planning; today it lives in the generation service path on `main`.
 
 ---
 
@@ -270,6 +270,7 @@ Visitors should be able to **begin with natural-language questions** rather than
 
 | Date       | Change                                                                                                                                                                                    |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-30 | Align subtitle and non-goals with shipped generation API/UI on `main`; reframe career-inventory prerequisite as satisfied historical gate; active orchestration → roadmap                 |
 | 2026-10-29 | Current implementation: record shipped `POST /api/assistant/generate`; visitor `/assistant` UI still outstanding; corpus sync cross-ref unchanged                                         |
 | 2026-10-16 | Visitor-visible OpenAI token usage on `/assistant` (API `usage` object + UI footer); Codenames AI as behavioural reference; PostHog server telemetry remains operator-only                |
 | 2026-10-16 | Deferred future direction: AI-first conversational portfolio (product/UX milestone); current RAG milestone ships `/assistant` first — homepage integration out of scope                   |

@@ -218,6 +218,7 @@ Outstanding work from archived plans owns **exactly one** successor below. Do no
 
 - Archive this plan to `.cursor/plans/archive/2026-10-30-assistant-04-production-reopening.plan.md`
 - Update [architecture-direction.md](../../docs/assistant/architecture-direction.md) and [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md) (active orchestration → [roadmap](./2026-10-30-assistant-roadmap.plan.md); remove stale “no UI” claims)
+- Reconcile pre-existing drift in [cross-repository-source-inventory.md](../../docs/assistant/cross-repository-source-inventory.md) (RAG generation status) with shipped `main`
 - Update [generation-eval-findings.md](../../docs/assistant/generation-eval-findings.md) with operational acceptance notes
 - Update [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md) Phase 4 complete
 

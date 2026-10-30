@@ -2,8 +2,8 @@
 title: Portfolio assistant architecture direction
 subtitle: Another view over published knowledge — not a site redesign
 status: draft
-version: 0.4.2
-updated: 2026-10-29
+version: 0.4.3
+updated: 2026-10-30
 related:
   - docs/assistant/prior-art.md
   - docs/assistant/rag-generation-direction.md
@@ -13,7 +13,7 @@ related:
 
 # Portfolio assistant architecture direction
 
-Architectural intent for a future conversational assistant on [michaeltruong.ai](https://michaeltruong.ai). This note does **not** prescribe implementation file layout, TypeScript interfaces, API contracts, retrieval parameters, or a multi-slice execution plan. Those belong in just-in-time `.cursor/plans/` artifacts written when a specific experiment is ready to ship.
+Architectural intent for the portfolio assistant on [michaeltruong.ai](https://michaeltruong.ai). Grounded RAG generation, the generate API, and `/assistant` are **shipped on `main`**; active work is orchestrated by [2026-10-30-assistant-roadmap.plan.md](../../.cursor/plans/2026-10-30-assistant-roadmap.plan.md). This note does **not** prescribe implementation file layout, TypeScript interfaces, or per-slice execution detail — those live in child `.cursor/plans/` artifacts.
 
 **Prior art:** [nyaomaru-portfolio](./prior-art.md) — studied, not normative.
 
@@ -63,27 +63,51 @@ The feature also exercises RAG mechanics in the same Next.js codebase that hosts
 
 ## Current implementation
 
-**Current implementation.** No visitor-facing assistant exists. The production app is a static-first Next.js site:
+**Current implementation (browsable site).** Static-first Next.js portfolio:
 
 - Pages read through `PortfolioRepository` → typed modules under `content/`.
-- No `app/api/` routes, no embeddings, no vector store, no chat UI.
+- Routes (`/`, `/about`, `/projects`, `/articles`, `/ecosystem`) remain independently useful without the assistant.
 - Optional client-side PostHog only; orthogonal to content.
 
 ```text
 app/ pages → PortfolioRepository → content/ modules
 ```
 
-**Current implementation (assistant dev tooling only).** OKF normalization and the **retrieval index pipeline** are shipped as CLI tooling outside the Next.js app bundle (no answer generation, no chat UI):
+**Current implementation (assistant — shipped on `main`).**
+
+| Capability                         | Evidence                                                                                                                                      |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Grounded RAG generation**        | Shared service under `scripts/assistant/generation/*` (orchestration, evidence packet, validation, diagnostics)                               |
+| **`POST /api/assistant/generate`** | `app/api/assistant/generate/route.ts`, `lib/assistant/api/handle-generate-post.ts`                                                            |
+| **Visitor `/assistant` UI**        | Conversational transcript + composer (`AssistantExperience` and related components)                                                           |
+| **Evaluation observability**       | `assistant_generation_evaluations`, fail-open API persist, review/cleanup CLIs — [evaluation-observability.md](./evaluation-observability.md) |
+| **Retrieval index**                | Drizzle + pgvector (`lib/assistant/db/*`, `db/schema.ts`); operator `okf:build`, `assistant:derive`, `assistant:ingest`, `assistant:retrieve` |
+
+Design background for the generation contract: [rag-generation-direction.md](./rag-generation-direction.md). Historical milestone: [archived grounded RAG plan](../../.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md).
+
+**Planned work (roadmap — not implied shipped).** Orchestration: [2026-10-30-assistant-roadmap.plan.md](../../.cursor/plans/2026-10-30-assistant-roadmap.plan.md).
+
+| Phase | Intent                                                                                                                                 | Status on `main`                               |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **0** | Reversible **maintenance mode** (public generation off)                                                                                | **Not shipped** — next implementation priority |
+| **1** | Generation **validation recovery** ([PR #107](https://github.com/mastermichaelt/portfolio/pull/107)) + observability already on `main` | **#107 open**                                  |
+| **2** | TypeScript **service consolidation** + **Zod** structural validation                                                                   | Queued after Phase 1                           |
+| **4** | Production **operational acceptance** and public **reopen** after maintenance                                                          | Queued                                         |
+
+**Public access today:** Generation and `/assistant` remain **enabled** until Phase 0 ships (see roadmap).
+
+**Current implementation (assistant dev tooling).** OKF normalization and the **retrieval index pipeline** are also shipped as CLIs outside the Next.js app bundle:
 
 - Producers under `scripts/assistant/okf/`; `npm run okf:build` writes an inspectable, gitignored corpus to `generated/okf/` (**production corpus scope** below; retrieval machinery validated in [vector retrieval experiment findings](./vector-retrieval-experiment.md)).
 - **Structure-aware retrieval-unit derivation** (`npm run assistant:derive`): 1..N units per OKF concept from markdown structure (headings, paragraph safeguards, fence-aware splits), deterministic `unit_id` / `content_hash`, parent `okf_concept_id`, chunk provenance.
 - **Embeddings + pgvector index** (`npm run assistant:ingest`): idempotent sync to Postgres (`assistant_retrieval_units`); operator workflow [assistant-database.md](./assistant-database.md).
-- **Inspectable retrieval** (`npm run assistant:retrieve`): top-K cosine search + provenance fields; stops before any LLM answer step.
+- **Inspectable retrieval** (`npm run assistant:retrieve`): top-K cosine search + provenance fields (operator smoke — stops before LLM answer step).
 - **Retrieval evaluation** (shipped): fixture harness against the ingested index when `DATABASE_URL` and `OPENAI_API_KEY` are set — retrieval quality only ([vector-retrieval-experiment.md](./vector-retrieval-experiment.md)).
+- **Grounded answers:** `POST /api/assistant/generate`, operator generation path, and `/assistant` UI (above).
 
-**Current implementation.** Answer generation, evidence assembly for LLM context, API routes, and visitor UI are **not implemented**. Future design considerations: [rag-generation-direction.md](./rag-generation-direction.md).
+When maintenance or consolidation phases land, the assistant layers on top of the existing site without redesigning it. Portfolio presentation continues through `PortfolioRepository` → `content/`; corpus producers normalize curated sources alongside selected repositories and published writing into the OKF pipeline.
 
-When built, the assistant layers on top of the existing site without redesigning it. Portfolio presentation continues through `PortfolioRepository` → `content/`; corpus producers normalize that curated source alongside selected repositories and published writing into the OKF pipeline.
+**Documentation reconciliation (deferred).** [cross-repository-source-inventory.md](./cross-repository-source-inventory.md) still lists RAG answer generation as not implemented (pre-existing drift). Reconcile in Phase 4 `plan-closure` — not referenced by Phase 0 maintenance instructions; does not block Phase 0.
 
 ## Corpus boundary
 
@@ -333,9 +357,9 @@ The first corpus-only experiments should use a lightweight grounding prompt (e.g
 
 ## Vector retrieval experiment (shipped)
 
-**Status:** Experiment archived 2026-10-08. Retrieval pipeline and eval harness are dev tooling on `main`. Answer generation remains out of scope.
+**Status:** Experiment archived 2026-10-08. Retrieval pipeline and eval harness remain dev tooling on `main`. **Grounded answer generation, the generate API, and `/assistant` shipped afterward** (grounded RAG milestone on `main`; see [Current implementation](#current-implementation) and roadmap).
 
-**Target pipeline (retrieval stage — implemented in dev tooling):**
+**Target pipeline (retrieval stage — implemented in dev tooling; generation stage shipped on `main`):**
 
 ```text
 Canonical portfolio sources (content/ + fixtures)
@@ -350,7 +374,9 @@ Postgres + pgvector (derived index only; exact cosine search)
         ↓
 Inspectable top-K evidence + provenance (assistant:retrieve CLI)
         ↓
-(retrieval-eval) → (future RAG generation — not implemented)
+Evidence assembly + grounded generation (shipped — API, service, /assistant UI)
+        ↓
+(retrieval-eval) + (generation-eval / observability on main)
 ```
 
 **Canonical vs derived:**
@@ -362,13 +388,15 @@ Inspectable top-K evidence + provenance (assistant:retrieve CLI)
 | Retrieval units      | No             | Derived at ingest             |
 | Embeddings / vectors | No             | Postgres (rebuildable)        |
 
-**Explicit non-goals for this experiment:** chatbot UI, answer generation, LangChain/LlamaIndex, ANN indexes (HNSW/IVFFlat), hybrid lexical+semantic search, public API routes.
+**Explicit non-goals for the retrieval-only experiment (historical):** chatbot UI, answer generation, LangChain/LlamaIndex, ANN indexes (HNSW/IVFFlat), hybrid lexical+semantic search, public API routes — at the time of the vector experiment. Generation and public API/UI were added in the later grounded RAG milestone.
 
 Closure findings: [vector-retrieval-experiment.md](./vector-retrieval-experiment.md).
 
-### Answer generation (future — not implemented)
+### Answer generation (shipped — roadmap follow-ons)
 
-**Architectural direction.** The retrieval experiment deliberately ends at ranked evidence. A later milestone adds **evidence assembly** (context packet for the LLM) and **grounded generation** (answer + citations + abstention). Parent-context expansion after chunk-level retrieval, token budgets, and split retrieval-vs-answer evaluation are **proposed options and open decisions** — not commitments — in [rag-generation-direction.md](./rag-generation-direction.md).
+**Current implementation.** Grounded **evidence assembly** and **generation** (answer + citations + abstention) ship on `main` via the shared generation service, `POST /api/assistant/generate`, and `/assistant`. Parent-context expansion, token budgets, and split retrieval-vs-answer evaluation remain **design options** in [rag-generation-direction.md](./rag-generation-direction.md).
+
+**Planned (roadmap, not duplicate milestones):** Phase 0 maintenance mode; Phase 1 validation recovery ([PR #107](https://github.com/mastermichaelt/portfolio/pull/107)); Phase 2 TypeScript consolidation + Zod; Phase 4 production acceptance and reopen. Full operational verification before public reopen: [Phase 4 production reopening](../../.cursor/plans/2026-10-30-assistant-04-production-reopening.plan.md).
 
 ## Boundaries that should remain true
 
@@ -389,7 +417,7 @@ These are **not** scheduled slices. They name areas future experiments may touch
 - Inspectable OKF corpus before embeddings — **shipped**
 - Retrieval-unit derivation from OKF knowledge — **shipped** (structure-aware 1:N; vector retrieval experiment)
 - Retrieval quality evaluation — **shipped** ([vector-retrieval-experiment.md](./vector-retrieval-experiment.md))
-- Evidence assembly + grounded answer generation — **not implemented**; design notes in [rag-generation-direction.md](./rag-generation-direction.md)
+- Evidence assembly + grounded answer generation — **shipped** on `main` (grounded RAG milestone); reliability, consolidation, and production acceptance per [roadmap](../../.cursor/plans/2026-10-30-assistant-roadmap.plan.md)
 - First end-to-end semantic RAG experiment (server-side, credentials required)
 - Citation / source presentation in responses and UI
 - Landing-page interaction (suggested questions, additive placement)
@@ -458,13 +486,13 @@ later experiments as justified:
 **Direction (2026-10-08, retrieval → generation boundary).**
 
 - Structure-aware units link chunk-level search to parent `okf_concept_id` — a natural hook for future parent-context expansion, but expansion is **not** an approved implementation requirement.
-- Retrieval-eval measures retrieval in isolation; grounded answer quality and abstention belong to a later generation milestone ([rag-generation-direction.md](./rag-generation-direction.md)).
+- Retrieval-eval measures retrieval in isolation; grounded answer quality and abstention are covered by generation paths and eval harnesses on `main` ([rag-generation-direction.md](./rag-generation-direction.md)).
 
 ## Changelog
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                 |
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-29 | Deferred future direction: automated corpus synchronization (production Neon index vs source repos); no implementation authorization                                                                                                                                                                                   |
+| 2026-10-30 | Reconcile **current implementation** with shipped RAG API/UI; distinguish roadmap phases 0–4; defer [cross-repository-source-inventory.md](./cross-repository-source-inventory.md) reconciliation to Phase 4 plan-closure                                                                                              |
 | 2026-10-12 | Point field-report follow-ons to rag-generation-direction (avoid duplicating hypotheses in this note)                                                                                                                                                                                                                  |
 | 2026-10-08 | Shipped cross-repository corpus ([cross-repository-source-inventory.md](./cross-repository-source-inventory.md), [archived plan](../../.cursor/plans/archive/2026-10-08-assistant-cross-repository-corpus.plan.md), [eval findings](./cross-repository-corpus-eval-findings.md)); superseded career-only plan archived |
 | 2026-10-08 | Archived [corpus coverage expansion](../../.cursor/plans/archive/2026-10-08-assistant-corpus-coverage-expansion.plan.md) — findings [corpus-coverage-expansion.md](./corpus-coverage-expansion.md); operator acceptance completed 2026-10-08                                                                           |
