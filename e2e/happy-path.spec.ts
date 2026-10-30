@@ -18,7 +18,7 @@ function devRowAccessibleName(ordinal: string): string {
       `articles e2e: line ${ordinal} has no secondary report row`,
     );
   }
-  return `${title} (opens in new tab)`;
+  return `${title} (opens in new tab) DEV ↗`;
 }
 
 const CODENAMES_FIELD_REPORTS_HEADING = (() => {
