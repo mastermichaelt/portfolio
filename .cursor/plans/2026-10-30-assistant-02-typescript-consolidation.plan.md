@@ -30,14 +30,14 @@ isProject: false
 
 ## Parent plan
 
-|                         |                                                                                                                                                                         |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)                                                                                          |
-| **Phase**               | **2** — TypeScript consolidation                                                                                                                                        |
-| **Phase objective**     | Shared TypeScript application services; correct dependency direction; Zod structural validation; preserve behavior (including Phase 1 recovery).                        |
-| **Entry criteria**      | Phase 1 complete on `main` ([01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md)).                                                       |
-| **Dependencies**        | **PR #107 merged** before `generation-services` / `zod-structural` (recovery baseline on `main`). Phase 0 policy recommended before production deploy of migration PRs. |
-| **Completion criteria** | [Phase 2 exit criteria](#phase-2-exit-criteria) and all slices through `architecture-verification`.                                                                     |
+|                         |                                                                                                                                                                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)                                                                                                                                                             |
+| **Phase**               | **2** — TypeScript consolidation                                                                                                                                                                                                           |
+| **Phase objective**     | Shared TypeScript application services; correct dependency direction; Zod structural validation; preserve behavior (including Phase 1 recovery).                                                                                           |
+| **Entry criteria**      | **Phase 0 complete** (maintenance shipped); **Phase 1 complete** on `main` ([01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md#phase-1-exit-criteria), including **#107 merged**).                         |
+| **Dependencies**        | **Merged #107 recovery baseline on `main`** before `generation-services` / `zod-structural`. Phase 0 before **any Phase 2 implementation** PRs. Phase 0 policy recommended before **production deploy** of migration PRs (deploy ≠ merge). |
+| **Completion criteria** | [Phase 2 exit criteria](#phase-2-exit-criteria) and all slices through `architecture-verification`.                                                                                                                                        |
 
 **Non-goals:** Prompt-quality experiments; retrieval tuning; OKF producer rewrites in one PR; replacing plain-Node `assistant:db:migrate` / `verify` / `baseline`; DI frameworks; separate backend `tsc` emit pipeline.
 

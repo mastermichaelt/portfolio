@@ -20,21 +20,21 @@ isProject: false
 
 ## Parent plan
 
-|                         |                                                                                                                                                                                                                                  |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)                                                                                                                                                   |
-| **Phase**               | **1** — Reliability & Observability                                                                                                                                                                                              |
-| **Phase objective**     | Confirm evaluation observability on `main`; merge generation validation recovery ([PR #107](https://github.com/mastermichaelt/portfolio/pull/107)); preserve evidence integrity and diagnostic compatibility with observability. |
-| **Entry criteria**      | Phase 0 shipped (recommended before production deploy of #107).                                                                                                                                                                  |
-| **Dependencies**        | Phase 0 maintenance policy; **#107 must merge before Phase 2** generation work.                                                                                                                                                  |
-| **Completion criteria** | Phase 1 exit criteria below; then `plan-closure` and roadmap Phase 1 marked complete.                                                                                                                                            |
+|                         |                                                                                                                                                                                                                                                                            |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)                                                                                                                                                                                             |
+| **Phase**               | **1** — Reliability & Observability                                                                                                                                                                                                                                        |
+| **Phase objective**     | Confirm evaluation observability on `main`; merge generation validation recovery ([PR #107](https://github.com/mastermichaelt/portfolio/pull/107)); preserve evidence integrity and diagnostic compatibility with observability.                                           |
+| **Entry criteria**      | Observability shipped on `main`; [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) in flight or merged. Phase 0 **not** required to merge #107. **Recommend** Phase 0 before **production deploy** of recovery — **merging #107 ≠ deploying to production**. |
+| **Dependencies**        | **#107 merged on `main`** before Phase 2 generation work (recovery baseline). Phase 0 governs **public** maintenance timing; it does **not** block #107 merge.                                                                                                             |
+| **Completion criteria** | [Phase 1 exit criteria](#phase-1-exit-criteria) satisfied (including #107 on `main`); then required `plan-closure` and roadmap Phase 1 marked complete.                                                                                                                    |
 
 ## Phase 1 exit criteria
 
-Phase 1 is **complete** when all of the following hold (production reopening **not** required):
+Phase 1 is **complete** when all of the following hold (production reopening **not** required; **Phase 0 complete not required** for this milestone):
 
 1. **`quality-observability`** implementation confirmed **shipped** on `main` (table, fail-open API persist, disclosure, review/cleanup CLIs, tests).
-2. **[PR #107](https://github.com/mastermichaelt/portfolio/pull/107) merged** on `main`.
+2. **[PR #107](https://github.com/mastermichaelt/portfolio/pull/107) merged** on `main` (merge may occur **before or after** Phase 0 ships; **Merge granted** required for agents to merge; merge is **not** production deploy).
 3. **Recovery and evidence-integrity tests pass** — including `tests/assistant-generation-recovery.test.ts`, contract/service/API generation tests.
 4. **Generation diagnostics remain compatible** with evaluation observability (PostHog generation events + evaluation row writes; no prompts or answer text in telemetry).
 5. **No known blocking generation reliability regression** remains for progression to Phase 2.

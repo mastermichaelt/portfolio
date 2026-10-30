@@ -96,7 +96,7 @@ Detail and acceptance criteria: [04-production-reopening — Transferred obligat
 | Tests                    | 27+ `tests/assistant-*.test.ts`, Vitest imports `.mjs` modules heavily                                                         |
 | Open reliability work    | [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) — validation recovery (**open**, not merged)                   |
 
-**Doc drift (non-blocking):** [architecture-direction.md](../../docs/assistant/architecture-direction.md) may still need minor alignment after Phase 4 `plan-closure`; [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md) updated 2026-10-30 to point at roadmap + archived grounded plan.
+**Architecture docs:** [architecture-direction.md](../../docs/assistant/architecture-direction.md) and [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md) were reconciled with shipped RAG in this PR (2026-10-30). No further alignment work is tracked here unless a later phase exposes a concrete gap.
 
 ---
 
@@ -137,8 +137,8 @@ Phase 0 → Phase 1 (01-quality-observability + #107) → Phase 2 (TS/Zod) → P
 | **Objective**      | Confirm evaluation observability shipped; complete generation validation recovery ([PR #107](https://github.com/mastermichaelt/portfolio/pull/107)); preserve evidence integrity and diagnostic compatibility with observability.                                                                                                                                         |
 | **Status**         | **In progress** (`quality-observability` shipped; `#107` open)                                                                                                                                                                                                                                                                                                            |
 | **Implementation** | [2026-10-29-assistant-01-quality-observability.plan.md](./2026-10-29-assistant-01-quality-observability.plan.md) — slice `generation-recovery-pr107` tracks **PR #107**                                                                                                                                                                                                   |
-| **Entry criteria** | Phase 0 shipped (recommended before production deploy of #107).                                                                                                                                                                                                                                                                                                           |
-| **Dependencies**   | Phase 0 for public-off policy; **#107 must merge before Phase 2** generation work.                                                                                                                                                                                                                                                                                        |
+| **Entry criteria** | Observability shipped on `main`; [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) open or in review. Phase 0 **not** required to merge #107. **Recommend** Phase 0 before **production deploy** of recovery (merge ≠ deploy).                                                                                                                              |
+| **Dependencies**   | **#107 merged on `main`** before Phase 2 generation migration (recovery baseline). Phase 0 maintenance policy applies to **public** generation timing; it does **not** gate #107 merge. Phase 1 **complete** when [exit criteria](./2026-10-29-assistant-01-quality-observability.plan.md#phase-1-exit-criteria) met (including #107 on `main`).                          |
 | **Exit criteria**  | See [Phase 1 exit criteria](./2026-10-29-assistant-01-quality-observability.plan.md#phase-1-exit-criteria): observability confirmed on `main`; #107 merged; recovery + evidence-integrity tests pass; diagnostics compatible with evaluation persist; no blocking reliability regression. **Production E2E eval verification is Phase 4, not required to close Phase 1.** |
 
 Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-assistant-01-quality-observability.plan.md#slice--generation-recovery-pr107).
@@ -152,22 +152,22 @@ Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-as
 | **Objective**      | TS-first reusable logic; Zod structural validation; retire obsolete test-only CLIs; keep operational ingest/DB tooling.                                                                                                                                                                                                                  |
 | **Status**         | Queued                                                                                                                                                                                                                                                                                                                                   |
 | **Implementation** | [2026-10-30-assistant-02-typescript-consolidation.plan.md](./2026-10-30-assistant-02-typescript-consolidation.plan.md)                                                                                                                                                                                                                   |
-| **Entry criteria** | Phase 1 complete on `main`.                                                                                                                                                                                                                                                                                                              |
-| **Dependencies**   | Phase 0–1; **PR #107 merged** before `generation-services` / `zod-structural` slices.                                                                                                                                                                                                                                                    |
+| **Entry criteria** | **Phase 0 complete** (maintenance shipped); **Phase 1 complete** on `main` ([exit criteria](./2026-10-29-assistant-01-quality-observability.plan.md#phase-1-exit-criteria), including **#107 merged**).                                                                                                                                  |
+| **Dependencies**   | Phase 0 before **any Phase 2 implementation** PRs; **merged #107 recovery baseline on `main`** before `generation-services` / `zod-structural` (port, do not reimplement).                                                                                                                                                               |
 | **Exit criteria**  | Child plan [exit criteria](./2026-10-30-assistant-02-typescript-consolidation.plan.md#phase-2-exit-criteria): TS generation under `lib/assistant/`; HTTP→lib only; Zod structural + separate evidence integrity; Phase 1 recovery preserved; `assistant:answer` retired; operational CLIs work; lint/typecheck/test/build; docs updated. |
 
 ---
 
 ## Phase 3 — Conversational UI verification
 
-|                    |                                                                                                          |
-| ------------------ | -------------------------------------------------------------------------------------------------------- |
-| **Objective**      | Reconcile and verify existing conversational UI against consolidated backend — **not** a full rebuild.   |
-| **Status**         | Implementation on `main`; verification queued after Phase 2 if API changes                               |
-| **Implementation** | [2026-10-29-assistant-03-conversational-ui.plan.md](./2026-10-29-assistant-03-conversational-ui.plan.md) |
-| **Entry criteria** | Phase 2 complete (prefer verify after Phase 2 if API changes).                                           |
-| **Dependencies**   | Phase 2 if generation envelope or errors change.                                                         |
-| **Exit criteria**  | UI verified against live API; grounding, citations, abstention, observability preserved.                 |
+|                    |                                                                                                                                                                                                                                                     |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Objective**      | Reconcile and verify existing conversational UI against consolidated backend — **not** a full rebuild.                                                                                                                                              |
+| **Status**         | Implementation on `main`; verification queued after Phase 2 if API changes                                                                                                                                                                          |
+| **Implementation** | [2026-10-29-assistant-03-conversational-ui.plan.md](./2026-10-29-assistant-03-conversational-ui.plan.md)                                                                                                                                            |
+| **Entry criteria** | Phase 2 complete (prefer verify after Phase 2 if API changes).                                                                                                                                                                                      |
+| **Dependencies**   | Phase 2 if generation envelope or errors change.                                                                                                                                                                                                    |
+| **Exit criteria**  | **Functional verification pass** against live API (grounding, citations, abstention, observability preserved). **`plan-closure`** (required docs-only archive PR) may follow verification — Phase 3 is not archived until `plan-closure` completes. |
 
 ---
 
@@ -205,7 +205,7 @@ Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-as
 
 ## Execution rules
 
-1. **One active implementation phase at a time** — at most one phase owns **new implementation PRs** landing on `main`. **Phase 0** is the **current implementation priority** ([00-maintenance-mode](./2026-10-30-assistant-00-maintenance-mode.plan.md)). **[PR #107](https://github.com/mastermichaelt/portfolio/pull/107)** already exists for Phase 1 recovery — **Phase 1 preparation and review may overlap Phase 0**; **do not close or recreate #107**. **Phase 1 completion** (merge #107 + [Phase 1 exit criteria](./2026-10-29-assistant-01-quality-observability.plan.md#phase-1-exit-criteria)) follows Phase 0's required gate (maintenance shipped per child plan). **Phase 2 cannot begin until Phase 1 is complete on `main`.** Later phases stay planned, not implemented early.
+1. **Sequencing and parallel work** — **Phase 0** is the **preferred immediate implementation priority** ([00-maintenance-mode](./2026-10-30-assistant-00-maintenance-mode.plan.md)). **[PR #107](https://github.com/mastermichaelt/portfolio/pull/107)** may be **reviewed and merged independently of Phase 0**; default agent authority remains **Open PR only** — **merge #107 only with explicit user authorization (Merge granted)**. **Do not conflate merging #107 with deploying recovery to production** (production deploy should follow Phase 0 maintenance policy when public generation is involved). **Phase 1 complete** when [Phase 1 exit criteria](./2026-10-29-assistant-01-quality-observability.plan.md#phase-1-exit-criteria) are satisfied, including **#107 merged on `main`**. **Phase 2 implementation** cannot begin until **Phase 0 is complete** and **Phase 1 is complete on `main`**; Phase 2 generation migration **must port the merged #107 recovery baseline** (no parallel reimplementation). At most one phase owns **new implementation PRs** to `main` at a time; later phases stay planned, not implemented early.
 2. **Small PRs** — clear objective, verification, rollback per slice.
 3. **Explicit dependencies** — prerequisites in child plans and above.
 4. **No automatic merging** — default **Open PR only**.
@@ -217,13 +217,14 @@ Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-as
 
 ## What we're working on now
 
-|                                |                                                                                                                                                                                                                       |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Now**                        | Phase 0 — [00-maintenance-mode](./2026-10-30-assistant-00-maintenance-mode.plan.md)                                                                                                                                   |
-| **In progress**                | Phase 1 — [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) / [PR #107](https://github.com/mastermichaelt/portfolio/pull/107)                                                       |
-| **Next after Phase 0**         | Complete Phase 1 exit criteria (merge #107)                                                                                                                                                                           |
-| **Blocked**                    | Phase 4 public reopen until Phases 0–2 (+ Phase 3 verify)                                                                                                                                                             |
-| **Active execution authority** | This roadmap + **one** child plan **implementation** slice at a time on `main` (Phase 1 **#107** may stay open for review while Phase 0 implements; merge #107 after Phase 0 gate — no duplicate with archived plans) |
+|                                |                                                                                                                                                                 |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Now**                        | Phase 0 — [00-maintenance-mode](./2026-10-30-assistant-00-maintenance-mode.plan.md)                                                                             |
+| **In progress**                | Phase 1 — [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) / [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) |
+| **Next after Phase 0**         | Phase 2 entry (Phase 0 + Phase 1 complete on `main`, including #107 merged)                                                                                     |
+| **Parallel (allowed)**         | Phase 0 implementation while **#107** is reviewed or merged (**Merge granted** required to merge #107; merge ≠ production deploy)                               |
+| **Blocked**                    | Phase 2 until Phase 0 **and** Phase 1 complete on `main`; Phase 4 public reopen until Phases 0–2 complete and Phase 3 verification pass                         |
+| **Active execution authority** | This roadmap + **one** child plan **implementation** slice at a time on `main` (default **Open PR only**; no duplicate recovery PR alongside #107)              |
 
 **First implementation slice:** `maintenance-mode` in [2026-10-30-assistant-00-maintenance-mode.plan.md](./2026-10-30-assistant-00-maintenance-mode.plan.md).
 

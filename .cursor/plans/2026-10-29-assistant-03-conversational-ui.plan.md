@@ -6,7 +6,7 @@ todos:
     content: "PR: session transcript, sticky composer, prose + inline [n] citations, Sources & attribution details; no API/RAG changes"
     status: completed
   - id: plan-closure
-    content: "Docs-only PR after conversational-ui merges — # Shipped note, archive plan, optional prior-art.md UX addendum"
+    content: "Required docs-only PR after Phase 3 verification pass — # Shipped note, archive plan, optional prior-art.md UX addendum"
     status: pending
 isProject: false
 ---
@@ -19,23 +19,23 @@ isProject: false
 
 ## Parent plan
 
-|                         |                                                                                           |
-| ----------------------- | ----------------------------------------------------------------------------------------- |
-| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)            |
-| **Phase**               | **3** — Conversational UI verification                                                    |
-| **Phase objective**     | Reconcile and verify conversational UI against consolidated backend (UI already shipped). |
-| **Entry criteria**      | Phase 2 complete, or verify immediately if API contract unchanged.                        |
-| **Dependencies**        | Phase 2 when generation API envelope changes.                                             |
-| **Completion criteria** | Verification pass; `plan-closure` optional; roadmap Phase 3 exit criteria met.            |
+|                         |                                                                                                                                                                                        |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)                                                                                                         |
+| **Phase**               | **3** — Conversational UI verification                                                                                                                                                 |
+| **Phase objective**     | Reconcile and verify conversational UI against consolidated backend (UI already shipped).                                                                                              |
+| **Entry criteria**      | Phase 2 complete, or verify immediately if API contract unchanged.                                                                                                                     |
+| **Dependencies**        | Phase 2 when generation API envelope changes.                                                                                                                                          |
+| **Completion criteria** | **Functional verification pass** (roadmap Phase 3 exit criteria); required **`plan-closure`** docs-only PR before this plan is archived — verification may pass before closure merges. |
 
-| Item                      | Status                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------ |
-| `conversational-ui` slice | **Shipped** on `main` (`AssistantExperience`, transcript/composer tests)       |
-| Phase 3 remaining work    | **Verify/reconcile** after Phase 2 if API contract changes — not greenfield UI |
-| `plan-closure`            | **Queued** after Phase 3 verification or Phase 4 docs bundle                   |
-| This plan                 | **Active** until archive closure                                               |
+| Item                      | Status                                                                                                                                                    |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `conversational-ui` slice | **Shipped** on `main` (`AssistantExperience`, transcript/composer tests)                                                                                  |
+| Phase 3 remaining work    | **Verify/reconcile** against live API after Phase 2 if API contract changes — not greenfield UI                                                           |
+| `plan-closure`            | **Required** after functional verification pass — docs-only `# Shipped` archive (may open after verification; **do not archive** until closure completes) |
+| This plan                 | **Active** until **`plan-closure`** completes                                                                                                             |
 
-Do not archive until `plan-closure` completes.
+**Phase 3 milestone vs archive:** Roadmap Phase 3 **exit** (functional verification) can be recorded **before** the `plan-closure` PR merges. **Do not move this plan to `archive/`** until **`plan-closure`** completes.
 
 **Goal:** Make `/assistant` feel like a **conversation** (visible turns, scrollable thread, persistent composer) while the backend remains **stateless** — one independent `POST /api/assistant/generate` per submitted question, no model memory, no streaming, no retrieval changes.
 
@@ -394,11 +394,11 @@ Implement in order within one slice; split into multiple PRs only if review size
 
 **Recommended authority:** Open PR only
 
-**Rationale:** Docs-only archival after **`conversational-ui`** merges; keeps `.cursor/plans/` for active work only.
+**Rationale:** Required docs-only archival after Phase 3 **functional verification pass**; keeps `.cursor/plans/` for active work only.
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Prerequisites:** **`conversational-ui`** merged on `main`.
+**Prerequisites:** **`conversational-ui`** shipped on `main`; roadmap Phase 3 **functional verification pass** recorded (closure PR may open in parallel with or after verification; archive only after this slice merges).
 
 **Deliverables:** `# Shipped` note; move plan to `.cursor/plans/archive/2026-10-29-assistant-03-conversational-ui.plan.md`; mark `plan-closure` completed; optional nyaomaru UX note in [prior-art.md](../../docs/assistant/prior-art.md).
 
@@ -452,13 +452,15 @@ Verification: npm run lint, typecheck, test; manual desktop + 375px; multi-turn 
 ```text
 @.cursor/plans/2026-10-29-assistant-03-conversational-ui.plan.md
 
-Plan-closure only after conversational-ui merges. Do not implement UI in this PR.
+Plan-closure only after Phase 3 functional verification pass (roadmap exit criteria). Do not implement UI in this PR.
 
 Authority: Open PR only — open docs PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
+Prerequisites: conversational-ui shipped on main; functional verification pass complete (Phase 3 exit may be marked before this PR merges — do not archive until plan-closure completes).
+
 Deliverables: # Shipped note; move plan to .cursor/plans/archive/2026-10-29-assistant-03-conversational-ui.plan.md; mark plan-closure completed; optional short UX paragraph in docs/assistant/prior-art.md (nyaomaru live UX observations); verify conversational-ui todo completed.
 
-Verification: confirm conversational-ui merged before archiving; plan-validator passes on active plans after archive move.
+Verification: confirm conversational-ui merged and verification pass recorded before archiving; plan-validator passes on active plans after archive move.
 ```
