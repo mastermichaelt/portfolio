@@ -18,8 +18,9 @@ import {
 import { requestChatCompletionJson } from "./openai-chat.mjs";
 import {
   buildGenerationMessages,
-  buildGenerationRetryUserMessage,
+  buildGenerationRetryUserMessageWithinBudget,
 } from "./prompt-templates.mjs";
+import { createChatRequestDeadline } from "./openai-chat.mjs";
 import {
   logGenerationRecoveryDiagnostics,
   resolveValidatedModelResponse,
@@ -483,6 +484,9 @@ export async function runRagGeneration(options) {
     }
 
     generationStarted = performance.now();
+    const generationDeadline = createChatRequestDeadline(
+      config.requestTimeoutMs,
+    );
     /** @type {import("./recover-generation-response.mjs").RecoveryDiagnostics} */
     let recoveryMeta = {
       deterministic_repair_applied: false,
@@ -492,6 +496,7 @@ export async function runRagGeneration(options) {
     };
 
     const runCompletionPass = async (userMessage) => {
+      generationDeadline.assertRemaining();
       return requestChatCompletionJson({
         system: messages.system,
         user: userMessage,
@@ -501,6 +506,7 @@ export async function runRagGeneration(options) {
         maxModelResponseJsonChars: config.maxModelResponseJsonChars,
         fetch: options.fetch,
         apiKey: options.apiKey,
+        deadline: generationDeadline,
       });
     };
 
@@ -516,12 +522,28 @@ export async function runRagGeneration(options) {
     let retryCompletion;
     if (!resolved.ok) {
       recoveryMeta.model_retry_attempted = true;
-      const retryUser = buildGenerationRetryUserMessage(
+      try {
+        generationDeadline.assertRemaining();
+      } catch (retryBudgetError) {
+        logGenerationRecoveryDiagnostics(recoveryMeta, resolved.errors);
+        throw retryBudgetError;
+      }
+
+      const retryPrompt = buildGenerationRetryUserMessageWithinBudget(
+        messages.system,
         messages.user,
         resolved.errors,
+        config.approximatePromptTokenBudget,
       );
+      if (!retryPrompt.ok) {
+        logGenerationRecoveryDiagnostics(recoveryMeta, resolved.errors);
+        throw new GenerationValidationError(
+          `Prompt exceeds approximate token budget (${retryPrompt.approximateTokens} > ${config.approximatePromptTokenBudget})`,
+        );
+      }
+
       try {
-        retryCompletion = await runCompletionPass(retryUser);
+        retryCompletion = await runCompletionPass(retryPrompt.user);
         const retryResolved = parseRepairAndResolveModelResponse({
           content: retryCompletion.content,
           packet,
@@ -540,6 +562,7 @@ export async function runRagGeneration(options) {
           completion = retryCompletion;
         } else {
           recoveryMeta = retryResolved.recovery;
+          resolved = retryResolved;
           logGenerationRecoveryDiagnostics(recoveryMeta, retryResolved.errors);
         }
       } catch (retryError) {

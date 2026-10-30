@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { assembleEvidencePacket } from "@/scripts/assistant/generation/evidence-packet.mjs";
-import { GenerationParseError } from "@/scripts/assistant/generation/errors.mjs";
+import { classifyGenerationFailure } from "@/scripts/assistant/generation/classify-generation-failure.mjs";
+import {
+  GenerationParseError,
+  GenerationValidationError,
+} from "@/scripts/assistant/generation/errors.mjs";
 import {
   buildSafeAbstentionModel,
   normalizeCitationsForPacket,
@@ -21,6 +25,13 @@ import {
   inferValidationStage,
 } from "@/scripts/assistant/generation/validation-issues.mjs";
 import { buildPublicUsageFromDiagnostics } from "@/lib/assistant/api/public-envelope";
+import { checkApproximatePromptTokenBudget } from "@/scripts/assistant/generation/generation-config.mjs";
+import {
+  ASSISTANT_GENERATION_SYSTEM_INSTRUCTIONS,
+  buildGenerationMessages,
+  buildGenerationRetryUserMessage,
+  buildGenerationRetryUserMessageWithinBudget,
+} from "@/scripts/assistant/generation/prompt-templates.mjs";
 
 function hit(rank: number, unitId: string, conceptId: string, text: string) {
   return {
@@ -755,6 +766,274 @@ describe("cumulative token usage on model retry", () => {
       prompt_tokens: 10,
       completion_tokens: 5,
       total_tokens: 115,
+    });
+  });
+});
+
+describe("shared generation timeout budget", () => {
+  const runConfig = {
+    evidenceCharacterBudget: 10_000,
+    approximatePromptTokenBudget: 50_000,
+  };
+
+  it("applies one timeout budget across initial and corrective completions", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const packet = await testEvidencePacket();
+      let calls = 0;
+      const fetch: typeof globalThis.fetch = vi.fn(async () => {
+        calls += 1;
+        if (calls === 1) {
+          return new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  message: { content: "not-json" },
+                  finish_reason: "stop",
+                },
+              ],
+              usage: {
+                prompt_tokens: 1,
+                completion_tokens: 1,
+                total_tokens: 2,
+              },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
+        }
+        await new Promise((resolve) => {
+          setTimeout(resolve, 500);
+        });
+        return new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: { content: goodEvidenceModelJson() },
+                finish_reason: "stop",
+              },
+            ],
+            usage: {
+              prompt_tokens: 1,
+              completion_tokens: 1,
+              total_tokens: 2,
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }) as typeof globalThis.fetch;
+
+      const promise = runRagGeneration({
+        question: "What is Alpha?",
+        evidencePacket: packet,
+        config: { ...runConfig, requestTimeoutMs: 400 },
+        fetch,
+        apiKey: TEST_OPENAI_API_KEY,
+      });
+
+      const rejection = expect(promise).rejects.toThrow(
+        /timed out after 400ms/,
+      );
+      await vi.advanceTimersByTimeAsync(500);
+      await rejection;
+      expect(calls).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not start a corrective retry after the shared budget is exhausted", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      let calls = 0;
+      const fetch: typeof globalThis.fetch = vi.fn(async () => {
+        calls += 1;
+        await new Promise((resolve) => {
+          setTimeout(resolve, 450);
+        });
+        return new Response(
+          JSON.stringify({
+            choices: [
+              { message: { content: "not-json" }, finish_reason: "stop" },
+            ],
+            usage: {
+              prompt_tokens: 1,
+              completion_tokens: 1,
+              total_tokens: 2,
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }) as typeof globalThis.fetch;
+
+      const promise = runRagGeneration({
+        question: "What is Alpha?",
+        noRetrieval: true,
+        config: { ...runConfig, requestTimeoutMs: 400 },
+        fetch,
+        apiKey: TEST_OPENAI_API_KEY,
+      });
+
+      const rejection = expect(promise).rejects.toThrow(
+        /timed out after 400ms/,
+      );
+      await vi.advanceTimersByTimeAsync(500);
+      await rejection;
+      expect(calls).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("corrective retry failure classification", () => {
+  const runConfig = {
+    evidenceCharacterBudget: 10_000,
+    approximatePromptTokenBudget: 50_000,
+  };
+
+  it("reports structural validation when retry JSON is valid but fails recovery", async () => {
+    const packet = await testEvidencePacket();
+    const invalidSchema = JSON.stringify({
+      claims: [{ text: "Bad lead", attribution: "not_a_valid_attribution" }],
+      support_level: "full",
+      abstained: false,
+    });
+
+    try {
+      await runRagGeneration({
+        question: "What is Alpha?",
+        evidencePacket: packet,
+        config: runConfig,
+        fetch: mockChatFetchWithCompletions([
+          { content: "not-json" },
+          { content: invalidSchema },
+        ]),
+        apiKey: TEST_OPENAI_API_KEY,
+      });
+      expect.unreachable("expected generation to fail");
+    } catch (error) {
+      expect(error).toBeInstanceOf(GenerationValidationError);
+      expect(classifyGenerationFailure(error).failure_category).toBe(
+        "structural_validation",
+      );
+    }
+  });
+
+  it("reports malformed JSON when the retry response is not JSON", async () => {
+    const packet = await testEvidencePacket();
+    const invalidSchema = JSON.stringify({
+      claims: [{ text: "Bad lead", attribution: "not_a_valid_attribution" }],
+      support_level: "full",
+      abstained: false,
+    });
+
+    try {
+      await runRagGeneration({
+        question: "What is Alpha?",
+        evidencePacket: packet,
+        config: runConfig,
+        fetch: mockChatFetchWithCompletions([
+          { content: invalidSchema },
+          { content: "still-not-json" },
+        ]),
+        apiKey: TEST_OPENAI_API_KEY,
+      });
+      expect.unreachable("expected generation to fail");
+    } catch (error) {
+      expect(error).toBeInstanceOf(GenerationParseError);
+      expect(classifyGenerationFailure(error).failure_category).toBe(
+        "malformed_json",
+      );
+    }
+  });
+});
+
+describe("corrective retry prompt budget", () => {
+  it("truncates validation feedback before exceeding the approximate token budget", () => {
+    const baseUser = `Question:\n${"x".repeat(120)}\n\nEvidence packet:\n(no evidence entries)`;
+    const errors = Array.from(
+      { length: 12 },
+      (_, index) => `validation issue ${index}: ${"detail ".repeat(30)}`,
+    );
+
+    const result = buildGenerationRetryUserMessageWithinBudget(
+      ASSISTANT_GENERATION_SYSTEM_INSTRUCTIONS,
+      baseUser,
+      errors,
+      900,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(
+        checkApproximatePromptTokenBudget(
+          ASSISTANT_GENERATION_SYSTEM_INSTRUCTIONS,
+          result.user,
+          900,
+        ).ok,
+      ).toBe(true);
+      expect(result.user.length).toBeLessThan(
+        buildGenerationRetryUserMessage(baseUser, errors).length,
+      );
+    }
+  });
+
+  it("returns ok false when the base retry prompt alone exceeds the budget", () => {
+    const baseUser = `Question:\n${"z".repeat(40_000)}`;
+    const result = buildGenerationRetryUserMessageWithinBudget(
+      ASSISTANT_GENERATION_SYSTEM_INSTRUCTIONS,
+      baseUser,
+      ["claims[0].text must be a non-empty string"],
+      100,
+    );
+    expect(result.ok).toBe(false);
+  });
+
+  it("throws when corrective retry prompt exceeds the configured budget", async () => {
+    const packet = await testEvidencePacket();
+    const { system, user } = buildGenerationMessages("What is Alpha?", packet);
+    const errors = Array.from(
+      { length: 12 },
+      (_, index) => `claims[${index}] validation detail ${"x".repeat(180)}`,
+    );
+
+    let tightBudget = 0;
+    for (let budget = 500; budget <= 50_000; budget += 25) {
+      const initialFits = checkApproximatePromptTokenBudget(
+        system,
+        user,
+        budget,
+      ).ok;
+      const retryFits = buildGenerationRetryUserMessageWithinBudget(
+        system,
+        user,
+        errors,
+        budget,
+      ).ok;
+      if (initialFits && !retryFits) {
+        tightBudget = budget;
+        break;
+      }
+    }
+    expect(tightBudget).toBeGreaterThan(0);
+
+    await expect(
+      runRagGeneration({
+        question: "What is Alpha?",
+        evidencePacket: packet,
+        config: {
+          evidenceCharacterBudget: 10_000,
+          approximatePromptTokenBudget: tightBudget,
+        },
+        fetch: mockChatFetchWithCompletions([{ content: "not-json" }]),
+        apiKey: TEST_OPENAI_API_KEY,
+      }),
+    ).rejects.toSatisfy((error: unknown) => {
+      return (
+        error instanceof GenerationValidationError &&
+        classifyGenerationFailure(error).failure_category ===
+          "prompt_budget_exceeded"
+      );
     });
   });
 });
