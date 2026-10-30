@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { articles } from "../content/articles";
+
 async function expectPrimaryNav(page: Page) {
   const nav = page.getByRole("navigation", { name: "Primary" });
   await expect(nav.getByRole("link", { name: "Projects" })).toBeVisible();
@@ -925,7 +927,7 @@ test.describe("portfolio happy path", () => {
         name: "Editorial workflow",
         system: "editorial",
         first: "One card reaches Drafting",
-        last: "15 reports, published by hand",
+        last: `${articles.length} reports, published by hand`,
       },
       {
         name: "This portfolio",

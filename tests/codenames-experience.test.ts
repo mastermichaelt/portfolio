@@ -118,10 +118,10 @@ describe("codenames scroll experience content", () => {
     const expected = articles
       .filter((article) => article.relatedProjectSlug === "codenames-ai")
       .map((article) => article.url);
-    expect(expected).toHaveLength(4);
+    expect(expected).toHaveLength(5);
 
     const reports = codenamesExperience.doors.reasoning.reports;
-    expect(reports).toHaveLength(4);
+    expect(reports).toHaveLength(5);
     expect(new Set(reports.map((report) => report.url))).toEqual(
       new Set(expected),
     );
@@ -130,7 +130,7 @@ describe("codenames scroll experience content", () => {
       reports.some((report) => /The board came back/i.test(report.title)),
     ).toBe(true);
     expect(codenamesExperience.doors.reasoning.title).toBe(
-      "Four field reports",
+      "Five field reports",
     );
   });
 

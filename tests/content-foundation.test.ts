@@ -152,19 +152,19 @@ describe("content-foundation inventory", () => {
       expect(lineIds).toContain(article.line);
     }
 
-    // Membership counts are 3 / 3 / 4 / 3 / 2, and total 15.
+    // Membership counts are 3 / 6 / 5 / 5 / 2, and total 21.
     const counts = Object.fromEntries(lineIds.map((id) => [id, 0]));
     for (const article of listed) {
       counts[article.line] += 1;
     }
     expect(counts).toEqual({
       measurement: 3,
-      authority: 3,
-      critique: 4,
-      readiness: 3,
+      authority: 6,
+      critique: 5,
+      readiness: 5,
       portability: 2,
     });
-    expect(listed.length).toBe(15);
+    expect(listed.length).toBe(21);
 
     // Exactly one lead per line, each with a non-empty argument.
     for (const id of lineIds) {

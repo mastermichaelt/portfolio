@@ -2,7 +2,7 @@ import type { Article } from "@/domain/article";
 
 /**
  * Curated DEV.to inventory synced from sibling hub
- * `editorial-workflow/docs/dev.to/published/` (15 posts; portfolio lists full corpus).
+ * `editorial-workflow/docs/dev.to/published/` (21 posts; portfolio lists full corpus).
  * Titles/URLs from frontmatter; summaries compressed from openings — no invented claims.
  * `featured` marks the homepage selected-writing set (`content/homepage.ts`
  * `writing[]` slugs); project pages filter via `relatedProjectSlug`.
@@ -50,6 +50,16 @@ export const articles: Article[] = [
     line: "measurement",
   },
   {
+    slug: "records-first-chart-second-the-sankey-disagreed",
+    title: "I visualised my job search. The data model started breaking.",
+    summary:
+      "Visualizing application history forced records-first modeling before a Sankey chart could agree with irregular lifecycles.",
+    year: 2026,
+    tags: ["ai", "programming", "analytics"],
+    url: "https://dev.to/michaeltruong/records-first-chart-second-the-sankey-disagreed-3841",
+    line: "measurement",
+  },
+  {
     slug: "evidence-driven-dependency-upgrades",
     title: "Upgrades don't have to be a blind trust exercise",
     summary:
@@ -84,7 +94,17 @@ export const articles: Article[] = [
     line: "critique",
     lineLead: true,
     argument:
-      "After fixing score-first critique, further reviewer gains came from separating kinds of reasoning rather than expanding the rubric.",
+      "Passing a score, a rubric, or a retrieval fixture is one kind of judgment; product-ready output still needs separate editorial and configuration decisions.",
+  },
+  {
+    slug: "the-retrieval-pipeline-worked-the-product-question-remained",
+    title: "The retrieval pipeline worked. The product question remained.",
+    summary:
+      "A retrieval stage could pass its fixtures while the product still lacked an answer about what grounded generation should do.",
+    year: 2026,
+    tags: ["ai", "agents", "webdev"],
+    url: "https://dev.to/michaeltruong/the-retrieval-pipeline-worked-the-product-question-remained-80c",
+    line: "critique",
   },
   {
     slug: "agent-plans-authority-handoffs",
@@ -99,7 +119,28 @@ export const articles: Article[] = [
     line: "authority",
     lineLead: true,
     argument:
-      "Multi-slice agent plans need explicit authority handoffs and stop lines — not only implementation checklists.",
+      "Agent work needs explicit stop lines and guardrails you can verify — in plans, in git hooks, and in host lifecycle boundaries — not checklists that only read well in review.",
+  },
+  {
+    slug: "we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable",
+    title:
+      "We made our agent plans portable. Then we had to make them verifiable.",
+    summary:
+      "Sharing planning methodology across repositories still required knowing each repo's plans matched the shared rules.",
+    year: 2026,
+    tags: ["ai", "workflow", "governance"],
+    url: "https://dev.to/michaeltruong/we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable-3ead",
+    line: "authority",
+  },
+  {
+    slug: "hook-availability-was-split-from-product-enforcement-after-silent-skip",
+    title: "Git said the commit succeeded. My hooks never ran.",
+    summary:
+      "A successful commit with no Husky run exposed hook availability as a separate layer from product enforcement.",
+    year: 2026,
+    tags: ["ai", "agents", "workflow", "governance"],
+    url: "https://dev.to/michaeltruong/git-said-the-commit-succeeded-my-hooks-never-ran-49e2",
+    line: "authority",
   },
   {
     slug: "active-players-which-sessions-counted",
@@ -114,7 +155,7 @@ export const articles: Article[] = [
     line: "measurement",
     lineLead: true,
     argument:
-      "A healthy-looking Active players tile forced a sharper question about which sessions belonged in the metric.",
+      "A healthy-looking number or funnel only means what your inclusion rules say it means — whether that is which sessions count as active or which hiring transitions belong in history.",
   },
   {
     slug: "one-example-beats-style-guide",
@@ -128,17 +169,6 @@ export const articles: Article[] = [
     line: "critique",
   },
   {
-    slug: "schema-first-valid-json-wasnt-enough",
-    title: "Schema first, prompt second: valid JSON wasn't enough",
-    summary:
-      "Structured outputs and Zod catch shape errors, but board-legal moves need domain validation beyond valid JSON.",
-    year: 2026,
-    tags: ["ai", "typescript", "validation"],
-    url: "https://dev.to/michaeltruong/schema-first-prompt-second-valid-json-wasnt-enough-3nhm",
-    relatedProjectSlug: "codenames-ai",
-    line: "measurement",
-  },
-  {
     slug: "experiment-repos-need-first-class-retirement-semantics",
     title:
       "Throwaway experiments are easy to start. Retiring one safely is not",
@@ -147,6 +177,16 @@ export const articles: Article[] = [
     year: 2026,
     tags: ["ai", "agents", "workflow"],
     url: "https://dev.to/michaeltruong/throwaway-experiments-are-easy-to-start-retiring-one-safely-is-not-2afe",
+    line: "authority",
+  },
+  {
+    slug: "the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed",
+    title: "The agent host didn't have the lifecycle boundaries I assumed",
+    summary:
+      "Integrating Savepoints exposed lifecycle boundaries the agent host did not actually provide.",
+    year: 2026,
+    tags: ["ai", "agents", "workflow"],
+    url: "https://dev.to/michaeltruong/the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed-5akh",
     line: "authority",
   },
   {
@@ -161,7 +201,30 @@ export const articles: Article[] = [
     line: "readiness",
     lineLead: true,
     argument:
-      "Coming back should restore what the product has accepted as true, not whatever was on screen — the persistence boundary is semantic, not architectural.",
+      "Shipping means honoring what the product has accepted as true — persisted state, requirements QA, and the runtime model — not green pipelines or plausible generated content.",
+  },
+  {
+    slug: "schema-first-valid-json-wasnt-enough",
+    title: "Schema first, prompt second: valid JSON wasn't enough",
+    summary:
+      "Structured outputs and Zod catch shape errors, but board-legal moves need domain validation beyond valid JSON.",
+    year: 2026,
+    tags: ["ai", "typescript", "validation"],
+    url: "https://dev.to/michaeltruong/schema-first-prompt-second-valid-json-wasnt-enough-3nhm",
+    relatedProjectSlug: "codenames-ai",
+    line: "readiness",
+  },
+  {
+    slug: "ai-made-translation-cheap-localization-still-needed-human-judgment",
+    title:
+      "AI made translation cheap. The hard part was knowing what architecture to keep.",
+    summary:
+      "Machine translation made new locales cheap while product architecture still needed human judgment about what to keep.",
+    year: 2026,
+    tags: ["ai", "webdev", "programming"],
+    url: "https://dev.to/michaeltruong/ai-made-translation-cheap-the-hard-part-was-knowing-what-architecture-to-keep-4hp3",
+    relatedProjectSlug: "codenames-ai",
+    line: "readiness",
   },
   {
     slug: "agent-portability-does-not-require-centralizing-methodology-behind-mcp",

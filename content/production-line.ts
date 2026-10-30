@@ -1,3 +1,4 @@
+import { articles } from "@/content/articles";
 import type { ProductionLine } from "@/domain/production-line";
 
 /**
@@ -140,7 +141,7 @@ export const productionLine: ProductionLine = {
         },
         {
           stageId: "evidence",
-          title: "15 reports, published by hand",
+          title: `${articles.length} reports, published by hand`,
           body: "Weekly cadence held; the irreversible publish step stayed with a person every time.",
         },
       ],

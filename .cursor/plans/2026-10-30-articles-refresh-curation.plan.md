@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: slice-content
     content: "PR2 (portfolio): Sync 21 articles (+6, move schema-first, refresh four line arguments, mandatory authority band note, dependent site copy/tests/e2e, fixtures/registry/tests) via articles-curation skill; Open PR only."
-    status: pending
+    status: completed
   - id: slice-editorial
     content: "PR3 (editorial-workflow): Extend editor-publish post-publish flow to invoke destination curation skill (portfolio default); fail-open skip report; runbook + optional dev.to README; Open PR only."
     status: pending

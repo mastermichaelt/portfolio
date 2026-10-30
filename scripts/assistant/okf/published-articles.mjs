@@ -34,6 +34,18 @@ export const PUBLISHED_ARTICLE_HUB_FILES = {
     "ai-changed-the-build-vs-buy-threshold.md",
   "skills-should-own-capabilities-not-individual-actions":
     "skills-should-own-capabilities-not-individual-actions.md",
+  "we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable":
+    "we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable.md",
+  "hook-availability-was-split-from-product-enforcement-after-silent-skip":
+    "hook-availability-was-split-from-product-enforcement-after-silent-skip.md",
+  "the-retrieval-pipeline-worked-the-product-question-remained":
+    "the-retrieval-pipeline-worked-the-product-question-remained.md",
+  "records-first-chart-second-the-sankey-disagreed":
+    "records-first-chart-second-the-sankey-disagreed.md",
+  "the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed":
+    "the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed.md",
+  "ai-made-translation-cheap-localization-still-needed-human-judgment":
+    "ai-made-translation-cheap-localization-still-needed-human-judgment.md",
 };
 
 export const PUBLISHED_ARTICLES_DIR = path.join(FIXTURES_DIR, "published");

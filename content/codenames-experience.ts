@@ -48,7 +48,7 @@ const board: BoardTile[] = [
   { word: "OPERA", zh: "雪崩", team: "assassin" },
 ];
 
-/** Field reports tagged to this project, resolved from articles (exactly four). */
+/** Field reports tagged to this project, resolved from articles by slug. */
 const RELATED_SLUG = "codenames-ai";
 const doorReports: DoorReport[] = articles
   .filter((article) => article.relatedProjectSlug === RELATED_SLUG)

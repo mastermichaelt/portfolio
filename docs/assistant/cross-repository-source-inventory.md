@@ -43,7 +43,7 @@ Research artifact for **cross-repository knowledge coverage** before RAG generat
 | `ecosystem-producer`    | `ecosystem.ts`                                             | `portfolio/ecosystem-*` | 4                  |
 | `about-producer`        | `about.ts`                                                 | `about/`                | 9                  |
 | `repo-producer`         | Pinned `tests/fixtures/assistant-okf/renovate-workflow.md` | `repo/`                 | 5                  |
-| `dev-producer`          | Pinned `tests/fixtures/assistant-okf/published/*.md` (15)  | `writing/`              | 30                 |
+| `dev-producer`          | Pinned `tests/fixtures/assistant-okf/published/*.md` (21)  | `writing/`              | 30                 |
 
 `content-source-registry.mjs` pins hashes for `about`, `articles`, `supporting-cases`, `project-cases`, `ecosystem` only.
 
