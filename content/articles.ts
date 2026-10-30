@@ -122,17 +122,6 @@ export const articles: Article[] = [
       "Agent work needs explicit stop lines and guardrails you can verify — in plans, in git hooks, and in host lifecycle boundaries — not checklists that only read well in review.",
   },
   {
-    slug: "we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable",
-    title:
-      "We made our agent plans portable. Then we had to make them verifiable.",
-    summary:
-      "Sharing planning methodology across repositories still required knowing each repo's plans matched the shared rules.",
-    year: 2026,
-    tags: ["ai", "workflow", "governance"],
-    url: "https://dev.to/michaeltruong/we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable-3ead",
-    line: "authority",
-  },
-  {
     slug: "hook-availability-was-split-from-product-enforcement-after-silent-skip",
     title: "Git said the commit succeeded. My hooks never ran.",
     summary:
@@ -238,6 +227,17 @@ export const articles: Article[] = [
     lineLead: true,
     argument:
       "Portability is a question of ownership and lifecycle, not a service boundary.",
+  },
+  {
+    slug: "we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable",
+    title:
+      "We made our agent plans portable. Then we had to make them verifiable.",
+    summary:
+      "Distributing planning methodology across separate repositories still left structural drift until deterministic plan checks could compare each repo to the shared rules.",
+    year: 2026,
+    tags: ["ai", "workflow", "governance"],
+    url: "https://dev.to/michaeltruong/we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable-3ead",
+    line: "portability",
   },
   {
     slug: "ai-workflows-need-a-requirements-qa-stage",

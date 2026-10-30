@@ -12,7 +12,7 @@ import type { ArticleLineDefinition } from "@/domain/article";
  * `pairs` is the project-tier pairing shown in each band head, verbatim from
  * `docs/archive/content-evidence-migration.md` §5.I; `note` is the band note for the two
  * lines whose reports carry no single system (handoff §4). Membership lives on
- * each `Article.line` in `content/articles.ts`; the counts are 3 / 6 / 5 / 5 / 2.
+ * each `Article.line` in `content/articles.ts`; the counts are 3 / 5 / 5 / 5 / 3.
  */
 export const articleLines: ArticleLineDefinition[] = [
   {
@@ -40,7 +40,7 @@ export const articleLines: ArticleLineDefinition[] = [
     id: "portability",
     label: "Agent Portability",
     pairs: "agent-native / editorial",
-    note: "Neither report here documents a single system — they describe how agent setups move between projects. The line is paired, the rows are not.",
+    note: "These reports describe how agent setups and shared methodology move between projects — not a single product surface. The line is paired; the rows are not.",
   },
 ];
 
