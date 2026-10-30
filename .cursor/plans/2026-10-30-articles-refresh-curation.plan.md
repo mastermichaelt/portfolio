@@ -93,7 +93,15 @@ Summaries: one sentence each, compressed from opening/takeaway — same discipli
 
 ---
 
-## PR1 — Portfolio curation skill (`mastermichaelt/portfolio`)
+## Slice — slice-skill
+
+**Recommended authority:** Open PR only
+
+**Rationale:**
+
+- Reusable articles-curation skill must land before the one-time 21-article sync so editorial post-publish can invoke a stable procedure.
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
 
 **Goal:** Lightweight, **plan-independent**, independently invocable skill that keeps `content/articles.ts` aligned with hub published markdown.
 
@@ -125,7 +133,17 @@ Mark `slice-skill` **completed** in plan frontmatter in the same PR.
 
 ---
 
-## PR2 — Portfolio content refresh (`mastermichaelt/portfolio`)
+## Slice — slice-content
+
+**Recommended authority:** Open PR only
+
+**Rationale:**
+
+- Curated `/articles` inventory must match all 21 published DEV field reports with locked taxonomy and assistant fixtures.
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Prerequisite:** `slice-skill` merged.
 
 **Goal:** Execute the articles-curation skill to land **21** curated articles matching the taxonomy table above.
 
@@ -151,7 +169,17 @@ Mark `slice-content` **completed** in plan frontmatter in the same PR.
 
 ---
 
-## PR3 — Editorial post-publish curation (`multipliers-dev/editorial-workflow`)
+## Slice — slice-editorial
+
+**Recommended authority:** Open PR only
+
+**Rationale:**
+
+- Post-publish must invoke destination curation fail-open so portfolio stays in sync without blocking Notion/DEV close-loop.
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Prerequisite:** `slice-content` merged.
 
 **Goal:** Make **destination curation** a standard step in the existing **post-publication** flow (`editor-publish` §5), not an optional reminder. **Fail-open:** publication close-loop succeeds even when curation cannot run.
 
@@ -214,14 +242,23 @@ Mark `slice-editorial` **completed** in plan frontmatter in the same PR.
 
 ---
 
-## Plan closure (docs-only PR)
+## Slice — plan-closure
 
-After PR3 merges:
+**Recommended authority:** Open PR only
 
-1. Verify implementation todos `completed`
-2. Add `# Shipped` closure note at top of plan body
-3. Move to `.cursor/plans/archive/2026-10-30-articles-refresh-curation.plan.md`
-4. Mark `plan-closure` completed; update agent prompt paths to archived location
+**Rationale:**
+
+- Docs-only archival after all implementation slices merge, per planning standards.
+
+**Agent instruction:** Do not merge. Stop after opening the PR.
+
+**Prerequisites:** `slice-skill`, `slice-content`, and `slice-editorial` merged and marked `completed` in frontmatter.
+
+**Goal:** `# Shipped` closure note; move plan to `.cursor/plans/archive/2026-10-30-articles-refresh-curation.plan.md`; update agent prompt `@` paths to archived location.
+
+**Acceptance:** Plan validator passes on archived file; all implementation todos `completed`.
+
+**Verification:** `npm run validate:plans` if run locally; CI validate job green.
 
 ---
 
