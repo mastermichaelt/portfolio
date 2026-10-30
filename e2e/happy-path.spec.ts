@@ -1,6 +1,25 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { articles, codenamesTaggedArticleCount } from "../content/articles";
+import { articleLines, resolveArticleSystem } from "../content/article-lines";
+import { groupArticleLines } from "../lib/article-lines";
+
+const ARTICLE_LINE_BANDS = groupArticleLines(
+  articleLines,
+  articles,
+  resolveArticleSystem,
+);
+
+function devRowAccessibleName(ordinal: string): string {
+  const band = ARTICLE_LINE_BANDS.find((entry) => entry.ordinal === ordinal);
+  const title = band?.reports[0]?.article.title;
+  if (!title) {
+    throw new Error(
+      `articles e2e: line ${ordinal} has no secondary report row`,
+    );
+  }
+  return `${title} (opens in new tab)`;
+}
 
 const CODENAMES_FIELD_REPORTS_HEADING = (() => {
   const count = codenamesTaggedArticleCount;
@@ -569,14 +588,10 @@ test.describe("portfolio happy path", () => {
 
     await expect(
       page.locator("#line-01 a.aline-row").first(),
-    ).toHaveAccessibleName(
-      /Active players looked real.*DEV \(opens in new tab\)$/,
-    );
+    ).toHaveAccessibleName(devRowAccessibleName("01"));
     await expect(
       page.locator("#line-05 a.aline-row").first(),
-    ).toHaveAccessibleName(
-      /^I expected pair programming .*\(opens in new tab\)$/,
-    );
+    ).toHaveAccessibleName(devRowAccessibleName("05"));
     //    lighter sixth cell: the filler recedes it to the page ground (--bg),
     //    which equals the body background. Checked by resolved color, not pixels.
     await page.setViewportSize({ width: 900, height: 900 });

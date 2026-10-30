@@ -7,7 +7,7 @@ export const OKF_CONTENT_SOURCES = [
   {
     path: "content/about.ts",
     producer: "scripts/assistant/okf/about-producer.mjs",
-    sha256: "676805aa3cea95df85c26249f74b98e32ba47c51c94840bbaebe6ef45aeb3761",
+    sha256: "b9405442328eed2a5290adb4c8c1ffa3fee4f708a866436b13e4fab6961c9b8a",
   },
   {
     path: "content/articles.ts",
@@ -22,7 +22,7 @@ export const OKF_CONTENT_SOURCES = [
   {
     path: "content/project-cases.ts",
     producer: "scripts/assistant/okf/project-case-producer.mjs",
-    sha256: "bd42542e7299c2bb566e7f0cceebb6739ad9a2583bc2064ec61ce12b50abd83b",
+    sha256: "640c8442ae2a8e33eeffb22ce38e03087581caf380ec472c0eda54a967f84ad9",
   },
   {
     path: "content/ecosystem.ts",
