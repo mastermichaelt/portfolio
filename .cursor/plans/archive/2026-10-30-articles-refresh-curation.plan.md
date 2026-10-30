@@ -10,12 +10,25 @@ todos:
     status: completed
   - id: slice-editorial
     content: "PR3 (editorial-workflow): Extend editor-publish post-publish flow to invoke destination curation skill (portfolio default); fail-open skip report; runbook + optional dev.to README; Open PR only."
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after PR3 merges: verify editorial-workflow PR merged (gh), mark slice-editorial completed in portfolio frontmatter, verify todos, # Shipped note, archive plan."
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-10-30.** Cross-repo implementation complete; editorial PR attested via `gh` on `multipliers-dev/editorial-workflow`.
+
+| Slice           | Delivered                                                                                                                                                            |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| slice-skill     | [PR #113](https://github.com/mastermichaelt/portfolio/pull/113) — `.cursor/skills/articles-curation/SKILL.md` (plan-independent reconciliation procedure)            |
+| slice-content   | [PR #114](https://github.com/mastermichaelt/portfolio/pull/114) — 21 curated articles (3/5/5/5/3), fixtures, dependent site copy/tests/e2e                           |
+| slice-editorial | [editorial-workflow PR #31](https://github.com/multipliers-dev/editorial-workflow/pull/31) — **editor-publish** §5 destination curation (fail-open); runbook step 13 |
+| plan-closure    | This archive; all implementation todos **completed**                                                                                                                 |
+
+Ongoing inventory sync: invoke `@.cursor/skills/articles-curation/SKILL.md` (no active plan required). Post-publish: hub **editor-publish** §5.
 
 # Articles refresh and editorial curation
 
@@ -28,7 +41,7 @@ isProject: false
 | slice-editorial | Open PR only          | Do not merge. Stop after opening the PR. |
 | plan-closure    | Open PR only          | Do not merge. Stop after opening the PR. |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md)).
 
 ## Scope
 
@@ -289,7 +302,7 @@ Use a **fresh Agent-mode chat** per slice.
 ### slice-skill
 
 ```text
-@.cursor/plans/2026-10-30-articles-refresh-curation.plan.md
+@.cursor/plans/archive/2026-10-30-articles-refresh-curation.plan.md
 
 Implement slice-skill only. Do not start slice-content, slice-editorial, or plan-closure.
 
@@ -305,7 +318,7 @@ Verification: Skill readable and self-contained; portfolio tests green if any tr
 ### slice-content
 
 ```text
-@.cursor/plans/2026-10-30-articles-refresh-curation.plan.md
+@.cursor/plans/archive/2026-10-30-articles-refresh-curation.plan.md
 
 Implement slice-content only. Prerequisite: slice-skill merged. Do not start slice-editorial or plan-closure.
 
@@ -321,7 +334,7 @@ Verification: npm run lint, typecheck, format:check, test; npm run build and e2e
 ### slice-editorial
 
 ```text
-@.cursor/plans/2026-10-30-articles-refresh-curation.plan.md
+@.cursor/plans/archive/2026-10-30-articles-refresh-curation.plan.md
 
 Implement slice-editorial only. Prerequisite: slice-content merged. Do not start plan-closure.
 
@@ -337,7 +350,7 @@ Verification: npm test && npm run typecheck in editorial-workflow.
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-10-30-articles-refresh-curation.plan.md
+@.cursor/plans/archive/2026-10-30-articles-refresh-curation.plan.md
 
 Execute only plan-closure.
 
