@@ -2,47 +2,102 @@ import { describe, expect, it } from "vitest";
 
 import {
   ASSISTANT_PUBLIC_DISABLED_MESSAGE,
+  AssistantPublicEnabledConfigError,
   resolveAssistantApiConfig,
+  resolveAssistantPublicEnabled,
 } from "@/lib/assistant/api/config";
+import {
+  ASSISTANT_PAGE_ENABLED_DESCRIPTION,
+  ASSISTANT_PAGE_MAINTENANCE_DESCRIPTION,
+  buildAssistantPageMetadata,
+} from "@/lib/assistant/page-metadata";
 
-describe("resolveAssistantApiConfig publicEnabled", () => {
+const envWithInvalidApiBodyLimit = {
+  ...process.env,
+  ASSISTANT_PUBLIC_ENABLED: "false",
+  ASSISTANT_API_MAX_BODY_BYTES: "not-a-number",
+};
+
+describe("resolveAssistantPublicEnabled", () => {
   it("defaults to enabled when ASSISTANT_PUBLIC_ENABLED is unset", () => {
     expect(
-      resolveAssistantApiConfig({
+      resolveAssistantPublicEnabled({
         ...process.env,
         ASSISTANT_PUBLIC_ENABLED: undefined,
-      }).publicEnabled,
+      }),
     ).toBe(true);
   });
 
-  it("disables public generation when ASSISTANT_PUBLIC_ENABLED is false", () => {
+  it("parses documented disabled values case-insensitively", () => {
+    for (const value of ["0", "false", "no", "FALSE", "NO"]) {
+      expect(
+        resolveAssistantPublicEnabled({
+          ...process.env,
+          ASSISTANT_PUBLIC_ENABLED: value,
+        }),
+      ).toBe(false);
+    }
+  });
+
+  it("parses documented enabled values case-insensitively", () => {
+    for (const value of ["1", "true", "yes", "TRUE", "YES"]) {
+      expect(
+        resolveAssistantPublicEnabled({
+          ...process.env,
+          ASSISTANT_PUBLIC_ENABLED: value,
+        }),
+      ).toBe(true);
+    }
+  });
+
+  it("rejects unrecognized non-empty values", () => {
+    expect(() =>
+      resolveAssistantPublicEnabled({
+        ...process.env,
+        ASSISTANT_PUBLIC_ENABLED: "flase",
+      }),
+    ).toThrow(AssistantPublicEnabledConfigError);
+  });
+
+  it("does not validate unrelated API configuration", () => {
+    expect(resolveAssistantPublicEnabled(envWithInvalidApiBodyLimit)).toBe(
+      false,
+    );
+    expect(() => resolveAssistantApiConfig(envWithInvalidApiBodyLimit)).toThrow(
+      /ASSISTANT_API_MAX_BODY_BYTES/,
+    );
+  });
+});
+
+describe("resolveAssistantApiConfig publicEnabled", () => {
+  it("reuses resolveAssistantPublicEnabled", () => {
     expect(
       resolveAssistantApiConfig({
         ...process.env,
         ASSISTANT_PUBLIC_ENABLED: "false",
       }).publicEnabled,
     ).toBe(false);
-    expect(
-      resolveAssistantApiConfig({
-        ...process.env,
-        ASSISTANT_PUBLIC_ENABLED: "0",
-      }).publicEnabled,
-    ).toBe(false);
+  });
+});
+
+describe("buildAssistantPageMetadata", () => {
+  it("uses enabled copy when public generation is on", () => {
+    const metadata = buildAssistantPageMetadata(true);
+    expect(metadata.description).toBe(ASSISTANT_PAGE_ENABLED_DESCRIPTION);
+    expect(metadata.openGraph?.description).toBe(
+      ASSISTANT_PAGE_ENABLED_DESCRIPTION,
+    );
+    expect(metadata.alternates?.canonical).toBe("/assistant");
   });
 
-  it("enables public generation for explicit true values", () => {
-    expect(
-      resolveAssistantApiConfig({
-        ...process.env,
-        ASSISTANT_PUBLIC_ENABLED: "true",
-      }).publicEnabled,
-    ).toBe(true);
-    expect(
-      resolveAssistantApiConfig({
-        ...process.env,
-        ASSISTANT_PUBLIC_ENABLED: "1",
-      }).publicEnabled,
-    ).toBe(true);
+  it("uses maintenance copy when public generation is off", () => {
+    const metadata = buildAssistantPageMetadata(false);
+    expect(metadata.description).toBe(ASSISTANT_PAGE_MAINTENANCE_DESCRIPTION);
+    expect(metadata.openGraph?.description).toBe(
+      ASSISTANT_PAGE_MAINTENANCE_DESCRIPTION,
+    );
+    expect(metadata.description).not.toBe(ASSISTANT_PAGE_ENABLED_DESCRIPTION);
+    expect(metadata.alternates?.canonical).toBe("/assistant");
   });
 });
 

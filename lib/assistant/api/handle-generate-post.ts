@@ -8,7 +8,9 @@ import type { Pool } from "pg";
 import { resolveClientKeyFromHeaders } from "./client-key";
 import {
   ASSISTANT_PUBLIC_DISABLED_MESSAGE,
+  AssistantPublicEnabledConfigError,
   resolveAssistantApiConfig,
+  resolveAssistantPublicEnabled,
 } from "./config";
 import { jsonError, mapGenerationErrorToResponse } from "./errors";
 import {
@@ -33,6 +35,7 @@ export type AssistantGenerateRequestBody = {
 export type HandleAssistantGenerateDeps = {
   runRagGeneration: typeof runRagGeneration;
   createPool: (databaseUrl?: string) => Pool;
+  resolvePublicEnabled: typeof resolveAssistantPublicEnabled;
   resolveConfig: typeof resolveAssistantApiConfig;
   checkRateLimit: typeof checkAssistantApiRateLimit;
   persistGenerationEvaluation: typeof persistGenerationEvaluationSafely;
@@ -41,6 +44,7 @@ export type HandleAssistantGenerateDeps = {
 const defaultDeps: HandleAssistantGenerateDeps = {
   runRagGeneration,
   createPool,
+  resolvePublicEnabled: resolveAssistantPublicEnabled,
   resolveConfig: resolveAssistantApiConfig,
   checkRateLimit: checkAssistantApiRateLimit,
   persistGenerationEvaluation: persistGenerationEvaluationSafely,
@@ -130,9 +134,21 @@ export async function handleAssistantGeneratePost(
     });
   }
 
-  const config = deps.resolveConfig();
+  let publicEnabled: boolean;
+  try {
+    publicEnabled = deps.resolvePublicEnabled();
+  } catch (error) {
+    if (error instanceof AssistantPublicEnabledConfigError) {
+      return jsonError(
+        500,
+        "generation_failed",
+        "The assistant could not complete your request. Please try again.",
+      );
+    }
+    throw error;
+  }
 
-  if (!config.publicEnabled) {
+  if (!publicEnabled) {
     return jsonError(
       503,
       "service_unavailable",
@@ -140,6 +156,8 @@ export async function handleAssistantGeneratePost(
       { "Retry-After": "3600" },
     );
   }
+
+  const config = deps.resolveConfig();
 
   const parsedBody = await readJsonBody(request, config.maxBodyBytes);
   if (parsedBody instanceof Response) {

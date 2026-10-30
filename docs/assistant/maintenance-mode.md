@@ -8,9 +8,9 @@ Temporarily disable **public** grounded generation on `/assistant` and `POST /ap
 | -------------------------- | ------------------------ | --------------------------------------------------------------------------------------------- |
 | `ASSISTANT_PUBLIC_ENABLED` | `true` (unset = enabled) | API returns **503** `service_unavailable`; `/assistant` shows maintenance copy (no composer). |
 
-Accepted false values: `0`, `false`, `no` (case-insensitive). Accepted true values: `1`, `true`, `yes`.
+Accepted false values: `0`, `false`, `no` (case-insensitive). Accepted true values: `1`, `true`, `yes`. Any other non-empty value throws `AssistantPublicEnabledConfigError` at parse time (typo-safe — does not silently disable).
 
-Parsing lives in [`lib/assistant/api/config.ts`](../../lib/assistant/api/config.ts). The handler checks the flag **before** opening a database pool or running generation ([`handle-generate-post.ts`](../../lib/assistant/api/handle-generate-post.ts)).
+Parsing lives in [`resolveAssistantPublicEnabled()`](../../lib/assistant/api/config.ts). The handler checks the flag **before** resolving other API env, parsing the body, opening a database pool, or running generation ([`handle-generate-post.ts`](../../lib/assistant/api/handle-generate-post.ts)).
 
 ## What stays available
 

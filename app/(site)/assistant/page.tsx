@@ -2,25 +2,20 @@ import type { Metadata } from "next";
 
 import { AssistantExperience } from "@/components/assistant/AssistantExperience";
 import { AssistantMaintenanceView } from "@/components/assistant/AssistantMaintenanceView";
-import { resolveAssistantApiConfig } from "@/lib/assistant/api/config";
+import { resolveAssistantPublicEnabled } from "@/lib/assistant/api/config";
 import { resolveEvaluationObservabilityConfig } from "@/lib/assistant/evaluation/config";
-import { openGraphForCanonicalPath } from "@/lib/social-metadata";
+import { buildAssistantPageMetadata } from "@/lib/assistant/page-metadata";
 
 /** Read ASSISTANT_PUBLIC_ENABLED at request time (align with dynamic generate API). */
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Assistant",
-  description:
-    "Ask questions about Michael Truong's published portfolio work — evidence-aware answers with claim-level attribution and citations.",
-  alternates: {
-    canonical: "/assistant",
-  },
-  openGraph: openGraphForCanonicalPath("/assistant"),
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const publicEnabled = resolveAssistantPublicEnabled();
+  return buildAssistantPageMetadata(publicEnabled);
+}
 
 export default function AssistantPage() {
-  const { publicEnabled } = resolveAssistantApiConfig();
+  const publicEnabled = resolveAssistantPublicEnabled();
   const evaluationDisclosure = resolveEvaluationObservabilityConfig();
 
   return (
