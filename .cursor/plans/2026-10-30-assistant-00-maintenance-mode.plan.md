@@ -15,23 +15,23 @@ isProject: false
 
 ## Parent plan
 
-| | |
-| --- | --- |
-| **Parent roadmap** | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md) |
-| **Phase** | **0** — Maintenance mode |
-| **Phase objective** | Temporarily disable public generation; preserve data and operator tooling. |
-| **Entry criteria** | Roadmap adopted; operator approves public-off policy. |
-| **Dependencies** | None (first active implementation phase). |
+|                         |                                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------- |
+| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)                 |
+| **Phase**               | **0** — Maintenance mode                                                                       |
+| **Phase objective**     | Temporarily disable public generation; preserve data and operator tooling.                     |
+| **Entry criteria**      | Roadmap adopted; operator approves public-off policy.                                          |
+| **Dependencies**        | None (first active implementation phase).                                                      |
 | **Completion criteria** | `maintenance-mode` (+ optional `plan-closure`) slices done; roadmap Phase 0 exit criteria met. |
 
 **Goal:** Stop public generation without destroying Neon retrieval data, evaluation history, or dev/CI tooling.
 
 ## Recommended execution authority
 
-| Slice | Recommended authority | Agent instruction |
-| --- | --- | --- |
-| maintenance-mode | Open PR only | Do not merge. Stop after opening the PR. |
-| plan-closure | Open PR only | Do not merge. Stop after opening the PR. |
+| Slice            | Recommended authority | Agent instruction                        |
+| ---------------- | --------------------- | ---------------------------------------- |
+| maintenance-mode | Open PR only          | Do not merge. Stop after opening the PR. |
+| plan-closure     | Open PR only          | Do not merge. Stop after opening the PR. |
 
 Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 

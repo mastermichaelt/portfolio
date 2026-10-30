@@ -18,14 +18,14 @@ isProject: false
 
 ## Parent plan
 
-| | |
-| --- | --- |
-| **Parent roadmap** | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md) |
-| **Phase** | **4** — Production reopening |
-| **Phase objective** | Re-enable public generation after verification and operator approval. |
-| **Entry criteria** | Phases 0–2 complete; Phase 3 UI verification pass. |
-| **Dependencies** | Prior phases; grounded-plan operational acceptance absorbed here. |
-| **Completion criteria** | `operational-acceptance` pass + re-enable; roadmap Phase 4 exit criteria met. |
+|                         |                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------ |
+| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md) |
+| **Phase**               | **4** — Production reopening                                                   |
+| **Phase objective**     | Re-enable public generation after verification and operator approval.          |
+| **Entry criteria**      | Phases 0–2 complete; Phase 3 UI verification pass.                             |
+| **Dependencies**        | Prior phases; grounded-plan operational acceptance absorbed here.              |
+| **Completion criteria** | `operational-acceptance` pass + re-enable; roadmap Phase 4 exit criteria met.  |
 
 **Prerequisites:**
 
@@ -40,11 +40,11 @@ isProject: false
 
 ## Recommended execution authority
 
-| Slice | Recommended authority | Agent instruction |
-| --- | --- | --- |
-| reopening-checklist | Open PR only | Do not merge. Stop after opening the PR. |
+| Slice                  | Recommended authority    | Agent instruction                                 |
+| ---------------------- | ------------------------ | ------------------------------------------------- |
+| reopening-checklist    | Open PR only             | Do not merge. Stop after opening the PR.          |
 | operational-acceptance | Manual verification gate | Do not commit or open a PR. Report verdict; stop. |
-| plan-closure | Open PR only | Do not merge. Stop after opening the PR. |
+| plan-closure           | Open PR only             | Do not merge. Stop after opening the PR.          |
 
 Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
@@ -128,12 +128,12 @@ Use for operator sign-off; expand in PR / gitignored notes as needed.
 
 Outstanding work from archived plans owns **exactly one** successor below. Do not treat historical frontmatter `pending` todos as active — they were **transferred**, not completed, on **2026-10-30**.
 
-| Original plan | Original id / slice | Successor | Acceptance (unchanged) | Status |
-| --- | --- | --- | --- | --- |
-| [2026-10-08-assistant-grounded-rag-generation](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md) | `operational-acceptance` | **`operational-acceptance`** slice (this plan) | Phase A + Phase B below; operator sign-off; [generation-eval-findings.md](../../docs/assistant/generation-eval-findings.md) updated | **Pending** |
-| [2026-10-08-assistant-grounded-rag-generation](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md) | `plan-closure` | **`plan-closure`** slice (this plan) | `# Shipped` on this plan when Phase 4 done; update [architecture-direction.md](../../docs/assistant/architecture-direction.md) + [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md) | **Pending** |
-| [2026-10-29-assistant-quality-observability](./archive/2026-10-29-assistant-quality-observability.plan.md) | `plan-closure` (production verification) | **Reopening checklist — Observability** + **`operational-acceptance`** | Fail-open evaluation persist; disclosure; `assistant:evaluation:review`; per [evaluation-observability.md](../../docs/assistant/evaluation-observability.md) | **Pending** |
-| [2026-10-29-assistant-quality-observability](./archive/2026-10-29-assistant-quality-observability.plan.md) | Explicit follow-ups (composer polish, visitor feedback) | **Roadmap Phase 5** | Evidence-driven; no speculative backlog | **Deferred** |
+| Original plan                                                                                                  | Original id / slice                                     | Successor                                                              | Acceptance (unchanged)                                                                                                                                                                                           | Status       |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| [2026-10-08-assistant-grounded-rag-generation](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md) | `operational-acceptance`                                | **`operational-acceptance`** slice (this plan)                         | Phase A + Phase B below; operator sign-off; [generation-eval-findings.md](../../docs/assistant/generation-eval-findings.md) updated                                                                              | **Pending**  |
+| [2026-10-08-assistant-grounded-rag-generation](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md) | `plan-closure`                                          | **`plan-closure`** slice (this plan)                                   | `# Shipped` on this plan when Phase 4 done; update [architecture-direction.md](../../docs/assistant/architecture-direction.md) + [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md) | **Pending**  |
+| [2026-10-29-assistant-quality-observability](./archive/2026-10-29-assistant-quality-observability.plan.md)     | `plan-closure` (production verification)                | **Reopening checklist — Observability** + **`operational-acceptance`** | Fail-open evaluation persist; disclosure; `assistant:evaluation:review`; per [evaluation-observability.md](../../docs/assistant/evaluation-observability.md)                                                     | **Pending**  |
+| [2026-10-29-assistant-quality-observability](./archive/2026-10-29-assistant-quality-observability.plan.md)     | Explicit follow-ups (composer polish, visitor feedback) | **Roadmap Phase 5**                                                    | Evidence-driven; no speculative backlog                                                                                                                                                                          | **Deferred** |
 
 **Implementation evidence (historical, already on `main`):** All completed slices in grounded RAG plan through `generation-ui`; `quality-observability` slice (table, API persist, CLIs, tests).
 
@@ -161,16 +161,16 @@ Outstanding work from archived plans owns **exactly one** successor below. Do no
 
 **Operator approval required:** Do not run `assistant:ingest` against production until the operator confirms target database and approves the run.
 
-| Step | Action |
-| --- | --- |
-| 1 | Confirm Neon target (`portfolio-assistant` / branch / `portfolio_assistant`); `DATABASE_URL` is assistant scope only |
-| 2 | `npm run assistant:db:migrate` + `npm run assistant:db:verify` (direct connection for migrate) — single-authority Drizzle path |
-| 3 | `npm run okf:build` (or verify corpus manifest for release) |
-| 4 | `npm run assistant:ingest` (operator session; no secrets in repo) |
-| 5 | Post-ingest verify: non-zero `assistant_retrieval_units`; `assistant_ingestion_runs` + `bundle_sha256`; sample provenance |
-| 6 | Retrieval smoke: `npm run assistant:retrieve --` ≥2 known portfolio questions |
-| 7 | Idempotent re-ingest: high skip count; stable row count |
-| 8 | Generation smoke on hosted index: grounded + abstention cases (API and/or operator debug command) |
+| Step | Action                                                                                                                         |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 1    | Confirm Neon target (`portfolio-assistant` / branch / `portfolio_assistant`); `DATABASE_URL` is assistant scope only           |
+| 2    | `npm run assistant:db:migrate` + `npm run assistant:db:verify` (direct connection for migrate) — single-authority Drizzle path |
+| 3    | `npm run okf:build` (or verify corpus manifest for release)                                                                    |
+| 4    | `npm run assistant:ingest` (operator session; no secrets in repo)                                                              |
+| 5    | Post-ingest verify: non-zero `assistant_retrieval_units`; `assistant_ingestion_runs` + `bundle_sha256`; sample provenance      |
+| 6    | Retrieval smoke: `npm run assistant:retrieve --` ≥2 known portfolio questions                                                  |
+| 7    | Idempotent re-ingest: high skip count; stable row count                                                                        |
+| 8    | Generation smoke on hosted index: grounded + abstention cases (API and/or operator debug command)                              |
 
 **Phase A acceptance (measurable):**
 

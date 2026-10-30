@@ -19,21 +19,21 @@ isProject: false
 
 ## Parent plan
 
-| | |
-| --- | --- |
-| **Parent roadmap** | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md) |
-| **Phase** | **3** — Conversational UI verification |
-| **Phase objective** | Reconcile and verify conversational UI against consolidated backend (UI already shipped). |
-| **Entry criteria** | Phase 2 complete, or verify immediately if API contract unchanged. |
-| **Dependencies** | Phase 2 when generation API envelope changes. |
-| **Completion criteria** | Verification pass; `plan-closure` optional; roadmap Phase 3 exit criteria met. |
+|                         |                                                                                           |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)            |
+| **Phase**               | **3** — Conversational UI verification                                                    |
+| **Phase objective**     | Reconcile and verify conversational UI against consolidated backend (UI already shipped). |
+| **Entry criteria**      | Phase 2 complete, or verify immediately if API contract unchanged.                        |
+| **Dependencies**        | Phase 2 when generation API envelope changes.                                             |
+| **Completion criteria** | Verification pass; `plan-closure` optional; roadmap Phase 3 exit criteria met.            |
 
-| Item | Status |
-| --- | --- |
-| `conversational-ui` slice | **Shipped** on `main` (`AssistantExperience`, transcript/composer tests) |
-| Phase 3 remaining work | **Verify/reconcile** after Phase 2 if API contract changes — not greenfield UI |
-| `plan-closure` | **Queued** after Phase 3 verification or Phase 4 docs bundle |
-| This plan | **Active** until archive closure |
+| Item                      | Status                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| `conversational-ui` slice | **Shipped** on `main` (`AssistantExperience`, transcript/composer tests)       |
+| Phase 3 remaining work    | **Verify/reconcile** after Phase 2 if API contract changes — not greenfield UI |
+| `plan-closure`            | **Queued** after Phase 3 verification or Phase 4 docs bundle                   |
+| This plan                 | **Active** until archive closure                                               |
 
 Do not archive until `plan-closure` completes.
 

@@ -20,14 +20,14 @@ isProject: false
 
 ## Parent plan
 
-| | |
-| --- | --- |
-| **Parent roadmap** | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md) |
-| **Phase** | **1** — Reliability & Observability |
-| **Phase objective** | Confirm evaluation observability on `main`; merge generation validation recovery ([PR #107](https://github.com/mastermichaelt/portfolio/pull/107)); preserve evidence integrity and diagnostic compatibility with observability. |
-| **Entry criteria** | Phase 0 shipped (recommended before production deploy of #107). |
-| **Dependencies** | Phase 0 maintenance policy; **#107 must merge before Phase 2** generation work. |
-| **Completion criteria** | Phase 1 exit criteria below; then `plan-closure` and roadmap Phase 1 marked complete. |
+|                         |                                                                                                                                                                                                                                  |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)                                                                                                                                                   |
+| **Phase**               | **1** — Reliability & Observability                                                                                                                                                                                              |
+| **Phase objective**     | Confirm evaluation observability on `main`; merge generation validation recovery ([PR #107](https://github.com/mastermichaelt/portfolio/pull/107)); preserve evidence integrity and diagnostic compatibility with observability. |
+| **Entry criteria**      | Phase 0 shipped (recommended before production deploy of #107).                                                                                                                                                                  |
+| **Dependencies**        | Phase 0 maintenance policy; **#107 must merge before Phase 2** generation work.                                                                                                                                                  |
+| **Completion criteria** | Phase 1 exit criteria below; then `plan-closure` and roadmap Phase 1 marked complete.                                                                                                                                            |
 
 ## Phase 1 exit criteria
 
@@ -43,11 +43,11 @@ Phase 1 is **complete** when all of the following hold (production reopening **n
 
 ## Obligations owned elsewhere (do not duplicate)
 
-| Topic | Owner | Reference |
-| --- | --- | --- |
+| Topic                                                       | Owner       | Reference                                                                                                                              |
+| ----------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | Production evaluation persistence + disclosure verification | **Phase 4** | [04-production-reopening](./2026-10-30-assistant-04-production-reopening.plan.md) — observability checklist + `operational-acceptance` |
-| Grounded RAG operational acceptance | **Phase 4** | Same plan — transferred from [archived grounded RAG](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md) |
-| Composer retention disclosure polish; visitor feedback API | **Phase 5** | [evaluation-observability.md](../../docs/assistant/evaluation-observability.md) |
+| Grounded RAG operational acceptance                         | **Phase 4** | Same plan — transferred from [archived grounded RAG](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md)                   |
+| Composer retention disclosure polish; visitor feedback API  | **Phase 5** | [evaluation-observability.md](../../docs/assistant/evaluation-observability.md)                                                        |
 
 **Historical transfer (2026-10-30 consolidation):** Production verification obligations moved to Phase 4 **unchanged** when this plan was briefly archived; restoration as Phase 1 does **not** reverse those transfers.
 
@@ -65,11 +65,11 @@ Architecture summary:
 
 ## Recommended execution authority
 
-| Slice | Recommended authority | Agent instruction |
-| --- | --- | --- |
-| quality-observability | Open PR only | **Shipped** — no further implementation unless regression fix. |
-| generation-recovery-pr107 | Open PR only | Do not merge. Stop after opening the PR (track [PR #107](https://github.com/mastermichaelt/portfolio/pull/107)). |
-| plan-closure | Open PR only | Do not merge. Stop after opening the PR. |
+| Slice                     | Recommended authority | Agent instruction                                                                                                |
+| ------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| quality-observability     | Open PR only          | **Shipped** — no further implementation unless regression fix.                                                   |
+| generation-recovery-pr107 | Open PR only          | Do not merge. Stop after opening the PR (track [PR #107](https://github.com/mastermichaelt/portfolio/pull/107)). |
+| plan-closure              | Open PR only          | Do not merge. Stop after opening the PR.                                                                         |
 
 Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 

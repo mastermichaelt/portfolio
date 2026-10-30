@@ -42,18 +42,18 @@ isProject: false
 
 ## Superseded — responsibility transfer (2026-10-30)
 
-| | |
-| --- | --- |
-| **Plan status** | **Superseded** by [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md) (orchestration) |
-| **Implementation status** | **Shipped** — all implementation todos through `generation-ui` completed on `main` (see frontmatter) |
-| **Plan archived** | 2026-10-30 (filename date **2026-10-08** preserved) |
+|                           |                                                                                                                   |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Plan status**           | **Superseded** by [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md) (orchestration) |
+| **Implementation status** | **Shipped** — all implementation todos through `generation-ui` completed on `main` (see frontmatter)              |
+| **Plan archived**         | 2026-10-30 (filename date **2026-10-08** preserved)                                                               |
 
 **Outstanding obligations transferred (not completed on this plan):**
 
-| Todo | Successor owner | Successor reference |
-| --- | --- | --- |
-| `operational-acceptance` | Phase 4 | [2026-10-30-assistant-04-production-reopening.plan.md](../2026-10-30-assistant-04-production-reopening.plan.md) — slice `operational-acceptance` |
-| `plan-closure` (doc updates) | Phase 4 | Same plan — slice `plan-closure` (`architecture-direction`, `rag-generation-direction`, `generation-eval-findings`) |
+| Todo                         | Successor owner | Successor reference                                                                                                                              |
+| ---------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `operational-acceptance`     | Phase 4         | [2026-10-30-assistant-04-production-reopening.plan.md](../2026-10-30-assistant-04-production-reopening.plan.md) — slice `operational-acceptance` |
+| `plan-closure` (doc updates) | Phase 4         | Same plan — slice `plan-closure` (`architecture-direction`, `rag-generation-direction`, `generation-eval-findings`)                              |
 
 Frontmatter marks transferred todos **`cancelled`** with transfer rationale — not **`completed`**.
 
@@ -67,12 +67,12 @@ Implementation slices through **`generation-ui`** merged on `main` (contract, CL
 
 **Authoritative sequencing:** [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md).
 
-| Item | Status |
-| --- | --- |
-| Implementation slices through `generation-ui` | **Shipped** on `main` (verified: API, `/assistant`, Drizzle, eval harness) |
-| `operational-acceptance` | **Transferred** → Phase 4 [04-production-reopening](../2026-10-30-assistant-04-production-reopening.plan.md) |
-| `plan-closure` | **Transferred** → Phase 4 `plan-closure` slice (doc updates at reopen) |
-| This plan | **Archived** — historical record only |
+| Item                                          | Status                                                                                                       |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Implementation slices through `generation-ui` | **Shipped** on `main` (verified: API, `/assistant`, Drizzle, eval harness)                                   |
+| `operational-acceptance`                      | **Transferred** → Phase 4 [04-production-reopening](../2026-10-30-assistant-04-production-reopening.plan.md) |
+| `plan-closure`                                | **Transferred** → Phase 4 `plan-closure` slice (doc updates at reopen)                                       |
+| This plan                                     | **Archived** — historical record only                                                                        |
 
 **Goal:** Deliver a **working portfolio assistant on [michaeltruong.ai](https://michaeltruong.ai)** — visitor questions answered with **evidence-aware, attributable** responses using the indexed OKF corpus (101 concepts; retrieval-eval baseline on current index), Neon pgvector retrieval, and OpenAI generation. **Generation quality, inspectability, and citation integrity first**; UI stays minimal.
 

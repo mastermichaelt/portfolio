@@ -22,14 +22,14 @@ isProject: false
 
 ## Child implementation plans
 
-| Phase | Child plan | PR / other |
-| --- | --- | --- |
-| 0 | [2026-10-30-assistant-00-maintenance-mode.plan.md](./2026-10-30-assistant-00-maintenance-mode.plan.md) | — |
-| 1 | [2026-10-29-assistant-01-quality-observability.plan.md](./2026-10-29-assistant-01-quality-observability.plan.md) | [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) — generation recovery (**in progress**) |
-| 2 | [2026-10-30-assistant-02-typescript-consolidation.plan.md](./2026-10-30-assistant-02-typescript-consolidation.plan.md) | — |
-| 3 | [2026-10-29-assistant-03-conversational-ui.plan.md](./2026-10-29-assistant-03-conversational-ui.plan.md) | verify/reconcile (UI shipped) |
-| 4 | [2026-10-30-assistant-04-production-reopening.plan.md](./2026-10-30-assistant-04-production-reopening.plan.md) | — |
-| 5 | — | Ongoing iteration (see Phase 5); ops runbook [evaluation-observability.md](../../docs/assistant/evaluation-observability.md) |
+| Phase | Child plan                                                                                                             | PR / other                                                                                                                   |
+| ----- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 0     | [2026-10-30-assistant-00-maintenance-mode.plan.md](./2026-10-30-assistant-00-maintenance-mode.plan.md)                 | —                                                                                                                            |
+| 1     | [2026-10-29-assistant-01-quality-observability.plan.md](./2026-10-29-assistant-01-quality-observability.plan.md)       | [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) — generation recovery (**in progress**)                      |
+| 2     | [2026-10-30-assistant-02-typescript-consolidation.plan.md](./2026-10-30-assistant-02-typescript-consolidation.plan.md) | —                                                                                                                            |
+| 3     | [2026-10-29-assistant-03-conversational-ui.plan.md](./2026-10-29-assistant-03-conversational-ui.plan.md)               | verify/reconcile (UI shipped)                                                                                                |
+| 4     | [2026-10-30-assistant-04-production-reopening.plan.md](./2026-10-30-assistant-04-production-reopening.plan.md)         | —                                                                                                                            |
+| 5     | —                                                                                                                      | Ongoing iteration (see Phase 5); ops runbook [evaluation-observability.md](../../docs/assistant/evaluation-observability.md) |
 
 ```text
 Assistant Roadmap
@@ -56,8 +56,8 @@ Assistant Roadmap
 
 ## Archived predecessors (historical only)
 
-| Plan | Implementation | Outstanding work owner |
-| --- | --- | --- |
+| Plan                                                                                                                           | Implementation                                   | Outstanding work owner                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------- |
 | [archive/2026-10-08-assistant-grounded-rag-generation.plan.md](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md) | **Shipped** (RAG API, UI, Drizzle, eval harness) | Phase 4 — [04-production-reopening](./2026-10-30-assistant-04-production-reopening.plan.md) |
 
 **Quality observability (2026-10-29):** Implementation shipped on `main`. Plan was briefly archived during 2026-10-30 consolidation; **restored** as active Phase 1 child [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md). Production verification obligations remain Phase 4 (unchanged).
@@ -68,17 +68,17 @@ Assistant Roadmap
 
 ## Historical obligation migration (summary)
 
-| Original plan | Original task | Disposition | Successor | Status |
-| --- | --- | --- | --- | --- |
-| Grounded RAG | All implementation slices (`generation-contract` … `generation-ui`) | **Complete** on `main` | — | Done |
-| Grounded RAG | `operational-acceptance` | **Transferred** | Phase 4 `operational-acceptance` | Pending |
-| Grounded RAG | `plan-closure` (docs + archive) | **Transferred** | Phase 4 `plan-closure` (docs); plan archive **done** 2026-10-30 | Docs pending |
-| Quality observability | `quality-observability` | **Complete** on `main` | Phase 1 child [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) | Done |
-| Quality observability | `generation-recovery-pr107` | **Outstanding** | Phase 1 — [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) | In progress |
-| Quality observability | `plan-closure` (milestone archive) | **Pending** | Phase 1 child `plan-closure` after exit criteria | Pending |
-| Quality observability | Plan archived 2026-10-30 | **Restored** 2026-10-30 | Active Phase 1 child (not in `archive/`) | Restored |
-| Quality observability | Production eval verification | **Transferred** | Phase 4 observability checklist | Pending |
-| Quality observability | Follow-ups (composer polish, visitor feedback) | **Deferred** | Phase 5 | Deferred |
+| Original plan         | Original task                                                       | Disposition             | Successor                                                                                         | Status       |
+| --------------------- | ------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------- | ------------ |
+| Grounded RAG          | All implementation slices (`generation-contract` … `generation-ui`) | **Complete** on `main`  | —                                                                                                 | Done         |
+| Grounded RAG          | `operational-acceptance`                                            | **Transferred**         | Phase 4 `operational-acceptance`                                                                  | Pending      |
+| Grounded RAG          | `plan-closure` (docs + archive)                                     | **Transferred**         | Phase 4 `plan-closure` (docs); plan archive **done** 2026-10-30                                   | Docs pending |
+| Quality observability | `quality-observability`                                             | **Complete** on `main`  | Phase 1 child [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) | Done         |
+| Quality observability | `generation-recovery-pr107`                                         | **Outstanding**         | Phase 1 — [PR #107](https://github.com/mastermichaelt/portfolio/pull/107)                         | In progress  |
+| Quality observability | `plan-closure` (milestone archive)                                  | **Pending**             | Phase 1 child `plan-closure` after exit criteria                                                  | Pending      |
+| Quality observability | Plan archived 2026-10-30                                            | **Restored** 2026-10-30 | Active Phase 1 child (not in `archive/`)                                                          | Restored     |
+| Quality observability | Production eval verification                                        | **Transferred**         | Phase 4 observability checklist                                                                   | Pending      |
+| Quality observability | Follow-ups (composer polish, visitor feedback)                      | **Deferred**            | Phase 5                                                                                           | Deferred     |
 
 Detail and acceptance criteria: [04-production-reopening — Transferred obligations](./2026-10-30-assistant-04-production-reopening.plan.md#transferred-obligations-historical-plans).
 
@@ -86,15 +86,15 @@ Detail and acceptance criteria: [04-production-reopening — Transferred obligat
 
 ## Current state (repository evidence)
 
-| Area | Evidence on `main` |
-| --- | --- |
-| RAG generation service | `scripts/assistant/generation/*`, API `lib/assistant/api/handle-generate-post.ts`, route `app/api/assistant/generate/route.ts` |
-| Visitor UI | `/assistant` + `AssistantExperience` (conversational transcript shipped) |
-| Drizzle / pgvector | `db/schema.ts`, `drizzle/`, `lib/assistant/db/*`, operator `assistant:db:*` |
-| Ingest / retrieve ops | `assistant:ingest`, `assistant:retrieve`, `okf:build`, `assistant:derive` |
-| Evaluation observability | `assistant_generation_evaluations`, `lib/assistant/evaluation/*`, review/cleanup CLIs |
-| Tests | 27+ `tests/assistant-*.test.ts`, Vitest imports `.mjs` modules heavily |
-| Open reliability work | [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) — validation recovery (**open**, not merged) |
+| Area                     | Evidence on `main`                                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| RAG generation service   | `scripts/assistant/generation/*`, API `lib/assistant/api/handle-generate-post.ts`, route `app/api/assistant/generate/route.ts` |
+| Visitor UI               | `/assistant` + `AssistantExperience` (conversational transcript shipped)                                                       |
+| Drizzle / pgvector       | `db/schema.ts`, `drizzle/`, `lib/assistant/db/*`, operator `assistant:db:*`                                                    |
+| Ingest / retrieve ops    | `assistant:ingest`, `assistant:retrieve`, `okf:build`, `assistant:derive`                                                      |
+| Evaluation observability | `assistant_generation_evaluations`, `lib/assistant/evaluation/*`, review/cleanup CLIs                                          |
+| Tests                    | 27+ `tests/assistant-*.test.ts`, Vitest imports `.mjs` modules heavily                                                         |
+| Open reliability work    | [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) — validation recovery (**open**, not merged)                   |
 
 **Doc drift (non-blocking):** [architecture-direction.md](../../docs/assistant/architecture-direction.md) may still need minor alignment after Phase 4 `plan-closure`; [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md) updated 2026-10-30 to point at roadmap + archived grounded plan.
 
@@ -106,40 +106,40 @@ Detail and acceptance criteria: [04-production-reopening — Transferred obligat
 Phase 0 → Phase 1 (01-quality-observability + #107) → Phase 2 (TS/Zod) → Phase 3 (UI verify) → Phase 4 (reopen) → Phase 5 (iterate)
 ```
 
-| Phase | Name | Status | Implementation |
-| --- | --- | --- | --- |
-| **0** | Maintenance mode | **Next** | [00-maintenance-mode](./2026-10-30-assistant-00-maintenance-mode.plan.md) |
-| **1** | Reliability & Observability | **In progress** | [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) + [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) |
-| **2** | TypeScript consolidation | Queued | [02-typescript-consolidation](./2026-10-30-assistant-02-typescript-consolidation.plan.md) |
-| **3** | Conversational UI verification | **Largely shipped** | [03-conversational-ui](./2026-10-29-assistant-03-conversational-ui.plan.md) |
-| **4** | Production reopening | Queued | [04-production-reopening](./2026-10-30-assistant-04-production-reopening.plan.md) |
-| **5** | Quality iteration | Ongoing after reopen | Evidence-driven; no numbered child plan until scoped |
+| Phase | Name                           | Status               | Implementation                                                                                                                                        |
+| ----- | ------------------------------ | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **0** | Maintenance mode               | **Next**             | [00-maintenance-mode](./2026-10-30-assistant-00-maintenance-mode.plan.md)                                                                             |
+| **1** | Reliability & Observability    | **In progress**      | [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) + [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) |
+| **2** | TypeScript consolidation       | Queued               | [02-typescript-consolidation](./2026-10-30-assistant-02-typescript-consolidation.plan.md)                                                             |
+| **3** | Conversational UI verification | **Largely shipped**  | [03-conversational-ui](./2026-10-29-assistant-03-conversational-ui.plan.md)                                                                           |
+| **4** | Production reopening           | Queued               | [04-production-reopening](./2026-10-30-assistant-04-production-reopening.plan.md)                                                                     |
+| **5** | Quality iteration              | Ongoing after reopen | Evidence-driven; no numbered child plan until scoped                                                                                                  |
 
 ---
 
 ## Phase 0 — Maintenance mode
 
-| | |
-| --- | --- |
-| **Objective** | Temporarily disable public assistant generation; preserve internal tests, ingest, DB, and evaluation data. |
-| **Status** | **Next** |
-| **Implementation** | [2026-10-30-assistant-00-maintenance-mode.plan.md](./2026-10-30-assistant-00-maintenance-mode.plan.md) |
-| **Entry criteria** | Roadmap adopted; operator approves taking public generation offline. |
-| **Dependencies** | None (first active phase). |
-| **Exit criteria** | Public cannot generate; maintenance page correct; API returns expected unavailable response; re-enable without code revert. |
+|                    |                                                                                                                             |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| **Objective**      | Temporarily disable public assistant generation; preserve internal tests, ingest, DB, and evaluation data.                  |
+| **Status**         | **Next**                                                                                                                    |
+| **Implementation** | [2026-10-30-assistant-00-maintenance-mode.plan.md](./2026-10-30-assistant-00-maintenance-mode.plan.md)                      |
+| **Entry criteria** | Roadmap adopted; operator approves taking public generation offline.                                                        |
+| **Dependencies**   | None (first active phase).                                                                                                  |
+| **Exit criteria**  | Public cannot generate; maintenance page correct; API returns expected unavailable response; re-enable without code revert. |
 
 ---
 
 ## Phase 1 — Reliability & Observability
 
-| | |
-| --- | --- |
-| **Objective** | Confirm evaluation observability shipped; complete generation validation recovery ([PR #107](https://github.com/mastermichaelt/portfolio/pull/107)); preserve evidence integrity and diagnostic compatibility with observability. |
-| **Status** | **In progress** (`quality-observability` shipped; `#107` open) |
-| **Implementation** | [2026-10-29-assistant-01-quality-observability.plan.md](./2026-10-29-assistant-01-quality-observability.plan.md) — slice `generation-recovery-pr107` tracks **PR #107** |
-| **Entry criteria** | Phase 0 shipped (recommended before production deploy of #107). |
-| **Dependencies** | Phase 0 for public-off policy; **#107 must merge before Phase 2** generation work. |
-| **Exit criteria** | See [Phase 1 exit criteria](./2026-10-29-assistant-01-quality-observability.plan.md#phase-1-exit-criteria): observability confirmed on `main`; #107 merged; recovery + evidence-integrity tests pass; diagnostics compatible with evaluation persist; no blocking reliability regression. **Production E2E eval verification is Phase 4, not required to close Phase 1.** |
+|                    |                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Objective**      | Confirm evaluation observability shipped; complete generation validation recovery ([PR #107](https://github.com/mastermichaelt/portfolio/pull/107)); preserve evidence integrity and diagnostic compatibility with observability.                                                                                                                                         |
+| **Status**         | **In progress** (`quality-observability` shipped; `#107` open)                                                                                                                                                                                                                                                                                                            |
+| **Implementation** | [2026-10-29-assistant-01-quality-observability.plan.md](./2026-10-29-assistant-01-quality-observability.plan.md) — slice `generation-recovery-pr107` tracks **PR #107**                                                                                                                                                                                                   |
+| **Entry criteria** | Phase 0 shipped (recommended before production deploy of #107).                                                                                                                                                                                                                                                                                                           |
+| **Dependencies**   | Phase 0 for public-off policy; **#107 must merge before Phase 2** generation work.                                                                                                                                                                                                                                                                                        |
+| **Exit criteria**  | See [Phase 1 exit criteria](./2026-10-29-assistant-01-quality-observability.plan.md#phase-1-exit-criteria): observability confirmed on `main`; #107 merged; recovery + evidence-integrity tests pass; diagnostics compatible with evaluation persist; no blocking reliability regression. **Production E2E eval verification is Phase 4, not required to close Phase 1.** |
 
 Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-assistant-01-quality-observability.plan.md#slice--generation-recovery-pr107).
 
@@ -147,40 +147,40 @@ Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-as
 
 ## Phase 2 — TypeScript consolidation
 
-| | |
-| --- | --- |
-| **Objective** | TS-first reusable logic; Zod structural validation; retire obsolete test-only CLIs; keep operational ingest/DB tooling. |
-| **Status** | Queued |
-| **Implementation** | [2026-10-30-assistant-02-typescript-consolidation.plan.md](./2026-10-30-assistant-02-typescript-consolidation.plan.md) |
-| **Entry criteria** | Phase 1 complete on `main`. |
-| **Dependencies** | Phase 0–1; **PR #107 merged** before `generation-services` / `zod-structural` slices. |
-| **Exit criteria** | Child plan [exit criteria](./2026-10-30-assistant-02-typescript-consolidation.plan.md#phase-2-exit-criteria): TS generation under `lib/assistant/`; HTTP→lib only; Zod structural + separate evidence integrity; Phase 1 recovery preserved; `assistant:answer` retired; operational CLIs work; lint/typecheck/test/build; docs updated. |
+|                    |                                                                                                                                                                                                                                                                                                                                          |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Objective**      | TS-first reusable logic; Zod structural validation; retire obsolete test-only CLIs; keep operational ingest/DB tooling.                                                                                                                                                                                                                  |
+| **Status**         | Queued                                                                                                                                                                                                                                                                                                                                   |
+| **Implementation** | [2026-10-30-assistant-02-typescript-consolidation.plan.md](./2026-10-30-assistant-02-typescript-consolidation.plan.md)                                                                                                                                                                                                                   |
+| **Entry criteria** | Phase 1 complete on `main`.                                                                                                                                                                                                                                                                                                              |
+| **Dependencies**   | Phase 0–1; **PR #107 merged** before `generation-services` / `zod-structural` slices.                                                                                                                                                                                                                                                    |
+| **Exit criteria**  | Child plan [exit criteria](./2026-10-30-assistant-02-typescript-consolidation.plan.md#phase-2-exit-criteria): TS generation under `lib/assistant/`; HTTP→lib only; Zod structural + separate evidence integrity; Phase 1 recovery preserved; `assistant:answer` retired; operational CLIs work; lint/typecheck/test/build; docs updated. |
 
 ---
 
 ## Phase 3 — Conversational UI verification
 
-| | |
-| --- | --- |
-| **Objective** | Reconcile and verify existing conversational UI against consolidated backend — **not** a full rebuild. |
-| **Status** | Implementation on `main`; verification queued after Phase 2 if API changes |
+|                    |                                                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------------------- |
+| **Objective**      | Reconcile and verify existing conversational UI against consolidated backend — **not** a full rebuild.   |
+| **Status**         | Implementation on `main`; verification queued after Phase 2 if API changes                               |
 | **Implementation** | [2026-10-29-assistant-03-conversational-ui.plan.md](./2026-10-29-assistant-03-conversational-ui.plan.md) |
-| **Entry criteria** | Phase 2 complete (prefer verify after Phase 2 if API changes). |
-| **Dependencies** | Phase 2 if generation envelope or errors change. |
-| **Exit criteria** | UI verified against live API; grounding, citations, abstention, observability preserved. |
+| **Entry criteria** | Phase 2 complete (prefer verify after Phase 2 if API changes).                                           |
+| **Dependencies**   | Phase 2 if generation envelope or errors change.                                                         |
+| **Exit criteria**  | UI verified against live API; grounding, citations, abstention, observability preserved.                 |
 
 ---
 
 ## Phase 4 — Production reopening
 
-| | |
-| --- | --- |
-| **Objective** | End-to-end verification, **operational acceptance** (from archived grounded RAG plan), evaluation persistence verification (from archived quality plan), explicit approval; restore public generation. |
-| **Status** | Queued |
-| **Implementation** | [2026-10-30-assistant-04-production-reopening.plan.md](./2026-10-30-assistant-04-production-reopening.plan.md) |
-| **Entry criteria** | Phases 0–2 complete; Phase 3 verification pass. |
-| **Dependencies** | All prior phases; operator sign-off for re-enable. |
-| **Exit criteria** | Reopening checklist complete; maintenance off; operational acceptance pass; production smoke passed. |
+|                    |                                                                                                                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Objective**      | End-to-end verification, **operational acceptance** (from archived grounded RAG plan), evaluation persistence verification (from archived quality plan), explicit approval; restore public generation. |
+| **Status**         | Queued                                                                                                                                                                                                 |
+| **Implementation** | [2026-10-30-assistant-04-production-reopening.plan.md](./2026-10-30-assistant-04-production-reopening.plan.md)                                                                                         |
+| **Entry criteria** | Phases 0–2 complete; Phase 3 verification pass.                                                                                                                                                        |
+| **Dependencies**   | All prior phases; operator sign-off for re-enable.                                                                                                                                                     |
+| **Exit criteria**  | Reopening checklist complete; maintenance off; operational acceptance pass; production smoke passed.                                                                                                   |
 
 **Owns transferred acceptance:** grounded `operational-acceptance`; grounded `plan-closure` doc updates; quality observability production verification.
 
@@ -190,14 +190,14 @@ Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-as
 
 ## Phase 5 — Quality iteration
 
-| | |
-| --- | --- |
-| **Objective** | Evidence-driven improvements from evaluation rows and telemetry — not speculative infrastructure. |
-| **Status** | Ongoing after Phase 4 |
+|                    |                                                                                                                                                                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Objective**      | Evidence-driven improvements from evaluation rows and telemetry — not speculative infrastructure.                                                                                                                                                            |
+| **Status**         | Ongoing after Phase 4                                                                                                                                                                                                                                        |
 | **Implementation** | `assistant:evaluation:review`, PostHog, [evaluation-observability.md](../../docs/assistant/evaluation-observability.md); Phase 1 child [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) for shipped observability history |
-| **Entry criteria** | Phase 4 complete; evaluation data accumulating. |
-| **Dependencies** | None blocking earlier phases. |
-| **Exit criteria** | N/A (continuous workstream). |
+| **Entry criteria** | Phase 4 complete; evaluation data accumulating.                                                                                                                                                                                                              |
+| **Dependencies**   | None blocking earlier phases.                                                                                                                                                                                                                                |
+| **Exit criteria**  | N/A (continuous workstream).                                                                                                                                                                                                                                 |
 
 **Deferred from quality plan (Phase 5 only when evidence warrants):** composer retention disclosure polish; visitor feedback API ([evaluation-observability.md](../../docs/assistant/evaluation-observability.md#future-feedback-explicit-integration-task)).
 
@@ -217,13 +217,13 @@ Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-as
 
 ## What we're working on now
 
-| | |
-| --- | --- |
-| **Now** | Phase 0 — [00-maintenance-mode](./2026-10-30-assistant-00-maintenance-mode.plan.md) |
-| **In progress** | Phase 1 — [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) / [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) |
-| **Next after Phase 0** | Complete Phase 1 exit criteria (merge #107) |
-| **Blocked** | Phase 4 public reopen until Phases 0–2 (+ Phase 3 verify) |
-| **Active execution authority** | This roadmap + **one** child plan slice at a time (no duplicate with archived plans) |
+|                                |                                                                                                                                                                 |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Now**                        | Phase 0 — [00-maintenance-mode](./2026-10-30-assistant-00-maintenance-mode.plan.md)                                                                             |
+| **In progress**                | Phase 1 — [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) / [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) |
+| **Next after Phase 0**         | Complete Phase 1 exit criteria (merge #107)                                                                                                                     |
+| **Blocked**                    | Phase 4 public reopen until Phases 0–2 (+ Phase 3 verify)                                                                                                       |
+| **Active execution authority** | This roadmap + **one** child plan slice at a time (no duplicate with archived plans)                                                                            |
 
 **First implementation slice:** `maintenance-mode` in [2026-10-30-assistant-00-maintenance-mode.plan.md](./2026-10-30-assistant-00-maintenance-mode.plan.md).
 
@@ -233,9 +233,9 @@ Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-as
 
 Orchestration only — each child `.plan.md` defines per-slice authority (default **Open PR only**).
 
-| Slice | Recommended authority | Agent instruction |
-| --- | --- | --- |
-| plan-closure | Open PR only | Do not merge. Stop after opening the PR. |
+| Slice        | Recommended authority | Agent instruction                        |
+| ------------ | --------------------- | ---------------------------------------- |
+| plan-closure | Open PR only          | Do not merge. Stop after opening the PR. |
 
 Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 

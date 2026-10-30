@@ -30,14 +30,14 @@ isProject: false
 
 ## Parent plan
 
-| | |
-| --- | --- |
-| **Parent roadmap** | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md) |
-| **Phase** | **2** — TypeScript consolidation |
-| **Phase objective** | Shared TypeScript application services; correct dependency direction; Zod structural validation; preserve behavior (including Phase 1 recovery). |
-| **Entry criteria** | Phase 1 complete on `main` ([01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md)). |
-| **Dependencies** | **PR #107 merged** before `generation-services` / `zod-structural` (recovery baseline on `main`). Phase 0 policy recommended before production deploy of migration PRs. |
-| **Completion criteria** | [Phase 2 exit criteria](#phase-2-exit-criteria) and all slices through `architecture-verification`. |
+|                         |                                                                                                                                                                         |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)                                                                                          |
+| **Phase**               | **2** — TypeScript consolidation                                                                                                                                        |
+| **Phase objective**     | Shared TypeScript application services; correct dependency direction; Zod structural validation; preserve behavior (including Phase 1 recovery).                        |
+| **Entry criteria**      | Phase 1 complete on `main` ([01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md)).                                                       |
+| **Dependencies**        | **PR #107 merged** before `generation-services` / `zod-structural` (recovery baseline on `main`). Phase 0 policy recommended before production deploy of migration PRs. |
+| **Completion criteria** | [Phase 2 exit criteria](#phase-2-exit-criteria) and all slices through `architecture-verification`.                                                                     |
 
 **Non-goals:** Prompt-quality experiments; retrieval tuning; OKF producer rewrites in one PR; replacing plain-Node `assistant:db:migrate` / `verify` / `baseline`; DI frameworks; separate backend `tsc` emit pipeline.
 
@@ -51,40 +51,40 @@ isProject: false
 
 ### Entry points
 
-| Layer | Location | Role today |
-| --- | --- | --- |
-| HTTP | `app/api/assistant/generate/route.ts` | Thin — delegates to `handleAssistantGeneratePost` |
-| HTTP handler | `lib/assistant/api/handle-generate-post.ts` | Rate limit, validation, **`runRagGeneration` from scripts**, evaluation persist |
-| HTTP envelope | `lib/assistant/api/public-envelope.ts`, `errors.ts`, `citation-display.ts` | Public JSON; imports generation types/helpers from **scripts** |
-| Client UI | `lib/assistant/client/*`, `lib/assistant/ui/*` | Browser-only; no RAG orchestration |
-| Operational CLI | `scripts/assistant/*.mjs` + `package.json` | Ingest, retrieve, OKF, DB ops, evaluation review |
-| Interactive CLI | `assistant:answer` | Duplicates API generation path for manual experiments |
-| Tests | `tests/assistant-*.test.ts` | Heavy direct imports from **scripts** (acceptable during migration; target **lib services**) |
+| Layer           | Location                                                                   | Role today                                                                                   |
+| --------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| HTTP            | `app/api/assistant/generate/route.ts`                                      | Thin — delegates to `handleAssistantGeneratePost`                                            |
+| HTTP handler    | `lib/assistant/api/handle-generate-post.ts`                                | Rate limit, validation, **`runRagGeneration` from scripts**, evaluation persist              |
+| HTTP envelope   | `lib/assistant/api/public-envelope.ts`, `errors.ts`, `citation-display.ts` | Public JSON; imports generation types/helpers from **scripts**                               |
+| Client UI       | `lib/assistant/client/*`, `lib/assistant/ui/*`                             | Browser-only; no RAG orchestration                                                           |
+| Operational CLI | `scripts/assistant/*.mjs` + `package.json`                                 | Ingest, retrieve, OKF, DB ops, evaluation review                                             |
+| Interactive CLI | `assistant:answer`                                                         | Duplicates API generation path for manual experiments                                        |
+| Tests           | `tests/assistant-*.test.ts`                                                | Heavy direct imports from **scripts** (acceptable during migration; target **lib services**) |
 
 ### Already TypeScript (keep / extend)
 
-| Module | Location | Notes |
-| --- | --- | --- |
-| Drizzle schema | `db/schema.ts`, `db/client.ts` | Single authority |
-| Vector search | `lib/assistant/db/search.ts` | Used via `retrieve/search.mjs` re-export |
-| Ingest sync | `lib/assistant/db/ingest-sync.ts` | Used via `ingest/sync.mjs` re-export |
-| Parent fetch | `lib/assistant/db/fetch-parent-units.ts` | Used via `generation/fetch-parent-units.mjs` re-export |
-| Rate limits | `lib/assistant/db/rate-limit.ts`, `rate-limit-policy.ts` | API uses TS |
-| Evaluation persist | `lib/assistant/evaluation/*` | TS; still imports generation **types/classify from scripts** |
-| App Drizzle factory | `scripts/assistant/db/app-client.mjs` | Re-exports `@/db/client.ts` (requires strip-types + path loader) |
+| Module              | Location                                                 | Notes                                                            |
+| ------------------- | -------------------------------------------------------- | ---------------------------------------------------------------- |
+| Drizzle schema      | `db/schema.ts`, `db/client.ts`                           | Single authority                                                 |
+| Vector search       | `lib/assistant/db/search.ts`                             | Used via `retrieve/search.mjs` re-export                         |
+| Ingest sync         | `lib/assistant/db/ingest-sync.ts`                        | Used via `ingest/sync.mjs` re-export                             |
+| Parent fetch        | `lib/assistant/db/fetch-parent-units.ts`                 | Used via `generation/fetch-parent-units.mjs` re-export           |
+| Rate limits         | `lib/assistant/db/rate-limit.ts`, `rate-limit-policy.ts` | API uses TS                                                      |
+| Evaluation persist  | `lib/assistant/evaluation/*`                             | TS; still imports generation **types/classify from scripts**     |
+| App Drizzle factory | `scripts/assistant/db/app-client.mjs`                    | Re-exports `@/db/client.ts` (requires strip-types + path loader) |
 
 ### Still JavaScript (production-critical)
 
-| Area | Key files |
-| --- | --- |
-| Generation orchestration | `generation/run-generation.mjs`, `prompt-templates.mjs`, `openai-chat.mjs` |
-| Response contract | `generation/response-schema.mjs`, `validate-response.mjs`, `repair-model-response.mjs` |
-| Recovery (#107) | `generation/recover-generation-response.mjs`, `validation-issues.mjs` |
-| Evidence assembly | `generation/evidence-packet.mjs`, `approved-urls.mjs`, `generation-config.mjs` |
-| Embeddings | `embeddings/openai-embeddings.mjs`, configs |
-| Ingest helpers | `ingest/vector-format.mjs`, `ingest/manifest.mjs` |
-| Unit types | `retrieval/unit-schema.mjs` |
-| Shared errors | `generation/errors.mjs`, `classify-generation-failure.mjs`, telemetry |
+| Area                     | Key files                                                                              |
+| ------------------------ | -------------------------------------------------------------------------------------- |
+| Generation orchestration | `generation/run-generation.mjs`, `prompt-templates.mjs`, `openai-chat.mjs`             |
+| Response contract        | `generation/response-schema.mjs`, `validate-response.mjs`, `repair-model-response.mjs` |
+| Recovery (#107)          | `generation/recover-generation-response.mjs`, `validation-issues.mjs`                  |
+| Evidence assembly        | `generation/evidence-packet.mjs`, `approved-urls.mjs`, `generation-config.mjs`         |
+| Embeddings               | `embeddings/openai-embeddings.mjs`, configs                                            |
+| Ingest helpers           | `ingest/vector-format.mjs`, `ingest/manifest.mjs`                                      |
+| Unit types               | `retrieval/unit-schema.mjs`                                                            |
+| Shared errors            | `generation/errors.mjs`, `classify-generation-failure.mjs`, telemetry                  |
 
 ### Operational-only JavaScript (may stay `.mjs`)
 
@@ -134,14 +134,14 @@ No DI container — enforce via module boundaries, baseline import guard (slice 
 
 **`lib/assistant/generation/`** owns **orchestration** and the **model response contract** (prompt assembly, LLM call, structural + evidence validation, recovery). It must **not** absorb cross-cutting infrastructure used outside generation.
 
-| Concern | Home | Rationale |
-| --- | --- | --- |
-| Embeddings | **`lib/assistant/providers/embeddings.ts`** | Shared by **ingestion**, **retrieval**, and generation — not a generation-only concern |
-| LLM chat JSON | **`lib/assistant/providers/llm.ts`** | Provider boundary; generation orchestrates calls |
-| Vector search / ranking | **`lib/assistant/db/search.ts`** | Already TS; retrieval service surface |
-| Ingest sync | **`lib/assistant/db/ingest-sync.ts`** | Ingestion service surface |
-| Evaluation persist | **`lib/assistant/evaluation/*`** | **Independently callable** — HTTP handler composes `runRagGeneration` + evaluation persist; generation orchestration must not hard-require evaluation side effects |
-| Evidence integrity vs structure | **`generation/validate-response.ts`** vs **`generation/structural-schema.ts`** | Structural Zod vs application evidence rules (see §6) |
+| Concern                         | Home                                                                           | Rationale                                                                                                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Embeddings                      | **`lib/assistant/providers/embeddings.ts`**                                    | Shared by **ingestion**, **retrieval**, and generation — not a generation-only concern                                                                             |
+| LLM chat JSON                   | **`lib/assistant/providers/llm.ts`**                                           | Provider boundary; generation orchestrates calls                                                                                                                   |
+| Vector search / ranking         | **`lib/assistant/db/search.ts`**                                               | Already TS; retrieval service surface                                                                                                                              |
+| Ingest sync                     | **`lib/assistant/db/ingest-sync.ts`**                                          | Ingestion service surface                                                                                                                                          |
+| Evaluation persist              | **`lib/assistant/evaluation/*`**                                               | **Independently callable** — HTTP handler composes `runRagGeneration` + evaluation persist; generation orchestration must not hard-require evaluation side effects |
+| Evidence integrity vs structure | **`generation/validate-response.ts`** vs **`generation/structural-schema.ts`** | Structural Zod vs application evidence rules (see §6)                                                                                                              |
 
 Generation may **call** providers and retrieval; evaluation may **import shared types** (e.g. failure classification) from generation modules without living inside the orchestrator.
 
@@ -149,19 +149,19 @@ Generation may **call** providers and retrieval; evaluation may **import shared 
 
 Prefer **evolve existing TS** over rename-only moves.
 
-| Target | Responsibility | Public surface (conceptual) |
-| --- | --- | --- |
-| `lib/assistant/generation/` | RAG orchestration | `runRagGeneration`, config, prompts, recovery pipeline |
-| `lib/assistant/generation/evidence-packet.ts` | Assembly | `assembleEvidencePacket`, modes |
-| `lib/assistant/generation/response-schema.ts` | Public + model shapes | `AssistantGenerationResponse`, builders |
-| `lib/assistant/generation/validate-response.ts` | **Evidence integrity** | `validateGenerationResponse`, citation rules |
-| `lib/assistant/generation/structural-schema.ts` | **Zod structural** | parse model JSON → typed object |
-| `lib/assistant/generation/recovery.ts` | Phase 1 recovery | `resolveValidatedModelResponse`, diagnostics |
-| `lib/assistant/providers/llm.ts` | OpenAI chat JSON | `requestChatCompletionJson` |
-| `lib/assistant/providers/embeddings.ts` | OpenAI embeddings | `embedTexts`, batch helpers |
-| `lib/assistant/db/*` | Postgres + pgvector | **Keep** search, ingest-sync, fetch-parent, rate-limit |
-| `lib/assistant/evaluation/*` | Rows + persist | **Keep**; remove script imports; **remain independently invocable** from HTTP adapter |
-| `lib/assistant/retrieval/unit-schema.ts` | Derived unit types | Move from `scripts/retrieval/unit-schema.mjs` |
+| Target                                          | Responsibility         | Public surface (conceptual)                                                           |
+| ----------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------- |
+| `lib/assistant/generation/`                     | RAG orchestration      | `runRagGeneration`, config, prompts, recovery pipeline                                |
+| `lib/assistant/generation/evidence-packet.ts`   | Assembly               | `assembleEvidencePacket`, modes                                                       |
+| `lib/assistant/generation/response-schema.ts`   | Public + model shapes  | `AssistantGenerationResponse`, builders                                               |
+| `lib/assistant/generation/validate-response.ts` | **Evidence integrity** | `validateGenerationResponse`, citation rules                                          |
+| `lib/assistant/generation/structural-schema.ts` | **Zod structural**     | parse model JSON → typed object                                                       |
+| `lib/assistant/generation/recovery.ts`          | Phase 1 recovery       | `resolveValidatedModelResponse`, diagnostics                                          |
+| `lib/assistant/providers/llm.ts`                | OpenAI chat JSON       | `requestChatCompletionJson`                                                           |
+| `lib/assistant/providers/embeddings.ts`         | OpenAI embeddings      | `embedTexts`, batch helpers                                                           |
+| `lib/assistant/db/*`                            | Postgres + pgvector    | **Keep** search, ingest-sync, fetch-parent, rate-limit                                |
+| `lib/assistant/evaluation/*`                    | Rows + persist         | **Keep**; remove script imports; **remain independently invocable** from HTTP adapter |
+| `lib/assistant/retrieval/unit-schema.ts`        | Derived unit types     | Move from `scripts/retrieval/unit-schema.mjs`                                         |
 
 Retrieval **search/ranking** stays in `lib/assistant/db/search.ts` (already TS). No separate `retrieval/ranking.ts` unless a future split adds clarity.
 
@@ -171,39 +171,39 @@ Ingestion **sync** stays `lib/assistant/db/ingest-sync.ts`; chunking/derive rema
 
 ## 3. Existing → target mapping
 
-| Current | Target | Action |
-| --- | --- | --- |
-| `scripts/assistant/generation/run-generation.mjs` | `lib/assistant/generation/run-generation.ts` | **Migrate** (port #107 recovery with behavior parity) |
-| `prompt-templates.mjs`, `openai-chat.mjs` | `lib/assistant/generation/prompt.ts`, `providers/llm.ts` | **Migrate** |
-| `response-schema.mjs` | `response-schema.ts` + `structural-schema.ts` (Zod) | **Migrate / split** in `zod-structural` |
-| `validate-response.mjs` | `validate-response.ts` | **Migrate**; structural checks delegate to Zod |
-| `repair-model-response.mjs`, `recover-generation-response.mjs` | `recovery.ts` | **Migrate** after #107 on `main` |
-| `evidence-packet.mjs`, `approved-urls.mjs`, `generation-config.mjs`, `errors.mjs`, telemetry, classify | `lib/assistant/generation/*` | **Migrate** with orchestration |
-| `embeddings/*.mjs`, `openai-request-headers.mjs` | `lib/assistant/providers/*` | **Migrate** in `evaluation-and-supporting` |
-| `ingest/vector-format.mjs`, `retrieval/unit-schema.mjs` | `lib/assistant/ingest/vector-format.ts` or `db/` helpers; `retrieval/unit-schema.ts` | **Migrate** |
-| `lib/assistant/db/search.ts` etc. | Same | **No change** (remove `.mjs` re-exports when safe) |
-| `lib/assistant/evaluation/*` | Same | **Rewire imports** to `lib/` shared modules; **do not** fold evaluation into generation orchestration |
-| `lib/assistant/api/handle-generate-post.ts` | Same | **Rewire** to `lib/assistant/generation` only |
-| `scripts/assistant/answer.mjs` | — | **Retire** (`cli-retirement`) |
-| `scripts/assistant/retrieve.mjs` | Thin CLI | **Keep**; call `lib` search + embed |
-| `scripts/assistant/ingest.mjs`, `okf/**`, `retrieval/derive-units.mjs` | Operational | **Keep** entry points; import TS services where useful |
-| `scripts/assistant/db/{migrate,verify,baseline}.mjs` | Plain Node | **Keep** `.mjs` |
-| `generation/eval.mjs`, `retrieve/eval.mjs` | Test/dev harness | **Move** imports to `lib` or keep as test-only utilities; not `package.json` scripts |
+| Current                                                                                                | Target                                                                               | Action                                                                                                |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `scripts/assistant/generation/run-generation.mjs`                                                      | `lib/assistant/generation/run-generation.ts`                                         | **Migrate** (port #107 recovery with behavior parity)                                                 |
+| `prompt-templates.mjs`, `openai-chat.mjs`                                                              | `lib/assistant/generation/prompt.ts`, `providers/llm.ts`                             | **Migrate**                                                                                           |
+| `response-schema.mjs`                                                                                  | `response-schema.ts` + `structural-schema.ts` (Zod)                                  | **Migrate / split** in `zod-structural`                                                               |
+| `validate-response.mjs`                                                                                | `validate-response.ts`                                                               | **Migrate**; structural checks delegate to Zod                                                        |
+| `repair-model-response.mjs`, `recover-generation-response.mjs`                                         | `recovery.ts`                                                                        | **Migrate** after #107 on `main`                                                                      |
+| `evidence-packet.mjs`, `approved-urls.mjs`, `generation-config.mjs`, `errors.mjs`, telemetry, classify | `lib/assistant/generation/*`                                                         | **Migrate** with orchestration                                                                        |
+| `embeddings/*.mjs`, `openai-request-headers.mjs`                                                       | `lib/assistant/providers/*`                                                          | **Migrate** in `evaluation-and-supporting`                                                            |
+| `ingest/vector-format.mjs`, `retrieval/unit-schema.mjs`                                                | `lib/assistant/ingest/vector-format.ts` or `db/` helpers; `retrieval/unit-schema.ts` | **Migrate**                                                                                           |
+| `lib/assistant/db/search.ts` etc.                                                                      | Same                                                                                 | **No change** (remove `.mjs` re-exports when safe)                                                    |
+| `lib/assistant/evaluation/*`                                                                           | Same                                                                                 | **Rewire imports** to `lib/` shared modules; **do not** fold evaluation into generation orchestration |
+| `lib/assistant/api/handle-generate-post.ts`                                                            | Same                                                                                 | **Rewire** to `lib/assistant/generation` only                                                         |
+| `scripts/assistant/answer.mjs`                                                                         | —                                                                                    | **Retire** (`cli-retirement`)                                                                         |
+| `scripts/assistant/retrieve.mjs`                                                                       | Thin CLI                                                                             | **Keep**; call `lib` search + embed                                                                   |
+| `scripts/assistant/ingest.mjs`, `okf/**`, `retrieval/derive-units.mjs`                                 | Operational                                                                          | **Keep** entry points; import TS services where useful                                                |
+| `scripts/assistant/db/{migrate,verify,baseline}.mjs`                                                   | Plain Node                                                                           | **Keep** `.mjs`                                                                                       |
+| `generation/eval.mjs`, `retrieve/eval.mjs`                                                             | Test/dev harness                                                                     | **Move** imports to `lib` or keep as test-only utilities; not `package.json` scripts                  |
 
 ---
 
 ## 4. CLI classification
 
-| npm script | Decision | Rationale |
-| --- | --- | --- |
-| `okf:build` | **Keep** | Corpus construction |
-| `assistant:derive` | **Keep** | Operator derivation |
-| `assistant:ingest` | **Keep** | Production index sync |
-| `assistant:retrieve` | **Keep** | Operator retrieval smoke |
-| `assistant:db:migrate`, `verify`, `baseline` | **Keep** (plain Node) | Operational contract |
-| `assistant:db:generate`, `studio` | **Keep** | Drizzle Kit |
-| `assistant:evaluation:review`, `cleanup` | **Keep** | Operator observability |
-| `assistant:answer` | **Retire** | Superseded by API + Vitest (`assistant-generation-*`, `assistant-generation-api`) |
+| npm script                                   | Decision              | Rationale                                                                         |
+| -------------------------------------------- | --------------------- | --------------------------------------------------------------------------------- |
+| `okf:build`                                  | **Keep**              | Corpus construction                                                               |
+| `assistant:derive`                           | **Keep**              | Operator derivation                                                               |
+| `assistant:ingest`                           | **Keep**              | Production index sync                                                             |
+| `assistant:retrieve`                         | **Keep**              | Operator retrieval smoke                                                          |
+| `assistant:db:migrate`, `verify`, `baseline` | **Keep** (plain Node) | Operational contract                                                              |
+| `assistant:db:generate`, `studio`            | **Keep**              | Drizzle Kit                                                                       |
+| `assistant:evaluation:review`, `cleanup`     | **Keep**              | Operator observability                                                            |
+| `assistant:answer`                           | **Retire**            | Superseded by API + Vitest (`assistant-generation-*`, `assistant-generation-api`) |
 
 **Retiring `assistant:answer` (with `cli-retirement`):**
 
@@ -236,11 +236,11 @@ Ingestion **sync** stays `lib/assistant/db/ingest-sync.ts`; chunking/derive rema
 
 ## 6. Zod vs evidence-integrity
 
-| Concern | Owner | Current | Target |
-| --- | --- | --- | --- |
-| **Structural** — JSON shape, enums, required fields, claim array bounds | **Zod** (authoritative) | Hand-rolled `parseAssistantModelGenerationResponse`, `validateStructuralModelResponse` | `structural-schema.ts`; types inferred via `z.infer` |
-| **Evidence integrity** — citation IDs ↔ packet, unit_id match, URL allowlist, unsupported claims, abstention semantics | **Application logic** | `validate-response.mjs` (`validateGenerationResponse`, citation validators) | Same module in TS; **unchanged rules** |
-| **Recovery** — repair, retry order, degradation, token totals | **Application logic** (#107) | `recover-generation-response.mjs` | `recovery.ts`; map Zod failures into existing validation taxonomy where applicable |
+| Concern                                                                                                                | Owner                        | Current                                                                                | Target                                                                             |
+| ---------------------------------------------------------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Structural** — JSON shape, enums, required fields, claim array bounds                                                | **Zod** (authoritative)      | Hand-rolled `parseAssistantModelGenerationResponse`, `validateStructuralModelResponse` | `structural-schema.ts`; types inferred via `z.infer`                               |
+| **Evidence integrity** — citation IDs ↔ packet, unit_id match, URL allowlist, unsupported claims, abstention semantics | **Application logic**        | `validate-response.mjs` (`validateGenerationResponse`, citation validators)            | Same module in TS; **unchanged rules**                                             |
+| **Recovery** — repair, retry order, degradation, token totals                                                          | **Application logic** (#107) | `recover-generation-response.mjs`                                                      | `recovery.ts`; map Zod failures into existing validation taxonomy where applicable |
 
 **Preserve:** structurally valid output is **not** automatically trustworthy; eval and contract tests remain.
 
@@ -250,11 +250,11 @@ Ingestion **sync** stays `lib/assistant/db/ingest-sync.ts`; chunking/derive rema
 
 ## 7. Phase 1 / PR #107 dependency
 
-| State | Implication for Phase 2 |
-| --- | --- |
-| **#107 open** on `assistant-generation-validation-recovery` | `generation-services` starts from **`main` + merge #107`**; do not port recovery from unmerged branch assumptions in isolation |
-| **`recover-generation-response.mjs` absent on `origin/main` today** | Slice B blocked until recovery lands on integration branch |
-| **Evaluation fail-open** | Already TS; must remain compatible with recovery diagnostics and PostHog fields |
+| State                                                               | Implication for Phase 2                                                                                                        |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **#107 open** on `assistant-generation-validation-recovery`         | `generation-services` starts from **`main` + merge #107`**; do not port recovery from unmerged branch assumptions in isolation |
+| **`recover-generation-response.mjs` absent on `origin/main` today** | Slice B blocked until recovery lands on integration branch                                                                     |
+| **Evaluation fail-open**                                            | Already TS; must remain compatible with recovery diagnostics and PostHog fields                                                |
 
 ---
 
@@ -295,11 +295,11 @@ Dependency order: **A → B → C → D → E → F → plan-closure**.
    - **Shared implementation under scripts/** — primary migration target (generation, embeddings, validators, etc.).
 3. **Baseline guard:** commit a machine-readable baseline (e.g. JSON list of allowed import paths or a Vitest/Node script with frozen allowlist). CI fails when **new** violations appear; **existing** baseline entries remain allowed until removed in later slices.
 
-| Stage | Enforcement |
-| --- | --- |
-| Slice A | Inventory + baseline; **block new** `app/` / `lib/` → `scripts/assistant/**` imports |
-| Slices B–E | Migrate modules; **shrink** baseline each PR |
-| Slice F | **Remove baseline**; enforce **zero** production imports from `scripts/assistant/**` |
+| Stage      | Enforcement                                                                          |
+| ---------- | ------------------------------------------------------------------------------------ |
+| Slice A    | Inventory + baseline; **block new** `app/` / `lib/` → `scripts/assistant/**` imports |
+| Slices B–E | Migrate modules; **shrink** baseline each PR                                         |
+| Slice F    | **Remove baseline**; enforce **zero** production imports from `scripts/assistant/**` |
 
 **Implementation preference:** existing lint or a **lightweight static check** (grep + test, or `eslint-plugin-import` `no-restricted-paths` with generated allowlist) — **not** a dependency-analysis framework.
 
@@ -451,27 +451,27 @@ Phase 2 is **complete** when:
 
 ## Risks and rollback
 
-| Risk | Mitigation |
-| --- | --- |
-| Large generation move breaks API | Slice B only; exhaustive generation test suite; feature flag not required — revert PR |
-| #107 merge conflicts with migration | Start slice B from latest `main` after #107; do not parallel reimplement recovery |
-| Zod changes error messages / taxonomy | Golden tests; map Zod issues to existing codes for API/telemetry |
-| CLI strip-types regressions | Keep plain-Node DB scripts untouched; test operational scripts in PR E |
-| Accidental prompt/retrieval change | Migration invariants; separate PRs for quality experiments |
+| Risk                                  | Mitigation                                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------------- |
+| Large generation move breaks API      | Slice B only; exhaustive generation test suite; feature flag not required — revert PR |
+| #107 merge conflicts with migration   | Start slice B from latest `main` after #107; do not parallel reimplement recovery     |
+| Zod changes error messages / taxonomy | Golden tests; map Zod issues to existing codes for API/telemetry                      |
+| CLI strip-types regressions           | Keep plain-Node DB scripts untouched; test operational scripts in PR E                |
+| Accidental prompt/retrieval change    | Migration invariants; separate PRs for quality experiments                            |
 
 ---
 
 ## Recommended execution authority
 
-| Slice | Recommended authority | Agent instruction |
-| --- | --- | --- |
-| module-boundaries | Open PR only | Do not merge. Stop after opening the PR. |
-| generation-services | Open PR only | Do not merge. Stop after opening the PR. |
-| zod-structural | Open PR only | Do not merge. Stop after opening the PR. |
-| evaluation-and-supporting | Open PR only | Do not merge. Stop after opening the PR. |
-| cli-retirement | Open PR only | Do not merge. Stop after opening the PR. |
-| architecture-verification | Open PR only | Do not merge. Stop after opening the PR. |
-| plan-closure | Open PR only | Do not merge. Stop after opening the PR. |
+| Slice                     | Recommended authority | Agent instruction                        |
+| ------------------------- | --------------------- | ---------------------------------------- |
+| module-boundaries         | Open PR only          | Do not merge. Stop after opening the PR. |
+| generation-services       | Open PR only          | Do not merge. Stop after opening the PR. |
+| zod-structural            | Open PR only          | Do not merge. Stop after opening the PR. |
+| evaluation-and-supporting | Open PR only          | Do not merge. Stop after opening the PR. |
+| cli-retirement            | Open PR only          | Do not merge. Stop after opening the PR. |
+| architecture-verification | Open PR only          | Do not merge. Stop after opening the PR. |
+| plan-closure              | Open PR only          | Do not merge. Stop after opening the PR. |
 
 Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
