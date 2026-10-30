@@ -87,8 +87,7 @@ export const articles: Article[] = [
     featured: true,
     line: "critique",
     lineLead: true,
-    argument:
-      "Passing a score or rubric is one kind of judgment. Editorial and configuration choices for publishable copy still need their own pass.",
+    argument: "Passing the check is not the same as getting the draft right.",
   },
   {
     slug: "the-retrieval-pipeline-worked-the-product-question-remained",
@@ -134,8 +133,7 @@ export const articles: Article[] = [
     featured: true,
     line: "measurement",
     lineLead: true,
-    argument:
-      "A dashboard number or funnel only means what your inclusion rules count, whether the question is active sessions on a tile or hiring transitions on a chart.",
+    argument: "A metric is only useful when you know what it counts.",
   },
   {
     slug: "one-example-beats-style-guide",
@@ -169,8 +167,7 @@ export const articles: Article[] = [
     url: "https://dev.to/michaeltruong/the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed-5akh",
     line: "authority",
     lineLead: true,
-    argument:
-      "An agent host can expose lifecycle events without exposing the lifecycle boundaries your system needs.",
+    argument: "You still have to define where agent work stops.",
   },
   {
     slug: "persist-game-state-not-ephemeral-ui-intent",
@@ -183,8 +180,7 @@ export const articles: Article[] = [
     relatedProjectSlug: "codenames-ai",
     line: "readiness",
     lineLead: true,
-    argument:
-      "Coming back should restore what the product treats as current truth, not whatever happened to be on screen or passed in CI.",
+    argument: "Green CI does not mean the product is ready to ship.",
   },
   {
     slug: "schema-first-valid-json-wasnt-enough",
@@ -220,7 +216,7 @@ export const articles: Article[] = [
     line: "portability",
     lineLead: true,
     argument:
-      "Portability is a question of ownership and lifecycle, not a service boundary.",
+      "Copying agent setup is easy; keeping it aligned across projects is not.",
   },
   {
     slug: "we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable",
