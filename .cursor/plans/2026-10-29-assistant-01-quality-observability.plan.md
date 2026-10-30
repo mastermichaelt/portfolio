@@ -169,13 +169,13 @@ Until #107 merges, run the service, API, contract, and evaluation tests on `main
 
 Track slice generation-recovery-pr107 via open PR #107 only. Do not start plan-closure or Phase 2 work in the same PR unless explicitly scoped.
 
-Authority: Open PR only — complete PR #107 and open for review; do not merge unless Merge granted.
+Authority: Open PR only — continue implementation and verification on PR #107; push updates to its branch; prepare the PR for review. Do not merge PR #107. Passing tests are not merge authorization. Do not start Phase 2. Merge requires a separate explicit user instruction with Merge granted rationale.
 
 Topology: PR #107 branch targets main; verify diff is recovery-only per PR scope.
 
-Deliverables: merge PR #107 when authorized; mark generation-recovery-pr107 completed in this plan frontmatter in the merge PR or a follow-up docs PR if plan file updated separately.
+Deliverables: recovery work complete on PR #107; PR ready for review. Mark generation-recovery-pr107 completed in this plan frontmatter only after PR #107 merges to main (in the merge PR or a follow-up docs PR). Phase 1 exit criteria still require #107 merged on main eventually.
 
-Verification: Only after PR #107 merges to main (assistant-generation-recovery.test.ts not on main until then) — PR merged; npm test for recovery, generation-service, generation-api, generation-contract, assistant-evaluation; lint, typecheck, build; recovery and evidence-integrity preserved; evaluation observability compatible; no blocking reliability regression. Do not mark generation-recovery-pr107 or Phase 1 complete before this on main.
+Verification: On PR #107 branch — npm test for recovery (when present on branch), generation-service, generation-api, generation-contract, assistant-evaluation; lint, typecheck, build. After merge to main — full verification including assistant-generation-recovery.test.ts; evaluation observability compatible; no blocking reliability regression. Do not mark generation-recovery-pr107 or Phase 1 complete before merge to main.
 ```
 
 ### plan-closure
