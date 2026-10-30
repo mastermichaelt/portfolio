@@ -29,14 +29,23 @@ isProject: false
 
 **Prerequisites:**
 
-- Phase 0 maintenance mode shipped (public currently off).
+- **Today (pre–Phase 0):** Public assistant generation remains **enabled** on `/assistant` and `POST /api/assistant/generate` (see [roadmap](./2026-10-30-assistant-roadmap.plan.md)).
+- **Phase 4 entry (after Phases 0–3):** Phase 0 maintenance mode **shipped** — public generation **disabled** until this phase re-enables it.
 - Phase 1 PR #107 merged.
 - Phase 2 TypeScript consolidation complete (including Zod structural validation).
 - Phase 3 conversational UI verified against API (UI already on `main`; regression pass only unless API changed).
 
+**Maintenance and public-access timeline**
+
+| Window                                          | Public generation                                                                            |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **Now (before Phase 0 ships)**                  | **On** — visitors can use `/assistant` and the generate API.                                 |
+| **After Phase 0 ships → through Phase 4 entry** | **Off** — maintenance mode; API returns unavailable response per Phase 0.                    |
+| **After Phase 4 exit**                          | **On again** — operator re-enable after `operational-acceptance` pass and explicit approval. |
+
 **Relationship:** Grounded RAG **`operational-acceptance`** and milestone **`plan-closure`** obligations were **transferred** to this plan on 2026-10-30 (see [Transferred obligations](#transferred-obligations-historical-plans)). The historical plan is archived at [archive/2026-10-08-assistant-grounded-rag-generation.plan.md](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md) — **not** an active execution authority.
 
-**Policy:** Public generation stays disabled until **`operational-acceptance`** completes and an operator explicitly approves re-enable.
+**Policy (Phase 4 scope):** While maintenance mode is active (post–Phase 0), public generation stays disabled until **`operational-acceptance`** completes and an operator explicitly approves re-enable in this phase.
 
 ## Recommended execution authority
 
@@ -128,12 +137,12 @@ Use for operator sign-off; expand in PR / gitignored notes as needed.
 
 Outstanding work from archived plans owns **exactly one** successor below. Do not treat historical frontmatter `pending` todos as active — they were **transferred**, not completed, on **2026-10-30**.
 
-| Original plan                                                                                                  | Original id / slice                                     | Successor                                                              | Acceptance (unchanged)                                                                                                                                                                                           | Status       |
-| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| [2026-10-08-assistant-grounded-rag-generation](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md) | `operational-acceptance`                                | **`operational-acceptance`** slice (this plan)                         | Phase A + Phase B below; operator sign-off; [generation-eval-findings.md](../../docs/assistant/generation-eval-findings.md) updated                                                                              | **Pending**  |
-| [2026-10-08-assistant-grounded-rag-generation](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md) | `plan-closure`                                          | **`plan-closure`** slice (this plan)                                   | `# Shipped` on this plan when Phase 4 done; update [architecture-direction.md](../../docs/assistant/architecture-direction.md) + [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md) | **Pending**  |
-| [2026-10-29-assistant-quality-observability](./archive/2026-10-29-assistant-quality-observability.plan.md)     | `plan-closure` (production verification)                | **Reopening checklist — Observability** + **`operational-acceptance`** | Fail-open evaluation persist; disclosure; `assistant:evaluation:review`; per [evaluation-observability.md](../../docs/assistant/evaluation-observability.md)                                                     | **Pending**  |
-| [2026-10-29-assistant-quality-observability](./archive/2026-10-29-assistant-quality-observability.plan.md)     | Explicit follow-ups (composer polish, visitor feedback) | **Roadmap Phase 5**                                                    | Evidence-driven; no speculative backlog                                                                                                                                                                          | **Deferred** |
+| Original plan                                                                                                                                                                           | Original id / slice                                     | Successor                                                              | Acceptance (unchanged)                                                                                                                                                                                           | Status       |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| [2026-10-08-assistant-grounded-rag-generation](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md)                                                                          | `operational-acceptance`                                | **`operational-acceptance`** slice (this plan)                         | Phase A + Phase B below; operator sign-off; [generation-eval-findings.md](../../docs/assistant/generation-eval-findings.md) updated                                                                              | **Pending**  |
+| [2026-10-08-assistant-grounded-rag-generation](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md)                                                                          | `plan-closure`                                          | **`plan-closure`** slice (this plan)                                   | `# Shipped` on this plan when Phase 4 done; update [architecture-direction.md](../../docs/assistant/architecture-direction.md) + [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md) | **Pending**  |
+| [2026-10-29-assistant-01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) (historical **quality observability** milestone; filename restored 2026-10-30) | `plan-closure` (production verification)                | **Reopening checklist — Observability** + **`operational-acceptance`** | Fail-open evaluation persist; disclosure; `assistant:evaluation:review`; per [evaluation-observability.md](../../docs/assistant/evaluation-observability.md)                                                     | **Pending**  |
+| [2026-10-29-assistant-01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) (historical **quality observability** milestone; filename restored 2026-10-30) | Explicit follow-ups (composer polish, visitor feedback) | **Roadmap Phase 5**                                                    | Evidence-driven; no speculative backlog                                                                                                                                                                          | **Deferred** |
 
 **Implementation evidence (historical, already on `main`):** All completed slices in grounded RAG plan through `generation-ui`; `quality-observability` slice (table, API persist, CLIs, tests).
 

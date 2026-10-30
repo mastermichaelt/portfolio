@@ -124,12 +124,14 @@ Integration branch: **`main`**. Each slice: fresh branch from `origin/main`; PR 
 - `npm test` — recovery, contract, service, API, and `assistant-evaluation` tests pass.
 - No known blocking regression for Phase 2 entry.
 
-**Verification:**
+**Verification** (run **after [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) merges to `main`** — `tests/assistant-generation-recovery.test.ts` belongs to #107 and is not on `main` until then):
 
 ```bash
 npm test -- tests/assistant-generation-recovery.test.ts tests/assistant-generation-service.test.ts tests/assistant-evaluation.test.ts
 npm run lint && npm run typecheck && npm run build
 ```
+
+Until #107 merges, run the service, API, contract, and evaluation tests on `main`; run the recovery test file on the #107 branch or after merge.
 
 **Out of scope this slice:** Zod structural migration (Phase 2); production E2E eval verification (Phase 4).
 

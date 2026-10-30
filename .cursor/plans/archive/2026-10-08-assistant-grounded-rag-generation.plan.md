@@ -96,7 +96,7 @@ Implementation slices through **`generation-ui`** merged on `main` (contract, CL
 
 **Plan amendment (2026-10-28, migration ownership):** **`drizzle-foundation`** must **evaluate a single-authority Drizzle Kit migration path first** (one operator command, one journal, custom runner retired or reduced to a thin Drizzle wrapper). A **dual-journal / dual-runner transitional bridge** is an **acceptable fallback only** if single-authority is documented impractical, together with **ongoing maintenance cost** and a note on when the fallback can be removed.
 
-This document amends the active plan in place; do not fork a competing plan.
+**Historical record:** At authorship time this milestone plan amended prior assistant direction in place. **Superseded** for execution by [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md) (2026-10-30) — preserved here as implementation evidence only; do not treat as active execution authority.
 
 **Direction (design background):** [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md)
 

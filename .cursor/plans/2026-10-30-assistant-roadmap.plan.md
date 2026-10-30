@@ -6,7 +6,7 @@ todos:
     content: "Implementation in child plans (phases 0–4); Phase 1 = 01-quality-observability + PR #107; no parent implementation slices"
     status: cancelled
   - id: plan-closure
-    content: "Docs-only PR when phases 0–5 complete — archive roadmap and update references"
+    content: "Docs-only PR when phases 0–4 complete and Phase 5 is ongoing — archive roadmap and update references"
     status: pending
 isProject: false
 ---
@@ -184,7 +184,7 @@ Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-as
 
 **Owns transferred acceptance:** grounded `operational-acceptance`; grounded `plan-closure` doc updates; quality observability production verification.
 
-**Public access stays off until this phase is explicitly approved.**
+**Public access (timeline):** **Enabled today** until Phase 0 ships. **After Phase 0** through Phase 4 entry, public generation stays **off** (maintenance). **After Phase 4** operational acceptance and operator re-enable, public generation is **on** again.
 
 ---
 
@@ -205,7 +205,7 @@ Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-as
 
 ## Execution rules
 
-1. **One active implementation phase at a time** — others planned, not implemented early.
+1. **One active implementation phase at a time** — at most one phase owns **new implementation PRs** landing on `main`. **Phase 0** is the **current implementation priority** ([00-maintenance-mode](./2026-10-30-assistant-00-maintenance-mode.plan.md)). **[PR #107](https://github.com/mastermichaelt/portfolio/pull/107)** already exists for Phase 1 recovery — **Phase 1 preparation and review may overlap Phase 0**; **do not close or recreate #107**. **Phase 1 completion** (merge #107 + [Phase 1 exit criteria](./2026-10-29-assistant-01-quality-observability.plan.md#phase-1-exit-criteria)) follows Phase 0's required gate (maintenance shipped per child plan). **Phase 2 cannot begin until Phase 1 is complete on `main`.** Later phases stay planned, not implemented early.
 2. **Small PRs** — clear objective, verification, rollback per slice.
 3. **Explicit dependencies** — prerequisites in child plans and above.
 4. **No automatic merging** — default **Open PR only**.
@@ -217,13 +217,13 @@ Detail: [01-quality-observability — generation-recovery-pr107](./2026-10-29-as
 
 ## What we're working on now
 
-|                                |                                                                                                                                                                 |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Now**                        | Phase 0 — [00-maintenance-mode](./2026-10-30-assistant-00-maintenance-mode.plan.md)                                                                             |
-| **In progress**                | Phase 1 — [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) / [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) |
-| **Next after Phase 0**         | Complete Phase 1 exit criteria (merge #107)                                                                                                                     |
-| **Blocked**                    | Phase 4 public reopen until Phases 0–2 (+ Phase 3 verify)                                                                                                       |
-| **Active execution authority** | This roadmap + **one** child plan slice at a time (no duplicate with archived plans)                                                                            |
+|                                |                                                                                                                                                                                                                       |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Now**                        | Phase 0 — [00-maintenance-mode](./2026-10-30-assistant-00-maintenance-mode.plan.md)                                                                                                                                   |
+| **In progress**                | Phase 1 — [01-quality-observability](./2026-10-29-assistant-01-quality-observability.plan.md) / [PR #107](https://github.com/mastermichaelt/portfolio/pull/107)                                                       |
+| **Next after Phase 0**         | Complete Phase 1 exit criteria (merge #107)                                                                                                                                                                           |
+| **Blocked**                    | Phase 4 public reopen until Phases 0–2 (+ Phase 3 verify)                                                                                                                                                             |
+| **Active execution authority** | This roadmap + **one** child plan **implementation** slice at a time on `main` (Phase 1 **#107** may stay open for review while Phase 0 implements; merge #107 after Phase 0 gate — no duplicate with archived plans) |
 
 **First implementation slice:** `maintenance-mode` in [2026-10-30-assistant-00-maintenance-mode.plan.md](./2026-10-30-assistant-00-maintenance-mode.plan.md).
 
@@ -247,13 +247,13 @@ Repo default: **Open PR only** ([planning-standards.md](../standards/planning-st
 
 **Rationale:**
 
-- Parent roadmap closes only when phases 0–5 are complete and child plans are archived per planning standards.
+- Parent roadmap closes when **phases 0–4** are complete and accepted and **Phase 5** has transitioned into **ongoing operation** (not a finite milestone). Finite child plans are closed or archived per planning standards.
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Goal:** Archive this roadmap with a `# Shipped` note and update any remaining references after the assistant initiative completes.
+**Goal:** Archive this roadmap with a `# Shipped` note and update any remaining references after phases **0–4** complete. **Do not** mark Phase 5 completed merely to close the roadmap — Phase 5 continues as an evidence-driven workstream.
 
-**Acceptance:** All phase exit criteria met; child plans archived; no active duplicate execution authority.
+**Acceptance:** Phase **0–4** exit criteria met; finite child plans (`00`–`04`, Phase 1 `01-quality-observability`) archived with `# Shipped`; Phase 5 documented as **ongoing** in [evaluation-observability.md](../../docs/assistant/evaluation-observability.md); no active duplicate execution authority.
 
 ---
 
@@ -264,7 +264,7 @@ Repo default: **Open PR only** ([planning-standards.md](../standards/planning-st
 ```text
 @.cursor/plans/2026-10-30-assistant-roadmap.plan.md
 
-Execute only plan-closure after phases 0–5 complete and child plans archived.
+Execute only plan-closure after phases 0–4 complete and accepted, finite child plans archived, and Phase 5 transitioned to ongoing operation (do not mark Phase 5 completed merely to close the roadmap).
 
 Authority: Open PR only — docs-only; do not merge.
 
