@@ -1,35 +1,36 @@
 ---
 title: Portfolio assistant — RAG generation direction
-subtitle: Design considerations between retrieval and grounded answers (not implemented)
+subtitle: Design considerations for grounded answers after retrieval (shipped on main; roadmap follow-ons)
 status: draft
-version: 0.2.5
-updated: 2026-10-29
+version: 0.2.6
+updated: 2026-10-30
 related:
   - docs/assistant/architecture-direction.md
   - docs/assistant/assistant-database.md
   - docs/assistant/okf-normalization-experiment.md
   - docs/assistant/vector-retrieval-experiment.md
-  - .cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md
+  - .cursor/plans/2026-10-30-assistant-roadmap.plan.md
+  - .cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md
   - .cursor/plans/archive/2026-10-07-assistant-vector-retrieval-experiment.plan.md
 ---
 
 # RAG generation direction
 
-This note captures answer-generation architecture for the portfolio assistant. **Active execution plan:** [2026-10-08-assistant-grounded-rag-generation.plan.md](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md) (implementation slices; not yet shipped). This direction doc remains design background — routes, prompts, and code land via that plan.
+This note captures answer-generation architecture for the portfolio assistant. **Active orchestration:** [2026-10-30-assistant-roadmap.plan.md](../../.cursor/plans/2026-10-30-assistant-roadmap.plan.md). **Historical execution plan (archived, implementation shipped):** [2026-10-08-assistant-grounded-rag-generation.plan.md](../../.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md). Operational acceptance before public reopen: [Phase 4 production reopening](../../.cursor/plans/2026-10-30-assistant-04-production-reopening.plan.md). This direction doc remains design background.
 
 **Locked for the current milestone (see plan):** `gpt-4o-mini`; default evidence assembly **`full_parent`** (OKF concept boundary, Postgres-backed units); eval baselines **`top_k_only`** and **`no_retrieval`** (model-only, eval-only); generation default top-K **10**; budget fail-closed **`EvidenceBudgetExceeded`** (no silent drop of matched retrieval units); **evidence-aware generation** (general knowledge allowed with honest attribution); **citation integrity** + structural claim rules (contract/runtime) vs **citation support** and **attribution accuracy** (generation-eval).
 
 Sections use the same labels as [architecture-direction.md](./architecture-direction.md): **current implementation**, **proposed design option**, **open decision**, **architectural direction**.
 
-**Explicit non-goals for this document:** changing active `.cursor/plans/` scope, implementing chat UI, or shipping generation code.
+**Explicit non-goals for this document:** opening new `.cursor/plans/` scope or changing shipped generation behaviour (model, retrieval policy, evidence-integrity rules). **Deferred capabilities** (not commitments): streaming answers, persistent conversational memory across sessions, agentic tool execution, live web search in the answer path — see [architecture-direction.md](./architecture-direction.md). **Shipped** generation code, `POST /api/assistant/generate`, and `/assistant` conversational UI are documented under **current implementation** below.
 
-**Prerequisite corpus work (direction).** Grounded answers about career history should not rely on `content/about.ts` alone. Curated career inventory from `mastermichaelt/resumes` (`facts/`, `roles/`, allowlisted `meta/`) with an explicit **publication boundary** (no `applications/**`, `out/`, `stories/`, or per-variant résumé prose) should ship in OKF **before** this generation milestone — see [career-inventory-corpus-direction.md](./career-inventory-corpus-direction.md).
+**Prerequisite corpus work (satisfied for the shipped milestone).** Grounded answers about career history should not rely on `content/about.ts` alone. Curated career inventory from `mastermichaelt/resumes` (`facts/`, `roles/`, allowlisted `meta/`) with an explicit **publication boundary** (no `applications/**`, `out/`, `stories/`, or per-variant résumé prose) **shipped in OKF before** grounded RAG generation landed on `main` (cross-repository corpus work, 2026-10-08) — see [career-inventory-corpus-direction.md](./career-inventory-corpus-direction.md). This is **historical gating** for the shipped milestone, not a blocker for current work.
 
 ---
 
 ## Implemented retrieval boundary (today)
 
-**Current implementation.** Grounded generation ships server-side via `npm run assistant:answer` and **`POST /api/assistant/generate`** ([`generation-api`](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md) slice). There is **no visitor chat UI** yet (`generation-ui` / `/assistant` outstanding). **Production retrieval index updates** remain operator-controlled `assistant:ingest` — automated corpus synchronization is a **deferred** direction in [architecture-direction.md](./architecture-direction.md#future-direction--corpus-synchronization), outside this generation milestone.
+**Current implementation.** Grounded generation ships via **`POST /api/assistant/generate`** and operator tooling; visitor UI at **`/assistant`** (conversational transcript). Milestone implementation slices from the [archived grounded RAG plan](../../.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md) are on `main`. **Production retrieval index updates** remain operator-controlled `assistant:ingest` — automated corpus synchronization is a **deferred** direction in [architecture-direction.md](./architecture-direction.md#future-direction--corpus-synchronization).
 
 **Current implementation (assistant dev tooling).** The bounded-corpus retrieval pipeline is shipped as CLIs outside the app bundle:
 
@@ -44,7 +45,7 @@ npm run assistant:ingest   → OpenAI embeddings + Postgres pgvector (derived in
         ↓
 npm run assistant:retrieve → top-K vector hits + provenance metadata (CLI)
         ↓
-assistant:answer / POST /api/assistant/generate → grounded answers (no visitor UI yet)
+assistant:answer / POST /api/assistant/generate → grounded answers (/assistant UI)
 ```
 
 **Current implementation.** Retrieval-unit derivation is **structure-aware 1:N** from OKF concept bodies: deterministic `unit_id`, `content_hash`, parent `okf_concept_id`, optional `section_heading`, `chunk_index` / `chunk_count`, and OKF `sources` / `resource` on every unit. Chunking lives in `scripts/assistant/retrieval/` only — not in OKF producers. Ingest is granularity-agnostic (upsert/skip/delete by derived `unit_id` set).
@@ -53,9 +54,9 @@ assistant:answer / POST /api/assistant/generate → grounded answers (no visitor
 
 **Current implementation.** Active experiment work includes **retrieval evaluation** (question fixtures against the ingested index) — measuring retrieval quality, not grounded answers.
 
-### Boundary with future answer generation
+### Boundary with answer generation (shipped)
 
-**Architectural direction (decision).** Treat **retrieval** and **generation** as separate subsystems with a narrow, typed handoff:
+**Current implementation.** **Retrieval** and **generation** are separate subsystems with a narrow, typed handoff on `main`:
 
 | Stage                 | Owns                                                                                   | Does not own                                 |
 | --------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------- |
@@ -63,9 +64,9 @@ assistant:answer / POST /api/assistant/generate → grounded answers (no visitor
 | **Evidence assembly** | Selecting, expanding, grouping, budgeting context for the LLM                          | Rewriting canonical sources as truth         |
 | **Generation**        | Evidence-aware answer text, claim-level attribution, citation surfacing, abstention UX | OKF normalization, embedding index schema    |
 
-**Architectural direction.** `PortfolioRepository` and page routes must not depend on retrieval or generation. `POST /api/assistant/generate` calls the shared generation service; the browsable site remains valid with the assistant removed.
+**Current implementation.** `PortfolioRepository` and page routes do not depend on retrieval or generation. `POST /api/assistant/generate` calls the shared generation service; the browsable site remains valid with the assistant removed.
 
-**Open decision.** Whether evidence assembly runs in the same server process as retrieval, a dedicated module, or a durable workflow step — defer until generation milestone planning.
+**Open decision (future).** Whether evidence assembly should move to a dedicated module or durable workflow — defer to Phase 2 consolidation planning; today it lives in the generation service path on `main`.
 
 ---
 
@@ -115,7 +116,7 @@ assistant:answer / POST /api/assistant/generate → grounded answers (no visitor
 
 **Open decision.** Whether to include OKF frontmatter fields in the model context or only `retrieval_text` + citation registry.
 
-**Open decision (after generation ships).** Whether assembly should drop weak hits or require sufficiency checks before calling the model — the active milestone still uses `full_parent` / budget rules without post-retrieval filtering ([grounded RAG plan](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md)).
+**Open decision (after generation ships).** Whether assembly should drop weak hits or require sufficiency checks before calling the model — the shipped milestone still uses `full_parent` / budget rules without post-retrieval filtering ([archived grounded RAG plan](../../.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md)).
 
 ---
 
@@ -189,7 +190,7 @@ assistant:answer / POST /api/assistant/generate → grounded answers (no visitor
 Observed behaviour is recorded in [cross-repository-corpus-eval-findings.md](./cross-repository-corpus-eval-findings.md) and [vector-retrieval-experiment.md](./vector-retrieval-experiment.md). **Not active plan scope** — three compact follow-ons when justified by the next milestone:
 
 1. **Retrieval diagnostics** — Keep expected-parent **rank** and **cosine distance** per fixture as the corpus/index evolves; treat rank movement after corpus growth as diagnostic, not automatic regression. If correct parents routinely fall **outside generation top-K** (e.g. Savepoints at parent rank 10 while retrieve CLI default is 5), investigate **wider candidate retrieval** and **reranking** into the evidence budget before adopting new retrieval stacks.
-2. **Evidence sufficiency** — Similarity can return related passages without answerability (`nuclear-reactor-negative-inspection`). Compare positive vs negative_inspection distances as exploration only; **do not** assume a fixed distance threshold. Validate **insufficient-evidence** handling and **citation support** in generation-eval ([grounded RAG plan](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md)); retrieval-eval baseline stays unchanged.
+2. **Evidence sufficiency** — Similarity can return related passages without answerability (`nuclear-reactor-negative-inspection`). Compare positive vs negative_inspection distances as exploration only; **do not** assume a fixed distance threshold. Validate **insufficient-evidence** handling and **citation support** in generation-eval ([archived grounded RAG plan](../../.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md)); retrieval-eval baseline stays unchanged.
 3. **End-to-end evaluation** — Reuse representative questions across layers with different assertions. Exercise the **RAG service top-K (10)** and default **assembly**, not retrieve CLI default K=5 alone, alongside answer correctness and citation support.
 
 ---
@@ -224,7 +225,7 @@ Visitors should be able to **begin with natural-language questions** rather than
 
 **Architectural direction (content, not replacement).** The goal is **not** to replace portfolio content with generated prose. Existing static content remains canonical; the assistant makes that content **more discoverable** through an intelligent, conversational layer.
 
-**Relationship to the current milestone.** The active [grounded RAG plan](../../.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md) delivers a **reliable, evidence-aware assistant** with a **minimal usable interface** at **`/assistant`**. Reusable interaction components from that slice are an intentional stepping stone toward this direction; **homepage integration and AI-first composition are explicitly deferred** to a future product milestone. **Non-goals for the current milestone** include homepage replacement, cinematic homepage redesign, floating site-wide chat widgets, streaming, conversational memory, and agentic tool execution.
+**Relationship to the shipped milestone.** The [archived grounded RAG plan](../../.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md) delivered a **reliable, evidence-aware assistant** with a **minimal usable interface** at **`/assistant`**. Reusable interaction components from that slice are an intentional stepping stone toward this direction; **homepage integration and AI-first composition are explicitly deferred** to a future product milestone (see [Phase 3 conversational UI](../../.cursor/plans/2026-10-29-assistant-03-conversational-ui.plan.md)). **Non-goals for the shipped milestone** include homepage replacement, cinematic homepage redesign, floating site-wide chat widgets, streaming, conversational memory, and agentic tool execution.
 
 ---
 
@@ -269,6 +270,7 @@ Visitors should be able to **begin with natural-language questions** rather than
 
 | Date       | Change                                                                                                                                                                                    |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-30 | Align subtitle and non-goals with shipped generation API/UI on `main`; reframe career-inventory prerequisite as satisfied historical gate; active orchestration → roadmap                 |
 | 2026-10-29 | Current implementation: record shipped `POST /api/assistant/generate`; visitor `/assistant` UI still outstanding; corpus sync cross-ref unchanged                                         |
 | 2026-10-16 | Visitor-visible OpenAI token usage on `/assistant` (API `usage` object + UI footer); Codenames AI as behavioural reference; PostHog server telemetry remains operator-only                |
 | 2026-10-16 | Deferred future direction: AI-first conversational portfolio (product/UX milestone); current RAG milestone ships `/assistant` first — homepage integration out of scope                   |
