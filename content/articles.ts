@@ -57,7 +57,7 @@ export const articles: Article[] = [
     slug: "evidence-driven-dependency-upgrades",
     title: "Upgrades don't have to be a blind trust exercise",
     summary:
-      "An evidence-driven Renovate ladder keeps dependency upgrades moving without treating green CI as a blank check.",
+      "A Renovate ladder built on evidence packets keeps dependency upgrades moving without treating green CI as a blank check.",
     year: 2026,
     tags: ["ai", "dependencies", "governance"],
     url: "https://dev.to/michaeltruong/upgrades-dont-have-to-be-a-blind-trust-exercise-13mj",
@@ -141,7 +141,7 @@ export const articles: Article[] = [
     slug: "one-example-beats-style-guide",
     title: "One good example beat every AI writing rule I wrote",
     summary:
-      "Teaching an editorial pipeline a writing voice worked better from one strong example than from an ever-growing style rule file.",
+      "Teaching an editorial pipeline a writing voice worked better from one strong example than from an expanding list of style rules.",
     year: 2026,
     tags: ["ai", "writing"],
     url: "https://dev.to/michaeltruong/one-good-example-beat-every-ai-writing-rule-i-wrote-7oo",
@@ -190,7 +190,7 @@ export const articles: Article[] = [
     slug: "schema-first-valid-json-wasnt-enough",
     title: "Schema first, prompt second: valid JSON wasn't enough",
     summary:
-      "Structured outputs and Zod catch shape errors, but board-legal moves need domain validation beyond valid JSON.",
+      "Structured outputs and Zod catch shape errors, but legal moves on the board still need domain validation beyond valid JSON.",
     year: 2026,
     tags: ["ai", "typescript", "validation"],
     url: "https://dev.to/michaeltruong/schema-first-prompt-second-valid-json-wasnt-enough-3nhm",

@@ -30,6 +30,7 @@ Run this checklist on **every** skill invocation after the full published-invent
 
 ## Commands
 
+- [ ] `npm run verify:articles-editorial-copy` passes when summaries, line-lead `argument`s, or band `label` / `pairs` / `note` changed (or on every run before PR).
 - [ ] `npm run lint`, `npm run typecheck`, `npm run format:check`, `npm test` when you changed tracked product files.
 - [ ] `npm run build` + `npm run test:e2e` only when content paths or fixtures changed (CI parity).
 

@@ -28,6 +28,16 @@ Procedure skill for keeping **`/articles`** inventory aligned with the sibling e
 
 Summaries: one sentence, compressed from opening or takeaway — same discipline as the `articles.ts` header (**no invented metrics or strengthened causality**).
 
+### Voice gate (deterministic)
+
+Before finishing a curation run (and before opening a PR that changes inventory copy), run:
+
+```bash
+npm run verify:articles-editorial-copy
+```
+
+That command rejects Unicode em dashes and flags hyphenated compounds that are not in the published fixture corpus (per slug or line) or the small allowlist in `scripts/lib/articles-editorial-copy-validation.mjs`. Fix reported strings using sibling hub [`editorial-workflow/.cursor/rules/engineer-writeup-voice.mdc`](../../editorial-workflow/.cursor/rules/engineer-writeup-voice.mdc); do not duplicate the full voice doc here. Focused unit tests live in `tests/articles-editorial-copy-validation.test.ts`.
+
 ## Preflight
 
 1. Confirm checkout is **`mastermichaelt/portfolio`** (`git remote get-url origin` → `github.com/mastermichaelt/portfolio`).
@@ -118,6 +128,7 @@ Historical archive under `docs/archive/` is out of scope unless a live route or 
 npm run lint
 npm run typecheck
 npm run format:check
+npm run verify:articles-editorial-copy
 npm test
 ```
 

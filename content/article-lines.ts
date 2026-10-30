@@ -18,7 +18,7 @@ export const articleLines: ArticleLineDefinition[] = [
   {
     id: "measurement",
     label: "Measurement & Telemetry",
-    pairs: "Codenames AI — co-primary",
+    pairs: "Codenames AI - co-primary",
   },
   {
     id: "authority",
@@ -29,12 +29,12 @@ export const articleLines: ArticleLineDefinition[] = [
   {
     id: "critique",
     label: "Evals & Judgment",
-    pairs: "Editorial workflow — supporting",
+    pairs: "Editorial workflow - supporting",
   },
   {
     id: "readiness",
     label: "Product Taste & Verification",
-    pairs: "Codenames AI — co-primary",
+    pairs: "Codenames AI - co-primary",
   },
   {
     id: "portability",
