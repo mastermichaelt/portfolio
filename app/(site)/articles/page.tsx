@@ -102,10 +102,13 @@ export default async function ArticlesPage() {
                 <ExternalLink
                   className="aline-start-link"
                   href={band.lead.article.url}
-                  aria-label={band.lead.article.title}
+                  aria-labelledby={`aline-start-title-${band.lead.article.slug}`}
                   analyticsLabel={band.lead.article.title}
                 >
-                  <span className="aline-start-title">
+                  <span
+                    id={`aline-start-title-${band.lead.article.slug}`}
+                    className="aline-start-title"
+                  >
                     {band.lead.article.title}
                   </span>
                   <span className="aline-start-dev" aria-hidden="true">
@@ -129,10 +132,13 @@ export default async function ArticlesPage() {
                       key={row.article.slug}
                       className="aline-row"
                       href={row.article.url}
-                      aria-label={row.article.title}
+                      aria-labelledby={`aline-row-title-${row.article.slug}`}
                       analyticsLabel={row.article.title}
                     >
-                      <span className="aline-row-title">
+                      <span
+                        id={`aline-row-title-${row.article.slug}`}
+                        className="aline-row-title"
+                      >
                         {row.article.title}
                       </span>
                       <span className="aline-row-dev" aria-hidden="true">
