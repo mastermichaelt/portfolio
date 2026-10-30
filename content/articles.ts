@@ -12,23 +12,14 @@ import type { Article } from "@/domain/article";
  * 2a rewording (see `content/article-lines.ts`). Each line has exactly one
  * `lineLead`, and only leads carry an `argument`.
  *
- * `argument` provenance:
- * - Three are verbatim from `content/homepage.ts` `writing[]`
- *   (`active-players-which-sessions-counted`, `agent-plans-authority-handoffs`,
- *   `ai-reviewer-kinds-of-reasoning`).
- * - Two were authored 2026-09-14 from each post's own published DEV takeaway,
- *   with no claim strengthened:
- *   · `persist-game-state-not-ephemeral-ui-intent` — from the takeaway of
- *     dev.to/michaeltruong/the-board-came-back-the-highlights-lied-18bo
- *     (edited 2026-09-06).
- *   · `agent-portability-does-not-require-centralizing-methodology-behind-mcp` —
- *     from the takeaway of
- *     dev.to/michaeltruong/i-was-solving-agent-portability-at-the-wrong-boundary-1406
- *     (edited 2026-09-10).
- *   · `the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed` — Authority
- *     line lead `argument` (2026-10-30), compressed from the published takeaway;
- *     no claim strengthened.
- *   The sibling hub `editorial-workflow/docs/dev.to/published/` remains master.
+ * `argument` provenance: each line lead `argument` is one sentence compressed
+ * from that post's published **Takeaway:** (or opening thesis where noted),
+ * with no claim strengthened. `persist-game-state-not-ephemeral-ui-intent` and
+ * `agent-portability-does-not-require-centralizing-methodology-behind-mcp`
+ * were authored 2026-09-14 from published takeaways. Measurement, critique,
+ * readiness, and Authority lead copy follow the same rule (2026-10-30 voice
+ * pass). The sibling hub `editorial-workflow/docs/dev.to/published/` remains
+ * master.
  */
 export const articles: Article[] = [
   {
@@ -56,7 +47,7 @@ export const articles: Article[] = [
     slug: "records-first-chart-second-the-sankey-disagreed",
     title: "I visualised my job search. The data model started breaking.",
     summary:
-      "Visualizing application history forced records-first modeling before a Sankey chart could agree with irregular lifecycles.",
+      "Irregular hiring histories meant I had to fix the records before a Sankey could show what actually happened.",
     year: 2026,
     tags: ["ai", "programming", "analytics"],
     url: "https://dev.to/michaeltruong/records-first-chart-second-the-sankey-disagreed-3841",
@@ -97,13 +88,13 @@ export const articles: Article[] = [
     line: "critique",
     lineLead: true,
     argument:
-      "Passing a score, a rubric, or a retrieval fixture is one kind of judgment; product-ready output still needs separate editorial and configuration decisions.",
+      "Passing a score or rubric is one kind of judgment. Editorial and configuration choices for publishable copy still need their own pass.",
   },
   {
     slug: "the-retrieval-pipeline-worked-the-product-question-remained",
     title: "The retrieval pipeline worked. The product question remained.",
     summary:
-      "A retrieval stage could pass its fixtures while the product still lacked an answer about what grounded generation should do.",
+      "Retrieval fixtures passed while the settings that served real visitor questions still needed judgment.",
     year: 2026,
     tags: ["ai", "agents", "webdev"],
     url: "https://dev.to/michaeltruong/the-retrieval-pipeline-worked-the-product-question-remained-80c",
@@ -113,7 +104,7 @@ export const articles: Article[] = [
     slug: "agent-plans-authority-handoffs",
     title: "The agent plan had every step except where to stop",
     summary:
-      "Multi-slice agent plans need explicit authority handoffs and stop lines — not only implementation checklists.",
+      "Multi-slice agent plans need explicit authority handoffs and stop lines, not only implementation checklists.",
     year: 2026,
     tags: ["ai", "automation", "governance"],
     url: "https://dev.to/michaeltruong/the-agent-plan-had-every-step-except-where-to-stop-357h",
@@ -125,7 +116,7 @@ export const articles: Article[] = [
     slug: "hook-availability-was-split-from-product-enforcement-after-silent-skip",
     title: "Git said the commit succeeded. My hooks never ran.",
     summary:
-      "A successful commit with no Husky run exposed hook availability as a separate layer from product enforcement.",
+      "Git reported a successful commit while Husky never ran, so a configured hook path did not prove anything would run there.",
     year: 2026,
     tags: ["ai", "agents", "workflow", "governance"],
     url: "https://dev.to/michaeltruong/git-said-the-commit-succeeded-my-hooks-never-ran-49e2",
@@ -144,7 +135,7 @@ export const articles: Article[] = [
     line: "measurement",
     lineLead: true,
     argument:
-      "A healthy-looking number or funnel only means what your inclusion rules say it means — whether that is which sessions count as active or which hiring transitions belong in history.",
+      "A healthy-looking number or funnel only means what your inclusion rules say it counts, whether that is active sessions or hiring transitions on a chart.",
   },
   {
     slug: "one-example-beats-style-guide",
@@ -179,7 +170,7 @@ export const articles: Article[] = [
     line: "authority",
     lineLead: true,
     argument:
-      "Agent work needs reliable lifecycle boundaries, explicit authority, and stop conditions you can verify — not host events or checklists that only read well in review.",
+      "An agent host can expose lifecycle events without exposing the lifecycle boundaries your system needs.",
   },
   {
     slug: "persist-game-state-not-ephemeral-ui-intent",
@@ -193,7 +184,7 @@ export const articles: Article[] = [
     line: "readiness",
     lineLead: true,
     argument:
-      "Shipping means honoring what the product has accepted as true — persisted state, requirements QA, and the runtime model — not green pipelines or plausible generated content.",
+      "Coming back should restore what the product treats as current truth, not whatever happened to be on screen or passed in CI.",
   },
   {
     slug: "schema-first-valid-json-wasnt-enough",
@@ -211,7 +202,7 @@ export const articles: Article[] = [
     title:
       "AI made translation cheap. The hard part was knowing what architecture to keep.",
     summary:
-      "Machine translation made new locales cheap while product architecture still needed human judgment about what to keep.",
+      "AI made producing translations cheap; it did not tell me what deserved to become permanent product structure.",
     year: 2026,
     tags: ["ai", "webdev", "programming"],
     url: "https://dev.to/michaeltruong/ai-made-translation-cheap-the-hard-part-was-knowing-what-architecture-to-keep-4hp3",
@@ -236,7 +227,7 @@ export const articles: Article[] = [
     title:
       "We made our agent plans portable. Then we had to make them verifiable.",
     summary:
-      "Distributing planning methodology across separate repositories still left structural drift until deterministic plan checks could compare each repo to the shared rules.",
+      "Sharing planning methodology across six repos did not keep plans structurally consistent until deterministic validation ran in CI.",
     year: 2026,
     tags: ["ai", "workflow", "governance"],
     url: "https://dev.to/michaeltruong/we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable-3ead",

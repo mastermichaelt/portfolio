@@ -24,7 +24,7 @@ export const articleLines: ArticleLineDefinition[] = [
     id: "authority",
     label: "Authority & Stop Conditions",
     pairs: "Renovate governance; agent-native",
-    note: "Most reports here govern plans, git hooks, and host lifecycle boundaries across repos — not one product surface. The line pairs with Renovate governance and agent-native work; several rows still carry no single system.",
+    note: "Most reports here govern plans, git hooks, and host lifecycle boundaries across repos, not one product surface. The line pairs with Renovate governance and agent-native work. Several rows still carry no single system.",
   },
   {
     id: "critique",
@@ -40,7 +40,7 @@ export const articleLines: ArticleLineDefinition[] = [
     id: "portability",
     label: "Agent Portability",
     pairs: "agent-native / editorial",
-    note: "These reports describe how agent setups and shared methodology move between projects — not a single product surface. The line is paired; the rows are not.",
+    note: "These reports describe how agent setups and shared methodology move between projects, not a single product surface. The line is paired. The rows are not.",
   },
 ];
 
