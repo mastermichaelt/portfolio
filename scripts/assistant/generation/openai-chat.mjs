@@ -288,6 +288,7 @@ export function parseChatCompletionResponse(payload) {
  *   url?: string,
  *   maxRetries?: number,
  *   baseRetryDelayMs?: number,
+ *   deadline?: ReturnType<typeof createChatRequestDeadline>,
  * }} options
  * @returns {Promise<{ content: string, usage: ReturnType<typeof parseChatCompletionResponse>['usage'], finishReason: string | null, model: string }>}
  */
@@ -321,7 +322,8 @@ export async function requestChatCompletionJson(options) {
   const maxRetries = options.maxRetries ?? 3;
   const baseRetryDelayMs = options.baseRetryDelayMs ?? 200;
 
-  const deadline = createChatRequestDeadline(requestTimeoutMs);
+  const deadline =
+    options.deadline ?? createChatRequestDeadline(requestTimeoutMs);
 
   let attempt = 0;
   while (true) {

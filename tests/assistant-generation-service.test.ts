@@ -408,7 +408,7 @@ describe("runRagGeneration service", () => {
     expect(result.response?.citations).toEqual([]);
   });
 
-  it("validates fabricated citations from mocked model output", async () => {
+  it("degrades fabricated citations to a safe abstention instead of throwing", async () => {
     const packet = await assembleEvidencePacket({
       matchedHits: [hit(1, "unit/a#intro", "a", "Alpha body")],
       assemblyMode: "top_k_only",
@@ -427,18 +427,20 @@ describe("runRagGeneration service", () => {
       abstained: false,
     });
 
-    await expect(
-      runRagGeneration({
-        question: "What is Alpha?",
-        evidencePacket: packet,
-        config: {
-          evidenceCharacterBudget: 10_000,
-          approximatePromptTokenBudget: 50_000,
-        },
-        fetch: mockChatFetch(badModel),
-        apiKey: TEST_OPENAI_API_KEY,
-      }),
-    ).rejects.toBeInstanceOf(GenerationValidationError);
+    const result = await runRagGeneration({
+      question: "What is Alpha?",
+      evidencePacket: packet,
+      config: {
+        evidenceCharacterBudget: 10_000,
+        approximatePromptTokenBudget: 50_000,
+      },
+      fetch: mockChatFetch(badModel),
+      apiKey: TEST_OPENAI_API_KEY,
+    });
+
+    expect(result.response?.abstained).toBe(true);
+    expect(result.response?.citations).toEqual([]);
+    expect(result.diagnostics.recovery_graceful_degradation_applied).toBe(true);
   });
 
   it("accepts evidence-aware mixed attribution from mocked model output", async () => {
@@ -685,10 +687,14 @@ describe("runRagGeneration service", () => {
       jsonEvents.find((e) => e.event === "assistant_generation_failed")
         ?.properties.failure_category,
     ).toBe("malformed_json");
-    expect(
-      jsonEvents.find((e) => e.event === "assistant_generation_failed")
-        ?.properties.completion_tokens,
-    ).toBeUndefined();
+    const jsonFailed = jsonEvents.find(
+      (e) => e.event === "assistant_generation_failed",
+    );
+    expect(jsonFailed?.properties.prompt_tokens).toBe(200);
+    expect(jsonFailed?.properties.completion_tokens).toBe(100);
+    expect(jsonFailed?.properties.total_tokens).toBe(300);
+    expect(jsonFailed?.properties.recovery_model_retry_attempted).toBe(true);
+    expect(jsonFailed?.properties.recovery_model_retry_succeeded).toBeFalsy();
 
     const badModel = JSON.stringify({
       claims: [
@@ -703,23 +709,29 @@ describe("runRagGeneration service", () => {
 
     const { telemetry: telemetryValidation, events: validationEvents } =
       createCapturingTelemetry();
-    await expect(
-      runRagGeneration({
-        question: "What is Alpha?",
-        evidencePacket: packet,
-        config: {
-          evidenceCharacterBudget: 10_000,
-          approximatePromptTokenBudget: 50_000,
-        },
-        fetch: mockChatFetch(badModel),
-        apiKey: TEST_OPENAI_API_KEY,
-        telemetry: telemetryValidation,
-      }),
-    ).rejects.toBeInstanceOf(GenerationValidationError);
+    const urlResult = await runRagGeneration({
+      question: "What is Alpha?",
+      evidencePacket: packet,
+      config: {
+        evidenceCharacterBudget: 10_000,
+        approximatePromptTokenBudget: 50_000,
+      },
+      fetch: mockChatFetch(badModel),
+      apiKey: TEST_OPENAI_API_KEY,
+      telemetry: telemetryValidation,
+    });
+    expect(urlResult.response?.claims[0].text).not.toContain("https://");
+    expect(urlResult.diagnostics.recovery_deterministic_repair_applied).toBe(
+      true,
+    );
     expect(
-      validationEvents.find((e) => e.event === "assistant_generation_failed")
-        ?.properties.failure_category,
-    ).toBe("structural_validation");
+      validationEvents.filter((e) => e.event === "assistant_generation_failed"),
+    ).toHaveLength(0);
+    expect(
+      validationEvents.filter(
+        (e) => e.event === "assistant_generation_completed",
+      ),
+    ).toHaveLength(1);
   });
 
   it("records openai_timeout without duplicate failure events", async () => {

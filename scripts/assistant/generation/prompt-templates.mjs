@@ -1,6 +1,8 @@
 /** @typedef {import("./evidence-packet.mjs").EvidencePacket} EvidencePacket */
 /** @typedef {import("./evidence-packet.mjs").EvidencePacketEntry} EvidencePacketEntry */
 
+import { checkApproximatePromptTokenBudget } from "./generation-config.mjs";
+
 export const ASSISTANT_GENERATION_SYSTEM_INSTRUCTIONS = `You are the portfolio assistant for michaeltruong.ai. Answer visitor questions using the evidence packet in the user message when it supports corpus-grounded claims about Michael's work, career, and published writing.
 
 Evidence-aware rules:
@@ -60,4 +62,54 @@ export function buildGenerationMessages(question, packet) {
     system: ASSISTANT_GENERATION_SYSTEM_INSTRUCTIONS,
     user: `Question:\n${trimmedQuestion}\n\nEvidence packet:\n${formatEvidencePacketForPrompt(packet)}`,
   };
+}
+
+/**
+ * @param {string} baseUserMessage
+ * @param {string[]} validationErrors
+ * @returns {string}
+ */
+export function buildGenerationRetryUserMessage(
+  baseUserMessage,
+  validationErrors,
+) {
+  const trimmed = validationErrors
+    .slice(0, 12)
+    .map((error) => `- ${error}`)
+    .join("\n");
+  return `${baseUserMessage}\n\nYour previous JSON response failed validation. Return one corrected JSON object only (no markdown fences). Fix these issues:\n${trimmed || "- See schema requirements in the system instructions."}`;
+}
+
+/**
+ * Builds a corrective retry user message that fits the approximate prompt budget.
+ * Truncates validation feedback (fewer errors) before touching the base question/evidence message.
+ *
+ * @param {string} system
+ * @param {string} baseUserMessage
+ * @param {string[]} validationErrors
+ * @param {number} tokenBudget
+ * @returns {{ ok: true, user: string } | { ok: false, approximateTokens: number }}
+ */
+export function buildGenerationRetryUserMessageWithinBudget(
+  system,
+  baseUserMessage,
+  validationErrors,
+  tokenBudget,
+) {
+  const maxErrors = Math.min(validationErrors.length, 12);
+  for (let errorCount = maxErrors; errorCount >= 0; errorCount -= 1) {
+    const user = buildGenerationRetryUserMessage(
+      baseUserMessage,
+      validationErrors.slice(0, errorCount),
+    );
+    const budget = checkApproximatePromptTokenBudget(system, user, tokenBudget);
+    if (budget.ok) {
+      return { ok: true, user };
+    }
+    if (errorCount === 0) {
+      return { ok: false, approximateTokens: budget.approximateTokens };
+    }
+  }
+
+  return { ok: false, approximateTokens: tokenBudget + 1 };
 }

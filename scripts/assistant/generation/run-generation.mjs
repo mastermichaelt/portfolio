@@ -16,15 +16,290 @@ import {
   outputTokenUtilization,
 } from "./generation-telemetry.mjs";
 import { requestChatCompletionJson } from "./openai-chat.mjs";
-import { buildGenerationMessages } from "./prompt-templates.mjs";
+import {
+  buildGenerationMessages,
+  buildGenerationRetryUserMessageWithinBudget,
+} from "./prompt-templates.mjs";
+import { createChatRequestDeadline } from "./openai-chat.mjs";
+import {
+  logGenerationRecoveryDiagnostics,
+  resolveValidatedModelResponse,
+} from "./recover-generation-response.mjs";
 import { repairAssistantModelGenerationJson } from "./repair-model-response.mjs";
 import {
   buildPublicGenerationResponse,
   countAttributions,
-  parseAssistantModelGenerationResponse,
 } from "./response-schema.mjs";
 import { validateAndNormalizeQuestion } from "./validate-query.mjs";
-import { validateGenerationResponse } from "./validate-response.mjs";
+
+/**
+ * Per-completion canonical total for aggregation.
+ * When both components exist, they define the pass total (even if provider total_tokens differs).
+ * Otherwise use reported total_tokens when present.
+ *
+ * @param {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number } | undefined} usage
+ * @returns {number | undefined}
+ */
+function canonicalPassTotalForUsage(usage) {
+  if (!usage) {
+    return undefined;
+  }
+  const prompt = usage.prompt_tokens;
+  const completion = usage.completion_tokens;
+  if (typeof prompt === "number" && typeof completion === "number") {
+    return prompt + completion;
+  }
+  if (typeof usage.total_tokens === "number") {
+    return usage.total_tokens;
+  }
+  return undefined;
+}
+
+/**
+ * True when a pass reports total_tokens without both component counts.
+ *
+ * @param {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number } | undefined} usage
+ * @returns {boolean}
+ */
+function passReportsTotalOnlyMetadata(usage) {
+  if (!usage || typeof usage.total_tokens !== "number") {
+    return false;
+  }
+  return (
+    typeof usage.prompt_tokens !== "number" ||
+    typeof usage.completion_tokens !== "number"
+  );
+}
+
+/**
+ * Sums OpenAI usage across two completion passes (initial + corrective retry).
+ *
+ * **Aggregation policy**
+ * - Sum `prompt_tokens` and `completion_tokens` independently when reported.
+ * - Per pass, canonical total = components sum when both exist; else `total_tokens`.
+ * - Cumulative `total_tokens` = sum of per-pass canonical totals when any exist.
+ * - When every pass reports both components (no total-only pass), cumulative
+ *   `total_tokens` is set to cumulative prompt + completion so fields stay consistent.
+ * - When any pass is total-only, cumulative total keeps the summed pass totals even
+ *   if that exceeds cumulative components (partial provider metadata, not zero-filled).
+ * - Missing fields are omitted — never treated as zero.
+ *
+ * @param {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number }} first
+ * @param {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number }} second
+ * @returns {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number }}
+ */
+export function accumulateChatCompletionUsage(first, second) {
+  /** @type {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number }} */
+  const accumulated = {};
+  const passes = [first, second];
+
+  let promptTokens;
+  let completionTokens;
+  let totalFromPasses = 0;
+  let passTotalCount = 0;
+  let anyTotalOnlyPass = false;
+  let everyPassHasBothComponents = true;
+
+  for (const usage of passes) {
+    if (typeof usage?.prompt_tokens === "number") {
+      promptTokens = (promptTokens ?? 0) + usage.prompt_tokens;
+    }
+    if (typeof usage?.completion_tokens === "number") {
+      completionTokens = (completionTokens ?? 0) + usage.completion_tokens;
+    }
+
+    const passTotal = canonicalPassTotalForUsage(usage);
+    if (typeof passTotal === "number") {
+      totalFromPasses += passTotal;
+      passTotalCount += 1;
+    }
+
+    if (passReportsTotalOnlyMetadata(usage)) {
+      anyTotalOnlyPass = true;
+    }
+    if (
+      typeof usage?.prompt_tokens !== "number" ||
+      typeof usage?.completion_tokens !== "number"
+    ) {
+      everyPassHasBothComponents = false;
+    }
+  }
+
+  if (typeof promptTokens === "number") {
+    accumulated.prompt_tokens = promptTokens;
+  }
+  if (typeof completionTokens === "number") {
+    accumulated.completion_tokens = completionTokens;
+  }
+
+  if (passTotalCount > 0) {
+    accumulated.total_tokens = totalFromPasses;
+  }
+
+  if (
+    typeof promptTokens === "number" &&
+    typeof completionTokens === "number" &&
+    everyPassHasBothComponents &&
+    !anyTotalOnlyPass
+  ) {
+    accumulated.total_tokens = promptTokens + completionTokens;
+  }
+
+  return accumulated;
+}
+
+/**
+ * @param {import("./response-schema.mjs").AssistantGenerationDiagnostics} diagnostics
+ * @param {import("./recover-generation-response.mjs").RecoveryDiagnostics} recovery
+ */
+function applyRecoveryDiagnostics(diagnostics, recovery) {
+  if (recovery.deterministic_repair_applied) {
+    diagnostics.recovery_deterministic_repair_applied = true;
+  }
+  if (recovery.model_retry_attempted) {
+    diagnostics.recovery_model_retry_attempted = true;
+  }
+  if (recovery.model_retry_succeeded) {
+    diagnostics.recovery_model_retry_succeeded = true;
+  }
+  if (recovery.graceful_degradation_applied) {
+    diagnostics.recovery_graceful_degradation_applied = true;
+  }
+  if (recovery.validation_stage) {
+    diagnostics.recovery_validation_stage = recovery.validation_stage;
+  }
+  if (typeof recovery.validation_issue_count === "number") {
+    diagnostics.recovery_validation_issue_count =
+      recovery.validation_issue_count;
+  }
+  if (recovery.validation_issue_codes) {
+    diagnostics.recovery_validation_issue_codes =
+      recovery.validation_issue_codes;
+  }
+  if (typeof recovery.claims_removed_count === "number") {
+    diagnostics.recovery_claims_removed_count = recovery.claims_removed_count;
+  }
+  if (typeof recovery.citations_normalized_count === "number") {
+    diagnostics.recovery_citations_normalized_count =
+      recovery.citations_normalized_count;
+  }
+}
+
+/** @typedef {import("./response-schema.mjs").AssistantGenerationDiagnostics} AssistantGenerationDiagnostics */
+
+/** Duck-typed attachment for evaluation persistence when generation throws. */
+export const GENERATION_FAILURE_DIAGNOSTICS = Symbol(
+  "generationFailureDiagnostics",
+);
+
+/**
+ * @param {unknown} error
+ * @returns {AssistantGenerationDiagnostics | undefined}
+ */
+export function readGenerationFailureDiagnostics(error) {
+  if (!(error instanceof Error)) {
+    return undefined;
+  }
+  const attached = /** @type {Record<symbol, unknown>} */ (error)[
+    GENERATION_FAILURE_DIAGNOSTICS
+  ];
+  return typeof attached === "object" && attached !== null
+    ? /** @type {AssistantGenerationDiagnostics} */ (attached)
+    : undefined;
+}
+
+/**
+ * @param {Error} error
+ * @param {AssistantGenerationDiagnostics} diagnostics
+ */
+function attachGenerationFailureDiagnostics(error, diagnostics) {
+  /** @type {Record<symbol, unknown>} */ (error)[
+    GENERATION_FAILURE_DIAGNOSTICS
+  ] = diagnostics;
+  return error;
+}
+
+/**
+ * @param {AssistantGenerationDiagnostics} diagnostics
+ * @param {{
+ *   initialCompletion: { usage?: Record<string, number>, model?: string },
+ *   retryCompletion?: { usage?: Record<string, number>, model?: string },
+ *   fallbackCompletion: { usage?: Record<string, number>, model?: string },
+ * }} sources
+ */
+function assignCumulativeUsageToDiagnostics(diagnostics, sources) {
+  const usageForDiagnostics = sources.retryCompletion
+    ? accumulateChatCompletionUsage(
+        sources.initialCompletion.usage,
+        sources.retryCompletion.usage,
+      )
+    : sources.fallbackCompletion.usage;
+  diagnostics.prompt_tokens = usageForDiagnostics.prompt_tokens;
+  diagnostics.completion_tokens = usageForDiagnostics.completion_tokens;
+  diagnostics.total_tokens = usageForDiagnostics.total_tokens;
+  diagnostics.model =
+    sources.fallbackCompletion.model ?? diagnostics.model ?? undefined;
+}
+
+/**
+ * @param {AssistantGenerationDiagnostics | undefined} diagnostics
+ */
+function recoveryTelemetryPropertiesFromDiagnostics(diagnostics) {
+  if (!diagnostics) {
+    return {};
+  }
+  return {
+    recovery_deterministic_repair_applied:
+      diagnostics.recovery_deterministic_repair_applied === true,
+    recovery_model_retry_attempted:
+      diagnostics.recovery_model_retry_attempted === true,
+    recovery_model_retry_succeeded:
+      diagnostics.recovery_model_retry_succeeded === true,
+    recovery_graceful_degradation_applied:
+      diagnostics.recovery_graceful_degradation_applied === true,
+    recovery_validation_stage: diagnostics.recovery_validation_stage,
+    recovery_validation_issue_count:
+      diagnostics.recovery_validation_issue_count,
+    recovery_validation_issue_codes:
+      diagnostics.recovery_validation_issue_codes,
+  };
+}
+
+/**
+ * @param {{
+ *   content: string,
+ *   packet: import("./evidence-packet.mjs").EvidencePacket,
+ *   recovery?: import("./recover-generation-response.mjs").RecoveryDiagnostics,
+ * }} input
+ */
+function parseRepairAndResolveModelResponse(input) {
+  let modelJson;
+  try {
+    modelJson = JSON.parse(input.content);
+  } catch {
+    /** @type {import("./recover-generation-response.mjs").RecoveryDiagnostics} */
+    const meta = {
+      deterministic_repair_applied:
+        input.recovery?.deterministic_repair_applied ?? false,
+      model_retry_attempted: input.recovery?.model_retry_attempted ?? false,
+      model_retry_succeeded: input.recovery?.model_retry_succeeded ?? false,
+      graceful_degradation_applied:
+        input.recovery?.graceful_degradation_applied ?? false,
+      validation_stage: "schema_parse",
+      validation_issue_count: 1,
+      validation_issue_codes: "schema",
+    };
+    return {
+      ok: false,
+      stage: "schema_parse",
+      errors: ["Model response is not valid JSON"],
+      recovery: meta,
+    };
+  }
+
+  modelJson = repairAssistantModelGenerationJson(modelJson);
+  return resolveValidatedModelResponse(modelJson, input.packet, input.recovery);
+}
 
 /** @typedef {import("./evidence-packet.mjs").AssemblyMode} AssemblyMode */
 /** @typedef {import("./evidence-packet.mjs").EvidencePacket} EvidencePacket */
@@ -86,6 +361,7 @@ function maybeEmitRetrievalTelemetry(telemetry, state, context) {
  *   maxOutputTokens: number,
  *   totalLatencyMs: number,
  *   generationLatencyMs?: number,
+ *   diagnostics?: AssistantGenerationDiagnostics,
  * }} context
  */
 function captureGenerationFailureTelemetry(telemetry, state, error, context) {
@@ -112,6 +388,7 @@ function captureGenerationFailureTelemetry(telemetry, state, error, context) {
     });
   }
 
+  const failureDiagnostics = context.diagnostics;
   telemetry.capture("assistant_generation_failed", {
     model: context.model,
     assembly_mode: context.assemblyMode,
@@ -120,7 +397,11 @@ function captureGenerationFailureTelemetry(telemetry, state, error, context) {
     total_latency_ms: context.totalLatencyMs,
     generation_latency_ms: context.generationLatencyMs,
     max_output_tokens: context.maxOutputTokens,
-    completion_tokens: classified.completion_tokens,
+    prompt_tokens: failureDiagnostics?.prompt_tokens,
+    completion_tokens:
+      failureDiagnostics?.completion_tokens ?? classified.completion_tokens,
+    total_tokens: failureDiagnostics?.total_tokens,
+    ...recoveryTelemetryPropertiesFromDiagnostics(failureDiagnostics),
   });
 }
 
@@ -289,55 +570,179 @@ export async function runRagGeneration(options) {
     }
 
     generationStarted = performance.now();
-    const completion = await requestChatCompletionJson({
-      system: messages.system,
-      user: messages.user,
-      model: config.model,
-      maxOutputTokens: config.maxOutputTokens,
-      requestTimeoutMs: config.requestTimeoutMs,
-      maxModelResponseJsonChars: config.maxModelResponseJsonChars,
-      fetch: options.fetch,
-      apiKey: options.apiKey,
+    const generationDeadline = createChatRequestDeadline(
+      config.requestTimeoutMs,
+    );
+    /** @type {import("./recover-generation-response.mjs").RecoveryDiagnostics} */
+    let recoveryMeta = {
+      deterministic_repair_applied: false,
+      model_retry_attempted: false,
+      model_retry_succeeded: false,
+      graceful_degradation_applied: false,
+    };
+
+    const runCompletionPass = async (userMessage) => {
+      generationDeadline.assertRemaining();
+      return requestChatCompletionJson({
+        system: messages.system,
+        user: userMessage,
+        model: config.model,
+        maxOutputTokens: config.maxOutputTokens,
+        requestTimeoutMs: config.requestTimeoutMs,
+        maxModelResponseJsonChars: config.maxModelResponseJsonChars,
+        fetch: options.fetch,
+        apiKey: options.apiKey,
+        deadline: generationDeadline,
+      });
+    };
+
+    let completion = await runCompletionPass(messages.user);
+    const initialCompletion = completion;
+    let resolved = parseRepairAndResolveModelResponse({
+      content: completion.content,
+      packet,
+      recovery: recoveryMeta,
     });
+
+    /** @type {typeof completion | undefined} */
+    let retryCompletion;
+    if (!resolved.ok) {
+      try {
+        generationDeadline.assertRemaining();
+      } catch (retryBudgetError) {
+        logGenerationRecoveryDiagnostics(recoveryMeta, resolved.errors);
+        throw retryBudgetError;
+      }
+
+      const retryPrompt = buildGenerationRetryUserMessageWithinBudget(
+        messages.system,
+        messages.user,
+        resolved.errors,
+        config.approximatePromptTokenBudget,
+      );
+      if (!retryPrompt.ok) {
+        logGenerationRecoveryDiagnostics(recoveryMeta, resolved.errors);
+        throw new GenerationValidationError(
+          `Prompt exceeds approximate token budget (${retryPrompt.approximateTokens} > ${config.approximatePromptTokenBudget})`,
+        );
+      }
+
+      try {
+        recoveryMeta.model_retry_attempted = true;
+        retryCompletion = await runCompletionPass(retryPrompt.user);
+        const retryResolved = parseRepairAndResolveModelResponse({
+          content: retryCompletion.content,
+          packet,
+          recovery: {
+            ...recoveryMeta,
+            model_retry_attempted: true,
+          },
+        });
+        if (retryResolved.ok) {
+          recoveryMeta = {
+            ...retryResolved.recovery,
+            model_retry_attempted: true,
+            model_retry_succeeded: true,
+          };
+          resolved = retryResolved;
+          completion = retryCompletion;
+        } else {
+          recoveryMeta = retryResolved.recovery;
+          resolved = retryResolved;
+          logGenerationRecoveryDiagnostics(recoveryMeta, retryResolved.errors);
+        }
+      } catch (retryError) {
+        generationLatencyMs = Math.round(performance.now() - generationStarted);
+        diagnostics.generation_latency_ms = generationLatencyMs;
+        assignCumulativeUsageToDiagnostics(diagnostics, {
+          initialCompletion,
+          retryCompletion,
+          fallbackCompletion: completion,
+        });
+        applyRecoveryDiagnostics(diagnostics, recoveryMeta);
+        diagnostics.total_latency_ms = Math.round(
+          performance.now() - runStarted,
+        );
+        logGenerationRecoveryDiagnostics(recoveryMeta, resolved.errors);
+        throw attachGenerationFailureDiagnostics(retryError, diagnostics);
+      }
+    }
+
+    if (!resolved.ok) {
+      generationLatencyMs = Math.round(performance.now() - generationStarted);
+      assignCumulativeUsageToDiagnostics(diagnostics, {
+        initialCompletion,
+        retryCompletion,
+        fallbackCompletion: completion,
+      });
+      applyRecoveryDiagnostics(diagnostics, recoveryMeta);
+      diagnostics.generation_latency_ms = generationLatencyMs;
+      diagnostics.total_latency_ms = Math.round(performance.now() - runStarted);
+      logGenerationRecoveryDiagnostics(recoveryMeta, resolved.errors);
+      if (
+        resolved.errors.some((error) =>
+          error.includes("Model response is not valid JSON"),
+        )
+      ) {
+        throw attachGenerationFailureDiagnostics(
+          new GenerationParseError("Model response is not valid JSON"),
+          diagnostics,
+        );
+      }
+      throw attachGenerationFailureDiagnostics(
+        new GenerationValidationError(
+          "Model response failed validation after recovery",
+          resolved.errors,
+        ),
+        diagnostics,
+      );
+    }
+
+    recoveryMeta = {
+      ...resolved.recovery,
+      model_retry_attempted:
+        recoveryMeta.model_retry_attempted ||
+        resolved.recovery.model_retry_attempted,
+      model_retry_succeeded:
+        recoveryMeta.model_retry_succeeded ||
+        resolved.recovery.model_retry_succeeded,
+      deterministic_repair_applied:
+        recoveryMeta.deterministic_repair_applied ||
+        resolved.recovery.deterministic_repair_applied,
+      graceful_degradation_applied:
+        recoveryMeta.graceful_degradation_applied ||
+        resolved.recovery.graceful_degradation_applied,
+    };
+    applyRecoveryDiagnostics(diagnostics, recoveryMeta);
+    if (
+      recoveryMeta.deterministic_repair_applied ||
+      recoveryMeta.graceful_degradation_applied ||
+      recoveryMeta.model_retry_attempted
+    ) {
+      logGenerationRecoveryDiagnostics(recoveryMeta);
+    }
 
     generationLatencyMs = Math.round(performance.now() - generationStarted);
     diagnostics.generation_latency_ms = generationLatencyMs;
     diagnostics.model = completion.model;
-    diagnostics.prompt_tokens = completion.usage.prompt_tokens;
-    diagnostics.completion_tokens = completion.usage.completion_tokens;
-    diagnostics.total_tokens = completion.usage.total_tokens;
+    const usageForDiagnostics = retryCompletion
+      ? accumulateChatCompletionUsage(
+          initialCompletion.usage,
+          retryCompletion.usage,
+        )
+      : completion.usage;
+    diagnostics.prompt_tokens = usageForDiagnostics.prompt_tokens;
+    diagnostics.completion_tokens = usageForDiagnostics.completion_tokens;
+    diagnostics.total_tokens = usageForDiagnostics.total_tokens;
 
-    let modelJson;
-    try {
-      modelJson = JSON.parse(completion.content);
-    } catch {
-      throw new GenerationParseError("Model response is not valid JSON");
-    }
-
-    modelJson = repairAssistantModelGenerationJson(modelJson);
-
-    const parsedModel = parseAssistantModelGenerationResponse(modelJson);
-    if (!parsedModel.ok) {
-      throw new GenerationValidationError(
-        "Model response failed structural parse",
-        parsedModel.errors,
-      );
-    }
-
-    const validation = validateGenerationResponse(parsedModel.value, packet);
-    if (!validation.valid) {
-      throw new GenerationValidationError(
-        "Model response failed validation",
-        validation.errors,
-      );
-    }
-
-    const response = buildPublicGenerationResponse(parsedModel.value);
+    const response = buildPublicGenerationResponse(resolved.model);
     diagnostics.attribution_counts = countAttributions(response.claims);
     diagnostics.total_latency_ms = Math.round(performance.now() - runStarted);
 
+    // Cumulative completion_tokens = known consumption across all model passes.
+    // output_token_utilization = final pass only, vs maxOutputTokens (budget signal).
     const utilization = outputTokenUtilization(
-      diagnostics.completion_tokens,
+      completion.usage?.completion_tokens,
       config.maxOutputTokens,
     );
 
@@ -359,6 +764,7 @@ export async function runRagGeneration(options) {
       total_latency_ms: diagnostics.total_latency_ms,
       evidence_entry_count: diagnostics.evidence_entry_count,
       evidence_character_count: diagnostics.evidence_character_count,
+      ...recoveryTelemetryPropertiesFromDiagnostics(diagnostics),
     });
 
     return { response, packet, diagnostics, flushTelemetry };
@@ -370,12 +776,15 @@ export async function runRagGeneration(options) {
       generationLatencyMs = Math.round(performance.now() - generationStarted);
     }
     if (!telemetryState.failureTelemetryEmitted) {
+      const failureDiagnostics =
+        readGenerationFailureDiagnostics(error) ?? diagnostics;
       captureGenerationFailureTelemetry(telemetry, telemetryState, error, {
         model: config.model,
         assemblyMode,
         maxOutputTokens: config.maxOutputTokens,
         totalLatencyMs: Math.round(performance.now() - runStarted),
         generationLatencyMs,
+        diagnostics: failureDiagnostics,
       });
     }
     try {
