@@ -67,6 +67,8 @@ For each change: `slug` (stable, filename-aligned), `title`, `tags`, `year`, `ur
 
 Insert new rows **next to thematically related neighbors** within the same line (inventory order, not publish date).
 
+When the corpus size changes, update the **`content/articles.ts` file header** comment (`(N posts; portfolio lists full corpus)`) to match `articles.length` — same discipline as the membership comment in `article-lines.ts`. Visible site copy should prefer `articles.length` derivation where practical; the header comment cannot, so refresh it on every reconciliation that changes row count.
+
 ### 5. Line maintenance
 
 - Reconcile per-line counts with the membership comment in `content/article-lines.ts` when counts change.
@@ -80,6 +82,7 @@ When `articles.ts` or hub mappings change:
 1. Extend `PUBLISHED_ARTICLE_HUB_FILES` in `scripts/assistant/okf/published-articles.mjs` for new hub filenames.
 2. Copy hub markdown → `tests/fixtures/assistant-okf/published/<slug>.md`.
 3. Bump `content-source-registry.mjs` SHA-256 for `content/articles.ts` when that file changed.
+4. Reconcile OKF test expectations when concept counts shift (`tests/okf-normalization.test.ts` `EXPECTED_CONCEPT_COUNT`, producer lengths; `tests/assistant-retrieval-units.test.ts` concept count). **CI runs full `npm run test:coverage`** when secrets and DB are configured — local runs may skip `assistant-retrieval-eval` without `OPENAI_API_KEY`; treat green CI as the retrieval-eval gate after fixture changes.
 
 Note in the PR if OKF ingest must be re-run locally after fixture changes.
 
@@ -95,6 +98,7 @@ Update at least these when totals or framing drift:
 | Projects index proof surface         | `content/projects-index.ts`                                                                        |
 | Production line editorial cell       | `content/production-line.ts`                                                                       |
 | Line membership comment + band notes | `content/article-lines.ts`                                                                         |
+| `articles.ts` header corpus count    | `content/articles.ts` (top comment `(N posts; …)`)                                                 |
 | Unit tests                           | `tests/content-foundation.test.ts`, `tests/article-lines.test.ts`, `tests/production-line.test.ts` |
 | E2E                                  | `e2e/happy-path.spec.ts`                                                                           |
 

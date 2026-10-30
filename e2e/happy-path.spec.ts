@@ -2,6 +2,25 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { articles } from "../content/articles";
 
+const CODENAMES_FIELD_REPORTS_HEADING = (() => {
+  const count = articles.filter(
+    (article) => article.relatedProjectSlug === "codenames-ai",
+  ).length;
+  const words = [
+    "Zero",
+    "One",
+    "Two",
+    "Three",
+    "Four",
+    "Five",
+    "Six",
+    "Seven",
+    "Eight",
+    "Nine",
+  ];
+  return `${words[count] ?? String(count)} field reports`;
+})();
+
 async function expectPrimaryNav(page: Page) {
   const nav = page.getByRole("navigation", { name: "Primary" });
   await expect(nav.getByRole("link", { name: "Projects" })).toBeVisible();
@@ -255,7 +274,7 @@ test.describe("portfolio happy path", () => {
     );
 
     // The four field-report doors resolve, including the persistence report.
-    await expect(page.getByText("Four field reports")).toBeVisible();
+    await expect(page.getByText(CODENAMES_FIELD_REPORTS_HEADING)).toBeVisible();
     await expect(page.getByText(/The board came back/i)).toBeVisible();
 
     // Live product opens externally; the technical door states its absence.
@@ -347,7 +366,9 @@ test.describe("portfolio happy path", () => {
         .locator(".figure-scope")
         .evaluate((node) => node.getBoundingClientRect().width);
       expect(scopeWidth).toBeGreaterThan(240);
-      await expect(page.getByText("Four field reports")).toBeVisible();
+      await expect(
+        page.getByText(CODENAMES_FIELD_REPORTS_HEADING),
+      ).toBeVisible();
 
       // No horizontal overflow at mobile width.
       const overflowX = await page.evaluate(
