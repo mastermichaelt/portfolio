@@ -17,17 +17,20 @@ Run this checklist on **every** skill invocation after the full published-invent
 - [ ] Audited repo for stale report totals / “fifteen” / old band notes (even when `articles.ts` unchanged).
 - [ ] `content/homepage.ts`, `content/projects-index.ts`, `content/production-line.ts` aligned with inventory.
 - [ ] `content/article-lines.ts` membership comment and band `note`s accurate.
+- [ ] `content/articles.ts` header comment corpus count matches inventory length.
 - [ ] `tests/content-foundation.test.ts` and `tests/article-lines.test.ts` counts and invariants match inventory (update only if audit found drift).
-- [ ] `tests/production-line.test.ts` and `e2e/happy-path.spec.ts` aligned with production-line copy.
+- [ ] `tests/production-line.test.ts` and `e2e/happy-path.spec.ts` aligned with production-line copy and dynamic surfaces (e.g. Codenames field-report door heading from `articles` count).
 
 ## Assistant fixtures (only when `articles.ts` or hub mappings changed)
 
 - [ ] `published-articles.mjs` hub filenames updated.
 - [ ] Fixture markdown copied under `tests/fixtures/assistant-okf/published/`.
 - [ ] `content-source-registry.mjs` SHA updated for `content/articles.ts`.
+- [ ] OKF concept-count / producer-length test constants updated when fixture set grows; rely on **CI `test:coverage`** for retrieval-eval integration when local OpenAI is unset.
 
 ## Commands
 
+- [ ] `npm run verify:articles-editorial-copy` passes when summaries, line-lead `argument`s, or band `label` / `pairs` / `note` changed (or on every run before PR).
 - [ ] `npm run lint`, `npm run typecheck`, `npm run format:check`, `npm test` when you changed tracked product files.
 - [ ] `npm run build` + `npm run test:e2e` only when content paths or fixtures changed (CI parity).
 

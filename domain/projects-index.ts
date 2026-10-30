@@ -44,7 +44,7 @@ export interface IndexCoPrimaryRow {
 export interface IndexSupportingRow {
   title: string;
   summary: string;
-  /** A count plus its surface, e.g. "15 reports published via workflow · DEV series". */
+  /** A count plus its surface, e.g. "21 reports published via workflow · DEV series". */
   proofSurface: string;
   href: string;
 }

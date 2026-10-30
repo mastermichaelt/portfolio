@@ -1,5 +1,45 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { articles, codenamesTaggedArticleCount } from "../content/articles";
+import { articleLines, resolveArticleSystem } from "../content/article-lines";
+import { groupArticleLines } from "../lib/article-lines";
+
+const ARTICLE_LINE_BANDS = groupArticleLines(
+  articleLines,
+  articles,
+  resolveArticleSystem,
+);
+
+function devRowAccessibleName(ordinal: string): string {
+  const band = ARTICLE_LINE_BANDS.find((entry) => entry.ordinal === ordinal);
+  const title = band?.reports[0]?.article.title;
+  if (!title) {
+    throw new Error(
+      `articles e2e: line ${ordinal} has no secondary report row`,
+    );
+  }
+  return `${title} (opens in new tab) DEV ↗`;
+}
+
+const CODENAMES_FIELD_REPORTS_HEADING = (() => {
+  const count = codenamesTaggedArticleCount;
+  const words = [
+    "Zero",
+    "One",
+    "Two",
+    "Three",
+    "Four",
+    "Five",
+    "Six",
+    "Seven",
+    "Eight",
+    "Nine",
+  ];
+  return `${words[count] ?? String(count)} field reports`;
+})();
+
+const CODENAMES_EVIDENCE_CELL_TITLE = `Live product and ${codenamesTaggedArticleCount} reports`;
+
 async function expectPrimaryNav(page: Page) {
   const nav = page.getByRole("navigation", { name: "Primary" });
   await expect(nav.getByRole("link", { name: "Projects" })).toBeVisible();
@@ -253,7 +293,7 @@ test.describe("portfolio happy path", () => {
     );
 
     // The four field-report doors resolve, including the persistence report.
-    await expect(page.getByText("Four field reports")).toBeVisible();
+    await expect(page.getByText(CODENAMES_FIELD_REPORTS_HEADING)).toBeVisible();
     await expect(page.getByText(/The board came back/i)).toBeVisible();
 
     // Live product opens externally; the technical door states its absence.
@@ -345,7 +385,9 @@ test.describe("portfolio happy path", () => {
         .locator(".figure-scope")
         .evaluate((node) => node.getBoundingClientRect().width);
       expect(scopeWidth).toBeGreaterThan(240);
-      await expect(page.getByText("Four field reports")).toBeVisible();
+      await expect(
+        page.getByText(CODENAMES_FIELD_REPORTS_HEADING),
+      ).toBeVisible();
 
       // No horizontal overflow at mobile width.
       const overflowX = await page.evaluate(
@@ -424,19 +466,16 @@ test.describe("portfolio happy path", () => {
       }),
     ).toBeVisible();
 
-    // Five line-index cells and five bands, one claim and one head per band.
+    // Five theme cells and five bands, one insight and one head per band.
     await expect(page.locator("nav.aline-index a.aline-cell")).toHaveCount(5);
     await expect(page.locator("section.aline-band")).toHaveCount(5);
     await expect(page.locator(".aline-band .aline-head h2")).toHaveCount(5);
-    await expect(page.locator(".aline-band .aline-claim")).toHaveCount(5);
+    await expect(page.locator(".aline-band .aline-insight")).toHaveCount(5);
+    await expect(page.locator(".aline-start-label")).toHaveCount(5);
+    await expect(page.getByText("Start here")).toHaveCount(5);
 
-    // Line 05 shows no implementation and never substitutes /ecosystem.
-    const line05 = page.locator("#line-05");
-    await expect(line05.getByText("no implementation attached")).toBeVisible();
-    await expect(line05.locator('a[href="/ecosystem"]')).toHaveCount(0);
-
-    // Every outbound report / archive row opens on DEV in a new tab.
-    const devLinks = page.locator("a.aline-report, a.aline-row");
+    // Every outbound report row opens on DEV in a new tab.
+    const devLinks = page.locator("a.aline-start-link, a.aline-row");
     await expect(devLinks.first()).toHaveAttribute(
       "href",
       /dev\.to\/michaeltruong/,
@@ -449,10 +488,14 @@ test.describe("portfolio happy path", () => {
       expect(target).toBe("_blank");
     }
 
-    // Lead implementation cross-links are internal (next/link), not DEV exits.
+    // Internal project link appears at most once per band (on the start-here row).
     await expect(
-      page.locator('#line-01 a.aline-impl[href="/projects/codenames-ai"]'),
+      page.locator(
+        '#line-01 a.aline-start-project[href="/projects/codenames-ai"]',
+      ),
     ).toBeVisible();
+    await expect(page.locator(".aline-band a.aline-impl")).toHaveCount(0);
+    await expect(page.getByText("co-primary")).toHaveCount(0);
   });
 
   test("articles 2a collapses to the 390px single-column line index", async ({
@@ -491,66 +534,64 @@ test.describe("portfolio happy path", () => {
       expect(height).toBeGreaterThanOrEqual(46);
     }
 
-    // Band head stacks id / label / pairing (each fully below the previous).
+    // Band head stacks title then report count.
     const headGeom = await page
       .locator("#line-01 .aline-head")
       .evaluate((head) => {
         const rect = (selector: string) =>
           head.querySelector(selector)!.getBoundingClientRect();
         return {
-          id: rect(".aline-line-id"),
-          label: rect("h2"),
-          pairing: rect(".aline-pairing"),
+          title: rect("h2"),
+          count: rect(".aline-count"),
         };
       });
-    expect(headGeom.label.top).toBeGreaterThanOrEqual(headGeom.id.bottom - 1);
-    expect(headGeom.pairing.top).toBeGreaterThanOrEqual(
-      headGeom.label.bottom - 1,
+    expect(headGeom.count.top).toBeGreaterThanOrEqual(
+      headGeom.title.bottom - 1,
     );
 
-    // Line 05 still states its no-implementation absence, never linking /ecosystem.
-    const line05 = page.locator("#line-05");
-    await expect(line05.getByText("no implementation attached")).toBeVisible();
-    await expect(line05.locator('a[href="/ecosystem"]')).toHaveCount(0);
+    const line01 = page.locator("#line-01");
+    const insightGeom = await line01.evaluate((section) => {
+      const head = section
+        .querySelector(".aline-head")!
+        .getBoundingClientRect();
+      const insight = section
+        .querySelector(".aline-insight")!
+        .getBoundingClientRect();
+      const start = section
+        .querySelector(".aline-start")!
+        .getBoundingClientRect();
+      return { head, insight, start };
+    });
+    expect(insightGeom.insight.top).toBeGreaterThanOrEqual(
+      insightGeom.head.bottom - 1,
+    );
+    expect(insightGeom.start.top).toBeGreaterThanOrEqual(
+      insightGeom.insight.bottom - 1,
+    );
   });
 
   test("articles 2a hardening: tap targets, index filler, and anchor clearance", async ({
     page,
   }) => {
-    // 1) Implementation cross-links reach the 44px tap target on the stacked
-    //    (<=920) layout, and the no-implementation state stays non-interactive.
+    // Start-here links reach the 44px tap target on the stacked (<=920) layout.
     await page.setViewportSize({ width: 744, height: 1000 });
     await page.goto("/articles");
 
-    const impls = page.locator(".aline-band a.aline-impl");
-    expect(await impls.count()).toBeGreaterThan(0);
-    const implHeights = await impls.evaluateAll((nodes) =>
+    const starts = page.locator(".aline-band a.aline-start-link");
+    expect(await starts.count()).toBe(5);
+    const startHeights = await starts.evaluateAll((nodes) =>
       nodes.map((node) => node.getBoundingClientRect().height),
     );
-    for (const height of implHeights) {
+    for (const height of startHeights) {
       expect(height).toBeGreaterThanOrEqual(44);
     }
-    // "no implementation attached" is text, never a link.
-    await expect(page.locator("#line-05 .aline-impl-none")).toHaveText(
-      "no implementation attached",
-    );
-    await expect(page.locator("#line-05 a.aline-impl")).toHaveCount(0);
 
-    // Archive-row accessible names carry the paired system when one exists, and
-    // stay natural (title then DEV, no dangling separator) when none does.
     await expect(
       page.locator("#line-01 a.aline-row").first(),
-    ).toHaveAccessibleName(/ — Codenames AI, DEV \(opens in new tab\)$/);
+    ).toHaveAccessibleName(devRowAccessibleName("01"));
     await expect(
       page.locator("#line-05 a.aline-row").first(),
-    ).toHaveAccessibleName(
-      /^I expected pair programming .*\(opens in new tab\)$/,
-    );
-    await expect(
-      page.locator("#line-05 a.aline-row").first(),
-    ).not.toHaveAccessibleName(/—/);
-
-    // 2) In the 3-column index the leftover grid track must not expose a filled,
+    ).toHaveAccessibleName(devRowAccessibleName("05"));
     //    lighter sixth cell: the filler recedes it to the page ground (--bg),
     //    which equals the body background. Checked by resolved color, not pixels.
     await page.setViewportSize({ width: 900, height: 900 });
@@ -925,7 +966,7 @@ test.describe("portfolio happy path", () => {
         name: "Editorial workflow",
         system: "editorial",
         first: "One card reaches Drafting",
-        last: "15 reports, published by hand",
+        last: `${articles.length} reports, published by hand`,
       },
       {
         name: "This portfolio",
@@ -937,7 +978,7 @@ test.describe("portfolio happy path", () => {
         name: "Codenames AI",
         system: "codenames",
         first: "Model migration as experiment",
-        last: "Live product and three reports",
+        last: CODENAMES_EVIDENCE_CELL_TITLE,
       },
     ];
 
@@ -1176,9 +1217,7 @@ test.describe("portfolio happy path", () => {
       await expect(
         lane.getByText("Model migration as experiment"),
       ).toBeVisible();
-      await expect(
-        lane.getByText("Live product and three reports"),
-      ).toBeVisible();
+      await expect(lane.getByText(CODENAMES_EVIDENCE_CELL_TITLE)).toBeVisible();
       await expect(
         page.getByRole("button", { name: "Codenames AI" }),
       ).toHaveAttribute("aria-pressed", "true");

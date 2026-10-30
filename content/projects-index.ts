@@ -1,5 +1,6 @@
 import { projectCases } from "@/content/project-cases";
 import type { CaseFigure, ProjectCase } from "@/domain/project-case";
+import { articles, codenamesTaggedArticleCount } from "@/content/articles";
 import type { ProjectsIndex } from "@/domain/projects-index";
 
 /**
@@ -69,7 +70,9 @@ export const projectsIndex: ProjectsIndex = {
       figures: indexFigures(codenames.slug),
       deferral: [
         { text: "codenames-ai.com →", href: "https://codenames-ai.com/" },
-        { text: "  ·  3 field reports on the case study" },
+        {
+          text: `  ·  ${codenamesTaggedArticleCount} field reports on the case study`,
+        },
       ],
     },
     {
@@ -103,7 +106,7 @@ export const projectsIndex: ProjectsIndex = {
       title: "Editorial workflow",
       summary:
         "Human-in-the-loop weekly field reports — retrieval, critique and verification before publish, with irreversible publish steps held by a person.",
-      proofSurface: "15 reports published via workflow · DEV series",
+      proofSurface: `${articles.length} reports published via workflow · DEV series`,
       href: "/projects/editorial-workflow",
     },
     {

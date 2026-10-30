@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: slice-content
     content: "PR2 (portfolio): Sync 21 articles (+6, move schema-first, refresh four line arguments, mandatory authority band note, dependent site copy/tests/e2e, fixtures/registry/tests) via articles-curation skill; Open PR only."
-    status: pending
+    status: completed
   - id: slice-editorial
     content: "PR3 (editorial-workflow): Extend editor-publish post-publish flow to invoke destination curation skill (portfolio default); fail-open skip report; runbook + optional dev.to README; Open PR only."
     status: pending
@@ -56,10 +56,10 @@ flowchart LR
 | Line id       | Public label                 | Count | Featured lead (unchanged)                                                |
 | ------------- | ---------------------------- | ----: | ------------------------------------------------------------------------ |
 | `measurement` | Measurement & Telemetry      | **3** | `active-players-which-sessions-counted`                                  |
-| `authority`   | Authority & Stop Conditions  | **6** | `agent-plans-authority-handoffs`                                         |
+| `authority`   | Authority & Stop Conditions  | **5** | `the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed`           |
 | `critique`    | Evals & Judgment             | **5** | `ai-reviewer-kinds-of-reasoning`                                         |
 | `readiness`   | Product Taste & Verification | **5** | `persist-game-state-not-ephemeral-ui-intent`                             |
-| `portability` | Agent Portability            | **2** | `agent-portability-does-not-require-centralizing-methodology-behind-mcp` |
+| `portability` | Agent Portability            | **3** | `agent-portability-does-not-require-centralizing-methodology-behind-mcp` |
 
 **Moves and adds (PR2):**
 
@@ -69,12 +69,12 @@ flowchart LR
 
 **Proposed lead arguments** (compress only if length breaks layout; do not strengthen claims):
 
-| Line        | Lead slug                                    | New `argument`                                                                                                                                                                       |
-| ----------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Measurement | `active-players-which-sessions-counted`      | A healthy-looking number or funnel only means what your inclusion rules say it means — whether that is which sessions count as active or which hiring transitions belong in history. |
-| Authority   | `agent-plans-authority-handoffs`             | Agent work needs explicit stop lines and guardrails you can verify — in plans, in git hooks, and in host lifecycle boundaries — not checklists that only read well in review.        |
-| Critique    | `ai-reviewer-kinds-of-reasoning`             | Passing a score, a rubric, or a retrieval fixture is one kind of judgment; product-ready output still needs separate editorial and configuration decisions.                          |
-| Readiness   | `persist-game-state-not-ephemeral-ui-intent` | Shipping means honoring what the product has accepted as true — persisted state, requirements QA, and the runtime model — not green pipelines or plausible generated content.        |
+| Line        | Lead slug                                                      | New `argument`                                                                                                                                                                       |
+| ----------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Measurement | `active-players-which-sessions-counted`                        | A healthy-looking number or funnel only means what your inclusion rules say it means — whether that is which sessions count as active or which hiring transitions belong in history. |
+| Authority   | `the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed` | Agent work needs reliable lifecycle boundaries, explicit authority, and stop conditions you can verify — not host events or checklists that only read well in review.                |
+| Critique    | `ai-reviewer-kinds-of-reasoning`                               | Passing a score, a rubric, or a retrieval fixture is one kind of judgment; product-ready output still needs separate editorial and configuration decisions.                          |
+| Readiness   | `persist-game-state-not-ephemeral-ui-intent`                   | Shipping means honoring what the product has accepted as true — persisted state, requirements QA, and the runtime model — not green pipelines or plausible generated content.        |
 
 **Editorial ordering:** `groupArticleLines` preserves **inventory order within each line** (not DEV publish date). When editing `content/articles.ts`, insert new rows next to thematically related neighbors; do not sort by `published_at`.
 
@@ -82,7 +82,7 @@ Suggested **new portfolio slugs** (hub filename → slug), metadata from frontma
 
 | Hub file                                                                    | Portfolio slug                                                           | `line`        | `relatedProjectSlug` |
 | --------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------- | -------------------- |
-| `we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable.md`   | `we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable`   | `authority`   | —                    |
+| `we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable.md`   | `we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable`   | `portability` | —                    |
 | `hook-availability-was-split-from-product-enforcement-after-silent-skip.md` | `hook-availability-was-split-from-product-enforcement-after-silent-skip` | `authority`   | —                    |
 | `the-retrieval-pipeline-worked-the-product-question-remained.md`            | `the-retrieval-pipeline-worked-the-product-question-remained`            | `critique`    | —                    |
 | `records-first-chart-second-the-sankey-disagreed.md`                        | `records-first-chart-second-the-sankey-disagreed`                        | `measurement` | —                    |
@@ -155,15 +155,15 @@ Mark `slice-skill` **completed** in plan frontmatter in the same PR.
 | File                                                | Change                                                                                                                                                                                             |
 | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `content/articles.ts`                               | +6 rows, move `schema-first`, update four lead `argument`s, reorder within lines                                                                                                                   |
-| `content/article-lines.ts`                          | Membership comment **3/6/5/5/2**; **rewrite** Authority & Stop Conditions band `note` (mandatory — retire “Three of fifteen” / single-unpaired framing; reflect post-refresh authority membership) |
+| `content/article-lines.ts`                          | Membership comment **3/5/5/5/3**; **rewrite** Authority & Stop Conditions band `note` (mandatory — retire “Three of fifteen” / single-unpaired framing; reflect post-refresh authority membership) |
 | `content/homepage.ts`                               | Update hardcoded **15** weekly-reports copy → **21** (or derive from `articles.length` if already practical)                                                                                       |
 | `content/projects-index.ts`                         | Update `proofSurface` report count **15** → **21** (or derived equivalent)                                                                                                                         |
 | `content/production-line.ts`                        | Update editorial cell title **15 reports** → **21** (or derived equivalent)                                                                                                                        |
 | `scripts/assistant/okf/published-articles.mjs`      | +6 hub filename mappings                                                                                                                                                                           |
 | `tests/fixtures/assistant-okf/published/*.md`       | +6 copies from hub                                                                                                                                                                                 |
 | `scripts/assistant/okf/content-source-registry.mjs` | New SHA-256 for `content/articles.ts`                                                                                                                                                              |
-| `tests/content-foundation.test.ts`                  | Counts `{ measurement: 3, authority: 6, critique: 5, readiness: 5, portability: 2 }`, `length === 21`                                                                                              |
-| `tests/article-lines.test.ts`                       | `band.count` `[3, 6, 5, 5, 2]`                                                                                                                                                                     |
+| `tests/content-foundation.test.ts`                  | Counts `{ measurement: 3, authority: 5, critique: 5, readiness: 5, portability: 3 }`, `length === 21`                                                                                              |
+| `tests/article-lines.test.ts`                       | `band.count` `[3, 5, 5, 5, 3]`                                                                                                                                                                     |
 | `tests/production-line.test.ts`                     | Assertion aligned with updated production-line editorial cell title                                                                                                                                |
 | `e2e/happy-path.spec.ts`                            | `last` editorial cell expectation aligned with production-line title                                                                                                                               |
 

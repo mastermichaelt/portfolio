@@ -93,6 +93,8 @@ vi.mock("@/content/articles", () => ({
       argument: "Test argument.",
     },
   ],
+  publishedArticleCount: 1,
+  codenamesTaggedArticleCount: 0,
 }));
 
 vi.mock("@/content/article-lines", () => ({

@@ -16,6 +16,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack",
+    "verify:articles-editorial-copy": "node scripts/validate-articles-editorial-copy.mjs",
     "verify:social-metadata": "node scripts/verify-prerendered-social-metadata.mjs",
     "start": "next start",
     "lint": "eslint",

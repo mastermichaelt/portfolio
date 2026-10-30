@@ -12,7 +12,7 @@ import type { ArticleLineDefinition } from "@/domain/article";
  * `pairs` is the project-tier pairing shown in each band head, verbatim from
  * `docs/archive/content-evidence-migration.md` §5.I; `note` is the band note for the two
  * lines whose reports carry no single system (handoff §4). Membership lives on
- * each `Article.line` in `content/articles.ts`; the counts are 3 / 3 / 4 / 3 / 2.
+ * each `Article.line` in `content/articles.ts`; the counts are 3 / 5 / 5 / 5 / 3.
  */
 export const articleLines: ArticleLineDefinition[] = [
   {
@@ -24,7 +24,7 @@ export const articleLines: ArticleLineDefinition[] = [
     id: "authority",
     label: "Authority & Stop Conditions",
     pairs: "Renovate governance; agent-native",
-    note: "One report in this line — retiring a throwaway experiment repo — carries no system either. Three of fifteen reports sit this way; the line is paired, the row is not.",
+    note: "Most reports here govern plans, git hooks, and host lifecycle boundaries across repos, not one product surface. The line pairs with Renovate governance and reusable agent harness work. Several rows still carry no single system.",
   },
   {
     id: "critique",
@@ -40,7 +40,7 @@ export const articleLines: ArticleLineDefinition[] = [
     id: "portability",
     label: "Agent Portability",
     pairs: "agent-native / editorial",
-    note: "Neither report here documents a single system — they describe how agent setups move between projects. The line is paired, the rows are not.",
+    note: "These reports describe how agent setups and shared methodology move between projects, not a single product surface. The line is paired. The rows are not.",
   },
 ];
 

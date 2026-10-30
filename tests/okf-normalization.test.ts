@@ -30,7 +30,7 @@ import { splitFrontmatter } from "@/scripts/assistant/okf/yaml.mjs";
 import { projectCases } from "@/content/project-cases";
 
 const FIXTURES_ROOT = path.join(process.cwd(), FIXTURES_DIR);
-const EXPECTED_CONCEPT_COUNT = 101;
+const EXPECTED_CONCEPT_COUNT = 119;
 
 function parseFrontmatterType(frontmatterYaml: string | null): string {
   expect(frontmatterYaml).toBeTruthy();
@@ -57,12 +57,12 @@ describe("OKF producers", () => {
     const career = produceCareerInventoryConcepts();
     const tooling = produceMarketplacePublicDocsConcepts();
 
-    expect(portfolio).toHaveLength(30);
+    expect(portfolio).toHaveLength(36);
     expect(projectCase).toHaveLength(11);
     expect(ecosystem).toHaveLength(4);
     expect(about).toHaveLength(9);
     expect(repo.length).toBeGreaterThanOrEqual(5);
-    expect(dev).toHaveLength(30);
+    expect(dev).toHaveLength(42);
     expect(career).toHaveLength(5);
     expect(tooling).toHaveLength(4);
 

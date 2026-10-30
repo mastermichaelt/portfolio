@@ -1,3 +1,4 @@
+import { articles } from "@/content/articles";
 import type { Homepage } from "@/domain/homepage";
 
 /**
@@ -129,7 +130,7 @@ export const homepage: Homepage = {
       role: "Field reports",
       name: "Articles →",
       href: "/articles",
-      summary: "15 weekly reports in five named lines of reasoning.",
+      summary: `${articles.length} weekly reports in five named lines of reasoning.`,
     },
     {
       id: "about",

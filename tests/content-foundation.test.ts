@@ -152,19 +152,19 @@ describe("content-foundation inventory", () => {
       expect(lineIds).toContain(article.line);
     }
 
-    // Membership counts are 3 / 3 / 4 / 3 / 2, and total 15.
+    // Membership counts are 3 / 5 / 5 / 5 / 3, and total 21.
     const counts = Object.fromEntries(lineIds.map((id) => [id, 0]));
     for (const article of listed) {
       counts[article.line] += 1;
     }
     expect(counts).toEqual({
       measurement: 3,
-      authority: 3,
-      critique: 4,
-      readiness: 3,
-      portability: 2,
+      authority: 5,
+      critique: 5,
+      readiness: 5,
+      portability: 3,
     });
-    expect(listed.length).toBe(15);
+    expect(listed.length).toBe(21);
 
     // Exactly one lead per line, each with a non-empty argument.
     for (const id of lineIds) {
@@ -200,7 +200,7 @@ describe("content-foundation inventory", () => {
     expect(about.independent.entries[0]?.current).toBe(true);
 
     // Qualified figures attach to the producing roles/projects, each traceable
-    // to a resumes/facts inventory file.
+    // to a resumes/facts inventory file or the curated articles inventory.
     const figures: CaseFigure[] = [
       ...about.experience.entries.flatMap((entry) => entry.figures ?? []),
       ...about.independent.entries.flatMap((entry) => entry.figures ?? []),
@@ -210,8 +210,21 @@ describe("content-foundation inventory", () => {
       expect(figure.value.trim().length).toBeGreaterThan(0);
       expect(figure.name.trim().length).toBeGreaterThan(0);
       expect(figure.scope.trim().length).toBeGreaterThan(0);
-      expect(figure.source.inventory).toMatch(/^resumes\/facts\/.+\.yml$/);
+      expect(figure.source.inventory).toMatch(
+        /^(resumes\/facts\/.+\.yml|content\/articles\.ts)$/,
+      );
     }
+
+    const fieldReportsEntry = about.independent.entries.find(
+      (entry) => entry.id === "field-reports",
+    );
+    const reportFigure = fieldReportsEntry?.figures?.find(
+      (figure) => figure.name === "published field reports",
+    );
+    expect(reportFigure?.value).toBe(String(articles.length));
+    expect(fieldReportsEntry?.bullets[0]).toContain(
+      `Published ${articles.length} weekly`,
+    );
 
     // The rendered copy (review-aid `source` stripped) must respect the voice
     // constraints and the evidence guardrails.

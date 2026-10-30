@@ -1,4 +1,4 @@
-import { articles } from "@/content/articles";
+import { articles, codenamesTaggedArticleCount } from "@/content/articles";
 import type { ProjectCase } from "@/domain/project-case";
 
 /**
@@ -389,7 +389,7 @@ const codenamesAi: ProjectCase = {
     { label: "Ecosystem →", href: "/ecosystem" },
   ],
   artifacts: {
-    label: "Artifacts and related writing",
+    label: "Live product and block-mapped field reports",
     rows: [
       {
         id: "live-product",
@@ -416,7 +416,11 @@ const codenamesAi: ProjectCase = {
     ],
     closing: [
       {
-        text: "Figures above are qualified engineering telemetry, not unaudited growth KPIs — the durable outcome is a production system with explicit validation contracts and publishable engineering lessons.  ·  Same method at Atlassian scale — ",
+        text: `The three reports above map to blocks 01–03; ${codenamesTaggedArticleCount} DEV posts are tagged to this project on `,
+      },
+      { text: "Articles →", href: "/articles" },
+      {
+        text: ". Figures above are qualified engineering telemetry, not unaudited growth KPIs — the durable outcome is a production system with explicit validation contracts and publishable engineering lessons.  ·  Same method at Atlassian scale — ",
       },
       {
         text: "experiment measurement →",

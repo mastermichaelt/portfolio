@@ -1,3 +1,4 @@
+import { articles, codenamesTaggedArticleCount } from "@/content/articles";
 import type { ProductionLine } from "@/domain/production-line";
 
 /**
@@ -78,8 +79,8 @@ export const productionLine: ProductionLine = {
         },
         {
           stageId: "evidence",
-          title: "Live product and three reports",
-          body: "codenames-ai.com, with its qualified figures on the case study and three field reports on the calls behind it.",
+          title: `Live product and ${codenamesTaggedArticleCount} reports`,
+          body: `codenames-ai.com, with its qualified figures on the case study and ${codenamesTaggedArticleCount} field reports on the calls behind it.`,
         },
       ],
     },
@@ -140,7 +141,7 @@ export const productionLine: ProductionLine = {
         },
         {
           stageId: "evidence",
-          title: "15 reports, published by hand",
+          title: `${articles.length} reports, published by hand`,
           body: "Weekly cadence held; the irreversible publish step stayed with a person every time.",
         },
       ],

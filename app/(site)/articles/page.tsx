@@ -9,7 +9,7 @@ import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 export const metadata: Metadata = {
   title: "Articles",
   description:
-    "Weekly AI Engineering Field Reports on DEV.to, organized into five lines of reasoning — measurement, authority, critique, readiness and agent portability.",
+    "Weekly AI Engineering Field Reports on DEV.to, grouped into five themes: measurement, authority, critique, readiness, and agent portability.",
   alternates: {
     canonical: "/articles",
   },
@@ -30,16 +30,14 @@ export default async function ArticlesPage() {
   return (
     <main id="content">
       <div className="container">
-        {/* Opening — positioning lead and the corpus register */}
         <section className="aline-hero fade-in">
           <div className="aline-intro">
-            <p className="eyebrow">Articles / lines of reasoning</p>
+            <p className="eyebrow">Articles</p>
             <h1>The writing returns to five problems.</h1>
             <p className="aline-hero-lead">
-              Weekly AI Engineering Field Reports, written from systems I
-              operate. Each line below opens with the argument that line has
-              arrived at; the report that makes the case sits underneath it, and
-              the body stays on DEV.
+              Weekly field reports from systems I operate. Each section states
+              one lesson, recommends where to start reading, then lists the rest
+              on DEV.
             </p>
           </div>
           <aside className="aline-register">
@@ -49,9 +47,7 @@ export default async function ArticlesPage() {
                 {articles.length} published
               </span>
               <span className="aline-register-fact">weekly practice</span>
-              <span className="aline-register-fact">
-                {lines.length} lines of reasoning
-              </span>
+              <span className="aline-register-fact">{lines.length} themes</span>
             </div>
             <p className="aline-register-note">
               Recognized as a{" "}
@@ -67,8 +63,7 @@ export default async function ArticlesPage() {
           </aside>
         </section>
 
-        {/* Line index — the page's navigation structure (not sticky) */}
-        <nav className="aline-index" aria-label="Lines of reasoning">
+        <nav className="aline-index" aria-label="Article themes">
           {bands.map((band) => (
             <a
               key={band.id}
@@ -86,7 +81,6 @@ export default async function ArticlesPage() {
           ))}
         </nav>
 
-        {/* Five bands, in fixed order */}
         <div className="aline-bands fade-in delay-1">
           {bands.map((band) => (
             <section
@@ -94,74 +88,60 @@ export default async function ArticlesPage() {
               id={`line-${band.ordinal}`}
               className="aline-band"
             >
-              <div className="aline-head">
-                <div className="aline-head-title">
-                  <span className="aline-line-id">LINE {band.ordinal}</span>
-                  <h2>{band.label}</h2>
-                </div>
-                <p className="aline-pairing">
-                  {band.count} reports · {band.pairs}
+              <header className="aline-head">
+                <h2>{band.label}</h2>
+                <p className="aline-count">
+                  {band.count} {band.count === 1 ? "report" : "reports"}
                 </p>
-              </div>
+              </header>
 
-              <article className="aline-lead">
-                <div className="aline-lead-main">
-                  <p className="aline-claim">{band.lead.argument}</p>
-                  <ExternalLink
-                    className="aline-report"
-                    href={band.lead.article.url}
-                    aria-label={`Report: ${band.lead.article.title}, DEV`}
-                    analyticsLabel={band.lead.article.title}
-                  >
-                    <span className="aline-report-tag">Report</span>{" "}
-                    <span className="aline-report-title">
-                      {band.lead.article.title}
-                    </span>{" "}
-                    <span className="aline-report-dev">DEV ↗</span>
-                  </ExternalLink>
-                </div>
-                <div className="aline-meta">
-                  {band.lead.system?.href ? (
-                    <Link className="aline-impl" href={band.lead.system.href}>
-                      implementation · {band.lead.system.label} →
-                    </Link>
-                  ) : (
-                    <span className="aline-impl-none">
-                      no implementation attached
-                    </span>
-                  )}
-                </div>
-              </article>
+              <p className="aline-insight">{band.lead.argument}</p>
 
-              {band.reports.map((row) => (
+              <article className="aline-start">
+                <p className="aline-start-label">Start here</p>
                 <ExternalLink
-                  key={row.article.slug}
-                  className="aline-row"
-                  href={row.article.url}
-                  // The name carries every visible label in order (WCAG 2.5.3).
-                  aria-label={
-                    row.system
-                      ? `${row.article.title} — ${row.system.label}, DEV`
-                      : `${row.article.title}, DEV`
-                  }
-                  analyticsLabel={row.article.title}
+                  className="aline-start-link"
+                  href={band.lead.article.url}
+                  newTabHint={false}
+                  analyticsLabel={band.lead.article.title}
                 >
-                  <span className="aline-row-title">{row.article.title}</span>{" "}
-                  <span className="aline-row-meta">
-                    <span className="aline-row-system">
-                      {row.system?.label ?? ""}
-                    </span>{" "}
-                    <span className="aline-row-dev">DEV ↗</span>
+                  <span className="aline-start-title">
+                    {band.lead.article.title}
+                    <span className="sr-only"> (opens in new tab)</span>
                   </span>
                 </ExternalLink>
-              ))}
+                {band.lead.system?.href ? (
+                  <Link
+                    className="aline-start-project"
+                    href={band.lead.system.href}
+                  >
+                    {band.lead.system.label} →
+                  </Link>
+                ) : null}
+              </article>
 
-              {band.note ? <p className="aline-note">{band.note}</p> : null}
+              {band.reports.length > 0 ? (
+                <div className="aline-more">
+                  {band.reports.map((row) => (
+                    <ExternalLink
+                      key={row.article.slug}
+                      className="aline-row"
+                      href={row.article.url}
+                      newTabHint={false}
+                      analyticsLabel={row.article.title}
+                    >
+                      <span className="aline-row-title">
+                        {row.article.title}
+                        <span className="sr-only"> (opens in new tab)</span>
+                      </span>
+                    </ExternalLink>
+                  ))}
+                </div>
+              ) : null}
             </section>
           ))}
         </div>
 
-        {/* Closing — the two adjacent evidence surfaces, then the DEV archive */}
         <section className="aline-closing">
           <div className="anchor-pair">
             <Link className="anchor" href="/projects">
@@ -174,9 +154,9 @@ export default async function ArticlesPage() {
             </Link>
           </div>
           <p className="aline-archive">
-            Every report is published on DEV —{" "}
+            Every report is published on DEV.{" "}
             <ExternalLink className="aline-archive-link" href={DEV_ARCHIVE_URL}>
-              full archive ↗
+              Full archive ↗
             </ExternalLink>
           </p>
         </section>
