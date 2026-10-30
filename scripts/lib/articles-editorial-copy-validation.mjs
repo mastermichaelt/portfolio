@@ -1,12 +1,17 @@
 /**
  * Deterministic checks for /articles inventory editorial copy (summaries,
- * line-lead arguments, band labels/pairs/notes). No auto-fix; report only.
+ * line-lead arguments, band labels/notes; band pairs for compounds only).
+ * Fail closed: diagnostics only (no auto-rewrite); `verify:articles-editorial-copy`
+ * exits 1 when any check fails so CI blocks merge.
  */
 import fs from "node:fs";
 import path from "node:path";
 
-/** Unicode em dash — rejected in scoped reader-facing strings. */
+/** Unicode em dash — rejected in scoped editorial prose (not structured `pairs`). */
 export const EM_DASH = "\u2014";
+
+/** Archive pairing labels; em dash allowed; compound check still applies. */
+export const EM_DASH_EXCLUDED_FIELDS = new Set(["pairs"]);
 
 /**
  * Hyphenated terms allowed without appearing in a published fixture (pairing
@@ -159,7 +164,10 @@ export function validateArticlesEditorialCopy(articles, articleLines, options) {
       ? `${entry.file} ${entry.field} slug=${entry.slug}`
       : `${entry.file} ${entry.field} line=${entry.lineId}`;
 
-    if (entry.text.includes(EM_DASH)) {
+    if (
+      !EM_DASH_EXCLUDED_FIELDS.has(entry.field) &&
+      entry.text.includes(EM_DASH)
+    ) {
       errors.push(`${loc}: contains Unicode em dash (U+2014)`);
     }
 

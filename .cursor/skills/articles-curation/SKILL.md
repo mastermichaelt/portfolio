@@ -36,7 +36,7 @@ Before finishing a curation run (and before opening a PR that changes inventory 
 npm run verify:articles-editorial-copy
 ```
 
-That command rejects Unicode em dashes and flags hyphenated compounds that are not in the published fixture corpus (per slug or line) or the small allowlist in `scripts/lib/articles-editorial-copy-validation.mjs`. Fix reported strings using sibling hub [`editorial-workflow/.cursor/rules/engineer-writeup-voice.mdc`](../../editorial-workflow/.cursor/rules/engineer-writeup-voice.mdc); do not duplicate the full voice doc here. Focused unit tests live in `tests/articles-editorial-copy-validation.test.ts`.
+That command rejects Unicode em dashes in editorial prose fields (summaries, line-lead `argument`s, band `label` and `note`; **not** archive `pairs` pairing labels) and flags hyphenated compounds that are not in the published fixture corpus (per slug or line) or the small allowlist in `scripts/lib/articles-editorial-copy-validation.mjs`. It **exits with code 1** on any failure so CI blocks merge; it does not rewrite copy. Fix reported strings using sibling hub [`editorial-workflow/.cursor/rules/engineer-writeup-voice.mdc`](../../editorial-workflow/.cursor/rules/engineer-writeup-voice.mdc). Focused unit tests live in `tests/articles-editorial-copy-validation.test.ts`.
 
 ## Preflight
 

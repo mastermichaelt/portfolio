@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * CI/local gate: /articles inventory editorial copy (summaries, line-lead
- * arguments, band label/pairs/note). See scripts/lib/articles-editorial-copy-validation.mjs
+ * arguments, band label/note; pairs compound-only). Exits 1 on any failure.
+ * See scripts/lib/articles-editorial-copy-validation.mjs
  */
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
