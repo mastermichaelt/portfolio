@@ -28,6 +28,26 @@ describe("resolveAssistantPublicEnabled", () => {
     ).toBe(true);
   });
 
+  it("rejects explicitly empty or whitespace-only values", () => {
+    for (const value of ["", "   ", "\t"]) {
+      expect(() =>
+        resolveAssistantPublicEnabled({
+          ...process.env,
+          ASSISTANT_PUBLIC_ENABLED: value,
+        }),
+      ).toThrow(AssistantPublicEnabledConfigError);
+    }
+  });
+
+  it("trims surrounding whitespace on documented values", () => {
+    expect(
+      resolveAssistantPublicEnabled({
+        ...process.env,
+        ASSISTANT_PUBLIC_ENABLED: "  false  ",
+      }),
+    ).toBe(false);
+  });
+
   it("parses documented disabled values case-insensitively", () => {
     for (const value of ["0", "false", "no", "FALSE", "NO"]) {
       expect(

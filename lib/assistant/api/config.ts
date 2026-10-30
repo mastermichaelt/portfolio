@@ -21,8 +21,14 @@ export function resolveAssistantPublicEnabled(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
   const raw = env.ASSISTANT_PUBLIC_ENABLED;
-  if (raw === undefined || raw.trim() === "") {
+  if (raw === undefined) {
     return true;
+  }
+
+  if (raw.trim() === "") {
+    throw new AssistantPublicEnabledConfigError(
+      "ASSISTANT_PUBLIC_ENABLED must be one of 1, true, yes, 0, false, no (case-insensitive), or omitted for enabled; received empty or whitespace-only value",
+    );
   }
 
   const normalized = raw.trim().toLowerCase();

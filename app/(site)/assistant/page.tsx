@@ -16,14 +16,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function AssistantPage() {
   const publicEnabled = resolveAssistantPublicEnabled();
-  const evaluationDisclosure = resolveEvaluationObservabilityConfig();
 
   return (
     <main id="content">
       <section className="section hero hero-compact">
         <div className="container">
           {publicEnabled ? (
-            <AssistantExperience evaluationDisclosure={evaluationDisclosure} />
+            <AssistantExperience
+              evaluationDisclosure={resolveEvaluationObservabilityConfig()}
+            />
           ) : (
             <AssistantMaintenanceView />
           )}
