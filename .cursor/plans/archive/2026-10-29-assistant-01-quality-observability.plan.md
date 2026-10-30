@@ -1,18 +1,30 @@
 ---
 name: Assistant Phase 1 — Reliability & Observability
-overview: Phase 1 child plan — shipped question-level evaluation observability on main plus outstanding generation validation recovery (PR #107). Production E2E verification stays Phase 4.
+overview: Phase 1 child plan — evaluation observability and generation validation recovery (PR #107) shipped on main. Production E2E verification stays Phase 4. Archived 2026-10-30.
 todos:
   - id: quality-observability
     content: "PR: evaluation table, API fail-open persistence, disclosure, CLI, tests, docs"
     status: completed
   - id: generation-recovery-pr107
     content: "PR #107: validation recovery, deterministic repair, bounded retry, graceful degradation, evidence integrity, diagnostics"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only when Phase 1 exit criteria met — roadmap Phase 1 complete; archive this child plan"
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-10-30.** Phase 1 exit criteria satisfied; [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) merged 2026-10-30 (`42f71dc`).
+
+| Slice                     | Delivered                                                                                                                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| quality-observability     | Evaluation table, fail-open API persistence, composer disclosure, review/cleanup CLIs, tests, [evaluation-observability.md](../../../docs/assistant/evaluation-observability.md) on `main` |
+| generation-recovery-pr107 | Validation recovery, deterministic repair, bounded retry, graceful degradation, evidence integrity, diagnostics — [PR #107](https://github.com/mastermichaelt/portfolio/pull/107)          |
+| plan-closure              | This archive; [roadmap](../2026-10-30-assistant-roadmap.plan.md) Phase 1 marked **complete**                                                                                               |
+
+**Exit criteria verified on `main` (2026-10-30):** observability confirmed shipped; #107 merged; `tests/assistant-generation-recovery.test.ts`, `assistant-generation-service.test.ts`, and `assistant-evaluation.test.ts` pass; generation diagnostics remain compatible with evaluation observability; no blocking reliability regression noted for Phase 2 entry. Production E2E eval verification remains Phase 4.
 
 # Assistant Phase 1 — Reliability & Observability
 
@@ -22,7 +34,7 @@ isProject: false
 
 |                         |                                                                                                                                                                                                                                                                            |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)                                                                                                                                                                                             |
+| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md)                                                                                                                                                                                            |
 | **Phase**               | **1** — Reliability & Observability                                                                                                                                                                                                                                        |
 | **Phase objective**     | Confirm evaluation observability on `main`; merge generation validation recovery ([PR #107](https://github.com/mastermichaelt/portfolio/pull/107)); preserve evidence integrity and diagnostic compatibility with observability.                                           |
 | **Entry criteria**      | Observability shipped on `main`; [PR #107](https://github.com/mastermichaelt/portfolio/pull/107) in flight or merged. Phase 0 **not** required to merge #107. **Recommend** Phase 0 before **production deploy** of recovery — **merging #107 ≠ deploying to production**. |
@@ -39,21 +51,21 @@ Phase 1 is **complete** when all of the following hold (production reopening **n
 4. **Generation diagnostics remain compatible** with evaluation observability (PostHog generation events + evaluation row writes; no prompts or answer text in telemetry).
 5. **No known blocking generation reliability regression** remains for progression to Phase 2.
 
-**Not in Phase 1 scope:** production evaluation persistence verification, production ingest/E2E, or public reopen — owned by [Phase 4 production reopening](./2026-10-30-assistant-04-production-reopening.plan.md).
+**Not in Phase 1 scope:** production evaluation persistence verification, production ingest/E2E, or public reopen — owned by [Phase 4 production reopening](../2026-10-30-assistant-04-production-reopening.plan.md).
 
 ## Obligations owned elsewhere (do not duplicate)
 
-| Topic                                                       | Owner       | Reference                                                                                                                              |
-| ----------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Production evaluation persistence + disclosure verification | **Phase 4** | [04-production-reopening](./2026-10-30-assistant-04-production-reopening.plan.md) — observability checklist + `operational-acceptance` |
-| Grounded RAG operational acceptance                         | **Phase 4** | Same plan — transferred from [archived grounded RAG](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md)                   |
-| Composer retention disclosure polish; visitor feedback API  | **Phase 5** | [evaluation-observability.md](../../docs/assistant/evaluation-observability.md)                                                        |
+| Topic                                                       | Owner       | Reference                                                                                                                               |
+| ----------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Production evaluation persistence + disclosure verification | **Phase 4** | [04-production-reopening](../2026-10-30-assistant-04-production-reopening.plan.md) — observability checklist + `operational-acceptance` |
+| Grounded RAG operational acceptance                         | **Phase 4** | Same plan — transferred from [archived grounded RAG](./2026-10-08-assistant-grounded-rag-generation.plan.md)                            |
+| Composer retention disclosure polish; visitor feedback API  | **Phase 5** | [evaluation-observability.md](../../../docs/assistant/evaluation-observability.md)                                                      |
 
 **Historical transfer (2026-10-30 consolidation):** Production verification obligations moved to Phase 4 **unchanged** when this plan was briefly archived; restoration as Phase 1 does **not** reverse those transfers.
 
 ## Implementation history — quality-observability (shipped)
 
-**Merged on `main`:** evaluation table `assistant_generation_evaluations`, terminal fail-open API persistence, composer disclosure, `assistant:evaluation:review` / cleanup CLIs, tests, [evaluation-observability.md](../../docs/assistant/evaluation-observability.md).
+**Merged on `main`:** evaluation table `assistant_generation_evaluations`, terminal fail-open API persistence, composer disclosure, `assistant:evaluation:review` / cleanup CLIs, tests, [evaluation-observability.md](../../../docs/assistant/evaluation-observability.md).
 
 Architecture summary:
 
@@ -71,7 +83,7 @@ Architecture summary:
 | generation-recovery-pr107 | Open PR only          | Do not merge. Stop after opening the PR (track [PR #107](https://github.com/mastermichaelt/portfolio/pull/107)). |
 | plan-closure              | Open PR only          | Do not merge. Stop after opening the PR.                                                                         |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ## Repository topology (default)
 
@@ -91,7 +103,7 @@ Integration branch: **`main`**. Each slice: fresh branch from `origin/main`; PR 
 
 **Goal:** Question-level evaluation rows, privacy disclosure, operator review/cleanup CLIs, tests, and docs.
 
-**Acceptance:** Per [evaluation-observability.md](../../docs/assistant/evaluation-observability.md); CI green on `main`.
+**Acceptance:** Per [evaluation-observability.md](../../../docs/assistant/evaluation-observability.md); CI green on `main`.
 
 **Status:** **Completed** on `main`.
 
@@ -149,14 +161,14 @@ Until #107 merges, run the service, API, contract, and evaluation tests on `main
 
 **Prerequisites:** Phase 1 exit criteria met; `generation-recovery-pr107` marked **completed** in frontmatter.
 
-**Deliverables:** `# Shipped` note on this plan; move to `.cursor/plans/archive/2026-10-29-assistant-01-quality-observability.plan.md`; mark `plan-closure` completed; update [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md) Phase 1 **complete**.
+**Deliverables:** `# Shipped` note on this plan; move to `.cursor/plans/archive/2026-10-29-assistant-01-quality-observability.plan.md`; mark `plan-closure` completed; update [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md) Phase 1 **complete**.
 
 ---
 
 ## Explicit follow-ups (Phase 5 — not Phase 1)
 
 - **Claude Design:** polish composer retention disclosure layout/copy.
-- **Visitor feedback integration:** [evaluation-observability.md](../../docs/assistant/evaluation-observability.md#future-feedback-explicit-integration-task).
+- **Visitor feedback integration:** [evaluation-observability.md](../../../docs/assistant/evaluation-observability.md#future-feedback-explicit-integration-task).
 
 ---
 

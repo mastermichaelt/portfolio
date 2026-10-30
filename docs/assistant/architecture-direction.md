@@ -396,7 +396,7 @@ Closure findings: [vector-retrieval-experiment.md](./vector-retrieval-experiment
 
 **Current implementation.** Grounded **evidence assembly** and **generation** (answer + citations + abstention) ship on `main` via the shared generation service, `POST /api/assistant/generate`, and `/assistant`. Parent-context expansion, token budgets, and split retrieval-vs-answer evaluation remain **design options** in [rag-generation-direction.md](./rag-generation-direction.md).
 
-**Planned (roadmap, not duplicate milestones):** Phase 0 maintenance mode; Phase 1 validation recovery ([PR #107](https://github.com/mastermichaelt/portfolio/pull/107)); Phase 2 TypeScript consolidation + Zod; Phase 4 production acceptance and reopen. Full operational verification before public reopen: [Phase 4 production reopening](../../.cursor/plans/2026-10-30-assistant-04-production-reopening.plan.md).
+**Planned (roadmap, not duplicate milestones):** Phase 0 maintenance mode (**shipped**); Phase 1 validation recovery (**shipped**, [PR #107](https://github.com/mastermichaelt/portfolio/pull/107)); Phase 2 TypeScript consolidation + Zod; Phase 4 production acceptance and reopen. Full operational verification before public reopen: [Phase 4 production reopening](../../.cursor/plans/2026-10-30-assistant-04-production-reopening.plan.md).
 
 ## Boundaries that should remain true
 
