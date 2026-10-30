@@ -1,27 +1,33 @@
 import type { Metadata } from "next";
 
 import { AssistantExperience } from "@/components/assistant/AssistantExperience";
+import { AssistantMaintenanceView } from "@/components/assistant/AssistantMaintenanceView";
+import { resolveAssistantPublicEnabled } from "@/lib/assistant/api/config";
 import { resolveEvaluationObservabilityConfig } from "@/lib/assistant/evaluation/config";
-import { openGraphForCanonicalPath } from "@/lib/social-metadata";
+import { buildAssistantPageMetadata } from "@/lib/assistant/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Assistant",
-  description:
-    "Ask questions about Michael Truong's published portfolio work — evidence-aware answers with claim-level attribution and citations.",
-  alternates: {
-    canonical: "/assistant",
-  },
-  openGraph: openGraphForCanonicalPath("/assistant"),
-};
+/** Read ASSISTANT_PUBLIC_ENABLED at request time (align with dynamic generate API). */
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const publicEnabled = resolveAssistantPublicEnabled();
+  return buildAssistantPageMetadata(publicEnabled);
+}
 
 export default function AssistantPage() {
-  const evaluationDisclosure = resolveEvaluationObservabilityConfig();
+  const publicEnabled = resolveAssistantPublicEnabled();
 
   return (
     <main id="content">
       <section className="section hero hero-compact">
         <div className="container">
-          <AssistantExperience evaluationDisclosure={evaluationDisclosure} />
+          {publicEnabled ? (
+            <AssistantExperience
+              evaluationDisclosure={resolveEvaluationObservabilityConfig()}
+            />
+          ) : (
+            <AssistantMaintenanceView />
+          )}
         </div>
       </section>
     </main>

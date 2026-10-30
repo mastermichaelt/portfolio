@@ -11,6 +11,7 @@ import {
   buildPublicUsageFromDiagnostics,
 } from "@/lib/assistant/api/public-envelope";
 import { persistGenerationEvaluationSafely } from "@/lib/assistant/evaluation/persist";
+import { AssistantPublicEnabledConfigError } from "@/lib/assistant/api/config";
 
 const sampleResponse = {
   claims: [
@@ -49,14 +50,16 @@ function createDeps(overrides: {
         flushTelemetry: vi.fn(async () => {}),
       })),
     createPool: vi.fn(() => pool),
-    resolveConfig: () => ({
+    resolvePublicEnabled: () => true,
+    resolveConfig: vi.fn(() => ({
+      publicEnabled: true,
       maxBodyBytes: 16_384,
       rateLimitEnabled: true,
       perClientPerMinute: 8,
       perClientPerHour: 40,
       perClientPerDay: 120,
       globalPerDay: 2_000,
-    }),
+    })),
     checkRateLimit:
       overrides.checkRateLimit ??
       vi.fn(async () => ({ allowed: true as const })),
@@ -69,6 +72,76 @@ function createDeps(overrides: {
 }
 
 describe("assistant generation API handler", () => {
+  it("returns 503 without opening a pool when public generation is disabled", async () => {
+    const deps = createDeps({});
+    deps.resolvePublicEnabled = () => false;
+    deps.resolveConfig = vi.fn(() => {
+      throw new Error(
+        "resolveConfig must not run when public generation is disabled",
+      );
+    });
+
+    const response = await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Who is Michael?" }),
+      }),
+      deps,
+    );
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get("Retry-After")).toBe("3600");
+    const body = await response.json();
+    expect(body.error.code).toBe("service_unavailable");
+    expect(deps.createPool).not.toHaveBeenCalled();
+    expect(deps.runRagGeneration).not.toHaveBeenCalled();
+    expect(deps.resolveConfig).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 without resolving full API config when disabled even if API env is invalid", async () => {
+    const deps = createDeps({});
+    deps.resolvePublicEnabled = () => false;
+    deps.resolveConfig = vi.fn(() => {
+      throw new Error(
+        "ASSISTANT_API_MAX_BODY_BYTES must be a positive integer",
+      );
+    });
+
+    const response = await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Who is Michael?" }),
+      }),
+      deps,
+    );
+
+    expect(response.status).toBe(503);
+    expect(deps.resolveConfig).not.toHaveBeenCalled();
+    expect(deps.createPool).not.toHaveBeenCalled();
+  });
+
+  it("returns 500 without opening a pool when ASSISTANT_PUBLIC_ENABLED is invalid", async () => {
+    const deps = createDeps({});
+    deps.resolvePublicEnabled = () => {
+      throw new AssistantPublicEnabledConfigError("invalid flag");
+    };
+
+    const response = await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Who is Michael?" }),
+      }),
+      deps,
+    );
+
+    expect(response.status).toBe(500);
+    expect(deps.resolveConfig).not.toHaveBeenCalled();
+    expect(deps.createPool).not.toHaveBeenCalled();
+  });
+
   it("rejects non-POST methods", async () => {
     const response = await handleAssistantGeneratePost(
       new Request("http://localhost/api/assistant/generate", { method: "GET" }),
@@ -318,6 +391,7 @@ describe("assistant generation API handler", () => {
     const deps = {
       ...createDeps({}),
       resolveConfig: () => ({
+        publicEnabled: true,
         maxBodyBytes: 32,
         rateLimitEnabled: false,
         perClientPerMinute: 8,
@@ -366,6 +440,7 @@ describe("assistant generation API handler", () => {
     const deps = {
       ...createDeps({}),
       resolveConfig: () => ({
+        publicEnabled: true,
         maxBodyBytes: 24,
         rateLimitEnabled: false,
         perClientPerMinute: 8,

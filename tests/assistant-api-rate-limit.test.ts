@@ -25,6 +25,7 @@ function testConfig(
   overrides: Partial<AssistantApiConfig> = {},
 ): AssistantApiConfig {
   return {
+    publicEnabled: true,
     maxBodyBytes: 16_384,
     rateLimitEnabled: true,
     perClientPerMinute: 5,

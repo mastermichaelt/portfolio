@@ -6,7 +6,12 @@ import { validateAndNormalizeQuestion } from "@/scripts/assistant/generation/val
 import type { Pool } from "pg";
 
 import { resolveClientKeyFromHeaders } from "./client-key";
-import { resolveAssistantApiConfig } from "./config";
+import {
+  ASSISTANT_PUBLIC_DISABLED_MESSAGE,
+  AssistantPublicEnabledConfigError,
+  resolveAssistantApiConfig,
+  resolveAssistantPublicEnabled,
+} from "./config";
 import { jsonError, mapGenerationErrorToResponse } from "./errors";
 import {
   assertNoDisallowedPublicKeys,
@@ -30,6 +35,7 @@ export type AssistantGenerateRequestBody = {
 export type HandleAssistantGenerateDeps = {
   runRagGeneration: typeof runRagGeneration;
   createPool: (databaseUrl?: string) => Pool;
+  resolvePublicEnabled: typeof resolveAssistantPublicEnabled;
   resolveConfig: typeof resolveAssistantApiConfig;
   checkRateLimit: typeof checkAssistantApiRateLimit;
   persistGenerationEvaluation: typeof persistGenerationEvaluationSafely;
@@ -38,6 +44,7 @@ export type HandleAssistantGenerateDeps = {
 const defaultDeps: HandleAssistantGenerateDeps = {
   runRagGeneration,
   createPool,
+  resolvePublicEnabled: resolveAssistantPublicEnabled,
   resolveConfig: resolveAssistantApiConfig,
   checkRateLimit: checkAssistantApiRateLimit,
   persistGenerationEvaluation: persistGenerationEvaluationSafely,
@@ -127,7 +134,31 @@ export async function handleAssistantGeneratePost(
     });
   }
 
+  let publicEnabled: boolean;
+  try {
+    publicEnabled = deps.resolvePublicEnabled();
+  } catch (error) {
+    if (error instanceof AssistantPublicEnabledConfigError) {
+      return jsonError(
+        500,
+        "generation_failed",
+        "The assistant could not complete your request. Please try again.",
+      );
+    }
+    throw error;
+  }
+
+  if (!publicEnabled) {
+    return jsonError(
+      503,
+      "service_unavailable",
+      ASSISTANT_PUBLIC_DISABLED_MESSAGE,
+      { "Retry-After": "3600" },
+    );
+  }
+
   const config = deps.resolveConfig();
+
   const parsedBody = await readJsonBody(request, config.maxBodyBytes);
   if (parsedBody instanceof Response) {
     return parsedBody;
