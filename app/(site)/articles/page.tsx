@@ -102,18 +102,12 @@ export default async function ArticlesPage() {
                 <ExternalLink
                   className="aline-start-link"
                   href={band.lead.article.url}
-                  aria-labelledby={`aline-start-title-${band.lead.article.slug}`}
+                  newTabHint={false}
                   analyticsLabel={band.lead.article.title}
                 >
-                  <span
-                    id={`aline-start-title-${band.lead.article.slug}`}
-                    className="aline-start-title"
-                  >
+                  <span className="aline-start-title">
                     {band.lead.article.title}
                     <span className="sr-only"> (opens in new tab)</span>
-                  </span>
-                  <span className="aline-start-dev" aria-hidden="true">
-                    DEV ↗
                   </span>
                 </ExternalLink>
                 {band.lead.system?.href ? (
@@ -133,18 +127,12 @@ export default async function ArticlesPage() {
                       key={row.article.slug}
                       className="aline-row"
                       href={row.article.url}
-                      aria-labelledby={`aline-row-title-${row.article.slug}`}
+                      newTabHint={false}
                       analyticsLabel={row.article.title}
                     >
-                      <span
-                        id={`aline-row-title-${row.article.slug}`}
-                        className="aline-row-title"
-                      >
+                      <span className="aline-row-title">
                         {row.article.title}
                         <span className="sr-only"> (opens in new tab)</span>
-                      </span>
-                      <span className="aline-row-dev" aria-hidden="true">
-                        DEV ↗
                       </span>
                     </ExternalLink>
                   ))}

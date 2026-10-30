@@ -18,6 +18,11 @@ type ExternalLinkProps = Omit<
    * derivation when omitted or blank.
    */
   analyticsLabel?: string;
+  /**
+   * When false, the link-level sr-only “opens in new tab” hint is omitted — use
+   * when the visible label already includes that hint (e.g. articles DEV rows).
+   */
+  newTabHint?: boolean;
 };
 
 const NEW_TAB_HINT = "opens in new tab";
@@ -76,6 +81,7 @@ export function ExternalLink({
   children,
   onClick,
   analyticsLabel,
+  newTabHint = true,
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
   ...props
@@ -107,7 +113,7 @@ export function ExternalLink({
       onClick={handleClick}
     >
       {children}
-      {accessibleName || usesLabelledBy ? null : (
+      {accessibleName || usesLabelledBy || !newTabHint ? null : (
         <span className="sr-only">({NEW_TAB_HINT})</span>
       )}
     </a>
