@@ -4,7 +4,7 @@ overview: "Three merge-safe PRs: (1) portfolio articles-curation skill, (2) sync
 todos:
   - id: slice-skill
     content: "PR1 (portfolio): Add `.cursor/skills/articles-curation/SKILL.md` with hub→articles.ts sync procedure, taxonomy pointers, standalone verification checklist and agent prompt; Open PR only."
-    status: pending
+    status: completed
   - id: slice-content
     content: "PR2 (portfolio): Sync 21 articles (+6, move schema-first, refresh four line arguments, mandatory authority band note, dependent site copy/tests/e2e, fixtures/registry/tests) via articles-curation skill; Open PR only."
     status: pending
