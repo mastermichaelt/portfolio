@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { articles } from "@/content/articles";
+import { articles, codenamesTaggedArticleCount } from "@/content/articles";
 import { projectCases } from "@/content/project-cases";
 import { projectsIndex } from "@/content/projects-index";
 import type { CaseFigure, ProjectCase } from "@/domain/project-case";
@@ -168,6 +168,12 @@ describe("projects 1C — co-primary cases", () => {
       expect(text).toMatch(/block 0\d/);
       expect(report.href).toMatch(/^https:\/\/dev\.to\//);
     }
+    expect(codenames.artifacts.label).toMatch(/block-mapped/i);
+    const closingText = codenames.artifacts.closing
+      .map((segment) => segment.text)
+      .join("");
+    expect(closingText).toContain(`blocks 01–03`);
+    expect(closingText).toContain(String(codenamesTaggedArticleCount));
   });
 });
 
@@ -224,5 +230,15 @@ describe("projects 1C — index composition", () => {
       /a word set and a language resolve to a playable pool/i,
     );
     expect(codenames?.summary).not.toMatch(/canonical English/i);
+  });
+
+  it("derives the Codenames deferral field-report count from inventory", () => {
+    const codenames = projectsIndex.coPrimary[0];
+    const deferralText = (codenames?.deferral ?? [])
+      .map((segment) => segment.text)
+      .join("");
+    expect(deferralText).toContain(
+      `${codenamesTaggedArticleCount} field reports on the case study`,
+    );
   });
 });

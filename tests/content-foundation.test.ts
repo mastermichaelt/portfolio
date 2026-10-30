@@ -200,7 +200,7 @@ describe("content-foundation inventory", () => {
     expect(about.independent.entries[0]?.current).toBe(true);
 
     // Qualified figures attach to the producing roles/projects, each traceable
-    // to a resumes/facts inventory file.
+    // to a resumes/facts inventory file or the curated articles inventory.
     const figures: CaseFigure[] = [
       ...about.experience.entries.flatMap((entry) => entry.figures ?? []),
       ...about.independent.entries.flatMap((entry) => entry.figures ?? []),
@@ -210,8 +210,21 @@ describe("content-foundation inventory", () => {
       expect(figure.value.trim().length).toBeGreaterThan(0);
       expect(figure.name.trim().length).toBeGreaterThan(0);
       expect(figure.scope.trim().length).toBeGreaterThan(0);
-      expect(figure.source.inventory).toMatch(/^resumes\/facts\/.+\.yml$/);
+      expect(figure.source.inventory).toMatch(
+        /^(resumes\/facts\/.+\.yml|content\/articles\.ts)$/,
+      );
     }
+
+    const fieldReportsEntry = about.independent.entries.find(
+      (entry) => entry.id === "field-reports",
+    );
+    const reportFigure = fieldReportsEntry?.figures?.find(
+      (figure) => figure.name === "published field reports",
+    );
+    expect(reportFigure?.value).toBe(String(articles.length));
+    expect(fieldReportsEntry?.bullets[0]).toContain(
+      `Published ${articles.length} weekly`,
+    );
 
     // The rendered copy (review-aid `source` stripped) must respect the voice
     // constraints and the evidence guardrails.

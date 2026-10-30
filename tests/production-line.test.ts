@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { articles } from "@/content/articles";
+import { articles, codenamesTaggedArticleCount } from "@/content/articles";
 import { productionLine } from "@/content/production-line";
 import { stageCode } from "@/domain/production-line";
 
@@ -89,6 +89,13 @@ describe("production line — selectable lanes", () => {
     const editorial = lanes.find((lane) => lane.systemId === "editorial")!;
     expect(editorial.cells[4]!.title).toBe(
       `${articles.length} reports, published by hand`,
+    );
+
+    expect(codenames.cells[4]!.title).toBe(
+      `Live product and ${codenamesTaggedArticleCount} reports`,
+    );
+    expect(codenames.cells[4]!.body).toContain(
+      `${codenamesTaggedArticleCount} field reports on the calls behind it`,
     );
   });
 });

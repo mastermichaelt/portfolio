@@ -261,3 +261,11 @@ export const articles: Article[] = [
     line: "critique",
   },
 ];
+
+/** Curated DEV inventory count (same list as `/articles`). */
+export const publishedArticleCount = articles.length;
+
+/** Field reports tagged to Codenames AI (`relatedProjectSlug`). */
+export const codenamesTaggedArticleCount = articles.filter(
+  (article) => article.relatedProjectSlug === "codenames-ai",
+).length;

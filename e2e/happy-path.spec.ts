@@ -1,11 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { articles } from "../content/articles";
+import { articles, codenamesTaggedArticleCount } from "../content/articles";
 
 const CODENAMES_FIELD_REPORTS_HEADING = (() => {
-  const count = articles.filter(
-    (article) => article.relatedProjectSlug === "codenames-ai",
-  ).length;
+  const count = codenamesTaggedArticleCount;
   const words = [
     "Zero",
     "One",
@@ -20,6 +18,8 @@ const CODENAMES_FIELD_REPORTS_HEADING = (() => {
   ];
   return `${words[count] ?? String(count)} field reports`;
 })();
+
+const CODENAMES_EVIDENCE_CELL_TITLE = `Live product and ${codenamesTaggedArticleCount} reports`;
 
 async function expectPrimaryNav(page: Page) {
   const nav = page.getByRole("navigation", { name: "Primary" });
@@ -963,7 +963,7 @@ test.describe("portfolio happy path", () => {
         name: "Codenames AI",
         system: "codenames",
         first: "Model migration as experiment",
-        last: "Live product and three reports",
+        last: CODENAMES_EVIDENCE_CELL_TITLE,
       },
     ];
 
@@ -1202,9 +1202,7 @@ test.describe("portfolio happy path", () => {
       await expect(
         lane.getByText("Model migration as experiment"),
       ).toBeVisible();
-      await expect(
-        lane.getByText("Live product and three reports"),
-      ).toBeVisible();
+      await expect(lane.getByText(CODENAMES_EVIDENCE_CELL_TITLE)).toBeVisible();
       await expect(
         page.getByRole("button", { name: "Codenames AI" }),
       ).toHaveAttribute("aria-pressed", "true");

@@ -1,4 +1,4 @@
-import { articles } from "@/content/articles";
+import { articles, codenamesTaggedArticleCount } from "@/content/articles";
 import type { ProductionLine } from "@/domain/production-line";
 
 /**
@@ -79,8 +79,8 @@ export const productionLine: ProductionLine = {
         },
         {
           stageId: "evidence",
-          title: "Live product and three reports",
-          body: "codenames-ai.com, with its qualified figures on the case study and three field reports on the calls behind it.",
+          title: `Live product and ${codenamesTaggedArticleCount} reports`,
+          body: `codenames-ai.com, with its qualified figures on the case study and ${codenamesTaggedArticleCount} field reports on the calls behind it.`,
         },
       ],
     },

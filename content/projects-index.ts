@@ -1,6 +1,6 @@
 import { projectCases } from "@/content/project-cases";
 import type { CaseFigure, ProjectCase } from "@/domain/project-case";
-import { articles } from "@/content/articles";
+import { articles, codenamesTaggedArticleCount } from "@/content/articles";
 import type { ProjectsIndex } from "@/domain/projects-index";
 
 /**
@@ -70,7 +70,9 @@ export const projectsIndex: ProjectsIndex = {
       figures: indexFigures(codenames.slug),
       deferral: [
         { text: "codenames-ai.com →", href: "https://codenames-ai.com/" },
-        { text: "  ·  3 field reports on the case study" },
+        {
+          text: `  ·  ${codenamesTaggedArticleCount} field reports on the case study`,
+        },
       ],
     },
     {

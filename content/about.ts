@@ -1,3 +1,4 @@
+import { publishedArticleCount } from "@/content/articles";
 import { profile } from "@/content/profile";
 import type { AboutPage } from "@/domain/about";
 
@@ -201,18 +202,19 @@ export const about: AboutPage = {
         role: "Engineering Research & Writing",
         employmentType: "Supporting Project",
         bullets: [
-          "Published 18 weekly engineering field reports to 2,200+ DEV followers on building and operating AI products and engineering systems, earning DEV Trusted Member status.",
+          `Published ${publishedArticleCount} weekly engineering field reports to 2,200+ DEV followers on building and operating AI products and engineering systems, earning DEV Trusted Member status.`,
           "Designed and operated an AI-assisted writing workflow with retrieval, drafting, review, and human approval before publication.",
         ],
         figures: [
           {
-            value: "18",
+            value: String(publishedArticleCount),
             name: "published field reports",
-            scope: "Weekly AI Engineering Field Reports on DEV",
+            scope:
+              "Curated DEV inventory on this site (same list as /articles)",
             source: {
-              inventory: "resumes/facts/writing-field-reports.yml",
-              factId: "series-overview-plain",
-              metricId: "published-report-count",
+              inventory: "content/articles.ts",
+              factId: "curated-dev-inventory",
+              metricId: "listed-report-count",
             },
           },
           {
