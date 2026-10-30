@@ -50,6 +50,7 @@ function createDeps(overrides: {
       })),
     createPool: vi.fn(() => pool),
     resolveConfig: () => ({
+      publicEnabled: true,
       maxBodyBytes: 16_384,
       rateLimitEnabled: true,
       perClientPerMinute: 8,
@@ -69,6 +70,35 @@ function createDeps(overrides: {
 }
 
 describe("assistant generation API handler", () => {
+  it("returns 503 without opening a pool when public generation is disabled", async () => {
+    const deps = createDeps({});
+    deps.resolveConfig = () => ({
+      publicEnabled: false,
+      maxBodyBytes: 16_384,
+      rateLimitEnabled: true,
+      perClientPerMinute: 8,
+      perClientPerHour: 40,
+      perClientPerDay: 120,
+      globalPerDay: 2_000,
+    });
+
+    const response = await handleAssistantGeneratePost(
+      new Request("http://localhost/api/assistant/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "Who is Michael?" }),
+      }),
+      deps,
+    );
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get("Retry-After")).toBe("3600");
+    const body = await response.json();
+    expect(body.error.code).toBe("service_unavailable");
+    expect(deps.createPool).not.toHaveBeenCalled();
+    expect(deps.runRagGeneration).not.toHaveBeenCalled();
+  });
+
   it("rejects non-POST methods", async () => {
     const response = await handleAssistantGeneratePost(
       new Request("http://localhost/api/assistant/generate", { method: "GET" }),
@@ -318,6 +348,7 @@ describe("assistant generation API handler", () => {
     const deps = {
       ...createDeps({}),
       resolveConfig: () => ({
+        publicEnabled: true,
         maxBodyBytes: 32,
         rateLimitEnabled: false,
         perClientPerMinute: 8,
@@ -366,6 +397,7 @@ describe("assistant generation API handler", () => {
     const deps = {
       ...createDeps({}),
       resolveConfig: () => ({
+        publicEnabled: true,
         maxBodyBytes: 24,
         rateLimitEnabled: false,
         perClientPerMinute: 8,

@@ -6,6 +6,14 @@
   max-width: 42rem;
 }
 
+.assistant-maintenance {
+  padding-block: var(--gap-md);
+}
+
+.assistant-maintenance .assistant-intro {
+  margin: 0;
+}
+
 .assistant-shell--chat {
   display: flex;
   flex-direction: column;

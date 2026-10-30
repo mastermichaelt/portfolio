@@ -6,7 +6,10 @@ import { validateAndNormalizeQuestion } from "@/scripts/assistant/generation/val
 import type { Pool } from "pg";
 
 import { resolveClientKeyFromHeaders } from "./client-key";
-import { resolveAssistantApiConfig } from "./config";
+import {
+  ASSISTANT_PUBLIC_DISABLED_MESSAGE,
+  resolveAssistantApiConfig,
+} from "./config";
 import { jsonError, mapGenerationErrorToResponse } from "./errors";
 import {
   assertNoDisallowedPublicKeys,
@@ -128,6 +131,16 @@ export async function handleAssistantGeneratePost(
   }
 
   const config = deps.resolveConfig();
+
+  if (!config.publicEnabled) {
+    return jsonError(
+      503,
+      "service_unavailable",
+      ASSISTANT_PUBLIC_DISABLED_MESSAGE,
+      { "Retry-After": "3600" },
+    );
+  }
+
   const parsedBody = await readJsonBody(request, config.maxBodyBytes);
   if (parsedBody instanceof Response) {
     return parsedBody;

@@ -2,6 +2,10 @@
 
 const TRUE_VALUES = new Set(["1", "true", "yes"]);
 
+/** Visitor-safe copy when {@link AssistantApiConfig.publicEnabled} is false. */
+export const ASSISTANT_PUBLIC_DISABLED_MESSAGE =
+  "Public assistant generation is temporarily unavailable. Please check back later.";
+
 function parsePositiveInt(
   raw: string | undefined,
   name: string,
@@ -25,6 +29,8 @@ function parseBoolean(raw: string | undefined, fallback: boolean): boolean {
 }
 
 export type AssistantApiConfig = {
+  /** When false, POST /api/assistant/generate returns 503 and /assistant shows maintenance UX. */
+  publicEnabled: boolean;
   maxBodyBytes: number;
   rateLimitEnabled: boolean;
   perClientPerMinute: number;
@@ -37,6 +43,7 @@ export function resolveAssistantApiConfig(
   env: NodeJS.ProcessEnv = process.env,
 ): AssistantApiConfig {
   return {
+    publicEnabled: parseBoolean(env.ASSISTANT_PUBLIC_ENABLED, true),
     maxBodyBytes: parsePositiveInt(
       env.ASSISTANT_API_MAX_BODY_BYTES,
       "ASSISTANT_API_MAX_BODY_BYTES",

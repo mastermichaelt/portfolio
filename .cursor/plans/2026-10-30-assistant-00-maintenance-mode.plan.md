@@ -4,7 +4,7 @@ overview: Temporarily disable public assistant generation with a reversible serv
 todos:
   - id: maintenance-mode
     content: "PR: feature flag, 503 API guard, maintenance page, tests, docs"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after maintenance-mode merges — # Shipped note, archive plan"
     status: pending
