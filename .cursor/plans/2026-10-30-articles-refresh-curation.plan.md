@@ -56,7 +56,7 @@ flowchart LR
 | Line id       | Public label                 | Count | Featured lead (unchanged)                                                |
 | ------------- | ---------------------------- | ----: | ------------------------------------------------------------------------ |
 | `measurement` | Measurement & Telemetry      | **3** | `active-players-which-sessions-counted`                                  |
-| `authority`   | Authority & Stop Conditions  | **5** | `agent-plans-authority-handoffs`                                         |
+| `authority`   | Authority & Stop Conditions  | **5** | `the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed`           |
 | `critique`    | Evals & Judgment             | **5** | `ai-reviewer-kinds-of-reasoning`                                         |
 | `readiness`   | Product Taste & Verification | **5** | `persist-game-state-not-ephemeral-ui-intent`                             |
 | `portability` | Agent Portability            | **3** | `agent-portability-does-not-require-centralizing-methodology-behind-mcp` |
@@ -69,12 +69,12 @@ flowchart LR
 
 **Proposed lead arguments** (compress only if length breaks layout; do not strengthen claims):
 
-| Line        | Lead slug                                    | New `argument`                                                                                                                                                                       |
-| ----------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Measurement | `active-players-which-sessions-counted`      | A healthy-looking number or funnel only means what your inclusion rules say it means — whether that is which sessions count as active or which hiring transitions belong in history. |
-| Authority   | `agent-plans-authority-handoffs`             | Agent work needs explicit stop lines and guardrails you can verify — in plans, in git hooks, and in host lifecycle boundaries — not checklists that only read well in review.        |
-| Critique    | `ai-reviewer-kinds-of-reasoning`             | Passing a score, a rubric, or a retrieval fixture is one kind of judgment; product-ready output still needs separate editorial and configuration decisions.                          |
-| Readiness   | `persist-game-state-not-ephemeral-ui-intent` | Shipping means honoring what the product has accepted as true — persisted state, requirements QA, and the runtime model — not green pipelines or plausible generated content.        |
+| Line        | Lead slug                                                      | New `argument`                                                                                                                                                                       |
+| ----------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Measurement | `active-players-which-sessions-counted`                        | A healthy-looking number or funnel only means what your inclusion rules say it means — whether that is which sessions count as active or which hiring transitions belong in history. |
+| Authority   | `the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed` | Agent work needs reliable lifecycle boundaries, explicit authority, and stop conditions you can verify — not host events or checklists that only read well in review.                |
+| Critique    | `ai-reviewer-kinds-of-reasoning`                               | Passing a score, a rubric, or a retrieval fixture is one kind of judgment; product-ready output still needs separate editorial and configuration decisions.                          |
+| Readiness   | `persist-game-state-not-ephemeral-ui-intent`                   | Shipping means honoring what the product has accepted as true — persisted state, requirements QA, and the runtime model — not green pipelines or plausible generated content.        |
 
 **Editorial ordering:** `groupArticleLines` preserves **inventory order within each line** (not DEV publish date). When editing `content/articles.ts`, insert new rows next to thematically related neighbors; do not sort by `published_at`.
 

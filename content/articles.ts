@@ -25,6 +25,9 @@ import type { Article } from "@/domain/article";
  *     from the takeaway of
  *     dev.to/michaeltruong/i-was-solving-agent-portability-at-the-wrong-boundary-1406
  *     (edited 2026-09-10).
+ *   · `the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed` — Authority
+ *     line lead `argument` (2026-10-30), compressed from the published takeaway;
+ *     no claim strengthened.
  *   The sibling hub `editorial-workflow/docs/dev.to/published/` remains master.
  */
 export const articles: Article[] = [
@@ -117,9 +120,6 @@ export const articles: Article[] = [
     relatedProjectSlug: "renovate-governance",
     featured: true,
     line: "authority",
-    lineLead: true,
-    argument:
-      "Agent work needs explicit stop lines and guardrails you can verify — in plans, in git hooks, and in host lifecycle boundaries — not checklists that only read well in review.",
   },
   {
     slug: "hook-availability-was-split-from-product-enforcement-after-silent-skip",
@@ -177,6 +177,9 @@ export const articles: Article[] = [
     tags: ["ai", "agents", "workflow"],
     url: "https://dev.to/michaeltruong/the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed-5akh",
     line: "authority",
+    lineLead: true,
+    argument:
+      "Agent work needs reliable lifecycle boundaries, explicit authority, and stop conditions you can verify — not host events or checklists that only read well in review.",
   },
   {
     slug: "persist-game-state-not-ephemeral-ui-intent",
