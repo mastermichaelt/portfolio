@@ -1,7 +1,10 @@
 import { createPool } from "@/scripts/assistant/db/client.mjs";
 import { QueryValidationError } from "@/scripts/assistant/generation/errors.mjs";
 import { resolveGenerationConfig } from "@/scripts/assistant/generation/generation-config.mjs";
-import { runRagGeneration } from "@/scripts/assistant/generation/run-generation.mjs";
+import {
+  readGenerationFailureDiagnostics,
+  runRagGeneration,
+} from "@/scripts/assistant/generation/run-generation.mjs";
 import { validateAndNormalizeQuestion } from "@/scripts/assistant/generation/validate-query.mjs";
 import type { Pool } from "pg";
 
@@ -301,6 +304,7 @@ export async function handleAssistantGeneratePost(
         buildEvaluationRecordFromFailure({
           question: normalizedQuestion,
           error,
+          diagnostics: readGenerationFailureDiagnostics(error),
         }),
       );
     }

@@ -185,6 +185,86 @@ function applyRecoveryDiagnostics(diagnostics, recovery) {
   }
 }
 
+/** @typedef {import("./response-schema.mjs").AssistantGenerationDiagnostics} AssistantGenerationDiagnostics */
+
+/** Duck-typed attachment for evaluation persistence when generation throws. */
+export const GENERATION_FAILURE_DIAGNOSTICS = Symbol(
+  "generationFailureDiagnostics",
+);
+
+/**
+ * @param {unknown} error
+ * @returns {AssistantGenerationDiagnostics | undefined}
+ */
+export function readGenerationFailureDiagnostics(error) {
+  if (!(error instanceof Error)) {
+    return undefined;
+  }
+  const attached = /** @type {Record<symbol, unknown>} */ (error)[
+    GENERATION_FAILURE_DIAGNOSTICS
+  ];
+  return typeof attached === "object" && attached !== null
+    ? /** @type {AssistantGenerationDiagnostics} */ (attached)
+    : undefined;
+}
+
+/**
+ * @param {Error} error
+ * @param {AssistantGenerationDiagnostics} diagnostics
+ */
+function attachGenerationFailureDiagnostics(error, diagnostics) {
+  /** @type {Record<symbol, unknown>} */ (error)[
+    GENERATION_FAILURE_DIAGNOSTICS
+  ] = diagnostics;
+  return error;
+}
+
+/**
+ * @param {AssistantGenerationDiagnostics} diagnostics
+ * @param {{
+ *   initialCompletion: { usage?: Record<string, number>, model?: string },
+ *   retryCompletion?: { usage?: Record<string, number>, model?: string },
+ *   fallbackCompletion: { usage?: Record<string, number>, model?: string },
+ * }} sources
+ */
+function assignCumulativeUsageToDiagnostics(diagnostics, sources) {
+  const usageForDiagnostics = sources.retryCompletion
+    ? accumulateChatCompletionUsage(
+        sources.initialCompletion.usage,
+        sources.retryCompletion.usage,
+      )
+    : sources.fallbackCompletion.usage;
+  diagnostics.prompt_tokens = usageForDiagnostics.prompt_tokens;
+  diagnostics.completion_tokens = usageForDiagnostics.completion_tokens;
+  diagnostics.total_tokens = usageForDiagnostics.total_tokens;
+  diagnostics.model =
+    sources.fallbackCompletion.model ?? diagnostics.model ?? undefined;
+}
+
+/**
+ * @param {AssistantGenerationDiagnostics | undefined} diagnostics
+ */
+function recoveryTelemetryPropertiesFromDiagnostics(diagnostics) {
+  if (!diagnostics) {
+    return {};
+  }
+  return {
+    recovery_deterministic_repair_applied:
+      diagnostics.recovery_deterministic_repair_applied === true,
+    recovery_model_retry_attempted:
+      diagnostics.recovery_model_retry_attempted === true,
+    recovery_model_retry_succeeded:
+      diagnostics.recovery_model_retry_succeeded === true,
+    recovery_graceful_degradation_applied:
+      diagnostics.recovery_graceful_degradation_applied === true,
+    recovery_validation_stage: diagnostics.recovery_validation_stage,
+    recovery_validation_issue_count:
+      diagnostics.recovery_validation_issue_count,
+    recovery_validation_issue_codes:
+      diagnostics.recovery_validation_issue_codes,
+  };
+}
+
 /**
  * @param {{
  *   content: string,
@@ -281,6 +361,7 @@ function maybeEmitRetrievalTelemetry(telemetry, state, context) {
  *   maxOutputTokens: number,
  *   totalLatencyMs: number,
  *   generationLatencyMs?: number,
+ *   diagnostics?: AssistantGenerationDiagnostics,
  * }} context
  */
 function captureGenerationFailureTelemetry(telemetry, state, error, context) {
@@ -307,6 +388,7 @@ function captureGenerationFailureTelemetry(telemetry, state, error, context) {
     });
   }
 
+  const failureDiagnostics = context.diagnostics;
   telemetry.capture("assistant_generation_failed", {
     model: context.model,
     assembly_mode: context.assemblyMode,
@@ -315,7 +397,11 @@ function captureGenerationFailureTelemetry(telemetry, state, error, context) {
     total_latency_ms: context.totalLatencyMs,
     generation_latency_ms: context.generationLatencyMs,
     max_output_tokens: context.maxOutputTokens,
-    completion_tokens: classified.completion_tokens,
+    prompt_tokens: failureDiagnostics?.prompt_tokens,
+    completion_tokens:
+      failureDiagnostics?.completion_tokens ?? classified.completion_tokens,
+    total_tokens: failureDiagnostics?.total_tokens,
+    ...recoveryTelemetryPropertiesFromDiagnostics(failureDiagnostics),
   });
 }
 
@@ -521,7 +607,6 @@ export async function runRagGeneration(options) {
     /** @type {typeof completion | undefined} */
     let retryCompletion;
     if (!resolved.ok) {
-      recoveryMeta.model_retry_attempted = true;
       try {
         generationDeadline.assertRemaining();
       } catch (retryBudgetError) {
@@ -543,6 +628,7 @@ export async function runRagGeneration(options) {
       }
 
       try {
+        recoveryMeta.model_retry_attempted = true;
         retryCompletion = await runCompletionPass(retryPrompt.user);
         const retryResolved = parseRepairAndResolveModelResponse({
           content: retryCompletion.content,
@@ -566,23 +652,49 @@ export async function runRagGeneration(options) {
           logGenerationRecoveryDiagnostics(recoveryMeta, retryResolved.errors);
         }
       } catch (retryError) {
+        generationLatencyMs = Math.round(performance.now() - generationStarted);
+        diagnostics.generation_latency_ms = generationLatencyMs;
+        assignCumulativeUsageToDiagnostics(diagnostics, {
+          initialCompletion,
+          retryCompletion,
+          fallbackCompletion: completion,
+        });
+        applyRecoveryDiagnostics(diagnostics, recoveryMeta);
+        diagnostics.total_latency_ms = Math.round(
+          performance.now() - runStarted,
+        );
         logGenerationRecoveryDiagnostics(recoveryMeta, resolved.errors);
-        throw retryError;
+        throw attachGenerationFailureDiagnostics(retryError, diagnostics);
       }
     }
 
     if (!resolved.ok) {
+      generationLatencyMs = Math.round(performance.now() - generationStarted);
+      assignCumulativeUsageToDiagnostics(diagnostics, {
+        initialCompletion,
+        retryCompletion,
+        fallbackCompletion: completion,
+      });
+      applyRecoveryDiagnostics(diagnostics, recoveryMeta);
+      diagnostics.generation_latency_ms = generationLatencyMs;
+      diagnostics.total_latency_ms = Math.round(performance.now() - runStarted);
       logGenerationRecoveryDiagnostics(recoveryMeta, resolved.errors);
       if (
         resolved.errors.some((error) =>
           error.includes("Model response is not valid JSON"),
         )
       ) {
-        throw new GenerationParseError("Model response is not valid JSON");
+        throw attachGenerationFailureDiagnostics(
+          new GenerationParseError("Model response is not valid JSON"),
+          diagnostics,
+        );
       }
-      throw new GenerationValidationError(
-        "Model response failed validation after recovery",
-        resolved.errors,
+      throw attachGenerationFailureDiagnostics(
+        new GenerationValidationError(
+          "Model response failed validation after recovery",
+          resolved.errors,
+        ),
+        diagnostics,
       );
     }
 
@@ -613,13 +725,12 @@ export async function runRagGeneration(options) {
     generationLatencyMs = Math.round(performance.now() - generationStarted);
     diagnostics.generation_latency_ms = generationLatencyMs;
     diagnostics.model = completion.model;
-    const usageForDiagnostics =
-      recoveryMeta.model_retry_succeeded && retryCompletion
-        ? accumulateChatCompletionUsage(
-            initialCompletion.usage,
-            retryCompletion.usage,
-          )
-        : completion.usage;
+    const usageForDiagnostics = retryCompletion
+      ? accumulateChatCompletionUsage(
+          initialCompletion.usage,
+          retryCompletion.usage,
+        )
+      : completion.usage;
     diagnostics.prompt_tokens = usageForDiagnostics.prompt_tokens;
     diagnostics.completion_tokens = usageForDiagnostics.completion_tokens;
     diagnostics.total_tokens = usageForDiagnostics.total_tokens;
@@ -628,6 +739,8 @@ export async function runRagGeneration(options) {
     diagnostics.attribution_counts = countAttributions(response.claims);
     diagnostics.total_latency_ms = Math.round(performance.now() - runStarted);
 
+    // Cumulative completion_tokens = known consumption across all model passes.
+    // output_token_utilization = final pass only, vs maxOutputTokens (budget signal).
     const utilization = outputTokenUtilization(
       completion.usage?.completion_tokens,
       config.maxOutputTokens,
@@ -651,19 +764,7 @@ export async function runRagGeneration(options) {
       total_latency_ms: diagnostics.total_latency_ms,
       evidence_entry_count: diagnostics.evidence_entry_count,
       evidence_character_count: diagnostics.evidence_character_count,
-      recovery_deterministic_repair_applied:
-        diagnostics.recovery_deterministic_repair_applied === true,
-      recovery_model_retry_attempted:
-        diagnostics.recovery_model_retry_attempted === true,
-      recovery_model_retry_succeeded:
-        diagnostics.recovery_model_retry_succeeded === true,
-      recovery_graceful_degradation_applied:
-        diagnostics.recovery_graceful_degradation_applied === true,
-      recovery_validation_stage: diagnostics.recovery_validation_stage,
-      recovery_validation_issue_count:
-        diagnostics.recovery_validation_issue_count,
-      recovery_validation_issue_codes:
-        diagnostics.recovery_validation_issue_codes,
+      ...recoveryTelemetryPropertiesFromDiagnostics(diagnostics),
     });
 
     return { response, packet, diagnostics, flushTelemetry };
@@ -675,12 +776,15 @@ export async function runRagGeneration(options) {
       generationLatencyMs = Math.round(performance.now() - generationStarted);
     }
     if (!telemetryState.failureTelemetryEmitted) {
+      const failureDiagnostics =
+        readGenerationFailureDiagnostics(error) ?? diagnostics;
       captureGenerationFailureTelemetry(telemetry, telemetryState, error, {
         model: config.model,
         assemblyMode,
         maxOutputTokens: config.maxOutputTokens,
         totalLatencyMs: Math.round(performance.now() - runStarted),
         generationLatencyMs,
+        diagnostics: failureDiagnostics,
       });
     }
     try {

@@ -17,6 +17,7 @@ import {
 import { parseAssistantModelGenerationResponse } from "@/scripts/assistant/generation/response-schema.mjs";
 import {
   accumulateChatCompletionUsage,
+  readGenerationFailureDiagnostics,
   runRagGeneration,
 } from "@/scripts/assistant/generation/run-generation.mjs";
 import { validateGenerationResponse } from "@/scripts/assistant/generation/validate-response.mjs";
@@ -882,6 +883,205 @@ describe("shared generation timeout budget", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("does not mark model_retry_attempted when the shared budget blocks the retry HTTP call", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const fetch: typeof globalThis.fetch = vi.fn(async () => {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 450);
+        });
+        return new Response(
+          JSON.stringify({
+            choices: [
+              { message: { content: "not-json" }, finish_reason: "stop" },
+            ],
+            usage: {
+              prompt_tokens: 1,
+              completion_tokens: 1,
+              total_tokens: 2,
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }) as typeof globalThis.fetch;
+
+      const { telemetry, events } = createCapturingTelemetry();
+      const promise = runRagGeneration({
+        question: "What is Alpha?",
+        noRetrieval: true,
+        config: { ...runConfig, requestTimeoutMs: 400 },
+        fetch,
+        apiKey: TEST_OPENAI_API_KEY,
+        telemetry,
+      });
+
+      const rejection = expect(promise).rejects.toThrow(
+        /timed out after 400ms/,
+      );
+      await vi.advanceTimersByTimeAsync(500);
+      await rejection;
+
+      const failed = events.find(
+        (event) => event.event === "assistant_generation_failed",
+      );
+      expect(failed?.properties.recovery_model_retry_attempted).toBeFalsy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("failed corrective retry observability", () => {
+  const runConfig = {
+    evidenceCharacterBudget: 10_000,
+    approximatePromptTokenBudget: 50_000,
+  };
+
+  it("accumulates usage and emits recovery diagnostics when retry validation fails", async () => {
+    const packet = await testEvidencePacket();
+    const invalidSchema = JSON.stringify({
+      claims: [{ text: "Bad lead", attribution: "not_a_valid_attribution" }],
+      support_level: "full",
+      abstained: false,
+    });
+    const { telemetry, events } = createCapturingTelemetry();
+    let caughtError: unknown;
+
+    try {
+      await runRagGeneration({
+        question: "What is Alpha?",
+        evidencePacket: packet,
+        config: runConfig,
+        fetch: mockChatFetchWithCompletions([
+          {
+            content: "not-json",
+            usage: {
+              prompt_tokens: 11,
+              completion_tokens: 4,
+              total_tokens: 15,
+            },
+          },
+          {
+            content: invalidSchema,
+            usage: {
+              prompt_tokens: 22,
+              completion_tokens: 6,
+              total_tokens: 28,
+            },
+          },
+        ]),
+        apiKey: TEST_OPENAI_API_KEY,
+        telemetry,
+      });
+      expect.unreachable("expected generation to fail");
+    } catch (error) {
+      caughtError = error;
+      expect(error).toBeInstanceOf(GenerationValidationError);
+      const diagnostics = readGenerationFailureDiagnostics(error);
+      expect(diagnostics?.prompt_tokens).toBe(33);
+      expect(diagnostics?.completion_tokens).toBe(10);
+      expect(diagnostics?.total_tokens).toBe(43);
+      expect(diagnostics?.recovery_model_retry_attempted).toBe(true);
+      expect(diagnostics?.recovery_model_retry_succeeded).toBeFalsy();
+    }
+
+    const failed = events.find(
+      (event) => event.event === "assistant_generation_failed",
+    );
+    expect(failed?.properties.prompt_tokens).toBe(33);
+    expect(failed?.properties.completion_tokens).toBe(10);
+    expect(failed?.properties.recovery_model_retry_attempted).toBe(true);
+    expect(failed?.properties.recovery_model_retry_succeeded).toBeFalsy();
+    expect(classifyGenerationFailure(caughtError).failure_category).toBe(
+      "structural_validation",
+    );
+  });
+
+  it("accumulates usage when the retry response is malformed JSON", async () => {
+    const packet = await testEvidencePacket();
+    const { telemetry, events } = createCapturingTelemetry();
+
+    try {
+      await runRagGeneration({
+        question: "What is Alpha?",
+        evidencePacket: packet,
+        config: runConfig,
+        fetch: mockChatFetchWithCompletions([
+          {
+            content: "not-json",
+            usage: { prompt_tokens: 5, completion_tokens: 2, total_tokens: 7 },
+          },
+          {
+            content: "still-not-json",
+            usage: { prompt_tokens: 8, completion_tokens: 3, total_tokens: 11 },
+          },
+        ]),
+        apiKey: TEST_OPENAI_API_KEY,
+        telemetry,
+      });
+      expect.unreachable("expected generation to fail");
+    } catch (error) {
+      expect(error).toBeInstanceOf(GenerationParseError);
+      const diagnostics = readGenerationFailureDiagnostics(error);
+      expect(diagnostics?.prompt_tokens).toBe(13);
+      expect(diagnostics?.completion_tokens).toBe(5);
+      expect(diagnostics?.total_tokens).toBe(18);
+      expect(diagnostics?.recovery_model_retry_attempted).toBe(true);
+    }
+
+    const failed = events.find(
+      (event) => event.event === "assistant_generation_failed",
+    );
+    expect(failed?.properties.recovery_model_retry_attempted).toBe(true);
+    expect(failed?.properties.prompt_tokens).toBe(13);
+  });
+
+  it("keeps initial usage when the retry provider call fails without usage metadata", async () => {
+    const packet = await testEvidencePacket();
+    let calls = 0;
+    const fetch: typeof globalThis.fetch = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) {
+        return new Response(
+          JSON.stringify({
+            choices: [
+              { message: { content: "not-json" }, finish_reason: "stop" },
+            ],
+            usage: {
+              prompt_tokens: 40,
+              completion_tokens: 10,
+              total_tokens: 50,
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      throw new Error("upstream unavailable");
+    }) as typeof globalThis.fetch;
+
+    const { telemetry, events } = createCapturingTelemetry();
+
+    await expect(
+      runRagGeneration({
+        question: "What is Alpha?",
+        evidencePacket: packet,
+        config: runConfig,
+        fetch,
+        apiKey: TEST_OPENAI_API_KEY,
+        telemetry,
+      }),
+    ).rejects.toThrow();
+
+    expect(calls).toBe(2);
+    const failed = events.find(
+      (event) => event.event === "assistant_generation_failed",
+    );
+    expect(failed?.properties.prompt_tokens).toBe(40);
+    expect(failed?.properties.completion_tokens).toBe(10);
+    expect(failed?.properties.recovery_model_retry_attempted).toBe(true);
+    expect(failed?.properties.recovery_model_retry_succeeded).toBeFalsy();
   });
 });
 

@@ -687,10 +687,14 @@ describe("runRagGeneration service", () => {
       jsonEvents.find((e) => e.event === "assistant_generation_failed")
         ?.properties.failure_category,
     ).toBe("malformed_json");
-    expect(
-      jsonEvents.find((e) => e.event === "assistant_generation_failed")
-        ?.properties.completion_tokens,
-    ).toBeUndefined();
+    const jsonFailed = jsonEvents.find(
+      (e) => e.event === "assistant_generation_failed",
+    );
+    expect(jsonFailed?.properties.prompt_tokens).toBe(200);
+    expect(jsonFailed?.properties.completion_tokens).toBe(100);
+    expect(jsonFailed?.properties.total_tokens).toBe(300);
+    expect(jsonFailed?.properties.recovery_model_retry_attempted).toBe(true);
+    expect(jsonFailed?.properties.recovery_model_retry_succeeded).toBeFalsy();
 
     const badModel = JSON.stringify({
       claims: [
