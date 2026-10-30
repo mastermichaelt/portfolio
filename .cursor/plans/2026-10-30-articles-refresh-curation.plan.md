@@ -12,7 +12,7 @@ todos:
     content: "PR3 (editorial-workflow): Extend editor-publish post-publish flow to invoke destination curation skill (portfolio default); fail-open skip report; runbook + optional dev.to README; Open PR only."
     status: pending
   - id: plan-closure
-    content: "Docs-only PR after PR3 merges: verify todos, # Shipped note, move plan to `.cursor/plans/archive/2026-10-30-articles-refresh-curation.plan.md`."
+    content: "Docs-only PR after PR3 merges: verify editorial-workflow PR merged (gh), mark slice-editorial completed in portfolio frontmatter, verify todos, # Shipped note, archive plan."
     status: pending
 isProject: false
 ---
@@ -118,7 +118,7 @@ Summaries: one sentence each, compressed from opening/takeaway — same discipli
 7. **Assistant sync:** Extend `scripts/assistant/okf/published-articles.mjs` `PUBLISHED_ARTICLE_HUB_FILES`; copy hub markdown → `tests/fixtures/assistant-okf/published/<slug>.md`; bump `content-source-registry.mjs` SHA when `articles.ts` changes.
 8. **Tests:** Update `tests/content-foundation.test.ts` and `tests/article-lines.test.ts`; refresh membership comment in `article-lines.ts`.
 9. **Verify:** `npm run lint`, `npm run typecheck`, `npm run format:check`, `npm test`. Note OKF ingest re-run when fixtures change.
-10. **Open PR** (Open PR only).
+10. **Outcome:** If gap analysis finds **no** portfolio changes needed (hub URLs already match `articles.ts` and fixtures/tests are current), report **success — already synchronized** and **do not** open a PR. If changes are required, open a portfolio PR (Open PR only).
 
 **Explicit non-goals:** No new npm commands, DEV API clients, schedulers, or generic publishing framework.
 
@@ -128,6 +128,7 @@ Summaries: one sentence each, compressed from opening/takeaway — same discipli
 - Documents taxonomy pointers (`domain/article.ts`, `content/article-lines.ts`, `articles.ts` header).
 - Includes a **standalone** copy-paste agent prompt (invoke `@.cursor/skills/articles-curation/SKILL.md` only — no plan file reference).
 - Skill text must remain valid after this plan is archived.
+- Documents **no-change success**: full reconciliation with zero required edits → report synchronized; do not open a PR.
 
 Mark `slice-skill` **completed** in plan frontmatter in the same PR.
 
@@ -190,22 +191,22 @@ After the operator confirms live DEV publish and the agent completes Notion **Pu
 1. **Determine destination** (docs-only convention for this installation — no new YAML schema in this slice):
    - **Portfolio:** weekly field reports that belong on [michaeltruong.ai/articles](https://michaeltruong.ai/articles) → destination repo `mastermichaelt/portfolio`, skill `.cursor/skills/articles-curation/SKILL.md`.
    - Other destinations: same pattern later (“invoke that repo’s article curation skill”); do not duplicate portfolio taxonomy in the hub.
-2. **Invoke curation:** In an Agent session with the **portfolio checkout** available, load and follow the portfolio articles-curation skill (sync hub `docs/dev.to/published/` → portfolio `content/articles.ts` and related fixtures/tests when gaps exist). Scope to the **just-published** article when the skill supports a single-artifact pass; otherwise run gap sync if that is the skill’s documented default.
-3. **Fail-open:** If the destination repo checkout, skill file, or hub `published/` source for the article is unavailable, **do not fail** Notion publish or treat post-publish as blocked. Append to the **Required chat report** (and optional Notion audit block):
+2. **Invoke curation:** In an Agent session with the **portfolio checkout** available, load and follow the portfolio articles-curation skill and run its **full published-inventory reconciliation** (hub `docs/dev.to/published/` ↔ portfolio `content/articles.ts`, fixtures, and tests — not a single-article shortcut).
+3. **Fail-open:** If the destination repo checkout, skill file, or hub `published/` tree is unavailable, **do not fail** Notion publish or treat post-publish as blocked. Append to the **Required chat report** (and optional Notion audit block):
 
    `Destination curation: skipped (<reason>)`
 
    Examples: `portfolio checkout not in workspace`, `articles-curation skill not found`, `markdown not yet under docs/dev.to/published/`.
 
-4. **Open PR:** When curation mutates portfolio content, open a portfolio PR per the skill (Open PR only); that PR is separate from this editorial-workflow docs slice unless the same agent session spans both repos by explicit user direction.
+4. **Outcome:** Report one of: **`synchronized (no PR)`** when reconciliation finds no portfolio changes; **`PR opened`** when the skill mutates portfolio content (Open PR only, separate from this editorial-workflow PR); or **`skipped`** per step 3. Do not open an empty PR when already synchronized.
 
 **Files to update:**
 
-| File                             | Change                                                                                                                                                        |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `skills/editor-publish/SKILL.md` | Extend **§5 Post-publish mode** with steps 1–3 above; extend Required chat report with `Destination curation` outcome (`completed` / `skipped` / `PR opened`) |
-| `docs/editorial-workflow.md`     | Add pipeline step after step 12 (close loop): **destination curation invoke** with fail-open semantics; portfolio example only                                |
-| `docs/dev.to/README.md`          | Optional one sentence: after move to `published/`, post-publish flow may invoke destination curation                                                          |
+| File                             | Change                                                                                                                                                                   |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `skills/editor-publish/SKILL.md` | Extend **§5 Post-publish mode** with steps 1–4 above; extend Required chat report with `Destination curation` outcome (`synchronized (no PR)` / `PR opened` / `skipped`) |
+| `docs/editorial-workflow.md`     | Add pipeline step after step 12 (close loop): **destination curation invoke** with fail-open semantics; portfolio example only                                           |
+| `docs/dev.to/README.md`          | Optional one sentence: after move to `published/`, post-publish flow may invoke destination curation                                                                     |
 
 **Wording anchor (intent, not duplicated taxonomy):**
 
@@ -215,7 +216,7 @@ After the operator confirms live DEV publish and the agent completes Notion **Pu
 
 **Multi-repo note:** Full curation execution requires `mastermichaelt/portfolio` in the agent environment; hub-only sessions still complete publish but report `Destination curation: skipped`.
 
-Mark `slice-editorial` **completed** in plan frontmatter in the same PR.
+**Plan frontmatter:** This slice lands in **editorial-workflow only**. **Do not** edit `mastermichaelt/portfolio` plan frontmatter or mark `slice-editorial` **completed** from the editorial PR. **`plan-closure`** (portfolio) verifies the editorial-workflow PR merged, then marks `slice-editorial` **completed** in this plan’s frontmatter before archive.
 
 ---
 
@@ -231,14 +232,15 @@ Mark `slice-editorial` **completed** in plan frontmatter in the same PR.
 
 ## Blockers and decisions
 
-| Item                                           | Status                                               |
-| ---------------------------------------------- | ---------------------------------------------------- |
-| Taxonomy / counts / six classifications        | **Decided**                                          |
-| PR merge order                                 | **Decided:** skill → content → editorial             |
-| Skill independent of this plan                 | **Decided** — no plan references in skill acceptance |
-| Post-publish curation                          | **Decided** — invoke in flow; fail-open skip         |
-| `relatedProjectSlug` for General posts         | **Default none**; translation → `codenames-ai`       |
-| Destination registry in `.agents/projects.yml` | **Out of scope** — runbook convention only           |
+| Item                                           | Status                                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------- |
+| Taxonomy / counts / six classifications        | **Decided**                                                               |
+| PR merge order                                 | **Decided:** skill → content → editorial                                  |
+| Skill independent of this plan                 | **Decided** — no plan references in skill acceptance                      |
+| Post-publish curation                          | **Decided** — invoke in flow; fail-open skip                              |
+| `relatedProjectSlug` for General posts         | **Default none**; translation → `codenames-ai`                            |
+| Destination registry in `.agents/projects.yml` | **Out of scope** — runbook convention only                                |
+| `slice-editorial` todo completion              | **Portfolio plan-closure only** — after `gh` confirms editorial PR merged |
 
 ---
 
@@ -252,11 +254,18 @@ Mark `slice-editorial` **completed** in plan frontmatter in the same PR.
 
 **Agent instruction:** Do not merge. Stop after opening the PR.
 
-**Prerequisites:** `slice-skill`, `slice-content`, and `slice-editorial` merged and marked `completed` in frontmatter.
+**Prerequisites:** `slice-skill` and `slice-content` merged and marked `completed` in this plan’s frontmatter; **editorial-workflow** PR for `slice-editorial` merged on GitHub (`gh pr view` / merge commit on `multipliers-dev/editorial-workflow`).
 
-**Goal:** `# Shipped` closure note; move plan to `.cursor/plans/archive/2026-10-30-articles-refresh-curation.plan.md`; update agent prompt `@` paths to archived location.
+**Goal:** Reconcile cross-repository completion; `# Shipped` closure note; move plan to `.cursor/plans/archive/2026-10-30-articles-refresh-curation.plan.md`; update agent prompt `@` paths to archived location.
 
-**Acceptance:** Plan validator passes on archived file; all implementation todos `completed`.
+**Cross-repo reconciliation (required in this PR):**
+
+1. Confirm portfolio PRs for `slice-skill` and `slice-content` merged; frontmatter todos `completed`.
+2. Confirm editorial-workflow PR for `slice-editorial` merged (do not infer from portfolio git state).
+3. Mark `slice-editorial` **completed** in this plan’s frontmatter in the **same** portfolio closure PR.
+4. Mark `plan-closure` **completed**; archive plan.
+
+**Acceptance:** Plan validator passes on archived file; all implementation todos `completed` with `slice-editorial` attested only after step 2.
 
 **Verification:** `npm run validate:plans` if run locally; CI validate job green.
 
@@ -309,7 +318,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: cd to multipliers-dev/editorial-workflow; prove origin; start from latest origin/main; PR base main; branch represents only this slice.
 
-Deliverables: Update editor-publish SKILL §5 and docs/editorial-workflow.md (and optional docs/dev.to/README.md) so post-publish invokes destination curation fail-open per plan PR3. Mark slice-editorial completed in plan frontmatter in this PR.
+Deliverables: Update editor-publish SKILL §5 and docs/editorial-workflow.md (and optional docs/dev.to/README.md) so post-publish invokes full published-inventory reconciliation fail-open per plan slice-editorial. Do not edit mastermichaelt/portfolio plan frontmatter from this PR.
 
 Verification: npm test && npm run typecheck in editorial-workflow.
 ```
@@ -323,11 +332,11 @@ Execute only plan-closure.
 
 Authority: Open PR only — docs-only archive PR; do not merge.
 
-Prerequisites: slice-skill, slice-content, and slice-editorial merged and marked completed in frontmatter.
+Prerequisites: slice-skill and slice-content merged and marked completed; slice-editorial editorial-workflow PR merged (verify with gh on multipliers-dev/editorial-workflow).
 
 Topology: cd to mastermichaelt/portfolio; prove origin; start from latest origin/main; PR base main.
 
-Deliverables: # Shipped note, move plan to .cursor/plans/archive/2026-10-30-articles-refresh-curation.plan.md, mark plan-closure completed, update agent prompt @ paths to archived file.
+Deliverables: Cross-repo reconciliation per plan slice plan-closure — mark slice-editorial completed after verifying editorial PR merged; # Shipped note; archive plan; mark plan-closure completed; update agent prompt @ paths to archived file.
 
-Verification: All implementation PRs merged; frontmatter todos consistent.
+Verification: All three implementation PRs merged; frontmatter todos consistent; plan validator green.
 ```
