@@ -31,14 +31,48 @@ todos:
     status: completed
   - id: operational-acceptance
     content: "Manual verification gate — production Neon corpus ingest + verify (operator-approved), then local + deployed E2E on michaeltruong.ai; operator sign-off before public-ready"
-    status: pending
+    status: cancelled
   - id: plan-closure
     content: "Docs-only PR — # Shipped note, archive plan, update architecture-direction + rag-generation-direction (after production verified)"
-    status: pending
+    status: cancelled
 isProject: false
 ---
 
 # Assistant grounded RAG generation
+
+## Superseded — responsibility transfer (2026-10-30)
+
+| | |
+| --- | --- |
+| **Plan status** | **Superseded** by [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md) (orchestration) |
+| **Implementation status** | **Shipped** — all implementation todos through `generation-ui` completed on `main` (see frontmatter) |
+| **Plan archived** | 2026-10-30 (filename date **2026-10-08** preserved) |
+
+**Outstanding obligations transferred (not completed on this plan):**
+
+| Todo | Successor owner | Successor reference |
+| --- | --- | --- |
+| `operational-acceptance` | Phase 4 | [2026-10-30-assistant-04-production-reopening.plan.md](../2026-10-30-assistant-04-production-reopening.plan.md) — slice `operational-acceptance` |
+| `plan-closure` (doc updates) | Phase 4 | Same plan — slice `plan-closure` (`architecture-direction`, `rag-generation-direction`, `generation-eval-findings`) |
+
+Frontmatter marks transferred todos **`cancelled`** with transfer rationale — not **`completed`**.
+
+## # Shipped (implementation)
+
+Implementation slices through **`generation-ui`** merged on `main` (contract, CLI, eval, API, Drizzle foundation + queries, `/assistant` UI). **Operational acceptance** and milestone **doc closure** were **not** completed on this plan — transferred to [Phase 4 production reopening](../2026-10-30-assistant-04-production-reopening.plan.md) on **2026-10-30**. Plan **archived** same date; active execution authority is the [assistant roadmap](../2026-10-30-assistant-roadmap.plan.md).
+
+---
+
+## Roadmap reconciliation (2026-10-30)
+
+**Authoritative sequencing:** [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md).
+
+| Item | Status |
+| --- | --- |
+| Implementation slices through `generation-ui` | **Shipped** on `main` (verified: API, `/assistant`, Drizzle, eval harness) |
+| `operational-acceptance` | **Transferred** → Phase 4 [04-production-reopening](../2026-10-30-assistant-04-production-reopening.plan.md) |
+| `plan-closure` | **Transferred** → Phase 4 `plan-closure` slice (doc updates at reopen) |
+| This plan | **Archived** — historical record only |
 
 **Goal:** Deliver a **working portfolio assistant on [michaeltruong.ai](https://michaeltruong.ai)** — visitor questions answered with **evidence-aware, attributable** responses using the indexed OKF corpus (101 concepts; retrieval-eval baseline on current index), Neon pgvector retrieval, and OpenAI generation. **Generation quality, inspectability, and citation integrity first**; UI stays minimal.
 
@@ -56,7 +90,7 @@ isProject: false
 
 **Plan amendment (2026-10-29, production Neon cutover):** One-time operator migration from local Docker to Neon **`portfolio-assistant`** completed successfully (**262** retrieval units, Drizzle fresh schema, no embedding regeneration). Historical record: [`docs/archive/production-neon-cutover-2026.md`](../../docs/archive/production-neon-cutover-2026.md). Routine schema work remains **`assistant:db:migrate`** / **`assistant:db:verify`** only — do not repeat the database-recreation procedure.
 
-**Plan amendment (2026-10-29, conversational UI follow-up):** Product-design work to make `/assistant` feel conversational (session-local transcript, chat composer) while keeping **stateless single-turn** generation is tracked separately in [2026-10-29-assistant-conversational-ui.plan.md](./2026-10-29-assistant-conversational-ui.plan.md). Does not expand **`generation-ui`** acceptance, **`operational-acceptance`**, or RAG architecture scope.
+**Plan amendment (2026-10-29, conversational UI follow-up):** Product-design work to make `/assistant` feel conversational (session-local transcript, chat composer) while keeping **stateless single-turn** generation is tracked separately in [2026-10-29-assistant-03-conversational-ui.plan.md](../2026-10-29-assistant-03-conversational-ui.plan.md). Does not expand **`generation-ui`** acceptance, **`operational-acceptance`**, or RAG architecture scope.
 
 **Plan amendment (2026-10-28, Drizzle ORM):** Adopt **Drizzle ORM** and **Drizzle Kit** as the **long-term schema, query, and migration authority** for the assistant Postgres + pgvector database (`DATABASE_URL` scope only — not site `PortfolioRepository` persistence). **Intent:** retire the custom legacy migration runner once a safe cutover is verified — not maintain two migration systems indefinitely. Two implementation slices (**`drizzle-foundation`**, **`drizzle-queries`**) land **after `generation-api` and before `generation-ui`**. Preserve historical SQL under `db/migrations/` as **read-only evidence** (do not delete or rewrite files), existing `schema_migrations` rows on populated databases, retrieval semantics, ingest idempotency, generation contract, and operator-controlled Neon operations. **Do not** recreate the database, change embedding model / `vector(1536)`, or replay full CREATE DDL on populated production in these slices.
 
@@ -759,7 +793,7 @@ Do **not** ship any bridge that replays full CREATE on populated production.
 ### generation-cli
 
 ```text
-@.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md
+@.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md
 
 Implement slice generation-cli only. Prerequisite: generation-contract merged. Do not start generation-eval, generation-api, generation-ui, or later. Do not archive the plan.
 
@@ -775,7 +809,7 @@ Verification: npm run test; npm run lint; npm run typecheck; npm run format:chec
 ### generation-eval
 
 ```text
-@.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md
+@.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md
 
 Implement slice generation-eval only. Prerequisite: generation-cli merged. Do not start generation-api, generation-ui, operational-acceptance, or plan-closure. Do not archive the plan.
 
@@ -791,7 +825,7 @@ Verification: npm run test -- tests/assistant-generation-eval.test.ts; npm run l
 ### generation-api
 
 ```text
-@.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md
+@.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md
 
 Implement slice generation-api only. Prerequisite: generation-cli merged. Do not start generation-ui, operational-acceptance, or plan-closure. Do not archive the plan.
 
@@ -807,7 +841,7 @@ Verification: npm run test; npm run lint; npm run typecheck; npm run format:chec
 ### drizzle-foundation
 
 ```text
-@.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md
+@.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md
 
 Implement slice drizzle-foundation only. Prerequisite: generation-api merged. Do not start drizzle-queries, drizzle-migration-cutover, generation-ui, operational-acceptance, or plan-closure. Do not archive the plan.
 
@@ -825,7 +859,7 @@ Verification: npm run typecheck; npm test; npm run format:check; local Docker mi
 ### drizzle-queries
 
 ```text
-@.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md
+@.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md
 
 Implement slice drizzle-queries only. Prerequisite: drizzle-foundation merged. Do not start generation-ui, operational-acceptance, or plan-closure until migration cutover gate satisfied (drizzle-migration-cutover merged if Strategy B required, or cutover todo cancelled). Do not archive the plan.
 
@@ -841,7 +875,7 @@ Verification: npm run test (including assistant-retrieve, assistant-ingest, assi
 ### drizzle-migration-cutover
 
 ```text
-@.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md
+@.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md
 
 Implement slice drizzle-migration-cutover only when drizzle-foundation merged with Strategy B dual-runner still active and legacy runner was not retired in that PR. If foundation already shipped single-authority migrate, mark drizzle-migration-cutover cancelled in plan frontmatter with rationale — do not open an empty PR.
 
@@ -859,7 +893,7 @@ Verification: npm run test (assistant-db); npm run typecheck; npm run lint; npm 
 ### generation-ui
 
 ```text
-@.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md
+@.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md
 
 Implement slice generation-ui only. Prerequisites: drizzle-foundation and drizzle-queries merged; migration cutover gate satisfied (drizzle-migration-cutover merged if Strategy B required, or cutover todo cancelled). Do not start operational-acceptance or plan-closure. Do not archive the plan.
 
@@ -877,7 +911,7 @@ Verification: npm run lint; npm run typecheck; npm run format:check; npm run tes
 ### operational-acceptance
 
 ```text
-@.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md
+@.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md
 
 Run the manual verification gate (operational-acceptance) only. Prerequisites: drizzle-foundation, drizzle-queries, and generation-ui merged and marked completed; migration cutover gate satisfied (drizzle-migration-cutover merged under Strategy B, or cutover todo cancelled under Strategy A); single-authority assistant:db:migrate/verify confirmed before Phase A production work. Do not start plan-closure until ops complete and no dual-runner migration path remains. Do not archive the plan.
 
@@ -893,7 +927,7 @@ Verification: operator sign-off recorded; Phase A and Phase B checklists complet
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-10-08-assistant-grounded-rag-generation.plan.md
+@.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md
 
 Execute only plan-closure.
 

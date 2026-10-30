@@ -7,11 +7,46 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after merge: archive plan with # Shipped note"
-    status: pending
+    status: cancelled
 isProject: false
 ---
 
 # Assistant quality observability
+
+## Superseded — responsibility transfer (2026-10-30)
+
+| | |
+| --- | --- |
+| **Plan status** | **Superseded** by [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md) |
+| **Implementation status** | **Shipped** — `quality-observability` slice on `main` (table, API persist, CLIs, tests) |
+| **Plan archived** | 2026-10-30 (filename date **2026-10-29** preserved) |
+
+**Outstanding obligations transferred (not completed on this plan):**
+
+| Todo / topic | Successor | Acceptance |
+| --- | --- | --- |
+| Production verification of evaluation persistence + disclosure | Phase 4 | [04-production-reopening](../2026-10-30-assistant-04-production-reopening.plan.md) — observability section + `operational-acceptance` |
+| Ongoing quality iteration (review CLI, telemetry, follow-ups) | Phase 5 | Roadmap Phase 5; [evaluation-observability.md](../../docs/assistant/evaluation-observability.md) |
+| `plan-closure` (archive + # Shipped) | **This archive** | Superseded closure recorded here; no separate pending todo |
+
+Frontmatter `plan-closure` is **`cancelled`** (transferred to roadmap consolidation), not **`completed`**.
+
+## # Shipped (implementation)
+
+**`quality-observability`** merged on `main` (evaluation table, fail-open API persistence, disclosure, review/cleanup CLIs, tests, [evaluation-observability.md](../../docs/assistant/evaluation-observability.md)). **Production verification** of persistence/disclosure transferred to [Phase 4](../2026-10-30-assistant-04-production-reopening.plan.md). Plan **archived** **2026-10-30**; ongoing iteration under roadmap **Phase 5**.
+
+---
+
+## Roadmap reconciliation (2026-10-30)
+
+**Authoritative sequencing:** [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md) — **Phase 5** (ongoing quality iteration).
+
+| Item | Status |
+| --- | --- |
+| `quality-observability` slice | **Shipped** on `main` |
+| Production eval verification | **Transferred** → Phase 4 reopening checklist |
+| `plan-closure` | **Superseded** by archive transfer 2026-10-30 |
+| This plan | **Archived** — historical record only |
 
 Single merge-safe PR (`quality-observability`).
 
@@ -75,7 +110,7 @@ Integration branch: **`main`**. Start from latest `origin/main`. PR base **`main
 ### quality-observability
 
 ```text
-@.cursor/plans/2026-10-29-assistant-quality-observability.plan.md
+@.cursor/plans/archive/2026-10-29-assistant-quality-observability.plan.md
 
 Implement slice quality-observability only. Do not start plan-closure. Do not change RAG ranking, prompts, or generation behavior.
 
@@ -91,7 +126,7 @@ Verification: npm run lint, typecheck, test; assistant DB migration meta tests u
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-10-29-assistant-quality-observability.plan.md
+@.cursor/plans/archive/2026-10-29-assistant-quality-observability.plan.md
 
 Execute only plan-closure after quality-observability merges. Do not implement product code in this PR.
 

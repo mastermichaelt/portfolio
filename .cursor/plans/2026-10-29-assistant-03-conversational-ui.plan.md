@@ -13,9 +13,33 @@ isProject: false
 
 # Assistant conversational UI
 
+## Roadmap reconciliation (2026-10-30)
+
+**Authoritative sequencing:** [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md) — **Phase 3**.
+
+## Parent plan
+
+| | |
+| --- | --- |
+| **Parent roadmap** | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md) |
+| **Phase** | **3** — Conversational UI verification |
+| **Phase objective** | Reconcile and verify conversational UI against consolidated backend (UI already shipped). |
+| **Entry criteria** | Phase 2 complete, or verify immediately if API contract unchanged. |
+| **Dependencies** | Phase 2 when generation API envelope changes. |
+| **Completion criteria** | Verification pass; `plan-closure` optional; roadmap Phase 3 exit criteria met. |
+
+| Item | Status |
+| --- | --- |
+| `conversational-ui` slice | **Shipped** on `main` (`AssistantExperience`, transcript/composer tests) |
+| Phase 3 remaining work | **Verify/reconcile** after Phase 2 if API contract changes — not greenfield UI |
+| `plan-closure` | **Queued** after Phase 3 verification or Phase 4 docs bundle |
+| This plan | **Active** until archive closure |
+
+Do not archive until `plan-closure` completes.
+
 **Goal:** Make `/assistant` feel like a **conversation** (visible turns, scrollable thread, persistent composer) while the backend remains **stateless** — one independent `POST /api/assistant/generate` per submitted question, no model memory, no streaming, no retrieval changes.
 
-**Relationship to [Assistant grounded RAG generation](./2026-10-08-assistant-grounded-rag-generation.plan.md):** `generation-ui` (PR #103) delivered the first grounded answer surface. **Operational acceptance** and **plan-closure** for the generation milestone stay on that plan. This document is a **distinct product-design follow-up**; it does not reopen generation contract, API, Drizzle, ingest, or eval slices.
+**Relationship to [Assistant grounded RAG generation](./archive/2026-10-08-assistant-grounded-rag-generation.plan.md):** `generation-ui` (PR #103) delivered the first grounded answer surface. **Operational acceptance** and milestone closure were **transferred** to [Phase 4 production reopening](./2026-10-30-assistant-04-production-reopening.plan.md) (2026-10-30). This document is a **distinct product-design follow-up**; it does not reopen generation contract, API, Drizzle, ingest, or eval slices.
 
 **Direction:** [rag-generation-direction.md](../../docs/assistant/rag-generation-direction.md) (deferred AI-first homepage remains out of scope).
 
@@ -376,7 +400,7 @@ Implement in order within one slice; split into multiple PRs only if review size
 
 **Prerequisites:** **`conversational-ui`** merged on `main`.
 
-**Deliverables:** `# Shipped` note; move plan to `.cursor/plans/archive/2026-10-29-assistant-conversational-ui.plan.md`; mark `plan-closure` completed; optional nyaomaru UX note in [prior-art.md](../../docs/assistant/prior-art.md).
+**Deliverables:** `# Shipped` note; move plan to `.cursor/plans/archive/2026-10-29-assistant-03-conversational-ui.plan.md`; mark `plan-closure` completed; optional nyaomaru UX note in [prior-art.md](../../docs/assistant/prior-art.md).
 
 ---
 
@@ -410,7 +434,7 @@ Integration branch: **`main`**. Start `conversational-ui` from latest `origin/ma
 ### conversational-ui
 
 ```text
-@.cursor/plans/2026-10-29-assistant-conversational-ui.plan.md
+@.cursor/plans/2026-10-29-assistant-03-conversational-ui.plan.md
 
 Implement slice conversational-ui only. Do not start plan-closure. Do not change POST /api/assistant/generate, generation service, retrieval, or database schema.
 
@@ -426,7 +450,7 @@ Verification: npm run lint, typecheck, test; manual desktop + 375px; multi-turn 
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-10-29-assistant-conversational-ui.plan.md
+@.cursor/plans/2026-10-29-assistant-03-conversational-ui.plan.md
 
 Plan-closure only after conversational-ui merges. Do not implement UI in this PR.
 
@@ -434,7 +458,7 @@ Authority: Open PR only — open docs PR; do not merge.
 
 Topology: start from latest origin/main; branch represents only this slice; PR base must be main.
 
-Deliverables: # Shipped note; move plan to .cursor/plans/archive/2026-10-29-assistant-conversational-ui.plan.md; mark plan-closure completed; optional short UX paragraph in docs/assistant/prior-art.md (nyaomaru live UX observations); verify conversational-ui todo completed.
+Deliverables: # Shipped note; move plan to .cursor/plans/archive/2026-10-29-assistant-03-conversational-ui.plan.md; mark plan-closure completed; optional short UX paragraph in docs/assistant/prior-art.md (nyaomaru live UX observations); verify conversational-ui todo completed.
 
 Verification: confirm conversational-ui merged before archiving; plan-validator passes on active plans after archive move.
 ```
