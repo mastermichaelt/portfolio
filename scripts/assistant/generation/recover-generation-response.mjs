@@ -242,11 +242,73 @@ export function tryDeterministicRecovery(model, packet) {
 }
 
 /**
+ * @param {import("./response-schema.mjs").AbstentionReason | undefined} reason
+ * @returns {import("./response-schema.mjs").AbstentionReason}
+ */
+function resolveAbstentionReasonForRecovery(reason) {
+  if (reason && ABSTENTION_REASONS.includes(reason)) {
+    return reason;
+  }
+  return "other";
+}
+
+/**
+ * @param {AssistantModelGenerationResponse} model
+ * @param {EvidencePacket} packet
+ * @returns {{ recovered: boolean, model?: AssistantModelGenerationResponse, claims_removed_count?: number }}
+ */
+function tryGracefulDegradationForAbstained(model, packet) {
+  const abstentionReason = resolveAbstentionReasonForRecovery(
+    model.abstention_reason,
+  );
+  /** @type {AssistantClaim[]} */
+  const normalizedClaims = [];
+
+  for (const claim of model.claims) {
+    const normalized = normalizeClaimForRecovery(claim, packet);
+    if (normalized) {
+      normalizedClaims.push(normalized);
+    }
+  }
+
+  if (normalizedClaims.length > 0) {
+    const repaired = {
+      claims: normalizedClaims,
+      support_level: /** @type {const} */ ("none"),
+      abstained: true,
+      abstention_reason: abstentionReason,
+    };
+    if (validateGenerationResponse(repaired, packet).valid) {
+      return {
+        recovered: true,
+        model: repaired,
+        claims_removed_count: model.claims.length - normalizedClaims.length,
+      };
+    }
+  }
+
+  const safe = buildSafeAbstentionModel(abstentionReason);
+  if (validateGenerationResponse(safe, packet).valid) {
+    return {
+      recovered: true,
+      model: safe,
+      claims_removed_count: model.claims.length,
+    };
+  }
+
+  return { recovered: false, claims_removed_count: model.claims.length };
+}
+
+/**
  * @param {AssistantModelGenerationResponse} model
  * @param {EvidencePacket} packet
  * @returns {{ recovered: boolean, model?: AssistantModelGenerationResponse, claims_removed_count?: number }}
  */
 export function tryGracefulDegradation(model, packet) {
+  if (model.abstained === true) {
+    return tryGracefulDegradationForAbstained(model, packet);
+  }
+
   /** @type {AssistantClaim[]} */
   const kept = [];
 

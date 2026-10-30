@@ -11,7 +11,10 @@ import {
   tryGracefulDegradation,
 } from "@/scripts/assistant/generation/recover-generation-response.mjs";
 import { parseAssistantModelGenerationResponse } from "@/scripts/assistant/generation/response-schema.mjs";
-import { runRagGeneration } from "@/scripts/assistant/generation/run-generation.mjs";
+import {
+  accumulateChatCompletionUsage,
+  runRagGeneration,
+} from "@/scripts/assistant/generation/run-generation.mjs";
 import { validateGenerationResponse } from "@/scripts/assistant/generation/validate-response.mjs";
 import {
   categorizeValidationError,
@@ -203,6 +206,42 @@ describe("deterministic recovery", () => {
 });
 
 describe("graceful degradation", () => {
+  it("preserves abstention when the model explicitly abstained with invalid claims", async () => {
+    const packet = await assembleEvidencePacket({
+      matchedHits: [hit(1, "unit/a#intro", "a", "Alpha body")],
+      assemblyMode: "top_k_only",
+      characterBudget: 10_000,
+    });
+
+    const model = {
+      claims: [
+        {
+          text: "I cannot verify private compensation from the evidence.",
+          attribution: "uncertain" as const,
+        },
+        {
+          text: "Fabricated corpus claim.",
+          attribution: "evidence_supported" as const,
+          citations: [{ evidence_id: "E99", unit_id: "unit/a#intro" }],
+        },
+      ],
+      support_level: "none" as const,
+      abstained: true,
+      abstention_reason: "unsupported_personal_claim" as const,
+    };
+
+    const degraded = tryGracefulDegradation(model, packet);
+    expect(degraded.recovered).toBe(true);
+    expect(degraded.model?.abstained).toBe(true);
+    expect(degraded.model?.abstention_reason).toBe(
+      "unsupported_personal_claim",
+    );
+    expect(degraded.model?.support_level).toBe("none");
+    expect(validateGenerationResponse(degraded.model!, packet).valid).toBe(
+      true,
+    );
+  });
+
   it("drops unsupported evidence claims and keeps supported ones", async () => {
     const packet = await assembleEvidencePacket({
       matchedHits: [hit(1, "unit/a#intro", "a", "Alpha body")],
@@ -420,6 +459,80 @@ describe("runRagGeneration recovery integration", () => {
   });
 });
 
+function createCapturingTelemetry() {
+  const events: Array<{
+    event: string;
+    properties: Record<string, string | number | boolean>;
+  }> = [];
+  const telemetry = {
+    capture(
+      event: string,
+      properties: Record<string, string | number | boolean | undefined>,
+    ) {
+      const sanitized = Object.fromEntries(
+        Object.entries(properties).filter(([, value]) => value !== undefined),
+      ) as Record<string, string | number | boolean>;
+      events.push({ event, properties: sanitized });
+    },
+    async flush() {},
+  };
+  return { telemetry, events };
+}
+
+describe("accumulateChatCompletionUsage", () => {
+  it("adds total-only retry usage to initial component usage", () => {
+    expect(
+      accumulateChatCompletionUsage(
+        { prompt_tokens: 10, completion_tokens: 5 },
+        { total_tokens: 100 },
+      ),
+    ).toEqual({
+      prompt_tokens: 10,
+      completion_tokens: 5,
+      total_tokens: 115,
+    });
+  });
+
+  it("adds total-only initial usage to retry component usage", () => {
+    expect(
+      accumulateChatCompletionUsage(
+        { total_tokens: 100 },
+        { prompt_tokens: 10, completion_tokens: 5 },
+      ),
+    ).toEqual({
+      prompt_tokens: 10,
+      completion_tokens: 5,
+      total_tokens: 115,
+    });
+  });
+
+  it("aligns cumulative total with components when every pass reports both", () => {
+    expect(
+      accumulateChatCompletionUsage(
+        { prompt_tokens: 11, completion_tokens: 4, total_tokens: 99 },
+        { prompt_tokens: 22, completion_tokens: 6, total_tokens: 99 },
+      ),
+    ).toEqual({
+      prompt_tokens: 33,
+      completion_tokens: 10,
+      total_tokens: 43,
+    });
+  });
+
+  it("prefers component sums for contradictory totals on the same pass", () => {
+    expect(
+      accumulateChatCompletionUsage(
+        { total_tokens: 20, prompt_tokens: 10, completion_tokens: 5 },
+        { total_tokens: 28, prompt_tokens: 22, completion_tokens: 6 },
+      ),
+    ).toEqual({
+      prompt_tokens: 32,
+      completion_tokens: 11,
+      total_tokens: 43,
+    });
+  });
+});
+
 describe("cumulative token usage on model retry", () => {
   const runConfig = {
     evidenceCharacterBudget: 10_000,
@@ -568,5 +681,80 @@ describe("cumulative token usage on model retry", () => {
     expect(result.diagnostics.prompt_tokens).toBe(5);
     expect(result.diagnostics.completion_tokens).toBe(1);
     expect(result.diagnostics.total_tokens).toBe(6);
+  });
+
+  it("uses final completion output for utilization after a successful retry", async () => {
+    const packet = await testEvidencePacket();
+    const { telemetry, events } = createCapturingTelemetry();
+    await runRagGeneration({
+      question: "What is Alpha?",
+      evidencePacket: packet,
+      config: {
+        ...runConfig,
+        maxOutputTokens: 512,
+      },
+      fetch: mockChatFetchWithCompletions([
+        {
+          content: "not-json",
+          usage: {
+            prompt_tokens: 10,
+            completion_tokens: 400,
+            total_tokens: 410,
+          },
+        },
+        {
+          content: goodEvidenceModelJson(),
+          usage: {
+            prompt_tokens: 12,
+            completion_tokens: 256,
+            total_tokens: 268,
+          },
+        },
+      ]),
+      apiKey: TEST_OPENAI_API_KEY,
+      telemetry,
+    });
+
+    const completed = events.find(
+      (event) => event.event === "assistant_generation_completed",
+    );
+    expect(completed?.properties.completion_tokens).toBe(656);
+    expect(completed?.properties.output_token_utilization).toBeCloseTo(
+      256 / 512,
+      3,
+    );
+    expect(completed?.properties.output_token_utilization).toBeLessThanOrEqual(
+      1,
+    );
+  });
+
+  it("accumulates mixed total-only and component usage on retry success", async () => {
+    const packet = await testEvidencePacket();
+    const result = await runRagGeneration({
+      question: "What is Alpha?",
+      evidencePacket: packet,
+      config: runConfig,
+      fetch: mockChatFetchWithCompletions([
+        {
+          content: "not-json",
+          usage: { prompt_tokens: 10, completion_tokens: 5 },
+        },
+        {
+          content: goodEvidenceModelJson(),
+          usage: { total_tokens: 100 },
+        },
+      ]),
+      apiKey: TEST_OPENAI_API_KEY,
+    });
+
+    expect(result.diagnostics.prompt_tokens).toBe(10);
+    expect(result.diagnostics.completion_tokens).toBe(5);
+    expect(result.diagnostics.total_tokens).toBe(115);
+    expect(buildPublicUsageFromDiagnostics(result.diagnostics)).toEqual({
+      model: result.diagnostics.model,
+      prompt_tokens: 10,
+      completion_tokens: 5,
+      total_tokens: 115,
+    });
   });
 });

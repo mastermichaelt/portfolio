@@ -32,12 +32,56 @@ import {
 import { validateAndNormalizeQuestion } from "./validate-query.mjs";
 
 /**
- * @param {import("./response-schema.mjs").AssistantGenerationDiagnostics} diagnostics
- * @param {import("./recover-generation-response.mjs").RecoveryDiagnostics} recovery
+ * Per-completion canonical total for aggregation.
+ * When both components exist, they define the pass total (even if provider total_tokens differs).
+ * Otherwise use reported total_tokens when present.
+ *
+ * @param {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number } | undefined} usage
+ * @returns {number | undefined}
  */
+function canonicalPassTotalForUsage(usage) {
+  if (!usage) {
+    return undefined;
+  }
+  const prompt = usage.prompt_tokens;
+  const completion = usage.completion_tokens;
+  if (typeof prompt === "number" && typeof completion === "number") {
+    return prompt + completion;
+  }
+  if (typeof usage.total_tokens === "number") {
+    return usage.total_tokens;
+  }
+  return undefined;
+}
+
+/**
+ * True when a pass reports total_tokens without both component counts.
+ *
+ * @param {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number } | undefined} usage
+ * @returns {boolean}
+ */
+function passReportsTotalOnlyMetadata(usage) {
+  if (!usage || typeof usage.total_tokens !== "number") {
+    return false;
+  }
+  return (
+    typeof usage.prompt_tokens !== "number" ||
+    typeof usage.completion_tokens !== "number"
+  );
+}
+
 /**
  * Sums OpenAI usage across two completion passes (initial + corrective retry).
- * Missing fields are omitted — never treated as zero.
+ *
+ * **Aggregation policy**
+ * - Sum `prompt_tokens` and `completion_tokens` independently when reported.
+ * - Per pass, canonical total = components sum when both exist; else `total_tokens`.
+ * - Cumulative `total_tokens` = sum of per-pass canonical totals when any exist.
+ * - When every pass reports both components (no total-only pass), cumulative
+ *   `total_tokens` is set to cumulative prompt + completion so fields stay consistent.
+ * - When any pass is total-only, cumulative total keeps the summed pass totals even
+ *   if that exceeds cumulative components (partial provider metadata, not zero-filled).
+ * - Missing fields are omitted — never treated as zero.
  *
  * @param {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number }} first
  * @param {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number }} second
@@ -46,28 +90,40 @@ import { validateAndNormalizeQuestion } from "./validate-query.mjs";
 export function accumulateChatCompletionUsage(first, second) {
   /** @type {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number }} */
   const accumulated = {};
+  const passes = [first, second];
 
-  /**
-   * @param {"prompt_tokens" | "completion_tokens"} field
-   * @returns {number | undefined}
-   */
-  const sumNumericField = (field) => {
-    const a = first?.[field];
-    const b = second?.[field];
-    if (typeof a === "number" && typeof b === "number") {
-      return a + b;
-    }
-    if (typeof a === "number") {
-      return a;
-    }
-    if (typeof b === "number") {
-      return b;
-    }
-    return undefined;
-  };
+  let promptTokens;
+  let completionTokens;
+  let totalFromPasses = 0;
+  let passTotalCount = 0;
+  let anyTotalOnlyPass = false;
+  let everyPassHasBothComponents = true;
 
-  const promptTokens = sumNumericField("prompt_tokens");
-  const completionTokens = sumNumericField("completion_tokens");
+  for (const usage of passes) {
+    if (typeof usage?.prompt_tokens === "number") {
+      promptTokens = (promptTokens ?? 0) + usage.prompt_tokens;
+    }
+    if (typeof usage?.completion_tokens === "number") {
+      completionTokens = (completionTokens ?? 0) + usage.completion_tokens;
+    }
+
+    const passTotal = canonicalPassTotalForUsage(usage);
+    if (typeof passTotal === "number") {
+      totalFromPasses += passTotal;
+      passTotalCount += 1;
+    }
+
+    if (passReportsTotalOnlyMetadata(usage)) {
+      anyTotalOnlyPass = true;
+    }
+    if (
+      typeof usage?.prompt_tokens !== "number" ||
+      typeof usage?.completion_tokens !== "number"
+    ) {
+      everyPassHasBothComponents = false;
+    }
+  }
+
   if (typeof promptTokens === "number") {
     accumulated.prompt_tokens = promptTokens;
   }
@@ -75,24 +131,26 @@ export function accumulateChatCompletionUsage(first, second) {
     accumulated.completion_tokens = completionTokens;
   }
 
-  const totalA = first?.total_tokens;
-  const totalB = second?.total_tokens;
-  if (typeof totalA === "number" && typeof totalB === "number") {
-    accumulated.total_tokens = totalA + totalB;
-  } else if (
+  if (passTotalCount > 0) {
+    accumulated.total_tokens = totalFromPasses;
+  }
+
+  if (
     typeof promptTokens === "number" &&
-    typeof completionTokens === "number"
+    typeof completionTokens === "number" &&
+    everyPassHasBothComponents &&
+    !anyTotalOnlyPass
   ) {
     accumulated.total_tokens = promptTokens + completionTokens;
-  } else if (typeof totalA === "number") {
-    accumulated.total_tokens = totalA;
-  } else if (typeof totalB === "number") {
-    accumulated.total_tokens = totalB;
   }
 
   return accumulated;
 }
 
+/**
+ * @param {import("./response-schema.mjs").AssistantGenerationDiagnostics} diagnostics
+ * @param {import("./recover-generation-response.mjs").RecoveryDiagnostics} recovery
+ */
 function applyRecoveryDiagnostics(diagnostics, recovery) {
   if (recovery.deterministic_repair_applied) {
     diagnostics.recovery_deterministic_repair_applied = true;
@@ -548,7 +606,7 @@ export async function runRagGeneration(options) {
     diagnostics.total_latency_ms = Math.round(performance.now() - runStarted);
 
     const utilization = outputTokenUtilization(
-      diagnostics.completion_tokens,
+      completion.usage?.completion_tokens,
       config.maxOutputTokens,
     );
 
