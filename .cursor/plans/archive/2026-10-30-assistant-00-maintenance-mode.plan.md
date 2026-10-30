@@ -7,9 +7,20 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after maintenance-mode merges — # Shipped note, archive plan"
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-10-30.** Implementation merged via [PR #109](https://github.com/mastermichaelt/portfolio/pull/109).
+
+| Slice            | Delivered                                                                                                                                                                                                               |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| maintenance-mode | `ASSISTANT_PUBLIC_ENABLED` + `resolveAssistantPublicEnabled()`; 503 before pool/body when disabled; `/assistant` maintenance UX + conditional metadata; [maintenance-mode.md](../../docs/assistant/maintenance-mode.md) |
+| plan-closure     | This archive; roadmap Phase 0 marked complete                                                                                                                                                                           |
+
+Operator runbook: [docs/assistant/maintenance-mode.md](../../docs/assistant/maintenance-mode.md).
 
 # Assistant maintenance mode
 
@@ -17,7 +28,7 @@ isProject: false
 
 |                         |                                                                                                |
 | ----------------------- | ---------------------------------------------------------------------------------------------- |
-| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md)                 |
+| **Parent roadmap**      | [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md)                |
 | **Phase**               | **0** — Maintenance mode                                                                       |
 | **Phase objective**     | Temporarily disable public generation; preserve data and operator tooling.                     |
 | **Entry criteria**      | Roadmap adopted; operator approves public-off policy.                                          |
@@ -33,7 +44,7 @@ isProject: false
 | maintenance-mode | Open PR only          | Do not merge. Stop after opening the PR. |
 | plan-closure     | Open PR only          | Do not merge. Stop after opening the PR. |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ## Repository topology (default)
 
@@ -102,7 +113,7 @@ Manual: toggle flag locally; curl POST `/api/assistant/generate`; load `/assista
 
 **Prerequisites:** `maintenance-mode` merged.
 
-**Deliverables:** `# Shipped` note; move to `.cursor/plans/archive/2026-10-30-assistant-00-maintenance-mode.plan.md`; mark `plan-closure` completed; update [2026-10-30-assistant-roadmap.plan.md](./2026-10-30-assistant-roadmap.plan.md) Phase 0 status.
+**Deliverables:** `# Shipped` note; move to `.cursor/plans/archive/2026-10-30-assistant-00-maintenance-mode.plan.md`; mark `plan-closure` completed; update [2026-10-30-assistant-roadmap.plan.md](../2026-10-30-assistant-roadmap.plan.md) Phase 0 status.
 
 ---
 
