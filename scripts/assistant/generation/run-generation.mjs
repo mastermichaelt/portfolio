@@ -35,6 +35,64 @@ import { validateAndNormalizeQuestion } from "./validate-query.mjs";
  * @param {import("./response-schema.mjs").AssistantGenerationDiagnostics} diagnostics
  * @param {import("./recover-generation-response.mjs").RecoveryDiagnostics} recovery
  */
+/**
+ * Sums OpenAI usage across two completion passes (initial + corrective retry).
+ * Missing fields are omitted — never treated as zero.
+ *
+ * @param {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number }} first
+ * @param {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number }} second
+ * @returns {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number }}
+ */
+export function accumulateChatCompletionUsage(first, second) {
+  /** @type {{ prompt_tokens?: number, completion_tokens?: number, total_tokens?: number }} */
+  const accumulated = {};
+
+  /**
+   * @param {"prompt_tokens" | "completion_tokens"} field
+   * @returns {number | undefined}
+   */
+  const sumNumericField = (field) => {
+    const a = first?.[field];
+    const b = second?.[field];
+    if (typeof a === "number" && typeof b === "number") {
+      return a + b;
+    }
+    if (typeof a === "number") {
+      return a;
+    }
+    if (typeof b === "number") {
+      return b;
+    }
+    return undefined;
+  };
+
+  const promptTokens = sumNumericField("prompt_tokens");
+  const completionTokens = sumNumericField("completion_tokens");
+  if (typeof promptTokens === "number") {
+    accumulated.prompt_tokens = promptTokens;
+  }
+  if (typeof completionTokens === "number") {
+    accumulated.completion_tokens = completionTokens;
+  }
+
+  const totalA = first?.total_tokens;
+  const totalB = second?.total_tokens;
+  if (typeof totalA === "number" && typeof totalB === "number") {
+    accumulated.total_tokens = totalA + totalB;
+  } else if (
+    typeof promptTokens === "number" &&
+    typeof completionTokens === "number"
+  ) {
+    accumulated.total_tokens = promptTokens + completionTokens;
+  } else if (typeof totalA === "number") {
+    accumulated.total_tokens = totalA;
+  } else if (typeof totalB === "number") {
+    accumulated.total_tokens = totalB;
+  }
+
+  return accumulated;
+}
+
 function applyRecoveryDiagnostics(diagnostics, recovery) {
   if (recovery.deterministic_repair_applied) {
     diagnostics.recovery_deterministic_repair_applied = true;
@@ -389,12 +447,15 @@ export async function runRagGeneration(options) {
     };
 
     let completion = await runCompletionPass(messages.user);
+    const initialCompletion = completion;
     let resolved = parseRepairAndResolveModelResponse({
       content: completion.content,
       packet,
       recovery: recoveryMeta,
     });
 
+    /** @type {typeof completion | undefined} */
+    let retryCompletion;
     if (!resolved.ok) {
       recoveryMeta.model_retry_attempted = true;
       const retryUser = buildGenerationRetryUserMessage(
@@ -402,7 +463,7 @@ export async function runRagGeneration(options) {
         resolved.errors,
       );
       try {
-        const retryCompletion = await runCompletionPass(retryUser);
+        retryCompletion = await runCompletionPass(retryUser);
         const retryResolved = parseRepairAndResolveModelResponse({
           content: retryCompletion.content,
           packet,
@@ -471,9 +532,16 @@ export async function runRagGeneration(options) {
     generationLatencyMs = Math.round(performance.now() - generationStarted);
     diagnostics.generation_latency_ms = generationLatencyMs;
     diagnostics.model = completion.model;
-    diagnostics.prompt_tokens = completion.usage.prompt_tokens;
-    diagnostics.completion_tokens = completion.usage.completion_tokens;
-    diagnostics.total_tokens = completion.usage.total_tokens;
+    const usageForDiagnostics =
+      recoveryMeta.model_retry_succeeded && retryCompletion
+        ? accumulateChatCompletionUsage(
+            initialCompletion.usage,
+            retryCompletion.usage,
+          )
+        : completion.usage;
+    diagnostics.prompt_tokens = usageForDiagnostics.prompt_tokens;
+    diagnostics.completion_tokens = usageForDiagnostics.completion_tokens;
+    diagnostics.total_tokens = usageForDiagnostics.total_tokens;
 
     const response = buildPublicGenerationResponse(resolved.model);
     diagnostics.attribution_counts = countAttributions(response.claims);
