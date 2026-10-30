@@ -6,7 +6,7 @@ todos:
     content: "PR1 (portfolio): Add `.cursor/skills/articles-curation/SKILL.md` with hub→articles.ts sync procedure, taxonomy pointers, standalone verification checklist and agent prompt; Open PR only."
     status: pending
   - id: slice-content
-    content: "PR2 (portfolio): Sync 21 articles (+6, move schema-first, refresh four line arguments, fixtures/registry/tests/article-lines comments) via articles-curation skill; Open PR only."
+    content: "PR2 (portfolio): Sync 21 articles (+6, move schema-first, refresh four line arguments, mandatory authority band note, dependent site copy/tests/e2e, fixtures/registry/tests) via articles-curation skill; Open PR only."
     status: pending
   - id: slice-editorial
     content: "PR3 (editorial-workflow): Extend editor-publish post-publish flow to invoke destination curation skill (portfolio default); fail-open skip report; runbook + optional dev.to README; Open PR only."
@@ -116,9 +116,10 @@ Summaries: one sentence each, compressed from opening/takeaway — same discipli
 5. **Add rows:** Update `articles.ts` with slug, title, tags, year, url, line, optional `relatedProjectSlug`, summary.
 6. **Line maintenance:** Consider whether line `argument` or lead should change; **preserve leads and featured** unless justified (document in PR).
 7. **Assistant sync:** Extend `scripts/assistant/okf/published-articles.mjs` `PUBLISHED_ARTICLE_HUB_FILES`; copy hub markdown → `tests/fixtures/assistant-okf/published/<slug>.md`; bump `content-source-registry.mjs` SHA when `articles.ts` changes.
-8. **Tests:** Update `tests/content-foundation.test.ts` and `tests/article-lines.test.ts`; refresh membership comment in `article-lines.ts`.
-9. **Verify:** `npm run lint`, `npm run typecheck`, `npm run format:check`, `npm test`. Note OKF ingest re-run when fixtures change.
-10. **Outcome:** If gap analysis finds **no** portfolio changes needed (hub URLs already match `articles.ts` and fixtures/tests are current), report **success — already synchronized** and **do not** open a PR. If changes are required, open a portfolio PR (Open PR only).
+8. **Dependent inventory copy:** After `articles.ts` changes, **audit** the repo for stale **published article count** copy (e.g. `rg` for `15` near `report`, `fifteen`, or prior totals). Update homepage, projects, production-line surfaces, category band **notes**, and tests/e2e that assert those strings — not only `articles.ts`. Known call sites include `content/homepage.ts`, `content/projects-index.ts`, `content/production-line.ts`, `content/article-lines.ts` (membership comment + band notes), `tests/production-line.test.ts`, and `e2e/happy-path.spec.ts`. Prefer deriving the count from `articles` / `articles.length` where a module already imports inventory and a one-line derived string avoids future drift; do not introduce unrelated refactors or new shared constants solely for this refresh.
+9. **Tests:** Update `tests/content-foundation.test.ts` and `tests/article-lines.test.ts`; refresh membership comment in `article-lines.ts`; keep production-line and e2e assertions aligned with updated copy.
+10. **Verify:** `npm run lint`, `npm run typecheck`, `npm run format:check`, `npm test`. Note OKF ingest re-run when fixtures change. When content paths change, run `npm run build` and e2e if CI would (PR2 verification matrix).
+11. **Outcome:** If gap analysis finds **no** portfolio changes needed (hub URLs already match `articles.ts`, dependent copy/tests/notes are current, and fixtures are current), report **success — already synchronized** and **do not** open a PR. If changes are required, open a portfolio PR (Open PR only).
 
 **Explicit non-goals:** No new npm commands, DEV API clients, schedulers, or generic publishing framework.
 
@@ -129,6 +130,7 @@ Summaries: one sentence each, compressed from opening/takeaway — same discipli
 - Includes a **standalone** copy-paste agent prompt (invoke `@.cursor/skills/articles-curation/SKILL.md` only — no plan file reference).
 - Skill text must remain valid after this plan is archived.
 - Documents **no-change success**: full reconciliation with zero required edits → report synchronized; do not open a PR.
+- Procedure step **Dependent inventory copy** is mandatory on every run — do not treat `content/articles.ts` as the only place article totals appear.
 
 Mark `slice-skill` **completed** in plan frontmatter in the same PR.
 
@@ -150,21 +152,30 @@ Mark `slice-skill` **completed** in plan frontmatter in the same PR.
 
 **Primary files:**
 
-| File                                                | Change                                                                                                |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `content/articles.ts`                               | +6 rows, move `schema-first`, update four lead `argument`s, reorder within lines                      |
-| `content/article-lines.ts`                          | Membership comment **3/6/5/5/2**; refresh authority `note` if inaccurate                              |
-| `scripts/assistant/okf/published-articles.mjs`      | +6 hub filename mappings                                                                              |
-| `tests/fixtures/assistant-okf/published/*.md`       | +6 copies from hub                                                                                    |
-| `scripts/assistant/okf/content-source-registry.mjs` | New SHA-256 for `content/articles.ts`                                                                 |
-| `tests/content-foundation.test.ts`                  | Counts `{ measurement: 3, authority: 6, critique: 5, readiness: 5, portability: 2 }`, `length === 21` |
-| `tests/article-lines.test.ts`                       | `band.count` `[3, 6, 5, 5, 2]`                                                                        |
+| File                                                | Change                                                                                                                                                                                             |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `content/articles.ts`                               | +6 rows, move `schema-first`, update four lead `argument`s, reorder within lines                                                                                                                   |
+| `content/article-lines.ts`                          | Membership comment **3/6/5/5/2**; **rewrite** Authority & Stop Conditions band `note` (mandatory — retire “Three of fifteen” / single-unpaired framing; reflect post-refresh authority membership) |
+| `content/homepage.ts`                               | Update hardcoded **15** weekly-reports copy → **21** (or derive from `articles.length` if already practical)                                                                                       |
+| `content/projects-index.ts`                         | Update `proofSurface` report count **15** → **21** (or derived equivalent)                                                                                                                         |
+| `content/production-line.ts`                        | Update editorial cell title **15 reports** → **21** (or derived equivalent)                                                                                                                        |
+| `scripts/assistant/okf/published-articles.mjs`      | +6 hub filename mappings                                                                                                                                                                           |
+| `tests/fixtures/assistant-okf/published/*.md`       | +6 copies from hub                                                                                                                                                                                 |
+| `scripts/assistant/okf/content-source-registry.mjs` | New SHA-256 for `content/articles.ts`                                                                                                                                                              |
+| `tests/content-foundation.test.ts`                  | Counts `{ measurement: 3, authority: 6, critique: 5, readiness: 5, portability: 2 }`, `length === 21`                                                                                              |
+| `tests/article-lines.test.ts`                       | `band.count` `[3, 6, 5, 5, 2]`                                                                                                                                                                     |
+| `tests/production-line.test.ts`                     | Assertion aligned with updated production-line editorial cell title                                                                                                                                |
+| `e2e/happy-path.spec.ts`                            | `last` editorial cell expectation aligned with production-line title                                                                                                                               |
+
+**Inventory-count audit (required):** Search the repo for other stale references to the old **15**-article (or **fifteen**) published total in live content, tests, or e2e. Update any affected copy or assertions to **21**. Historical archive under `docs/archive/` is out of scope unless a live route or test still reads it.
 
 **Acceptance:**
 
 - Every curated hub published file has matching `devto_api_url` in `articles.ts`.
 - Structural invariants: one `lineLead` per line, arguments only on leads, three `featured`, unique slugs/urls.
-- `npm test` + pre-commit recipe green.
+- Authority band `note` in `content/article-lines.ts` accurately describes authority-line membership after the refresh (not conditional).
+- No remaining live copy or test assertions that imply **15** published curated reports when inventory is **21**.
+- `npm test` + pre-commit recipe green; `npm run build` / e2e green when content paths in the verification matrix change.
 
 Mark `slice-content` **completed** in plan frontmatter in the same PR.
 
@@ -191,7 +202,7 @@ After the operator confirms live DEV publish and the agent completes Notion **Pu
 1. **Determine destination** (docs-only convention for this installation — no new YAML schema in this slice):
    - **Portfolio:** weekly field reports that belong on [michaeltruong.ai/articles](https://michaeltruong.ai/articles) → destination repo `mastermichaelt/portfolio`, skill `.cursor/skills/articles-curation/SKILL.md`.
    - Other destinations: same pattern later (“invoke that repo’s article curation skill”); do not duplicate portfolio taxonomy in the hub.
-2. **Invoke curation:** In an Agent session with the **portfolio checkout** available, load and follow the portfolio articles-curation skill and run its **full published-inventory reconciliation** (hub `docs/dev.to/published/` ↔ portfolio `content/articles.ts`, fixtures, and tests — not a single-article shortcut).
+2. **Invoke curation:** In an Agent session with the **portfolio checkout** available, load and follow the portfolio articles-curation skill and run its **full published-inventory reconciliation** (hub `docs/dev.to/published/` ↔ portfolio `content/articles.ts`, dependent site copy/tests/category notes, fixtures, and tests — not a single-article shortcut).
 3. **Fail-open:** If the destination repo checkout, skill file, or hub `published/` tree is unavailable, **do not fail** Notion publish or treat post-publish as blocked. Append to the **Required chat report** (and optional Notion audit block):
 
    `Destination curation: skipped (<reason>)`
@@ -286,7 +297,7 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: cd to mastermichaelt/portfolio; prove origin; start from latest origin/main; PR base main; branch represents only this slice.
 
-Deliverables: Add `.cursor/skills/articles-curation/SKILL.md` (optional verification.md) per plan PR1 — plan-independent skill with standalone agent prompt (no @ plan reference inside the skill). Mark slice-skill completed in plan frontmatter in this PR.
+Deliverables: Add `.cursor/skills/articles-curation/SKILL.md` (optional verification.md) per plan PR1 — plan-independent skill with standalone agent prompt (no @ plan reference inside the skill). Include dependent inventory copy audit step (site copy, tests, category band notes — not articles.ts alone). Mark slice-skill completed in plan frontmatter in this PR.
 
 Verification: Skill readable and self-contained; portfolio tests green if any tracked files beyond skill/docs change.
 ```
@@ -302,9 +313,9 @@ Authority: Open PR only — implement and open the PR; do not merge.
 
 Topology: cd to mastermichaelt/portfolio; prove origin; start from latest origin/main; PR base main; branch represents only this slice.
 
-Deliverables: Follow @.cursor/skills/articles-curation/SKILL.md to sync 21 articles (taxonomy table in plan), fixtures, registry hash, tests, article-lines comments. Mark slice-content completed in plan frontmatter in this PR.
+Deliverables: Follow @.cursor/skills/articles-curation/SKILL.md to sync 21 articles (taxonomy table in plan), mandatory authority band note rewrite, dependent inventory copy (homepage, projects-index, production-line, production-line test, happy-path e2e) plus audit for other stale 15-article references, fixtures, registry hash, tests, article-lines comments. Mark slice-content completed in plan frontmatter in this PR.
 
-Verification: npm run lint, typecheck, format:check, test; build if CI would run e2e on changed paths.
+Verification: npm run lint, typecheck, format:check, test; npm run build and e2e when content paths change per plan verification matrix.
 ```
 
 ### slice-editorial
