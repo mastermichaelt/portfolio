@@ -77,9 +77,16 @@ export function ExternalLink({
   onClick,
   analyticsLabel,
   "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
   ...props
 }: ExternalLinkProps) {
   const accessibleName = resolveAccessibleName(children, ariaLabel);
+  const usesLabelledBy = Boolean(ariaLabelledBy?.trim());
+  const namingProps = usesLabelledBy
+    ? { "aria-labelledby": ariaLabelledBy }
+    : accessibleName
+      ? { "aria-label": accessibleName }
+      : {};
 
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     const linkLabel = resolveOutboundLabel(analyticsLabel, children, ariaLabel);
@@ -95,12 +102,12 @@ export function ExternalLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={accessibleName}
+      {...namingProps}
       {...props}
       onClick={handleClick}
     >
       {children}
-      {accessibleName ? null : (
+      {accessibleName || usesLabelledBy ? null : (
         <span className="sr-only">({NEW_TAB_HINT})</span>
       )}
     </a>

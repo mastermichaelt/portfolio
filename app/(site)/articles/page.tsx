@@ -110,6 +110,7 @@ export default async function ArticlesPage() {
                     className="aline-start-title"
                   >
                     {band.lead.article.title}
+                    <span className="sr-only"> (opens in new tab)</span>
                   </span>
                   <span className="aline-start-dev" aria-hidden="true">
                     DEV ↗
@@ -140,6 +141,7 @@ export default async function ArticlesPage() {
                         className="aline-row-title"
                       >
                         {row.article.title}
+                        <span className="sr-only"> (opens in new tab)</span>
                       </span>
                       <span className="aline-row-dev" aria-hidden="true">
                         DEV ↗
