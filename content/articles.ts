@@ -18,7 +18,7 @@ import type { Article } from "@/domain/article";
  * `agent-portability-does-not-require-centralizing-methodology-behind-mcp`
  * were authored 2026-09-14 from published takeaways. Measurement, critique,
  * readiness, and Authority lead copy follow the same rule (2026-10-30 voice
- * pass). The sibling hub `editorial-workflow/docs/dev.to/published/` remains
+ * pass; full inventory editorial cleanup 2026-10-30). The sibling hub `editorial-workflow/docs/dev.to/published/` remains
  * master.
  */
 export const articles: Article[] = [
@@ -79,7 +79,7 @@ export const articles: Article[] = [
     slug: "ai-reviewer-kinds-of-reasoning",
     title: "I fixed my AI reviewer. Then I kept solving the wrong problem",
     summary:
-      "After fixing score-first critique, further reviewer gains came from separating kinds of reasoning rather than expanding the rubric.",
+      "Once analysis came before scoring, further reviewer gains came from separating kinds of reasoning rather than expanding the rubric.",
     year: 2026,
     tags: ["ai", "workflow", "agents"],
     url: "https://dev.to/michaeltruong/i-fixed-my-ai-reviewer-then-i-kept-solving-the-wrong-problem-58am",
@@ -104,7 +104,7 @@ export const articles: Article[] = [
     slug: "agent-plans-authority-handoffs",
     title: "The agent plan had every step except where to stop",
     summary:
-      "Multi-slice agent plans need explicit authority handoffs and stop lines, not only implementation checklists.",
+      "Plans that span several pull requests need explicit authority handoffs and stop lines, not only implementation checklists.",
     year: 2026,
     tags: ["ai", "automation", "governance"],
     url: "https://dev.to/michaeltruong/the-agent-plan-had-every-step-except-where-to-stop-357h",
@@ -126,7 +126,7 @@ export const articles: Article[] = [
     slug: "active-players-which-sessions-counted",
     title: "Active players looked real until we asked which sessions counted",
     summary:
-      "A healthy-looking Active players tile forced a sharper question about which sessions belonged in the metric.",
+      "The Active players tile looked convincing until we asked which sessions belonged in the metric.",
     year: 2026,
     tags: ["ai", "analytics"],
     url: "https://dev.to/michaeltruong/active-players-looked-real-until-we-asked-which-sessions-counted-11em",
@@ -135,7 +135,7 @@ export const articles: Article[] = [
     line: "measurement",
     lineLead: true,
     argument:
-      "A healthy-looking number or funnel only means what your inclusion rules say it counts, whether that is active sessions or hiring transitions on a chart.",
+      "A dashboard number or funnel only means what your inclusion rules count, whether the question is active sessions on a tile or hiring transitions on a chart.",
   },
   {
     slug: "one-example-beats-style-guide",
@@ -153,7 +153,7 @@ export const articles: Article[] = [
     title:
       "Throwaway experiments are easy to start. Retiring one safely is not",
     summary:
-      "Closing a throwaway agent-workflow experiment repo surfaced missing retirement semantics.",
+      "Closing a throwaway experiment repo for an agent workflow surfaced missing retirement semantics.",
     year: 2026,
     tags: ["ai", "agents", "workflow"],
     url: "https://dev.to/michaeltruong/throwaway-experiments-are-easy-to-start-retiring-one-safely-is-not-2afe",
@@ -213,7 +213,7 @@ export const articles: Article[] = [
     slug: "agent-portability-does-not-require-centralizing-methodology-behind-mcp",
     title: "I was solving agent portability at the wrong boundary",
     summary:
-      "Copying one repo's agent setup into a new project worked until product-specific boundaries came along.",
+      "Copying one repo's agent setup into a new project worked until each product needed its own boundaries.",
     year: 2026,
     tags: ["ai", "agents", "workflow", "cursor"],
     url: "https://dev.to/michaeltruong/i-was-solving-agent-portability-at-the-wrong-boundary-1406",

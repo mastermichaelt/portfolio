@@ -24,7 +24,7 @@ export const articleLines: ArticleLineDefinition[] = [
     id: "authority",
     label: "Authority & Stop Conditions",
     pairs: "Renovate governance; agent-native",
-    note: "Most reports here govern plans, git hooks, and host lifecycle boundaries across repos, not one product surface. The line pairs with Renovate governance and agent-native work. Several rows still carry no single system.",
+    note: "Most reports here govern plans, git hooks, and host lifecycle boundaries across repos, not one product surface. The line pairs with Renovate governance and reusable agent harness work. Several rows still carry no single system.",
   },
   {
     id: "critique",

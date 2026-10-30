@@ -12,7 +12,7 @@ export const OKF_CONTENT_SOURCES = [
   {
     path: "content/articles.ts",
     producer: "scripts/assistant/okf/portfolio-producer.mjs",
-    sha256: "1fffbad59d1418ec6d8747df85c491113c4adf723aab844588fb48b361d4fef2",
+    sha256: "0109ced9fbd856d9862d79eda7265f27324d8c52bdc21111c6419809ebdc52f5",
   },
   {
     path: "content/supporting-cases.ts",
