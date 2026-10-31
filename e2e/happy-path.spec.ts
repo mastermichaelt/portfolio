@@ -580,12 +580,14 @@ test.describe("portfolio happy path", () => {
     );
   });
 
-  test("index pages share compact nav-to-intro spacing", async ({ page }) => {
-    const routes = [
+  test("articles index intro matches projects nav clearance", async ({
+    page,
+  }) => {
+    // Compare the two index pages this spacing change aligns; About uses a
+    // portrait rail and Ecosystem wraps .hero-compact — different geometry.
+    const pairs = [
       { path: "/articles", intro: ".aline-intro .eyebrow" },
       { path: "/projects", intro: ".pindex-eyebrow" },
-      { path: "/about", intro: ".about-name" },
-      { path: "/ecosystem", intro: ".hero-compact .eyebrow" },
     ] as const;
 
     for (const viewport of [
@@ -595,7 +597,7 @@ test.describe("portfolio happy path", () => {
     ] as const) {
       await page.setViewportSize(viewport);
       const clearances: number[] = [];
-      for (const route of routes) {
+      for (const route of pairs) {
         await page.goto(route.path);
         const clearance = await page.evaluate((selector) => {
           const nav = document
@@ -608,9 +610,7 @@ test.describe("portfolio happy path", () => {
         }, route.intro);
         clearances.push(clearance);
       }
-      const spread = Math.max(...clearances) - Math.min(...clearances);
-      // Shared --gap-2xl page-intro top; line boxes differ slightly by route.
-      expect(spread).toBeLessThanOrEqual(28);
+      expect(Math.abs(clearances[0] - clearances[1])).toBeLessThanOrEqual(12);
     }
   });
 
