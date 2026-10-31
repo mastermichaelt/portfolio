@@ -11,7 +11,7 @@
   grid-template-columns: 1.05fr 320px;
   gap: var(--gap-2xl);
   align-items: end;
-  padding-block: clamp(72px, 11vw, 132px) var(--gap-lg);
+  padding-block: clamp(72px, 11vw, 132px) var(--gap-md);
 }
 
 .aline-intro {
@@ -69,6 +69,61 @@
 
 .aline-register-note a {
   color: var(--muted-strong);
+}
+
+/* Compact editorial callout — introduction above the five-line index. */
+.aline-featured {
+  margin-block: var(--gap-sm) var(--gap-lg);
+  padding-block: var(--gap-sm);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  display: grid;
+  grid-template-columns: minmax(9.5rem, 11.5rem) minmax(0, 1fr) auto;
+  gap: var(--gap-md) var(--gap-lg);
+  align-items: center;
+}
+
+.aline-featured-rail {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  line-height: 1.45;
+}
+
+.aline-featured-copy {
+  min-width: 0;
+}
+
+.aline-featured-title {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.aline-featured-desc {
+  margin: 6px 0 0;
+  font-size: var(--fs-meta);
+  line-height: 1.5;
+  color: var(--fg-2);
+  max-width: 52ch;
+}
+
+.aline-featured-cta {
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  white-space: nowrap;
+  justify-self: end;
+}
+
+.aline-featured-cta::after {
+  content: " ↗";
 }
 
 /* ========================================================= Line index ===== */
@@ -341,6 +396,19 @@
 
   .aline-start-link {
     min-height: 44px;
+    align-items: center;
+  }
+
+  .aline-featured {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: var(--gap-sm);
+  }
+
+  .aline-featured-cta {
+    justify-self: start;
+    min-height: 44px;
+    display: inline-flex;
     align-items: center;
   }
 }

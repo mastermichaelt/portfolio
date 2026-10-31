@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import { about } from "@/content/about";
-import { articles } from "@/content/articles";
+import {
+  articles,
+  articlesPageFeaturedRetrospective,
+} from "@/content/articles";
 import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
 import type { CaseFigure } from "@/domain/project-case";
@@ -127,6 +130,18 @@ describe("content-foundation inventory", () => {
     expect(
       new Set(featured.map((article) => article.relatedProjectSlug)).size,
     ).toBe(featured.length);
+  });
+
+  it("keeps the umbrella retrospective outside the field-report inventory", () => {
+    expect(articles).toHaveLength(21);
+    expect(
+      articles.some(
+        (article) => article.url === articlesPageFeaturedRetrospective.url,
+      ),
+    ).toBe(false);
+    expect(articlesPageFeaturedRetrospective.url).toBe(
+      "https://dev.to/michaeltruong/team-portability-six-months-of-rebuilding-how-i-work-with-ai-eo1",
+    );
   });
 
   it("organizes every article into one of the five reasoning lines", async () => {

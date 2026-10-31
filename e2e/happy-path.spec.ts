@@ -466,13 +466,23 @@ test.describe("portfolio happy path", () => {
       }),
     ).toBeVisible();
 
+    const featured = page.locator("section.aline-featured");
+    await expect(featured).toHaveCount(1);
+    await expect(featured.locator(".aline-featured-rail")).toContainText(
+      "Start here",
+    );
+    await expect(featured.locator("a.aline-featured-cta")).toHaveAttribute(
+      "href",
+      "https://dev.to/michaeltruong/team-portability-six-months-of-rebuilding-how-i-work-with-ai-eo1",
+    );
+
     // Five theme cells and five bands, one insight and one head per band.
     await expect(page.locator("nav.aline-index a.aline-cell")).toHaveCount(5);
     await expect(page.locator("section.aline-band")).toHaveCount(5);
     await expect(page.locator(".aline-band .aline-head h2")).toHaveCount(5);
     await expect(page.locator(".aline-band .aline-insight")).toHaveCount(5);
     await expect(page.locator(".aline-start-label")).toHaveCount(5);
-    await expect(page.getByText("Start here")).toHaveCount(5);
+    await expect(page.getByText("Start here", { exact: true })).toHaveCount(5);
 
     // Every outbound report row opens on DEV in a new tab.
     const devLinks = page.locator("a.aline-start-link, a.aline-row");
