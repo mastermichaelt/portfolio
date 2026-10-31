@@ -1,11 +1,10 @@
 /**
  * The five reasoning lines the /articles page (direction 2a) is organized into.
- * Ids are the repo taxonomy; the approved public labels live on
- * `ArticleLineDefinition.label`. Membership and pairings come from
- * `docs/archive/content-evidence-migration.md` §5.I.
+ * Render order is a conceptual engineering lifecycle: Taste → Evals &
+ * Verification → Authority → Measurement, then Portability (TEAM Portability).
  */
 export type ArticleLine =
-  "measurement" | "authority" | "critique" | "readiness" | "portability";
+  "taste" | "evals" | "authority" | "measurement" | "portability";
 
 export interface Article {
   slug: string;
@@ -17,10 +16,12 @@ export interface Article {
   url: string;
   relatedProjectSlug?: string;
   /**
-   * Optional homepage / featured-writing flag.
-   * `listArticles()` returns the full inventory; surfaces filter on this field.
-   * Distinct from `lineLead`: `featured` mirrors the homepage `writing[]` set,
-   * lead selection is per reasoning line — the two diverge on lines 04 and 05.
+   * Optional curated highlight on an inventory row.
+   * `listArticles()` returns the full corpus; callers filter on this field where
+   * a small project-tied subset is needed. Independent of homepage routing
+   * (Homepage 2 has no parallel slug list) and distinct from `lineLead` (DEV
+   * profile pin / lifecycle Start here). Today: three featured rows, each with
+   * a distinct `relatedProjectSlug` — see `tests/content-foundation.test.ts`.
    */
   featured?: boolean;
   /** Reasoning line this report belongs to. Required for /articles. */
@@ -32,16 +33,16 @@ export interface Article {
 }
 
 /**
- * Presentation model for one reasoning line — the ordered taxonomy the
- * `/articles` bands and line index render from. `label` is the approved
- * public-facing wording (handoff §3.2); `pairs` is the project-tier pairing
- * shown in the band head, verbatim from `docs/archive/content-evidence-migration.md`
- * §5.I; `note` is the optional band note for lines whose reports carry no
- * system (handoff §4).
+ * Presentation model for one lifecycle stage — the ordered taxonomy the
+ * `/articles` bands and line index render from. `label` is the stage name;
+ * `lifecycleQuestion` is the primary engineering question that stage answers;
+ * `pairs` is internal project-tier metadata; `note` is optional curator copy.
  */
 export interface ArticleLineDefinition {
   id: ArticleLine;
   label: string;
+  /** Primary engineering question this lifecycle stage answers (rendered on `/articles`). */
+  lifecycleQuestion: string;
   pairs: string;
   note?: string;
 }

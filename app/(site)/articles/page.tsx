@@ -9,7 +9,7 @@ import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 export const metadata: Metadata = {
   title: "Articles",
   description:
-    "Weekly AI Engineering Field Reports on DEV.to, grouped into five themes: measurement, authority, critique, readiness, and agent portability.",
+    "Field reports on DEV.to organized by TEAM Portability: Taste, Evals & Verification, Authority, Measurement, and transferable practice.",
   alternates: {
     canonical: "/articles",
   },
@@ -33,11 +33,12 @@ export default async function ArticlesPage() {
         <section className="aline-hero fade-in">
           <div className="aline-intro">
             <p className="eyebrow">Articles</p>
-            <h1>The writing returns to five problems.</h1>
+            <h1>TEAM Portability</h1>
             <p className="aline-hero-lead">
-              Weekly field reports from systems I operate. Each section states
-              one lesson, recommends where to start reading, then lists the rest
-              on DEV.
+              Field reports from rebuilding how I work with AI. Taste, Evals &
+              Verification, Authority, and Measurement became four recurring
+              disciplines. Portability is what makes those practices
+              transferable across projects, tools, and agents.
             </p>
           </div>
           <aside className="aline-register">
@@ -46,8 +47,6 @@ export default async function ArticlesPage() {
               <span className="aline-register-fact">
                 {articles.length} published
               </span>
-              <span className="aline-register-fact">weekly practice</span>
-              <span className="aline-register-fact">{lines.length} themes</span>
             </div>
             <p className="aline-register-note">
               Recognized as a{" "}
@@ -63,7 +62,7 @@ export default async function ArticlesPage() {
           </aside>
         </section>
 
-        <nav className="aline-index" aria-label="Article themes">
+        <nav className="aline-index" aria-label="Article lifecycle stages">
           {bands.map((band) => (
             <a
               key={band.id}
@@ -89,7 +88,10 @@ export default async function ArticlesPage() {
               className="aline-band"
             >
               <header className="aline-head">
-                <h2>{band.label}</h2>
+                <div className="aline-head-text">
+                  <h2>{band.label}</h2>
+                  <p className="aline-lifecycle-q">{band.lifecycleQuestion}</p>
+                </div>
                 <p className="aline-count">
                   {band.count} {band.count === 1 ? "report" : "reports"}
                 </p>

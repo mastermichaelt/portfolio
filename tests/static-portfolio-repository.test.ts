@@ -101,7 +101,8 @@ vi.mock("@/content/article-lines", () => ({
   articleLines: [
     {
       id: "measurement",
-      label: "Measurement & Telemetry",
+      label: "Measurement",
+      lifecycleQuestion: "What does deployed behaviour actually show?",
       pairs: "Test pairing",
     },
   ],

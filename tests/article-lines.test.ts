@@ -48,7 +48,7 @@ describe("groupArticleLines", () => {
       "04",
       "05",
     ]);
-    expect(bands.map((band) => band.count)).toEqual([3, 5, 5, 5, 3]);
+    expect(bands.map((band) => band.count)).toEqual([5, 4, 5, 3, 4]);
 
     for (const band of bands) {
       expect(band.lead.article.lineLead).toBe(true);
@@ -56,6 +56,18 @@ describe("groupArticleLines", () => {
       expect(band.reports).toHaveLength(band.count - 1);
       expect(band.reports.some((row) => row.article.lineLead)).toBe(false);
     }
+  });
+
+  it("carries lifecycle questions on each band", () => {
+    const bands = groupArticleLines(
+      articleLines,
+      articles,
+      resolveArticleSystem,
+    );
+
+    expect(bands.map((band) => band.lifecycleQuestion)).toEqual(
+      articleLines.map((line) => line.lifecycleQuestion),
+    );
   });
 
   it("carries the label and count each line-index cell needs", () => {
@@ -70,13 +82,13 @@ describe("groupArticleLines", () => {
     );
   });
 
-  it("exposes the evidence-audit public labels for all five reasoning lines", () => {
+  it("exposes the TEAM + Portability public labels for all five lifecycle stages", () => {
     expect(articleLines.map((line) => [line.id, line.label])).toEqual([
-      ["measurement", "Measurement & Telemetry"],
-      ["authority", "Authority & Stop Conditions"],
-      ["critique", "Evals & Judgment"],
-      ["readiness", "Product Taste & Verification"],
-      ["portability", "Agent Portability"],
+      ["taste", "Taste"],
+      ["evals", "Evals & Verification"],
+      ["authority", "Authority"],
+      ["measurement", "Measurement"],
+      ["portability", "Portability"],
     ]);
   });
 
@@ -87,10 +99,10 @@ describe("groupArticleLines", () => {
       resolveArticleSystem,
     );
 
+    const taste = bands.find((band) => band.id === "taste");
+    expect(taste?.lead.system?.href).toBe("/projects/codenames-ai");
     const measurement = bands.find((band) => band.id === "measurement");
     expect(measurement?.lead.system?.href).toBe("/projects/codenames-ai");
-
-    // Line 05 intentionally has no implementation attached.
     const portability = bands.find((band) => band.id === "portability");
     expect(portability?.lead.system).toBeNull();
 
@@ -128,7 +140,12 @@ describe("groupArticleLines", () => {
 
 describe("groupArticleLines structural guards", () => {
   const oneLine: ArticleLineDefinition[] = [
-    { id: "measurement", label: "Measurement", pairs: "Pairing" },
+    {
+      id: "measurement",
+      label: "Measurement",
+      lifecycleQuestion: "What does deployed behaviour actually show?",
+      pairs: "Pairing",
+    },
   ];
 
   it("throws when a line has no reports", () => {

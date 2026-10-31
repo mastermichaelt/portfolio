@@ -10,7 +10,7 @@ Run this checklist on **every** skill invocation after the full published-invent
 
 - [ ] Every hub file under `editorial-workflow/docs/dev.to/published/` has a matching `url` in `content/articles.ts` (or gap explicitly reported).
 - [ ] No duplicate slugs or URLs; each line has exactly one `lineLead`; arguments only on leads.
-- [ ] `featured` set still matches homepage `writing[]` intent unless deliberately changed with PR rationale.
+- [ ] `featured`: exactly three rows in `content/articles.ts`, each with a distinct `relatedProjectSlug` (matches `tests/content-foundation.test.ts` inventory test); change only with explicit PR rationale — not tied to homepage routes or `lineLead`.
 
 ## Dependent inventory copy (every invocation — mandatory)
 

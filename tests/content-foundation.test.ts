@@ -6,6 +6,7 @@ import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
 import type { CaseFigure } from "@/domain/project-case";
 import type { ProjectSectionKind } from "@/domain/project";
+import type { ArticleLine } from "@/domain/article";
 import { StaticPortfolioRepository } from "@/repositories/static-portfolio-repository";
 
 const REQUIRED_KIND_GROUPS: ProjectSectionKind[][] = [
@@ -135,10 +136,10 @@ describe("content-foundation inventory", () => {
 
     // Five lines, in fixed order, ids unique, each with label + pairing copy.
     expect(lineIds).toEqual([
-      "measurement",
+      "taste",
+      "evals",
       "authority",
-      "critique",
-      "readiness",
+      "measurement",
       "portability",
     ]);
     expect(new Set(lineIds).size).toBe(lineIds.length);
@@ -152,17 +153,17 @@ describe("content-foundation inventory", () => {
       expect(lineIds).toContain(article.line);
     }
 
-    // Membership counts are 3 / 5 / 5 / 5 / 3, and total 21.
+    // Membership counts are 5 / 4 / 5 / 3 / 4, and total 21.
     const counts = Object.fromEntries(lineIds.map((id) => [id, 0]));
     for (const article of listed) {
       counts[article.line] += 1;
     }
     expect(counts).toEqual({
-      measurement: 3,
+      taste: 5,
+      evals: 4,
       authority: 5,
-      critique: 5,
-      readiness: 5,
-      portability: 3,
+      measurement: 3,
+      portability: 4,
     });
     expect(listed.length).toBe(21);
 
@@ -180,6 +181,22 @@ describe("content-foundation inventory", () => {
       if (!article.lineLead) {
         expect(article.argument).toBeUndefined();
       }
+    }
+
+    // Each lifecycle stage "Start here" matches a DEV profile pinned post.
+    const devPinnedLineLeads: Record<ArticleLine, string> = {
+      taste: "persist-game-state-not-ephemeral-ui-intent",
+      evals: "ai-reviewer-kinds-of-reasoning",
+      authority: "the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed",
+      measurement: "active-players-which-sessions-counted",
+      portability:
+        "agent-portability-does-not-require-centralizing-methodology-behind-mcp",
+    };
+    for (const id of lineIds) {
+      const leadSlug = listed.find(
+        (article) => article.line === id && article.lineLead,
+      )?.slug;
+      expect(leadSlug).toBe(devPinnedLineLeads[id]);
     }
   });
 

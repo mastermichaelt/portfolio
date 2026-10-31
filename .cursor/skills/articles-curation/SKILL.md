@@ -21,8 +21,11 @@ Procedure skill for keeping **`/articles`** inventory aligned with the sibling e
 **Structural invariants** (do not break without explicit justification in the PR):
 
 - Exactly **five** reasoning lines — never invent a sixth category; if a post does not fit, **stop and ask**.
+- Render order and ids: **`taste`**, **`evals`** (label **Evals & Verification**), **`authority`**, **`measurement`**, **`portability`**. Stages 01–04 are **TEAM** in lifecycle order; **`portability`** applies TEAM consistently across projects, tools, and agents.
+- Classify by the **primary engineering lesson** the post teaches (see `docs/articles-team-portability-classification-audit.md` and each stage’s `lifecycleQuestion` in `content/article-lines.ts`), not title keywords or techniques used along the way. **Taste:** worth building and good outcomes (product judgment, scope, trade-offs). **Evals & Verification:** whether the implementation satisfies its expected contract (tests, evals, CI, review when verification is the central lesson). **Authority:** permitted agent changes and execution boundaries. **Measurement:** what observed system behaviour reveals about quality and outcomes (telemetry, experiments, operational diagnostics — not only dashboards). **Portability:** transferring practices across projects, repositories, tools, and agents; verification may support portability without being the primary lesson.
 - Exactly **one** `lineLead: true` per line; **only** line leads carry `argument`.
-- **`featured`** mirrors homepage selected writing (`content/homepage.ts` `writing[]` slugs) — distinct from line leads.
+- **`lineLead`** on each lifecycle stage should match the corresponding **DEV profile pinned** post (one pin per stage). That row is the band **Start here** on `/articles`. Update pins on DEV and portfolio together.
+- **`featured`** marks an independently curated highlight subset in `content/articles.ts` (see `tests/content-foundation.test.ts`: three rows today, each with a distinct `relatedProjectSlug`); distinct from **`lineLead`** and DEV profile pins. Change only with explicit PR rationale.
 - Unique `slug` and canonical `url` (`devto_api_url` from hub frontmatter).
 - **`groupArticleLines`** preserves **inventory order within each line** in `articles.ts` — do not sort rows by `published_at` when inserting.
 
