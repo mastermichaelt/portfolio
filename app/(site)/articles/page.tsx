@@ -67,26 +67,29 @@ export default async function ArticlesPage() {
           className="aline-featured fade-in delay-1"
           aria-labelledby="articles-featured-retrospective-title"
         >
-          <p className="aline-featured-label">Six-month retrospective</p>
-          <h2 className="aline-featured-heading">
-            <ExternalLink
-              className="aline-featured-link"
-              href={articlesPageFeaturedRetrospective.url}
-              newTabHint={false}
-              analyticsLabel={articlesPageFeaturedRetrospective.title}
-            >
-              <span
-                className="aline-featured-title"
-                id="articles-featured-retrospective-title"
-              >
-                {articlesPageFeaturedRetrospective.title}
-                <span className="sr-only"> (opens in new tab)</span>
-              </span>
-            </ExternalLink>
-          </h2>
-          <p className="aline-featured-desc">
-            {articlesPageFeaturedRetrospective.description}
+          <p className="aline-featured-rail">
+            {articlesPageFeaturedRetrospective.railLabel}
           </p>
+          <div className="aline-featured-copy">
+            <h2
+              className="aline-featured-title"
+              id="articles-featured-retrospective-title"
+            >
+              {articlesPageFeaturedRetrospective.title}
+            </h2>
+            <p className="aline-featured-desc">
+              {articlesPageFeaturedRetrospective.description}
+            </p>
+          </div>
+          <ExternalLink
+            className="aline-featured-cta"
+            href={articlesPageFeaturedRetrospective.url}
+            newTabHint={false}
+            analyticsLabel={articlesPageFeaturedRetrospective.title}
+          >
+            {articlesPageFeaturedRetrospective.ctaLabel}
+            <span className="sr-only"> (opens in new tab)</span>
+          </ExternalLink>
         </section>
 
         <nav className="aline-index" aria-label="Article lifecycle stages">

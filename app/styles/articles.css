@@ -11,7 +11,7 @@
   grid-template-columns: 1.05fr 320px;
   gap: var(--gap-2xl);
   align-items: end;
-  padding-block: clamp(72px, 11vw, 132px) var(--gap-lg);
+  padding-block: clamp(72px, 11vw, 132px) var(--gap-md);
 }
 
 .aline-intro {
@@ -71,63 +71,59 @@
   color: var(--muted-strong);
 }
 
-/* Umbrella retrospective — above the five-line field-report index. */
+/* Compact editorial callout — introduction above the five-line index. */
 .aline-featured {
-  margin-block: var(--gap-lg) var(--gap-xl);
-  padding: var(--gap-md) 0;
+  margin-block: var(--gap-sm) var(--gap-lg);
+  padding-block: var(--gap-sm);
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(9.5rem, 11.5rem) minmax(0, 1fr) auto;
+  gap: var(--gap-md) var(--gap-lg);
+  align-items: center;
 }
 
-.aline-featured-label {
+.aline-featured-rail {
   margin: 0;
   font-family: var(--font-mono-stack);
   font-size: 11px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent);
+  line-height: 1.45;
 }
 
-.aline-featured-heading {
-  margin: 0;
-  font-size: inherit;
-  font-weight: inherit;
-  line-height: inherit;
-}
-
-.aline-featured-link {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  flex-wrap: wrap;
-  max-width: 62ch;
-}
-
-.aline-featured-link::after {
-  content: "DEV ↗";
-  font-family: var(--font-mono-stack);
-  font-size: var(--fs-meta);
-  color: var(--accent);
-  white-space: nowrap;
+.aline-featured-copy {
+  min-width: 0;
 }
 
 .aline-featured-title {
-  font-size: var(--fs-lead);
+  margin: 0;
+  font-size: var(--fs-body);
   font-weight: 600;
   line-height: 1.35;
-  letter-spacing: -0.02em;
 }
 
 .aline-featured-desc {
-  margin: 0;
+  margin: 6px 0 0;
   font-size: var(--fs-meta);
-  line-height: 1.55;
+  line-height: 1.5;
   color: var(--fg-2);
-  max-width: 62ch;
+  max-width: 52ch;
+}
+
+.aline-featured-cta {
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  white-space: nowrap;
+  justify-self: end;
+}
+
+.aline-featured-cta::after {
+  content: " ↗";
 }
 
 /* ========================================================= Line index ===== */
@@ -403,8 +399,16 @@
     align-items: center;
   }
 
-  .aline-featured-link {
+  .aline-featured {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: var(--gap-sm);
+  }
+
+  .aline-featured-cta {
+    justify-self: start;
     min-height: 44px;
+    display: inline-flex;
     align-items: center;
   }
 }
