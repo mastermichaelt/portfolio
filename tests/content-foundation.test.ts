@@ -152,14 +152,14 @@ describe("content-foundation inventory", () => {
       expect(lineIds).toContain(article.line);
     }
 
-    // Membership counts are 4 / 7 / 5 / 2 / 3, and total 21.
+    // Membership counts are 3 / 8 / 5 / 2 / 3, and total 21.
     const counts = Object.fromEntries(lineIds.map((id) => [id, 0]));
     for (const article of listed) {
       counts[article.line] += 1;
     }
     expect(counts).toEqual({
-      taste: 4,
-      evals: 7,
+      taste: 3,
+      evals: 8,
       authority: 5,
       measurement: 2,
       portability: 3,

@@ -1,9 +1,7 @@
 /**
  * The five reasoning lines the /articles page (direction 2a) is organized into.
- * Render order is a conceptual engineering lifecycle: Taste → Evals →
- * Authority → Measurement, then Portability (reproducing the practice). Ids
- * are the repo taxonomy; public labels and `lifecycleQuestion` live on
- * `ArticleLineDefinition`.
+ * Render order is a conceptual engineering lifecycle: Taste → Evals &
+ * Verification → Authority → Measurement, then Portability (TEAM Portability).
  */
 export type ArticleLine =
   "taste" | "evals" | "authority" | "measurement" | "portability";

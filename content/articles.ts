@@ -18,7 +18,7 @@ import type { Article } from "@/domain/article";
  * master.
  */
 export const articles: Article[] = [
-  // Taste (4)
+  // Taste (3)
   {
     slug: "ai-workflows-need-a-requirements-qa-stage",
     title: "The pipeline was green. The product was underspecified",
@@ -54,17 +54,7 @@ export const articles: Article[] = [
     relatedProjectSlug: "codenames-ai",
     line: "taste",
   },
-  {
-    slug: "the-retrieval-pipeline-worked-the-product-question-remained",
-    title: "The retrieval pipeline worked. The product question remained.",
-    summary:
-      "Retrieval fixtures passed while the settings that served real visitor questions still needed judgment.",
-    year: 2026,
-    tags: ["ai", "agents", "webdev"],
-    url: "https://dev.to/michaeltruong/the-retrieval-pipeline-worked-the-product-question-remained-80c",
-    line: "taste",
-  },
-  // Evals (7)
+  // Evals & Verification (8)
   {
     slug: "ai-reviewer-kinds-of-reasoning",
     title: "I fixed my AI reviewer. Then I kept solving the wrong problem",
@@ -143,6 +133,16 @@ export const articles: Article[] = [
     year: 2026,
     tags: ["ai", "workflow", "governance"],
     url: "https://dev.to/michaeltruong/we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable-3ead",
+    line: "evals",
+  },
+  {
+    slug: "the-retrieval-pipeline-worked-the-product-question-remained",
+    title: "The retrieval pipeline worked. The product question remained.",
+    summary:
+      "Retrieval fixtures passed while the settings that served real visitor questions still needed judgment.",
+    year: 2026,
+    tags: ["ai", "agents", "webdev"],
+    url: "https://dev.to/michaeltruong/the-retrieval-pipeline-worked-the-product-question-remained-80c",
     line: "evals",
   },
   // Authority (5)

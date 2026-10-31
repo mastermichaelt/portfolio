@@ -9,39 +9,42 @@ import type { ArticleLineDefinition } from "@/domain/article";
  *
  * Classify each report by the **primary engineering question** it answers, not
  * title keywords. Membership lives on `Article.line` in `content/articles.ts`;
- * counts are 4 / 7 / 5 / 2 / 3.
+ * counts are 3 / 8 / 5 / 2 / 3.
  */
 export const articleLines: ArticleLineDefinition[] = [
   {
     id: "taste",
     label: "Taste",
     lifecycleQuestion:
-      "What is worth building, and does it solve the right problem?",
+      "What is worth building, and what counts as a good outcome?",
     pairs: "Codenames AI; resume pipeline",
   },
   {
     id: "evals",
-    label: "Evals",
-    lifecycleQuestion: "How do we establish correctness before we trust it?",
+    label: "Evals & Verification",
+    lifecycleQuestion:
+      "How do we establish implementation correctness and quality?",
     pairs: "Editorial workflow; Codenames AI",
   },
   {
     id: "authority",
     label: "Authority",
-    lifecycleQuestion: "What may change, who decides, and where do we stop?",
+    lifecycleQuestion: "What are agents permitted to change?",
     pairs: "Renovate governance; agent-native",
     note: "Governance across plans, git hooks, and agent host boundaries. Several rows carry no single system.",
   },
   {
     id: "measurement",
     label: "Measurement",
-    lifecycleQuestion: "What does deployed behaviour actually show?",
+    lifecycleQuestion:
+      "What do deployed behaviour and production outcomes show?",
     pairs: "Codenames AI; career analytics",
   },
   {
     id: "portability",
     label: "Portability",
-    lifecycleQuestion: "How do we reproduce these practices elsewhere?",
+    lifecycleQuestion:
+      "How do we apply these practices consistently across projects, tools, and agents?",
     pairs: "agent-native / editorial",
     note: "Transfer of methodology across repositories and hosts, not one product surface.",
   },

@@ -21,8 +21,8 @@ Procedure skill for keeping **`/articles`** inventory aligned with the sibling e
 **Structural invariants** (do not break without explicit justification in the PR):
 
 - Exactly **five** reasoning lines — never invent a sixth category; if a post does not fit, **stop and ask**.
-- Render order and ids: **`taste`**, **`evals`**, **`authority`**, **`measurement`**, **`portability`**. Stages 01–04 are **TEAM** in lifecycle order (decide → verify → govern → observe); **`portability`** is reproducing that loop elsewhere.
-- Classify by the **primary engineering question** the post answers (see each stage’s `lifecycleQuestion` in `content/article-lines.ts`), not title keywords. Boundaries follow that lifecycle, not topic labels.
+- Render order and ids: **`taste`**, **`evals`** (label **Evals & Verification**), **`authority`**, **`measurement`**, **`portability`**. Stages 01–04 are **TEAM** in lifecycle order; **`portability`** applies TEAM consistently across projects, tools, and agents.
+- Classify by the **primary engineering question** the post answers (see each stage’s `lifecycleQuestion` in `content/article-lines.ts`), not title keywords. **Taste:** worth building and good outcomes. **Evals & Verification:** implementation correctness (tests, evals, CI, review). **Authority:** permitted agent changes. **Measurement:** deployed behaviour and outcomes. **Portability:** consistent practice transfer.
 - Exactly **one** `lineLead: true` per line; **only** line leads carry `argument`.
 - **`featured`** mirrors homepage selected writing (`content/homepage.ts` `writing[]` slugs) — distinct from line leads.
 - Unique `slug` and canonical `url` (`devto_api_url` from hub frontmatter).

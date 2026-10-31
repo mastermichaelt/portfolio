@@ -9,7 +9,7 @@ import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 export const metadata: Metadata = {
   title: "Articles",
   description:
-    "Field reports on DEV.to organized by TEAM Portability: Taste, Evals, Authority, Measurement, and making those disciplines transferable.",
+    "Field reports on DEV.to organized by TEAM Portability: Taste, Evals & Verification, Authority, Measurement, and transferable practice.",
   alternates: {
     canonical: "/articles",
   },
@@ -35,10 +35,10 @@ export default async function ArticlesPage() {
             <p className="eyebrow">Articles</p>
             <h1>TEAM Portability</h1>
             <p className="aline-hero-lead">
-              Field reports from rebuilding how I work with AI. Taste, Evals,
-              Authority, and Measurement became four recurring disciplines.
-              Portability is what makes those practices transferable across
-              projects, tools, and agents.
+              Field reports from rebuilding how I work with AI. Taste, Evals &
+              Verification, Authority, and Measurement became four recurring
+              disciplines. Portability is what makes those practices
+              transferable across projects, tools, and agents.
             </p>
           </div>
           <aside className="aline-register">

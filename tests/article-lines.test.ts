@@ -48,7 +48,7 @@ describe("groupArticleLines", () => {
       "04",
       "05",
     ]);
-    expect(bands.map((band) => band.count)).toEqual([4, 7, 5, 2, 3]);
+    expect(bands.map((band) => band.count)).toEqual([3, 8, 5, 2, 3]);
 
     for (const band of bands) {
       expect(band.lead.article.lineLead).toBe(true);
@@ -85,7 +85,7 @@ describe("groupArticleLines", () => {
   it("exposes the TEAM + Portability public labels for all five lifecycle stages", () => {
     expect(articleLines.map((line) => [line.id, line.label])).toEqual([
       ["taste", "Taste"],
-      ["evals", "Evals"],
+      ["evals", "Evals & Verification"],
       ["authority", "Authority"],
       ["measurement", "Measurement"],
       ["portability", "Portability"],
