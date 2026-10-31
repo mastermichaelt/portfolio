@@ -304,7 +304,8 @@
 }
 
 .hero.hero-compact {
-  padding-bottom: var(--gap-lg);
+  /* Index/editorial rhythm — shared page-intro top (--gap-xl). */
+  padding-block: var(--gap-xl) var(--gap-lg);
 }
 
 /* Between --gap-lg (32) and --gap-xl (56); case-study heroes only. */

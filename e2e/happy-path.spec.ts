@@ -580,6 +580,40 @@ test.describe("portfolio happy path", () => {
     );
   });
 
+  test("articles index intro matches projects nav clearance", async ({
+    page,
+  }) => {
+    // Compare the two index pages this spacing change aligns; About uses a
+    // portrait rail and Ecosystem wraps .hero-compact — different geometry.
+    const pairs = [
+      { path: "/articles", intro: ".aline-intro .eyebrow" },
+      { path: "/projects", intro: ".pindex-eyebrow" },
+    ] as const;
+
+    for (const viewport of [
+      { width: 375, height: 812 },
+      { width: 768, height: 1024 },
+      { width: 1440, height: 900 },
+    ] as const) {
+      await page.setViewportSize(viewport);
+      const clearances: number[] = [];
+      for (const route of pairs) {
+        await page.goto(route.path);
+        const clearance = await page.evaluate((selector) => {
+          const nav = document
+            .querySelector(".topnav")!
+            .getBoundingClientRect();
+          const intro = document
+            .querySelector(selector)!
+            .getBoundingClientRect();
+          return intro.top - nav.bottom;
+        }, route.intro);
+        clearances.push(clearance);
+      }
+      expect(Math.abs(clearances[0] - clearances[1])).toBeLessThanOrEqual(12);
+    }
+  });
+
   test("articles 2a hardening: tap targets, index filler, and anchor clearance", async ({
     page,
   }) => {

@@ -17,7 +17,7 @@ Two themes, one system. Dark is the baseline and the visual-regression reference
 
 One signal colour: amber, in three semantic roles chosen by **what the accent is doing**, not by which component uses it. No component carries a light-mode rule; only the role tokens diverge.
 
-- **`--accent` (ink)** — all accent text and every mark thinner than a surface: section marks, current-nav underline, evidence figures, the email address, outbound arrows, rail/TOC bars, selected/expanded diagram borders, focus rings. Ochre in light so thin marks clear 3:1 on paper; brand amber in dark.
+- **`--accent` (ink)** — accent text and thin marks thinner than a surface: in-page ordinals and highlighted metadata (e.g. section numbers, “Start here” rails), current-nav underline, evidence figures, the email address, outbound arrows, rail/TOC bars, selected/expanded diagram borders, focus rings. **Not** page-level route eyebrows — those identify the page before the main heading and use **`--muted`** (see [`docs/design-system.md`](docs/design-system.md) § Page intro hierarchy). Ochre in light so thin marks clear 3:1 on paper; brand amber in dark.
 - **`--accent-fill` (fill)** — strong filled or selected surfaces with `--accent-ink` on top: the primary CTA, the selected Ecosystem chip. Brand amber in **both** themes.
 - **`--accent-soft` (soft)** — subtle tinted surfaces derived from the fill role (the `.pill` wash); its text stays `--accent`.
 
@@ -27,7 +27,7 @@ Anything that fills with amber must use `--accent-fill`, never `--accent` — a 
 
 ## Typography
 
-Two stacks: sans (IBM Plex Sans — headings, body, UI) and mono (IBM Plex Mono — eyebrows, technical identifiers, dates, evidence figures, scope lines). The serif display stack is retired. `--font-display-stack` aliases the sans stack.
+Two stacks: sans (IBM Plex Sans — headings, body, UI) and mono (IBM Plex Mono — page intro labels at `--muted`, technical identifiers, dates, evidence figures, scope lines). The serif display stack is retired. `--font-display-stack` aliases the sans stack.
 
 Display headings set tight (`--tracking-tight`); labels set wide and uppercase (`--tracking-label`). Figures always use tabular numerals. Use the `--fs-*` scale; do not invent one-off sizes.
 

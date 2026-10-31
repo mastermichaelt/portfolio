@@ -53,9 +53,10 @@
   --border-strong: #cbc7bd;
   --rule: var(--fg);
 
-  /* The signal, split into its two real roles. --accent is the INK: eyebrows,
-     figure values, the address, the current-nav rule, focus. On paper the
-     brand amber reads at 1.9:1, so the ink role relights to the same hue
+  /* The signal, split into its two real roles. --accent is the INK: links,
+     figure values, the address, the current-nav rule, focus. Page-level eyebrows
+     use --muted (see layout.css .eyebrow). On paper the brand amber reads at
+     1.9:1, so the ink role relights to the same hue
      family (H≈78) at a lower lightness — 5.2:1, the way #d9a441 carries ink at
      8.3:1 on near-black. --accent-fill is the FILL, and the brand amber needs
      no translation there: near-black ink sits on it at 7.7:1. */
@@ -71,7 +72,7 @@
    Every accent consumer reads exactly one of three roles. No component carries
    a light-mode rule; the role token is what diverges.
 
-   INK  --accent       text, links, hover ink, eyebrows, figure values, the
+   INK  --accent       text, links, hover ink, figure values, the
                         address, and every mark thinner than a surface: nav
                         underline, rail bar, TOC bar, selected/expanded node
                         borders, focus rings. Must clear 4.5:1 (text) or 3:1
