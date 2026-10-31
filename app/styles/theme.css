@@ -56,7 +56,7 @@
   /* The signal, split into its two real roles. --accent is the INK: links,
      figure values, the address, the current-nav rule, focus. Page-level eyebrows
      use --muted (see layout.css .eyebrow). On paper the brand amber reads at
-     brand amber reads at 1.9:1, so the ink role relights to the same hue
+     1.9:1, so the ink role relights to the same hue
      family (H≈78) at a lower lightness — 5.2:1, the way #d9a441 carries ink at
      8.3:1 on near-black. --accent-fill is the FILL, and the brand amber needs
      no translation there: near-black ink sits on it at 7.7:1. */
