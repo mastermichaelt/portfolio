@@ -65,14 +65,14 @@ export const articles: Article[] = [
     line: "taste",
   },
   {
-    slug: "one-example-beats-style-guide",
-    title: "One good example beat every AI writing rule I wrote",
+    slug: "persist-game-state-not-ephemeral-ui-intent",
+    title: "The board came back. The highlights lied.",
     summary:
-      "Teaching an editorial pipeline a writing voice worked better from one strong example than from an expanding list of style rules.",
+      "Reloading a Codenames AI tab restored the board while UI highlights no longer matched persisted game state.",
     year: 2026,
-    tags: ["ai", "writing"],
-    url: "https://dev.to/michaeltruong/one-good-example-beat-every-ai-writing-rule-i-wrote-7oo",
-    relatedProjectSlug: "editorial-workflow",
+    tags: ["ai", "webdev", "typescript"],
+    url: "https://dev.to/michaeltruong/the-board-came-back-the-highlights-lied-18bo",
+    relatedProjectSlug: "codenames-ai",
     line: "taste",
   },
   // Evals & Verification (4)
@@ -113,14 +113,14 @@ export const articles: Article[] = [
     line: "evals",
   },
   {
-    slug: "persist-game-state-not-ephemeral-ui-intent",
-    title: "The board came back. The highlights lied.",
+    slug: "one-example-beats-style-guide",
+    title: "One good example beat every AI writing rule I wrote",
     summary:
-      "Reloading a Codenames AI tab restored the board while UI highlights no longer matched persisted game state.",
+      "Teaching an editorial pipeline a writing voice worked better from one strong example than from an expanding list of style rules.",
     year: 2026,
-    tags: ["ai", "webdev", "typescript"],
-    url: "https://dev.to/michaeltruong/the-board-came-back-the-highlights-lied-18bo",
-    relatedProjectSlug: "codenames-ai",
+    tags: ["ai", "writing"],
+    url: "https://dev.to/michaeltruong/one-good-example-beat-every-ai-writing-rule-i-wrote-7oo",
+    relatedProjectSlug: "editorial-workflow",
     line: "evals",
   },
   // Authority (5)
