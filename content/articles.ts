@@ -7,8 +7,10 @@ import type { Article } from "@/domain/article";
  * `featured` marks the homepage selected-writing set (`content/homepage.ts`
  * `writing[]` slugs); project pages filter via `relatedProjectSlug`.
  *
- * Reasoning lines (`line`) follow TEAM + Portability (see `content/article-lines.ts`).
- * Each line has exactly one `lineLead`, and only leads carry an `argument`.
+ * Lifecycle stages (`line`) follow TEAM then Portability in render order (see
+ * `content/article-lines.ts`). Assign each report to the stage whose
+ * **primary engineering question** the post answers, not title keywords.
+ * Each stage has exactly one `lineLead`, and only leads carry an `argument`.
  *
  * `argument` provenance: each line lead `argument` is one sentence compressed
  * from that post's published **Takeaway:** (or opening thesis where noted),

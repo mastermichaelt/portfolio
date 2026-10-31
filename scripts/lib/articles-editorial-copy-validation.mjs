@@ -63,6 +63,12 @@ export function collectArticlesEditorialCopyEntries(articles, articleLines) {
     });
     entries.push({
       file: "content/article-lines.ts",
+      field: "lifecycleQuestion",
+      lineId: line.id,
+      text: line.lifecycleQuestion,
+    });
+    entries.push({
+      file: "content/article-lines.ts",
       field: "pairs",
       lineId: line.id,
       text: line.pairs,

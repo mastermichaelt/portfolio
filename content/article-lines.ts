@@ -1,43 +1,49 @@
 import type { ArticleLineDefinition } from "@/domain/article";
 
 /**
- * The five reasoning lines of `/articles`, in fixed render order (direction 2a).
+ * The five lifecycle stages of `/articles`, in fixed render order (direction 2a).
  *
- * Lines 01–04 are TEAM (Taste, Evals, Authority, Measurement): four core
- * disciplines of AI-native engineering. Line 05 (Portability) is cross-cutting.
+ * Stages 01–04 are **TEAM** (Taste → Evals → Authority → Measurement): the
+ * in-product engineering loop. Stage 05 (**Portability**) is how that loop is
+ * reproduced across repositories, agents, and tools.
  *
- * `label` values are the public category names. `pairs` is the project-tier
- * pairing metadata (not rendered on the page). Membership lives on each
- * `Article.line` in `content/articles.ts`; counts are 4 / 7 / 5 / 2 / 3.
+ * Classify each report by the **primary engineering question** it answers, not
+ * title keywords. Membership lives on `Article.line` in `content/articles.ts`;
+ * counts are 4 / 7 / 5 / 2 / 3.
  */
 export const articleLines: ArticleLineDefinition[] = [
   {
     id: "taste",
     label: "Taste",
+    lifecycleQuestion:
+      "What is worth building, and does it solve the right problem?",
     pairs: "Codenames AI; resume pipeline",
-    note: "Whether the product question, requirements, or architecture deserve the work, not whether the pipeline passed.",
   },
   {
     id: "evals",
     label: "Evals",
+    lifecycleQuestion: "How do we establish correctness before we trust it?",
     pairs: "Editorial workflow; Codenames AI",
   },
   {
     id: "authority",
     label: "Authority",
+    lifecycleQuestion: "What may change, who decides, and where do we stop?",
     pairs: "Renovate governance; agent-native",
-    note: "Plans, git hooks, and host lifecycle boundaries across repos. Several rows still carry no single system.",
+    note: "Governance across plans, git hooks, and agent host boundaries. Several rows carry no single system.",
   },
   {
     id: "measurement",
     label: "Measurement",
+    lifecycleQuestion: "What does deployed behaviour actually show?",
     pairs: "Codenames AI; career analytics",
   },
   {
     id: "portability",
     label: "Portability",
+    lifecycleQuestion: "How do we reproduce these practices elsewhere?",
     pairs: "agent-native / editorial",
-    note: "How practices move between repositories, agents, and tools, not a single product surface.",
+    note: "Transfer of methodology across repositories and hosts, not one product surface.",
   },
 ];
 

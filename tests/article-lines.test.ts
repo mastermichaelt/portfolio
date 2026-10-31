@@ -58,6 +58,18 @@ describe("groupArticleLines", () => {
     }
   });
 
+  it("carries lifecycle questions on each band", () => {
+    const bands = groupArticleLines(
+      articleLines,
+      articles,
+      resolveArticleSystem,
+    );
+
+    expect(bands.map((band) => band.lifecycleQuestion)).toEqual(
+      articleLines.map((line) => line.lifecycleQuestion),
+    );
+  });
+
   it("carries the label and count each line-index cell needs", () => {
     const bands = groupArticleLines(
       articleLines,
@@ -70,7 +82,7 @@ describe("groupArticleLines", () => {
     );
   });
 
-  it("exposes the TEAM + Portability public labels for all five reasoning lines", () => {
+  it("exposes the TEAM + Portability public labels for all five lifecycle stages", () => {
     expect(articleLines.map((line) => [line.id, line.label])).toEqual([
       ["taste", "Taste"],
       ["evals", "Evals"],
@@ -126,7 +138,12 @@ describe("groupArticleLines", () => {
 
 describe("groupArticleLines structural guards", () => {
   const oneLine: ArticleLineDefinition[] = [
-    { id: "measurement", label: "Measurement", pairs: "Pairing" },
+    {
+      id: "measurement",
+      label: "Measurement",
+      lifecycleQuestion: "What does deployed behaviour actually show?",
+      pairs: "Pairing",
+    },
   ];
 
   it("throws when a line has no reports", () => {

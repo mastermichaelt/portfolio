@@ -462,7 +462,7 @@ test.describe("portfolio happy path", () => {
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: "TEAM, plus portability.",
+        name: "TEAM, then portability.",
       }),
     ).toBeVisible();
 

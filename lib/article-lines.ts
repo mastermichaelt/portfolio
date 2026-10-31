@@ -21,6 +21,7 @@ export interface ArticleLineBand {
   /** Two-digit ordinal from render order, e.g. "01". */
   ordinal: string;
   label: string;
+  lifecycleQuestion: string;
   pairs: string;
   note?: string;
   count: number;
@@ -85,6 +86,7 @@ export function groupArticleLines(
       id: line.id,
       ordinal: ordinalFor(index),
       label: line.label,
+      lifecycleQuestion: line.lifecycleQuestion,
       pairs: line.pairs,
       ...(line.note ? { note: line.note } : {}),
       count: members.length,

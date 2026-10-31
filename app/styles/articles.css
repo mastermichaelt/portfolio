@@ -125,15 +125,30 @@
 .aline-head {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: flex-start;
   gap: var(--gap-md);
   flex-wrap: wrap;
   padding-top: var(--gap-sm);
 }
 
+.aline-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
 .aline-head h2 {
   margin: 0;
   font-size: var(--fs-h2);
+}
+
+.aline-lifecycle-q {
+  margin: 0;
+  font-size: var(--fs-meta);
+  line-height: 1.4;
+  color: var(--muted);
+  max-width: 42ch;
 }
 
 .aline-count {

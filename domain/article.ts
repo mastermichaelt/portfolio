@@ -1,8 +1,9 @@
 /**
  * The five reasoning lines the /articles page (direction 2a) is organized into.
- * Ids are the repo taxonomy; the approved public labels live on
- * `ArticleLineDefinition.label`. TEAM (taste, evals, authority, measurement)
- * covers four core disciplines; portability is a separate cross-cutting line.
+ * Render order is a conceptual engineering lifecycle: Taste → Evals →
+ * Authority → Measurement, then Portability (reproducing the practice). Ids
+ * are the repo taxonomy; public labels and `lifecycleQuestion` live on
+ * `ArticleLineDefinition`.
  */
 export type ArticleLine =
   "taste" | "evals" | "authority" | "measurement" | "portability";
@@ -32,15 +33,16 @@ export interface Article {
 }
 
 /**
- * Presentation model for one reasoning line — the ordered taxonomy the
- * `/articles` bands and line index render from. `label` is the approved
- * public-facing wording; `pairs` is the project-tier pairing shown in the
- * band head (internal metadata); `note` is the optional band note for lines
- * whose reports carry no single system.
+ * Presentation model for one lifecycle stage — the ordered taxonomy the
+ * `/articles` bands and line index render from. `label` is the stage name;
+ * `lifecycleQuestion` is the primary engineering question that stage answers;
+ * `pairs` is internal project-tier metadata; `note` is optional curator copy.
  */
 export interface ArticleLineDefinition {
   id: ArticleLine;
   label: string;
+  /** Primary engineering question this lifecycle stage answers (rendered on `/articles`). */
+  lifecycleQuestion: string;
   pairs: string;
   note?: string;
 }

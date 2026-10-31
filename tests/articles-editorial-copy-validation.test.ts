@@ -46,6 +46,7 @@ describe("articles editorial copy validation", () => {
       {
         id: "measurement" as const,
         label: "Measurement",
+        lifecycleQuestion: "What does deployed behaviour actually show?",
         pairs: `Codenames AI ${EM_DASH} co-primary`,
       },
     ];
