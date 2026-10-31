@@ -22,18 +22,18 @@ function ruleBody(source: string, selector: string): string {
 describe("page intro spacing (nav-to-content rhythm)", () => {
   it("articles hero uses token top padding, not legacy .hero clamp", () => {
     const hero = ruleBody(css("articles.css"), ".aline-hero");
-    expect(hero).toMatch(/padding-block:\s*var\(--gap-2xl\)/);
+    expect(hero).toMatch(/padding-block:\s*var\(--gap-xl\)/);
     expect(hero).not.toMatch(/clamp\(72px/);
   });
 
   it("hero-compact overrides full .hero padding with index rhythm", () => {
     const compact = ruleBody(css("components.css"), ".hero.hero-compact");
     expect(compact).toMatch(
-      /padding-block:\s*var\(--gap-2xl\)\s*var\(--gap-lg\)/,
+      /padding-block:\s*var\(--gap-xl\)\s*var\(--gap-lg\)/,
     );
   });
 
-  it("dominant index intros share --gap-2xl top padding", () => {
+  it("dominant index intros share --gap-xl top padding", () => {
     for (const [file, selector] of [
       ["projects.css", ".pindex-hero-section"],
       ["about.css", ".about-shell"],
@@ -41,7 +41,7 @@ describe("page intro spacing (nav-to-content rhythm)", () => {
     ] as const) {
       const body = ruleBody(css(file), selector);
       expect(body, `${file} ${selector}`).toMatch(
-        /padding-block:[^;]*var\(--gap-2xl\)/,
+        /padding-block:[^;]*var\(--gap-xl\)/,
       );
     }
   });

@@ -5,7 +5,7 @@
 /* ============================================================ Index ===== */
 
 .pindex-hero-section {
-  padding-block: var(--gap-2xl) var(--gap-lg);
+  padding-block: var(--gap-xl) var(--gap-lg);
 }
 
 .pindex-hero {

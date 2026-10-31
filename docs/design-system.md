@@ -115,6 +115,7 @@ Shared route intros (index pages, compact heroes, case-study heroes using `.eyeb
 | Token / class                | Role                                                                        |
 | ---------------------------- | --------------------------------------------------------------------------- |
 | `--gap-xs` … `--gap-2xl`     | Shared spacing scale                                                        |
+| Page intro top (nav → label) | **`--gap-xl`** on index/editorial shells — not `--gap-2xl` or `.hero` clamp |
 | `--container` / `.container` | Default content width + gutter (`--gutter`)                                 |
 | `.container-narrow`          | Index / placeholder hero measure (~720px)                                   |
 | `.section`                   | Vertical section rhythm                                                     |
@@ -123,7 +124,7 @@ Shared route intros (index pages, compact heroes, case-study heroes using `.eyeb
 | `.measure-intro`             | Short section-intro column (~40ch) — not the same role as 34ch lines        |
 | `.lead-follow`               | Lead that sits under a title with shared top spacing                        |
 | `.hero-cta`                  | Hero CTA row; includes shared top margin                                    |
-| `.hero-compact`              | Index/editorial heroes: `--gap-2xl` top (nav-to-content), `--gap-lg` bottom |
+| `.hero-compact`              | Index/editorial heroes: `--gap-xl` top (nav-to-content), `--gap-lg` bottom  |
 | `.hero-case`                 | Case-study heroes with slightly deeper bottom padding                       |
 
 Honest one-off spacing (distinct roles, single use) may stay as `style={{}}` or a narrowly named class — do not invent a utility vocabulary that flattens different layout needs.

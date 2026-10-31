@@ -39,7 +39,7 @@
 /* Section rhythm — the strong --rule above the continuity band and the hairline
    frame around the routes carry the section breaks, so no borders between. */
 .home2-hero {
-  padding-block: var(--gap-2xl) var(--gap-xl);
+  padding-block: var(--gap-xl) var(--gap-xl);
 }
 
 .home2-method,

@@ -11,7 +11,7 @@
   grid-template-columns: 300px minmax(0, 1fr);
   gap: var(--gap-2xl);
   align-items: start;
-  padding-block: var(--gap-2xl) 0;
+  padding-block: var(--gap-xl) 0;
 }
 
 /* ============================================================= Rail ===== */
