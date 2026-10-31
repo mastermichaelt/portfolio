@@ -4,8 +4,9 @@ import type { Article } from "@/domain/article";
  * Curated DEV.to inventory synced from sibling hub
  * `editorial-workflow/docs/dev.to/published/` (21 posts; portfolio lists full corpus).
  * Titles/URLs from frontmatter; summaries compressed from openings — no invented claims.
- * `featured` marks the homepage selected-writing set (`content/homepage.ts`
- * `writing[]` slugs); project pages filter via `relatedProjectSlug`.
+ * `featured` marks a small curated subset (three reports today) used where
+ * project-tied highlights matter; it is independent of homepage routing copy.
+ * Project pages filter the full inventory via `relatedProjectSlug`.
  *
  * Lifecycle stages (`line`) follow TEAM then Portability in render order (see
  * `content/article-lines.ts`). Assign each report to the stage whose

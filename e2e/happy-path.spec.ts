@@ -488,12 +488,12 @@ test.describe("portfolio happy path", () => {
       expect(target).toBe("_blank");
     }
 
-    // Internal project link appears at most once per band (on the start-here row).
+    // Taste and Measurement Start here rows pair with Codenames AI (pinned leads).
     await expect(
       page.locator(
-        '#line-04 a.aline-start-project[href="/projects/codenames-ai"]',
+        '#line-01 a.aline-start-project[href="/projects/codenames-ai"], #line-04 a.aline-start-project[href="/projects/codenames-ai"]',
       ),
-    ).toBeVisible();
+    ).toHaveCount(2);
     await expect(page.locator(".aline-band a.aline-impl")).toHaveCount(0);
     await expect(page.getByText("co-primary")).toHaveCount(0);
   });

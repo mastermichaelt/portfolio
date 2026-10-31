@@ -99,6 +99,8 @@ describe("groupArticleLines", () => {
       resolveArticleSystem,
     );
 
+    const taste = bands.find((band) => band.id === "taste");
+    expect(taste?.lead.system?.href).toBe("/projects/codenames-ai");
     const measurement = bands.find((band) => band.id === "measurement");
     expect(measurement?.lead.system?.href).toBe("/projects/codenames-ai");
     const portability = bands.find((band) => band.id === "portability");

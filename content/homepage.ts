@@ -130,7 +130,7 @@ export const homepage: Homepage = {
       role: "Field reports",
       name: "Articles →",
       href: "/articles",
-      summary: `${articles.length} weekly reports in five named lines of reasoning.`,
+      summary: `${articles.length} field reports organized by TEAM Portability.`,
     },
     {
       id: "about",
