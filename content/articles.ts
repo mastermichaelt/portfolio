@@ -276,7 +276,7 @@ export const articlesPageFeaturedRetrospective = {
   railLabel: "Start here · Six-month retrospective",
   title: "TEAM Portability: Six Months of Rebuilding How I Work with AI",
   description:
-    "How 21 field reports became a framework for engineering with AI — and what six months of experimentation changed about the way I work.",
+    "How 21 field reports became a framework for engineering with AI, and what six months of experimentation changed about the way I work.",
   ctaLabel: "Read retrospective",
   url: "https://dev.to/michaeltruong/team-portability-six-months-of-rebuilding-how-i-work-with-ai-eo1",
 } as const;
