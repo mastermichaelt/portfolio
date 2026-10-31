@@ -6,6 +6,7 @@ import { homepage } from "@/content/homepage";
 import { profile } from "@/content/profile";
 import type { CaseFigure } from "@/domain/project-case";
 import type { ProjectSectionKind } from "@/domain/project";
+import type { ArticleLine } from "@/domain/article";
 import { StaticPortfolioRepository } from "@/repositories/static-portfolio-repository";
 
 const REQUIRED_KIND_GROUPS: ProjectSectionKind[][] = [
@@ -180,6 +181,22 @@ describe("content-foundation inventory", () => {
       if (!article.lineLead) {
         expect(article.argument).toBeUndefined();
       }
+    }
+
+    // Each lifecycle stage "Start here" matches a DEV profile pinned post.
+    const devPinnedLineLeads: Record<ArticleLine, string> = {
+      taste: "persist-game-state-not-ephemeral-ui-intent",
+      evals: "ai-reviewer-kinds-of-reasoning",
+      authority: "the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed",
+      measurement: "active-players-which-sessions-counted",
+      portability:
+        "agent-portability-does-not-require-centralizing-methodology-behind-mcp",
+    };
+    for (const id of lineIds) {
+      const leadSlug = listed.find(
+        (article) => article.line === id && article.lineLead,
+      )?.slug;
+      expect(leadSlug).toBe(devPinnedLineLeads[id]);
     }
   });
 

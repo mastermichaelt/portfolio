@@ -69,3 +69,15 @@ Content-first reassessment against published bodies in `editorial-workflow/docs/
 ## Distribution assessment
 
 Evals & Verification at **4** matches articles whose primary lesson is making quality expectations reproducible (reviewer stages, domain validation, exemplar calibration). Taste at **5** includes product-scope judgments and **behaviour definitions** such as what a saved game restore must mean before tests encode it. Measurement at **3** covers metric definition, process observability, and model-migration diagnostics. Portability at **4** reflects cross-repo, cross-host, and cross-skill transfer work. Authority remains the largest band (5), consistent with governance-heavy field reports. The distribution is uneven by design, not by quota.
+
+## DEV profile pins ↔ `/articles` Start here
+
+Each lifecycle band’s **`lineLead`** is the matching DEV profile pinned post (one pin per stage). After taxonomy edits, confirm pins still align; `tests/content-foundation.test.ts` asserts slug parity.
+
+| Stage                | Pinned slug                                                              |
+| -------------------- | ------------------------------------------------------------------------ |
+| Taste                | `persist-game-state-not-ephemeral-ui-intent`                             |
+| Evals & Verification | `ai-reviewer-kinds-of-reasoning`                                         |
+| Authority            | `the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed`           |
+| Measurement          | `active-players-which-sessions-counted`                                  |
+| Portability          | `agent-portability-does-not-require-centralizing-methodology-behind-mcp` |

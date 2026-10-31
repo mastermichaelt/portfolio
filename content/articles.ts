@@ -11,6 +11,8 @@ import type { Article } from "@/domain/article";
  * `content/article-lines.ts`). Assign each report to the stage whose
  * **primary engineering question** the post answers, not title keywords.
  * Each stage has exactly one `lineLead`, and only leads carry an `argument`.
+ * Line leads match the five DEV profile pinned posts (one per lifecycle stage);
+ * the lead is the category "Start here" on `/articles`.
  *
  * `argument` provenance: each line lead `argument` is one sentence compressed
  * from that post's published **Takeaway:** (or opening thesis where noted),
@@ -20,6 +22,20 @@ import type { Article } from "@/domain/article";
 export const articles: Article[] = [
   // Taste (5)
   {
+    slug: "persist-game-state-not-ephemeral-ui-intent",
+    title: "The board came back. The highlights lied.",
+    summary:
+      "Reloading a Codenames AI tab restored the board while UI highlights no longer matched persisted game state.",
+    year: 2026,
+    tags: ["ai", "webdev", "typescript"],
+    url: "https://dev.to/michaeltruong/the-board-came-back-the-highlights-lied-18bo",
+    relatedProjectSlug: "codenames-ai",
+    line: "taste",
+    lineLead: true,
+    argument:
+      "Coming back should restore what the product treats as current truth, not whatever was on screen.",
+  },
+  {
     slug: "ai-workflows-need-a-requirements-qa-stage",
     title: "The pipeline was green. The product was underspecified",
     summary:
@@ -28,9 +44,6 @@ export const articles: Article[] = [
     tags: ["ai", "agents", "workflow"],
     url: "https://dev.to/michaeltruong/the-pipeline-was-green-the-product-was-underspecified-1fnj",
     line: "taste",
-    lineLead: true,
-    argument:
-      "Green CI can mean the pipeline worked while the product stayed underspecified.",
   },
   {
     slug: "ai-changed-the-build-vs-buy-threshold",
@@ -62,17 +75,6 @@ export const articles: Article[] = [
     year: 2026,
     tags: ["ai", "agents", "webdev"],
     url: "https://dev.to/michaeltruong/the-retrieval-pipeline-worked-the-product-question-remained-80c",
-    line: "taste",
-  },
-  {
-    slug: "persist-game-state-not-ephemeral-ui-intent",
-    title: "The board came back. The highlights lied.",
-    summary:
-      "Reloading a Codenames AI tab restored the board while UI highlights no longer matched persisted game state.",
-    year: 2026,
-    tags: ["ai", "webdev", "typescript"],
-    url: "https://dev.to/michaeltruong/the-board-came-back-the-highlights-lied-18bo",
-    relatedProjectSlug: "codenames-ai",
     line: "taste",
   },
   // Evals & Verification (4)
