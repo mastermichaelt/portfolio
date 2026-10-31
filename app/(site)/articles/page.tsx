@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { resolveArticleSystem } from "@/content/article-lines";
+import { articlesPageFeaturedRetrospective } from "@/content/articles";
 import { ExternalLink } from "@/components/ExternalLink";
 import { groupArticleLines } from "@/lib/article-lines";
 import { getPortfolioRepository } from "@/lib/portfolio";
@@ -60,6 +61,32 @@ export default async function ArticlesPage() {
               content quality.
             </p>
           </aside>
+        </section>
+
+        <section
+          className="aline-featured fade-in delay-1"
+          aria-labelledby="articles-featured-retrospective-title"
+        >
+          <p className="aline-featured-label">Six-month retrospective</p>
+          <h2 className="aline-featured-heading">
+            <ExternalLink
+              className="aline-featured-link"
+              href={articlesPageFeaturedRetrospective.url}
+              newTabHint={false}
+              analyticsLabel={articlesPageFeaturedRetrospective.title}
+            >
+              <span
+                className="aline-featured-title"
+                id="articles-featured-retrospective-title"
+              >
+                {articlesPageFeaturedRetrospective.title}
+                <span className="sr-only"> (opens in new tab)</span>
+              </span>
+            </ExternalLink>
+          </h2>
+          <p className="aline-featured-desc">
+            {articlesPageFeaturedRetrospective.description}
+          </p>
         </section>
 
         <nav className="aline-index" aria-label="Article lifecycle stages">

@@ -267,6 +267,18 @@ export const articles: Article[] = [
   },
 ];
 
+/**
+ * Umbrella retrospective on `/articles` (not a field-report inventory row).
+ * Canonical copy lives in editorial-workflow
+ * `docs/dev.to/published/six-months-of-rebuilding-how-i-work-as-an-engineer-with-ai.md`.
+ */
+export const articlesPageFeaturedRetrospective = {
+  title: "TEAM Portability: Six Months of Rebuilding How I Work with AI",
+  description:
+    "Six months of AI-assisted engineering, 21 field reports, and the lessons that became TEAM Portability. A retrospective on developing engineering judgment across projects, tools, and agents.",
+  url: "https://dev.to/michaeltruong/team-portability-six-months-of-rebuilding-how-i-work-with-ai-eo1",
+} as const;
+
 /** Curated DEV inventory count (same list as `/articles`). */
 export const publishedArticleCount = articles.length;
 

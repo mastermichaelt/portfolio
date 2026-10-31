@@ -71,6 +71,65 @@
   color: var(--muted-strong);
 }
 
+/* Umbrella retrospective — above the five-line field-report index. */
+.aline-featured {
+  margin-block: var(--gap-lg) var(--gap-xl);
+  padding: var(--gap-md) 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.aline-featured-label {
+  margin: 0;
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.aline-featured-heading {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.aline-featured-link {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: 62ch;
+}
+
+.aline-featured-link::after {
+  content: "DEV ↗";
+  font-family: var(--font-mono-stack);
+  font-size: var(--fs-meta);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.aline-featured-title {
+  font-size: var(--fs-lead);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.aline-featured-desc {
+  margin: 0;
+  font-size: var(--fs-meta);
+  line-height: 1.55;
+  color: var(--fg-2);
+  max-width: 62ch;
+}
+
 /* ========================================================= Line index ===== */
 
 .aline-index {
@@ -340,6 +399,11 @@
   }
 
   .aline-start-link {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .aline-featured-link {
     min-height: 44px;
     align-items: center;
   }
