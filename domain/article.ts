@@ -16,10 +16,12 @@ export interface Article {
   url: string;
   relatedProjectSlug?: string;
   /**
-   * Optional homepage / featured-writing flag.
-   * `listArticles()` returns the full inventory; surfaces filter on this field.
-   * Distinct from `lineLead`: `featured` mirrors the homepage `writing[]` set,
-   * lead selection is per reasoning line — the two diverge on lines 04 and 05.
+   * Optional curated highlight on an inventory row.
+   * `listArticles()` returns the full corpus; callers filter on this field where
+   * a small project-tied subset is needed. Independent of homepage routing
+   * (Homepage 2 has no parallel slug list) and distinct from `lineLead` (DEV
+   * profile pin / lifecycle Start here). Today: three featured rows, each with
+   * a distinct `relatedProjectSlug` — see `tests/content-foundation.test.ts`.
    */
   featured?: boolean;
   /** Reasoning line this report belongs to. Required for /articles. */
