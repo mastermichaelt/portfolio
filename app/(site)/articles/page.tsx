@@ -9,7 +9,7 @@ import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 export const metadata: Metadata = {
   title: "Articles",
   description:
-    "Weekly AI Engineering Field Reports on DEV.to, grouped into five themes: measurement, authority, critique, readiness, and agent portability.",
+    "Weekly AI Engineering Field Reports on DEV.to, grouped into TEAM (Taste, Evals, Authority, Measurement) plus a cross-cutting Portability line.",
   alternates: {
     canonical: "/articles",
   },
@@ -33,11 +33,12 @@ export default async function ArticlesPage() {
         <section className="aline-hero fade-in">
           <div className="aline-intro">
             <p className="eyebrow">Articles</p>
-            <h1>The writing returns to five problems.</h1>
+            <h1>TEAM, plus portability.</h1>
             <p className="aline-hero-lead">
-              Weekly field reports from systems I operate. Each section states
-              one lesson, recommends where to start reading, then lists the rest
-              on DEV.
+              Weekly field reports from systems I operate. Four disciplines
+              (Taste, Evals, Authority, Measurement) and a cross-cutting
+              Portability line. Each section states one lesson, recommends where
+              to start reading, then lists the rest on DEV.
             </p>
           </div>
           <aside className="aline-register">
@@ -47,7 +48,7 @@ export default async function ArticlesPage() {
                 {articles.length} published
               </span>
               <span className="aline-register-fact">weekly practice</span>
-              <span className="aline-register-fact">{lines.length} themes</span>
+              <span className="aline-register-fact">TEAM + portability</span>
             </div>
             <p className="aline-register-note">
               Recognized as a{" "}

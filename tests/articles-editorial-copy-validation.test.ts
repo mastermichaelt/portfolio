@@ -64,7 +64,7 @@ describe("articles editorial copy validation", () => {
         year: 2026,
         tags: ["ai"],
         url: "https://dev.to/x",
-        line: "critique" as const,
+        line: "evals" as const,
       },
     ];
     const result = validateArticlesEditorialCopy(sample, [], {
@@ -123,7 +123,7 @@ const { ok, errors } = validateArticlesEditorialCopy(
     year: 2026,
     tags: ["ai"],
     url: "https://dev.to/x",
-    line: "critique",
+    line: "evals",
   }],
   [],
   { fixturesDir: ${JSON.stringify(fixturesDir)} },

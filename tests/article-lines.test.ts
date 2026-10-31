@@ -48,7 +48,7 @@ describe("groupArticleLines", () => {
       "04",
       "05",
     ]);
-    expect(bands.map((band) => band.count)).toEqual([3, 5, 5, 5, 3]);
+    expect(bands.map((band) => band.count)).toEqual([4, 7, 5, 2, 3]);
 
     for (const band of bands) {
       expect(band.lead.article.lineLead).toBe(true);
@@ -70,13 +70,13 @@ describe("groupArticleLines", () => {
     );
   });
 
-  it("exposes the evidence-audit public labels for all five reasoning lines", () => {
+  it("exposes the TEAM + Portability public labels for all five reasoning lines", () => {
     expect(articleLines.map((line) => [line.id, line.label])).toEqual([
-      ["measurement", "Measurement & Telemetry"],
-      ["authority", "Authority & Stop Conditions"],
-      ["critique", "Evals & Judgment"],
-      ["readiness", "Product Taste & Verification"],
-      ["portability", "Agent Portability"],
+      ["taste", "Taste"],
+      ["evals", "Evals"],
+      ["authority", "Authority"],
+      ["measurement", "Measurement"],
+      ["portability", "Portability"],
     ]);
   });
 
@@ -89,8 +89,6 @@ describe("groupArticleLines", () => {
 
     const measurement = bands.find((band) => band.id === "measurement");
     expect(measurement?.lead.system?.href).toBe("/projects/codenames-ai");
-
-    // Line 05 intentionally has no implementation attached.
     const portability = bands.find((band) => band.id === "portability");
     expect(portability?.lead.system).toBeNull();
 

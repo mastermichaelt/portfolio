@@ -462,7 +462,7 @@ test.describe("portfolio happy path", () => {
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: "The writing returns to five problems.",
+        name: "TEAM, plus portability.",
       }),
     ).toBeVisible();
 
@@ -491,7 +491,7 @@ test.describe("portfolio happy path", () => {
     // Internal project link appears at most once per band (on the start-here row).
     await expect(
       page.locator(
-        '#line-01 a.aline-start-project[href="/projects/codenames-ai"]',
+        '#line-04 a.aline-start-project[href="/projects/codenames-ai"]',
       ),
     ).toBeVisible();
     await expect(page.locator(".aline-band a.aline-impl")).toHaveCount(0);

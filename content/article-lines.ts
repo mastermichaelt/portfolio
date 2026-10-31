@@ -3,44 +3,41 @@ import type { ArticleLineDefinition } from "@/domain/article";
 /**
  * The five reasoning lines of `/articles`, in fixed render order (direction 2a).
  *
- * `label` values are named public reasoning lines (Title Case), locked
- * 2026-09-15 after the post-ship evidence audit (PR #66). Each line denotes a
- * broad recurring engineering concern — not a literal thesis classification
- * for every report. Acknowledged stretch members: cloud-agent-felt-like-hiring
- * under portability; skills-should-own-capabilities under evals/judgment.
+ * Lines 01–04 are TEAM (Taste, Evals, Authority, Measurement): four core
+ * disciplines of AI-native engineering. Line 05 (Portability) is cross-cutting.
  *
- * `pairs` is the project-tier pairing shown in each band head, verbatim from
- * `docs/archive/content-evidence-migration.md` §5.I; `note` is the band note for the two
- * lines whose reports carry no single system (handoff §4). Membership lives on
- * each `Article.line` in `content/articles.ts`; the counts are 3 / 5 / 5 / 5 / 3.
+ * `label` values are the public category names. `pairs` is the project-tier
+ * pairing metadata (not rendered on the page). Membership lives on each
+ * `Article.line` in `content/articles.ts`; counts are 4 / 7 / 5 / 2 / 3.
  */
 export const articleLines: ArticleLineDefinition[] = [
   {
-    id: "measurement",
-    label: "Measurement & Telemetry",
-    pairs: "Codenames AI — co-primary",
+    id: "taste",
+    label: "Taste",
+    pairs: "Codenames AI; resume pipeline",
+    note: "Whether the product question, requirements, or architecture deserve the work, not whether the pipeline passed.",
+  },
+  {
+    id: "evals",
+    label: "Evals",
+    pairs: "Editorial workflow; Codenames AI",
   },
   {
     id: "authority",
-    label: "Authority & Stop Conditions",
+    label: "Authority",
     pairs: "Renovate governance; agent-native",
-    note: "Most reports here govern plans, git hooks, and host lifecycle boundaries across repos, not one product surface. The line pairs with Renovate governance and reusable agent harness work. Several rows still carry no single system.",
+    note: "Plans, git hooks, and host lifecycle boundaries across repos. Several rows still carry no single system.",
   },
   {
-    id: "critique",
-    label: "Evals & Judgment",
-    pairs: "Editorial workflow — supporting",
-  },
-  {
-    id: "readiness",
-    label: "Product Taste & Verification",
-    pairs: "Codenames AI — co-primary",
+    id: "measurement",
+    label: "Measurement",
+    pairs: "Codenames AI; career analytics",
   },
   {
     id: "portability",
-    label: "Agent Portability",
+    label: "Portability",
     pairs: "agent-native / editorial",
-    note: "These reports describe how agent setups and shared methodology move between projects, not a single product surface. The line is paired. The rows are not.",
+    note: "How practices move between repositories, agents, and tools, not a single product surface.",
   },
 ];
 

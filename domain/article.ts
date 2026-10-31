@@ -1,11 +1,11 @@
 /**
  * The five reasoning lines the /articles page (direction 2a) is organized into.
  * Ids are the repo taxonomy; the approved public labels live on
- * `ArticleLineDefinition.label`. Membership and pairings come from
- * `docs/archive/content-evidence-migration.md` §5.I.
+ * `ArticleLineDefinition.label`. TEAM (taste, evals, authority, measurement)
+ * covers four core disciplines; portability is a separate cross-cutting line.
  */
 export type ArticleLine =
-  "measurement" | "authority" | "critique" | "readiness" | "portability";
+  "taste" | "evals" | "authority" | "measurement" | "portability";
 
 export interface Article {
   slug: string;
@@ -34,10 +34,9 @@ export interface Article {
 /**
  * Presentation model for one reasoning line — the ordered taxonomy the
  * `/articles` bands and line index render from. `label` is the approved
- * public-facing wording (handoff §3.2); `pairs` is the project-tier pairing
- * shown in the band head, verbatim from `docs/archive/content-evidence-migration.md`
- * §5.I; `note` is the optional band note for lines whose reports carry no
- * system (handoff §4).
+ * public-facing wording; `pairs` is the project-tier pairing shown in the
+ * band head (internal metadata); `note` is the optional band note for lines
+ * whose reports carry no single system.
  */
 export interface ArticleLineDefinition {
   id: ArticleLine;

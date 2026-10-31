@@ -135,10 +135,10 @@ describe("content-foundation inventory", () => {
 
     // Five lines, in fixed order, ids unique, each with label + pairing copy.
     expect(lineIds).toEqual([
-      "measurement",
+      "taste",
+      "evals",
       "authority",
-      "critique",
-      "readiness",
+      "measurement",
       "portability",
     ]);
     expect(new Set(lineIds).size).toBe(lineIds.length);
@@ -152,16 +152,16 @@ describe("content-foundation inventory", () => {
       expect(lineIds).toContain(article.line);
     }
 
-    // Membership counts are 3 / 5 / 5 / 5 / 3, and total 21.
+    // Membership counts are 4 / 7 / 5 / 2 / 3, and total 21.
     const counts = Object.fromEntries(lineIds.map((id) => [id, 0]));
     for (const article of listed) {
       counts[article.line] += 1;
     }
     expect(counts).toEqual({
-      measurement: 3,
+      taste: 4,
+      evals: 7,
       authority: 5,
-      critique: 5,
-      readiness: 5,
+      measurement: 2,
       portability: 3,
     });
     expect(listed.length).toBe(21);
