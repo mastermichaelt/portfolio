@@ -98,19 +98,19 @@ Display headings use `--tracking-tight`. Labels use `--tracking-label` (wide, up
 
 ## Spacing and measure
 
-| Token / class                | Role                                                                 |
-| ---------------------------- | -------------------------------------------------------------------- |
-| `--gap-xs` … `--gap-2xl`     | Shared spacing scale                                                 |
-| `--container` / `.container` | Default content width + gutter (`--gutter`)                          |
-| `.container-narrow`          | Index / placeholder hero measure (~720px)                            |
-| `.section`                   | Vertical section rhythm                                              |
-| `.section-flush`             | Follow-on section with no top padding (continues a compact hero)     |
-| `.measure`                   | Long body / summary measure (~62ch)                                  |
-| `.measure-intro`             | Short section-intro column (~40ch) — not the same role as 34ch lines |
-| `.lead-follow`               | Lead that sits under a title with shared top spacing                 |
-| `.hero-cta`                  | Hero CTA row; includes shared top margin                             |
-| `.hero-compact`              | Index/about heroes with tighter bottom padding (`--gap-lg`)          |
-| `.hero-case`                 | Case-study heroes with slightly deeper bottom padding                |
+| Token / class                | Role                                                                        |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| `--gap-xs` … `--gap-2xl`     | Shared spacing scale                                                        |
+| `--container` / `.container` | Default content width + gutter (`--gutter`)                                 |
+| `.container-narrow`          | Index / placeholder hero measure (~720px)                                   |
+| `.section`                   | Vertical section rhythm                                                     |
+| `.section-flush`             | Follow-on section with no top padding (continues a compact hero)            |
+| `.measure`                   | Long body / summary measure (~62ch)                                         |
+| `.measure-intro`             | Short section-intro column (~40ch) — not the same role as 34ch lines        |
+| `.lead-follow`               | Lead that sits under a title with shared top spacing                        |
+| `.hero-cta`                  | Hero CTA row; includes shared top margin                                    |
+| `.hero-compact`              | Index/editorial heroes: `--gap-2xl` top (nav-to-content), `--gap-lg` bottom |
+| `.hero-case`                 | Case-study heroes with slightly deeper bottom padding                       |
 
 Honest one-off spacing (distinct roles, single use) may stay as `style={{}}` or a narrowly named class — do not invent a utility vocabulary that flattens different layout needs.
 

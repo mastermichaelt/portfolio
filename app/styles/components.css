@@ -304,7 +304,8 @@
 }
 
 .hero.hero-compact {
-  padding-bottom: var(--gap-lg);
+  /* Index/editorial rhythm — same nav-to-content top as /about and /projects. */
+  padding-block: var(--gap-2xl) var(--gap-lg);
 }
 
 /* Between --gap-lg (32) and --gap-xl (56); case-study heroes only. */

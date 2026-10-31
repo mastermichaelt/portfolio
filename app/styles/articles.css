@@ -11,7 +11,8 @@
   grid-template-columns: 1.05fr 320px;
   gap: var(--gap-2xl);
   align-items: end;
-  padding-block: clamp(72px, 11vw, 132px) var(--gap-md);
+  /* Match index/editorial intros (.pindex-hero-section, .about-shell). */
+  padding-block: var(--gap-2xl) var(--gap-md);
 }
 
 .aline-intro {

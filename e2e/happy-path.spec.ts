@@ -580,6 +580,40 @@ test.describe("portfolio happy path", () => {
     );
   });
 
+  test("index pages share compact nav-to-intro spacing", async ({ page }) => {
+    const routes = [
+      { path: "/articles", intro: ".aline-intro .eyebrow" },
+      { path: "/projects", intro: ".pindex-eyebrow" },
+      { path: "/about", intro: ".about-name" },
+      { path: "/ecosystem", intro: ".hero-compact .eyebrow" },
+    ] as const;
+
+    for (const viewport of [
+      { width: 375, height: 812 },
+      { width: 768, height: 1024 },
+      { width: 1440, height: 900 },
+    ] as const) {
+      await page.setViewportSize(viewport);
+      const clearances: number[] = [];
+      for (const route of routes) {
+        await page.goto(route.path);
+        const clearance = await page.evaluate((selector) => {
+          const nav = document
+            .querySelector(".topnav")!
+            .getBoundingClientRect();
+          const intro = document
+            .querySelector(selector)!
+            .getBoundingClientRect();
+          return intro.top - nav.bottom;
+        }, route.intro);
+        clearances.push(clearance);
+      }
+      const spread = Math.max(...clearances) - Math.min(...clearances);
+      // Shared --gap-2xl page-intro top; line boxes differ slightly by route.
+      expect(spread).toBeLessThanOrEqual(28);
+    }
+  });
+
   test("articles 2a hardening: tap targets, index filler, and anchor clearance", async ({
     page,
   }) => {
