@@ -29,32 +29,32 @@ The retired **sage** accent, serif display stack, and systems-map signature moti
 
 ## Color token roles
 
-| Token             | Role                                                                                                                                                                                                              |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--bg`            | Page canvas                                                                                                                                                                                                       |
-| `--surface`       | Panels (cards, canvases, secondary button fill)                                                                                                                                                                   |
-| `--surface-2`     | Hover wash and inline-code fill, one step above `--surface`                                                                                                                                                       |
-| `--fg`            | Primary text and interactive ink                                                                                                                                                                                  |
-| `--fg-2`          | Body copy inside panels, leads, supporting sentences                                                                                                                                                              |
-| `--muted`         | Meta, labels, idle nav — **contrast floor** (5.26:1 on `--bg`)                                                                                                                                                    |
-| `--muted-strong`  | Scope / qualifier lines (above the floor)                                                                                                                                                                         |
-| `--border`        | Hairline rules and 1px panel gaps                                                                                                                                                                                 |
-| `--border-strong` | Stronger rules (scope bar, control outlines)                                                                                                                                                                      |
-| `--rule`          | Section-head rule (aliases `--fg`)                                                                                                                                                                                |
-| `--accent`        | **Ink role** — accent text and every mark thinner than a surface (eyebrow, current-nav underline, figures, address, rail/TOC bars, selected/expanded diagram borders, focus). Ochre in light, brand amber in dark |
-| `--accent-fill`   | **Fill role** — strong filled/selected surfaces (`.btn-primary`, selected line chip), with `--accent-ink` on top. Brand amber in both themes                                                                      |
-| `--accent-ink`    | Ink on the fill role (buttons, selected chip) — not `--surface`                                                                                                                                                   |
-| `--accent-soft`   | **Soft role** — subtle wash derived from `--accent-fill` (pills); its text stays `--accent`                                                                                                                       |
-| `--fg-soft`       | Soft ink wash (hover fills)                                                                                                                                                                                       |
-| `--shadow*`       | Always `none` — kept so existing `box-shadow` declarations are inert                                                                                                                                              |
+| Token             | Role                                                                                                                                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bg`            | Page canvas                                                                                                                                                                              |
+| `--surface`       | Panels (cards, canvases, secondary button fill)                                                                                                                                          |
+| `--surface-2`     | Hover wash and inline-code fill, one step above `--surface`                                                                                                                              |
+| `--fg`            | Primary text and interactive ink                                                                                                                                                         |
+| `--fg-2`          | Body copy inside panels, leads, supporting sentences                                                                                                                                     |
+| `--muted`         | Meta, labels, idle nav — **contrast floor** (5.26:1 on `--bg`)                                                                                                                           |
+| `--muted-strong`  | Scope / qualifier lines (above the floor)                                                                                                                                                |
+| `--border`        | Hairline rules and 1px panel gaps                                                                                                                                                        |
+| `--border-strong` | Stronger rules (scope bar, control outlines)                                                                                                                                             |
+| `--rule`          | Section-head rule (aliases `--fg`)                                                                                                                                                       |
+| `--accent`        | **Ink role** — accent text and thin marks (current-nav underline, figures, address, rail/TOC bars, selected/expanded diagram borders, focus, links). Ochre in light, brand amber in dark |
+| `--accent-fill`   | **Fill role** — strong filled/selected surfaces (`.btn-primary`, selected line chip), with `--accent-ink` on top. Brand amber in both themes                                             |
+| `--accent-ink`    | Ink on the fill role (buttons, selected chip) — not `--surface`                                                                                                                          |
+| `--accent-soft`   | **Soft role** — subtle wash derived from `--accent-fill` (pills); its text stays `--accent`                                                                                              |
+| `--fg-soft`       | Soft ink wash (hover fills)                                                                                                                                                              |
+| `--shadow*`       | Always `none` — kept so existing `box-shadow` declarations are inert                                                                                                                     |
 
 Do not darken `--muted`; it is the floor, not a starting point. Anything that _fills_ with amber uses `--accent-fill`, not `--accent` — a surface filled with the light-mode ink accent renders dark brown. Derived hover amber uses `color-mix` with `--accent-fill` in component CSS — keep that pattern rather than inventing a new accent token.
 
 ### Accent vs muted
 
-- **Accent ink (`--accent`):** eyebrow, current-nav underline, TOC active border, contact links, outbound arrows, figures, address, and every thin mark. Ochre in light.
+- **Accent ink (`--accent`):** current-nav underline, TOC active border, contact links, outbound arrows, figures, address, in-page emphasis (ordinals, “Start here”, CTAs), and other thin marks — not page-level intro labels. Ochre in light.
 - **Accent fill (`--accent-fill`):** primary CTA fill and the selected Ecosystem chip, with `--accent-ink` on top. Brand amber in both themes.
-- **Muted:** meta, idle nav, labels, dates.
+- **Muted:** meta, idle nav, labels, dates, **page-level eyebrows** (route context before the main heading).
 - **`--fg-2`:** leads and panel body copy — not `--muted`, so reading text stays above the floor with room to spare.
 - Do not tint large text blocks with accent. Do not use accent for decorative chrome that is not a primary signal.
 - Primary fill text uses `--accent-ink` so amber buttons stay readable on dark ground.
@@ -81,20 +81,34 @@ Newsreader and Source Sans are retired.
 
 **Classes / elements:**
 
-| Class / element | Role                                         |
-| --------------- | -------------------------------------------- |
-| `.brand-mark`   | Hero identity (name as brand)                |
-| `.h1` / `h1`    | Page title scale (`--fs-h1`)                 |
-| `.h2` / `h2`    | Section title scale (`--fs-h2`)              |
-| `.h3` / `h3`    | Card / list title scale (`--fs-h3`)          |
-| `.lead`         | Supporting sentence under a title (`--fg-2`) |
-| `.positioning`  | Short display positioning line               |
-| `.eyebrow`      | Mono uppercase accent label (`--fs-label`)   |
-| `.meta`         | Mono secondary metadata                      |
+| Class / element | Role                                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| `.brand-mark`   | Hero identity (name as brand)                                                                               |
+| `.h1` / `h1`    | Page title scale (`--fs-h1`)                                                                                |
+| `.h2` / `h2`    | Section title scale (`--fs-h2`)                                                                             |
+| `.h3` / `h3`    | Card / list title scale (`--fs-h3`)                                                                         |
+| `.lead`         | Supporting sentence under a title (`--fg-2`)                                                                |
+| `.positioning`  | Short display positioning line                                                                              |
+| `.eyebrow`      | Mono uppercase page intro label (`--fs-label`, `--muted`) — same colour role as `.label` / `.about-eyebrow` |
+| `.meta`         | Mono secondary metadata                                                                                     |
 
 Size tokens: `--fs-h1` … `--fs-meta`, plus `--fs-figure` and `--fs-label`. Prefer these over one-off `font-size` unless a surface is intentionally unique (e.g. a slightly smaller about-page brand mark).
 
 Display headings use `--tracking-tight`. Labels use `--tracking-label` (wide, uppercase). Figures use tabular numerals.
+
+### Page intro hierarchy (colour)
+
+Shared route intros (index pages, compact heroes, case-study heroes using `.eyebrow`) follow one hierarchy. In-page emphasis keeps accent ink.
+
+| Element                                  | Colour token                  | Typical classes                                                      |
+| ---------------------------------------- | ----------------------------- | -------------------------------------------------------------------- |
+| Page-level eyebrow                       | `--muted`                     | `.eyebrow`, `.label`, `.about-eyebrow`, `.pindex-eyebrow`            |
+| Main page heading                        | `--fg`                        | `.h1`, page-specific title classes                                   |
+| Supporting description                   | `--fg-2`                      | `.lead`, hero leads                                                  |
+| Links / CTAs                             | `--accent` (ink) or fill pair | `.text-link`, `.btn-primary`, outbound links                         |
+| Category ordinals / highlighted metadata | `--accent`                    | e.g. `.about-ordinal`, `.aline-cell-id`, Articles “Start here” rails |
+
+**Exception:** the Codenames case study band uses `.cn-eyebrow` with accent ink for chapter/band metadata inside the scroll narrative — not the shared page-intro `.eyebrow` pattern.
 
 ## Spacing and measure
 
