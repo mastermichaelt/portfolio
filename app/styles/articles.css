@@ -19,7 +19,7 @@
 }
 
 .aline-intro h1 {
-  max-width: 20ch;
+  max-width: 24ch;
 }
 
 .aline-hero-lead {
@@ -33,9 +33,10 @@
 .aline-register {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   border-left: 1px solid var(--border);
   padding-left: var(--gap-md);
+  padding-block: 4px 8px;
   font-family: var(--font-mono-stack);
   font-size: var(--fs-meta);
   line-height: 1.7;
@@ -61,7 +62,7 @@
 
 .aline-register-note {
   margin: 0;
-  padding-top: 12px;
+  padding-top: 20px;
   border-top: 1px solid var(--border);
   color: var(--muted);
 }

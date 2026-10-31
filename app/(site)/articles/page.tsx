@@ -9,7 +9,7 @@ import { openGraphForCanonicalPath } from "@/lib/social-metadata";
 export const metadata: Metadata = {
   title: "Articles",
   description:
-    "Weekly AI Engineering Field Reports on DEV.to, organized by the TEAM engineering lifecycle (Taste, Evals, Authority, Measurement) and Portability.",
+    "Field reports on DEV.to organized by TEAM Portability: Taste, Evals, Authority, Measurement, and making those disciplines transferable.",
   alternates: {
     canonical: "/articles",
   },
@@ -33,15 +33,12 @@ export default async function ArticlesPage() {
         <section className="aline-hero fade-in">
           <div className="aline-intro">
             <p className="eyebrow">Articles</p>
-            <h1>TEAM, then portability.</h1>
+            <h1>TEAM Portability</h1>
             <p className="aline-hero-lead">
-              Weekly field reports from systems I operate. Each band is a stage
-              in one engineering lifecycle: decide what to build (Taste),
-              establish correctness (Evals), govern permitted change
-              (Authority), observe deployed behaviour (Measurement), then
-              reproduce the practice elsewhere (Portability). Each section
-              states one lesson, recommends where to start reading, then lists
-              the rest on DEV.
+              Field reports from rebuilding how I work with AI. Taste, Evals,
+              Authority, and Measurement became four recurring disciplines.
+              Portability is what makes those practices transferable across
+              projects, tools, and agents.
             </p>
           </div>
           <aside className="aline-register">
@@ -50,8 +47,6 @@ export default async function ArticlesPage() {
               <span className="aline-register-fact">
                 {articles.length} published
               </span>
-              <span className="aline-register-fact">weekly practice</span>
-              <span className="aline-register-fact">Lifecycle order</span>
             </div>
             <p className="aline-register-note">
               Recognized as a{" "}
