@@ -140,7 +140,7 @@ h3 {
   font-size: var(--fs-label);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--muted);
   margin: 0 0 var(--gap-md);
 }
 
