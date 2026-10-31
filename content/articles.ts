@@ -18,7 +18,7 @@ import type { Article } from "@/domain/article";
  * master.
  */
 export const articles: Article[] = [
-  // Taste (3)
+  // Taste (5)
   {
     slug: "ai-workflows-need-a-requirements-qa-stage",
     title: "The pipeline was green. The product was underspecified",
@@ -54,7 +54,28 @@ export const articles: Article[] = [
     relatedProjectSlug: "codenames-ai",
     line: "taste",
   },
-  // Evals & Verification (8)
+  {
+    slug: "the-retrieval-pipeline-worked-the-product-question-remained",
+    title: "The retrieval pipeline worked. The product question remained.",
+    summary:
+      "Retrieval fixtures passed while the settings that served real visitor questions still needed judgment.",
+    year: 2026,
+    tags: ["ai", "agents", "webdev"],
+    url: "https://dev.to/michaeltruong/the-retrieval-pipeline-worked-the-product-question-remained-80c",
+    line: "taste",
+  },
+  {
+    slug: "one-example-beats-style-guide",
+    title: "One good example beat every AI writing rule I wrote",
+    summary:
+      "Teaching an editorial pipeline a writing voice worked better from one strong example than from an expanding list of style rules.",
+    year: 2026,
+    tags: ["ai", "writing"],
+    url: "https://dev.to/michaeltruong/one-good-example-beat-every-ai-writing-rule-i-wrote-7oo",
+    relatedProjectSlug: "editorial-workflow",
+    line: "taste",
+  },
+  // Evals & Verification (4)
   {
     slug: "ai-reviewer-kinds-of-reasoning",
     title: "I fixed my AI reviewer. Then I kept solving the wrong problem",
@@ -81,17 +102,6 @@ export const articles: Article[] = [
     line: "evals",
   },
   {
-    slug: "one-example-beats-style-guide",
-    title: "One good example beat every AI writing rule I wrote",
-    summary:
-      "Teaching an editorial pipeline a writing voice worked better from one strong example than from an expanding list of style rules.",
-    year: 2026,
-    tags: ["ai", "writing"],
-    url: "https://dev.to/michaeltruong/one-good-example-beat-every-ai-writing-rule-i-wrote-7oo",
-    relatedProjectSlug: "editorial-workflow",
-    line: "evals",
-  },
-  {
     slug: "schema-first-valid-json-wasnt-enough",
     title: "Schema first, prompt second: valid JSON wasn't enough",
     summary:
@@ -111,38 +121,6 @@ export const articles: Article[] = [
     tags: ["ai", "webdev", "typescript"],
     url: "https://dev.to/michaeltruong/the-board-came-back-the-highlights-lied-18bo",
     relatedProjectSlug: "codenames-ai",
-    line: "evals",
-  },
-  {
-    slug: "model-experiments-architectural-stress-test",
-    title: "Model experiments became an architectural stress test",
-    summary:
-      "A production model swap surfaced contract and validation failures that looked like quality regressions but were architectural gaps.",
-    year: 2026,
-    tags: ["ai", "testing", "architecture"],
-    url: "https://dev.to/michaeltruong/model-experiments-became-an-architectural-stress-test-3gc0",
-    relatedProjectSlug: "codenames-ai",
-    line: "evals",
-  },
-  {
-    slug: "we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable",
-    title:
-      "We made our agent plans portable. Then we had to make them verifiable.",
-    summary:
-      "Sharing planning methodology across six repos did not keep plans structurally consistent until deterministic validation ran in CI.",
-    year: 2026,
-    tags: ["ai", "workflow", "governance"],
-    url: "https://dev.to/michaeltruong/we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable-3ead",
-    line: "evals",
-  },
-  {
-    slug: "the-retrieval-pipeline-worked-the-product-question-remained",
-    title: "The retrieval pipeline worked. The product question remained.",
-    summary:
-      "Retrieval fixtures passed while the settings that served real visitor questions still needed judgment.",
-    year: 2026,
-    tags: ["ai", "agents", "webdev"],
-    url: "https://dev.to/michaeltruong/the-retrieval-pipeline-worked-the-product-question-remained-80c",
     line: "evals",
   },
   // Authority (5)
@@ -202,7 +180,7 @@ export const articles: Article[] = [
     lineLead: true,
     argument: "You still have to define where agent work stops.",
   },
-  // Measurement (2)
+  // Measurement (3)
   {
     slug: "active-players-which-sessions-counted",
     title: "Active players looked real until we asked which sessions counted",
@@ -227,7 +205,18 @@ export const articles: Article[] = [
     url: "https://dev.to/michaeltruong/records-first-chart-second-the-sankey-disagreed-3841",
     line: "measurement",
   },
-  // Portability (3)
+  {
+    slug: "model-experiments-architectural-stress-test",
+    title: "Model experiments became an architectural stress test",
+    summary:
+      "A production model swap surfaced contract and validation failures that looked like quality regressions but were architectural gaps.",
+    year: 2026,
+    tags: ["ai", "testing", "architecture"],
+    url: "https://dev.to/michaeltruong/model-experiments-became-an-architectural-stress-test-3gc0",
+    relatedProjectSlug: "codenames-ai",
+    line: "measurement",
+  },
+  // Portability (4)
   {
     slug: "agent-portability-does-not-require-centralizing-methodology-behind-mcp",
     title: "I was solving agent portability at the wrong boundary",
@@ -260,6 +249,17 @@ export const articles: Article[] = [
     tags: ["ai", "agents", "workflow"],
     url: "https://dev.to/michaeltruong/one-skill-per-action-looked-like-the-safe-boundary-13pj",
     relatedProjectSlug: "editorial-workflow",
+    line: "portability",
+  },
+  {
+    slug: "we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable",
+    title:
+      "We made our agent plans portable. Then we had to make them verifiable.",
+    summary:
+      "Sharing planning methodology across six repos did not keep plans structurally consistent until deterministic validation ran in CI.",
+    year: 2026,
+    tags: ["ai", "workflow", "governance"],
+    url: "https://dev.to/michaeltruong/we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable-3ead",
     line: "portability",
   },
 ];

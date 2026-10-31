@@ -3,13 +3,14 @@ import type { ArticleLineDefinition } from "@/domain/article";
 /**
  * The five lifecycle stages of `/articles`, in fixed render order (direction 2a).
  *
- * Stages 01–04 are **TEAM** (Taste → Evals → Authority → Measurement): the
- * in-product engineering loop. Stage 05 (**Portability**) is how that loop is
- * reproduced across repositories, agents, and tools.
+ * Stages 01–04 are **TEAM** under **TEAM Portability** (Taste → Evals &
+ * Verification → Authority → Measurement). Stage 05 (**Portability**) is
+ * applying those disciplines consistently across projects, tools, and agents.
  *
- * Classify each report by the **primary engineering question** it answers, not
- * title keywords. Membership lives on `Article.line` in `content/articles.ts`;
- * counts are 3 / 8 / 5 / 2 / 3.
+ * Classify each report by the **primary engineering lesson** (see
+ * `docs/articles-team-portability-classification-audit.md`), not techniques
+ * used along the way. Membership on `Article.line` in `content/articles.ts`;
+ * counts are 5 / 4 / 5 / 3 / 4.
  */
 export const articleLines: ArticleLineDefinition[] = [
   {
@@ -22,8 +23,7 @@ export const articleLines: ArticleLineDefinition[] = [
   {
     id: "evals",
     label: "Evals & Verification",
-    lifecycleQuestion:
-      "How do we establish implementation correctness and quality?",
+    lifecycleQuestion: "Does the implementation satisfy its expected contract?",
     pairs: "Editorial workflow; Codenames AI",
   },
   {
@@ -37,7 +37,7 @@ export const articleLines: ArticleLineDefinition[] = [
     id: "measurement",
     label: "Measurement",
     lifecycleQuestion:
-      "What do deployed behaviour and production outcomes show?",
+      "What does observed system behaviour reveal about quality and outcomes?",
     pairs: "Codenames AI; career analytics",
   },
   {

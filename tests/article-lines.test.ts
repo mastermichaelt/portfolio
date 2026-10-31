@@ -48,7 +48,7 @@ describe("groupArticleLines", () => {
       "04",
       "05",
     ]);
-    expect(bands.map((band) => band.count)).toEqual([3, 8, 5, 2, 3]);
+    expect(bands.map((band) => band.count)).toEqual([5, 4, 5, 3, 4]);
 
     for (const band of bands) {
       expect(band.lead.article.lineLead).toBe(true);
