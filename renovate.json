@@ -5,12 +5,14 @@
   "timezone": "Australia/Sydney",
   "labels": ["dependencies"],
   "rangeStrategy": "bump",
-  "dependencyDashboard": true,
+  "dependencyDashboard": {
+    "enabled": true
+  },
   "prHourlyLimit": 2,
   "prConcurrentLimit": 5,
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 6am on Monday"]
+    "schedule": ["before 12pm on Monday"]
   },
   "packageRules": [
     {
