@@ -4,7 +4,7 @@ on:
   schedule:
     # Sunday 13:17 UTC (off the hour) — Monday 00:17 AEDT. GitHub’s scheduled
     # workflow runner is often 2.5–5+ hours late on Sunday cron; starting earlier
-    # still finishes before renovate.json lockFileMaintenance (before 6am Monday)
+    # still finishes before renovate.json lockFileMaintenance (before 12pm Monday)
     # and the owner’s Monday morning review even with ~5h delay.
     - cron: "17 13 * * 0"
   workflow_dispatch:
