@@ -28,8 +28,6 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "playwright:install": "playwright install chromium",
-    "generate:image": "node scripts/generate-image.mjs",
-    "generate:video": "node scripts/generate-video.mjs",
     "generate:connect-qr": "node --experimental-strip-types scripts/generate-connect-qr.mjs",
     "generate:connect-manifest": "node --experimental-strip-types scripts/generate-connect-manifest.mjs",
     "generate:connect-icons": "node --experimental-strip-types scripts/generate-connect-icons.mjs",
@@ -61,7 +59,6 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
-    "@google/genai": "^2.32.0",
     "@multipliers-dev/renovate-workflow": "^0.3.1",
     "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4.3.5",

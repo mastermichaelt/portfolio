@@ -6,7 +6,7 @@ let envFilesLoaded = false;
 
 /**
  * Load `.env.local` then `.env` from the repo root without overriding existing
- * process environment variables (matches generate-image / generate-video).
+ * process environment variables.
  *
  * @param {{ force?: boolean }} [options]
  */
