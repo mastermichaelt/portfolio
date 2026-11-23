@@ -220,7 +220,7 @@ Ingestion **sync** stays `lib/assistant/db/ingest-sync.ts`; chunking/derive rema
 
 1. **Next.js production API** — webpack/turbopack resolves `@/lib/assistant/**/*.ts` (existing).
 2. **Vitest** — `@/` paths; primary verification for services.
-3. **Operational CLIs that need `@/`** — `node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs` (Node **24.x** per repo `.nvmrc`); same pattern as today for ingest/retrieve/review.
+3. **Operational CLIs that need `@/`** — `node --experimental-strip-types --import ./scripts/assistant/okf/register-tsconfig-paths.mjs` (Node **26.x** per repo `.nvmrc`); same pattern as today for ingest/retrieve/review.
 
 **Do not add** `tsx` or a standalone `tsc` build for assistant services unless a concrete blocker appears.
 

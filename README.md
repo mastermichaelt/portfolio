@@ -16,7 +16,7 @@ Looking for the open-source engineering work? See [multipliers-dev/renovate-work
 
 ## Local development
 
-Requires Node 24 (see `.nvmrc`).
+Requires Node 26 (see `.nvmrc`).
 
 ```bash
 npm install

@@ -28,4 +28,4 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Validate renovate.json
-        run: npx -p renovate -c 'renovate-config-validator --strict'
+        run: npx -p renovate@44 -c 'renovate-config-validator --strict'
