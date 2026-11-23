@@ -171,7 +171,7 @@ packages:
     - "@types/*"
     - "@multipliers-dev/renovate-workflow"
   # runtime: dependencies under workspace_roots not matched above → runtime_dependency
-  # unlisted: devDependency not matched above (e.g. @google/genai) → unlisted_package
+  # unlisted: devDependency not matched above → unlisted_package
 
 deployment:
   mode: pat_branch

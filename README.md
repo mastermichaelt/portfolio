@@ -36,7 +36,7 @@ npm run build
 npm run test:e2e            # after npm run build; run playwright:install once
 ```
 
-Copy [`.env.example`](.env.example) to `.env.local` when you need `NEXT_PUBLIC_SITE_URL`, PostHog, or dev-only image/video generators. None are required for the static MVP.
+Copy [`.env.example`](.env.example) to `.env.local` when you need `NEXT_PUBLIC_SITE_URL` or PostHog. None are required for the static MVP.
 
 Full command reference: [AGENTS.md](AGENTS.md).
 
