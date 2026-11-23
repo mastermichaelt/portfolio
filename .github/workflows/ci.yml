@@ -22,6 +22,14 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Assert Node major matches .nvmrc
+        run: |
+          set -euo pipefail
+          want="$(tr -d '[:space:]' < .nvmrc)"
+          got="$(node -p "process.versions.node.split('.')[0]")"
+          echo "node -v: $(node -v) (major ${got}; .nvmrc ${want})"
+          test "$got" = "$want"
+
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck

@@ -14,7 +14,19 @@
     "enabled": true,
     "schedule": ["before 12pm on Monday"]
   },
+  "npmrc": "allow-remote=all",
+  "npmrcMerge": true,
   "packageRules": [
+    {
+      "description": "Keep .nvmrc and engines on major tracks (26, 26.x), not exact patch pins",
+      "matchPackageNames": ["node"],
+      "rangeStrategy": "replace"
+    },
+    {
+      "matchPackageNames": ["node"],
+      "matchUpdateTypes": ["pin"],
+      "enabled": false
+    },
     {
       "matchManagers": ["github-actions"],
       "groupName": "GitHub Actions",
