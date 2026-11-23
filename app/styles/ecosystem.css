@@ -310,8 +310,11 @@
   }
 
   /* Touch layout: chips meet the 44px minimum hit target across the whole
-     stacked selector, not just at <=600px. */
+     stacked selector, not just at <=600px. Slightly taller block padding keeps
+     getBoundingClientRect() above the floor after layout/DPR rounding — a bare
+     min-height: 44px alone can report ~43.999px in headless Chromium. */
   .line-chip {
+    padding-block: 12px;
     min-height: 44px;
   }
 
