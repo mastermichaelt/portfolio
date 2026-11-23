@@ -67,7 +67,7 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitest/coverage-v8": "^4.1.12",
+    "@vitest/coverage-v8": "^5.1.1",
     "drizzle-kit": "^0.31.11",
     "eslint": "^10.15.0",
     "eslint-config-next": "16.4.6",
@@ -81,7 +81,7 @@
     "sharp": "^0.35.5",
     "tailwindcss": "^4.3.5",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.12"
+    "vitest": "^5.1.1"
   },
   "lint-staged": {
     "*.{cjs,js,jsx,mjs,ts,tsx}": [
