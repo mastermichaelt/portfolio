@@ -319,16 +319,16 @@ Verify in PostHog: filter `analytics_environment = assistant_generation_tooling`
 
 **Resource bounds** (optional env overrides — see `.env.example`):
 
-| Variable                                       | Default (dev) | Role                                                                                |
-| ---------------------------------------------- | ------------- | ----------------------------------------------------------------------------------- |
-| `ASSISTANT_GENERATION_MODEL`                   | `gpt-4o-mini` | Chat model                                                                          |
-| `ASSISTANT_GENERATION_TOP_K`                   | `10`          | Generation retrieve K                                                               |
-| `ASSISTANT_EVIDENCE_CHARACTER_BUDGET`          | `120000`      | Evidence packet char cap (`EvidenceBudgetExceeded` when exceeded)                   |
-| `ASSISTANT_GENERATION_PROMPT_TOKEN_BUDGET`     | `28000`       | Heuristic prompt cap (chars ÷ 4)                                                    |
-| `ASSISTANT_GENERATION_MAX_OUTPUT_TOKENS`       | `2048`        | Chat `max_tokens`                                                                   |
-| `ASSISTANT_GENERATION_TIMEOUT_MS`              | `120000`      | End-to-end OpenAI chat budget (all attempts, retry backoff, and response body read) |
-| `ASSISTANT_GENERATION_MAX_QUESTION_LENGTH`     | `4000`        | Question validation                                                                 |
-| `ASSISTANT_GENERATION_MAX_RESPONSE_JSON_CHARS` | `24000`       | Reject overlong model JSON                                                          |
+| Variable                                       | Default (dev)   | Role                                                                                |
+| ---------------------------------------------- | --------------- | ----------------------------------------------------------------------------------- |
+| `ASSISTANT_GENERATION_MODEL`                   | `gpt-5.6-terra` | Chat model (reasoning effort `none`)                                                |
+| `ASSISTANT_GENERATION_TOP_K`                   | `10`            | Generation retrieve K                                                               |
+| `ASSISTANT_EVIDENCE_CHARACTER_BUDGET`          | `120000`        | Evidence packet char cap (`EvidenceBudgetExceeded` when exceeded)                   |
+| `ASSISTANT_GENERATION_PROMPT_TOKEN_BUDGET`     | `28000`         | Heuristic prompt cap (chars ÷ 4)                                                    |
+| `ASSISTANT_GENERATION_MAX_OUTPUT_TOKENS`       | `2048`          | Chat `max_completion_tokens`                                                        |
+| `ASSISTANT_GENERATION_TIMEOUT_MS`              | `120000`        | End-to-end OpenAI chat budget (all attempts, retry backoff, and response body read) |
+| `ASSISTANT_GENERATION_MAX_QUESTION_LENGTH`     | `4000`          | Question validation                                                                 |
+| `ASSISTANT_GENERATION_MAX_RESPONSE_JSON_CHARS` | `24000`         | Reject overlong model JSON                                                          |
 
 Implementation entrypoint: `scripts/assistant/generation/run-generation.mjs` (imported by `scripts/assistant/answer.mjs` and `app/api/assistant/generate/route.ts`).
 

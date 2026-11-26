@@ -18,7 +18,7 @@ related:
 
 This note captures answer-generation architecture for the portfolio assistant. **Active orchestration:** [2026-10-30-assistant-roadmap.plan.md](../../.cursor/plans/2026-10-30-assistant-roadmap.plan.md). **Historical execution plan (archived, implementation shipped):** [2026-10-08-assistant-grounded-rag-generation.plan.md](../../.cursor/plans/archive/2026-10-08-assistant-grounded-rag-generation.plan.md). Operational acceptance before public reopen: [Phase 4 production reopening](../../.cursor/plans/2026-10-30-assistant-04-production-reopening.plan.md). This direction doc remains design background.
 
-**Locked for the current milestone (see plan):** `gpt-4o-mini`; default evidence assembly **`full_parent`** (OKF concept boundary, Postgres-backed units); eval baselines **`top_k_only`** and **`no_retrieval`** (model-only, eval-only); generation default top-K **10**; budget fail-closed **`EvidenceBudgetExceeded`** (no silent drop of matched retrieval units); **evidence-aware generation** (general knowledge allowed with honest attribution); **citation integrity** + structural claim rules (contract/runtime) vs **citation support** and **attribution accuracy** (generation-eval).
+**Locked for the current milestone (see plan):** `gpt-4o-mini` (superseded by `gpt-5.6-terra` (`reasoning_effort: none`), Nov 2026); default evidence assembly **`full_parent`** (OKF concept boundary, Postgres-backed units); eval baselines **`top_k_only`** and **`no_retrieval`** (model-only, eval-only); generation default top-K **10**; budget fail-closed **`EvidenceBudgetExceeded`** (no silent drop of matched retrieval units); **evidence-aware generation** (general knowledge allowed with honest attribution); **citation integrity** + structural claim rules (contract/runtime) vs **citation support** and **attribution accuracy** (generation-eval).
 
 Sections use the same labels as [architecture-direction.md](./architecture-direction.md): **current implementation**, **proposed design option**, **open decision**, **architectural direction**.
 
@@ -254,7 +254,7 @@ Visitors should be able to **begin with natural-language questions** rather than
 
 ### UI surface (`generation-ui`)
 
-**Architectural direction.** Render a compact usage line only after a **successful** client response, e.g. `GPT-4o mini · 1,842 input tokens · 326 output tokens`. Do not show estimated token counts, utilization percentages, or operator diagnostics. Do not add **browser-side PostHog** (or other client analytics) events for token usage.
+**Architectural direction.** Render a compact usage line only after a **successful** client response, e.g. `GPT-5.6 Terra · 1,842 input tokens · 326 output tokens`. Do not show estimated token counts, utilization percentages, or operator diagnostics. Do not add **browser-side PostHog** (or other client analytics) events for token usage.
 
 ### Operator telemetry (PostHog) — independent
 

@@ -1,8 +1,7 @@
 import type { AssistantPublicUsage } from "@/lib/assistant/api/public-envelope";
 
 const MODEL_DISPLAY: Record<string, string> = {
-  "gpt-4o-mini": "GPT-4o mini",
-  "gpt-4o": "GPT-4o",
+  "gpt-5.6-terra": "GPT-5.6 Terra",
 };
 
 export function formatModelDisplayName(

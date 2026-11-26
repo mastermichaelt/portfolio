@@ -163,7 +163,7 @@ describe("parseAssistantGenerateSuccessBody", () => {
 
 describe("format usage footer", () => {
   it("formats model display names", () => {
-    expect(formatModelDisplayName("gpt-4o-mini")).toBe("GPT-4o mini");
+    expect(formatModelDisplayName("gpt-5.6-terra")).toBe("GPT-5.6 Terra");
   });
 
   it("omits footer when usage is empty", () => {
@@ -173,13 +173,13 @@ describe("format usage footer", () => {
 
   it("never zero-fills missing token fields", () => {
     const parts = buildUsageFooterParts({
-      model: "gpt-4o-mini",
+      model: "gpt-5.6-terra",
       prompt_tokens: 1842,
     });
     expect(parts?.promptTokens).toBe(1842);
     expect(parts?.completionTokens).toBeUndefined();
     expect(formatUsageFooterLine(parts!)).toBe(
-      "GPT-4o mini · 1,842 input tokens",
+      "GPT-5.6 Terra · 1,842 input tokens",
     );
   });
 });
