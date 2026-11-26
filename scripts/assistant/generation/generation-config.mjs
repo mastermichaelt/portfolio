@@ -1,7 +1,7 @@
 import { loadEnvFiles } from "../db/load-env.mjs";
 import { DEFAULT_EVIDENCE_CHARACTER_BUDGET } from "./evidence-packet.mjs";
 
-export const DEFAULT_GENERATION_MODEL = "gpt-4o-mini";
+export const DEFAULT_GENERATION_MODEL = "gpt-5.6-terra";
 export const DEFAULT_GENERATION_TOP_K = 10;
 
 /** Development default; production should set ASSISTANT_EVIDENCE_CHARACTER_BUDGET explicitly. */

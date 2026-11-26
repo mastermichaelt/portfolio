@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: terra-migration
     content: "PR 1: gpt-5.6-terra default, reasoning_effort none, max_completion_tokens, temperature removed, request-contract tests, display map + docs, bounded live smoke"
-    status: pending
+    status: completed
   - id: plan-closure
     content: "Docs-only PR after terra-migration: add # Shipped note, move plan to .cursor/plans/archive/YYYY-MM-DD-assistant-gpt-5-6-terra-migration.plan.md"
     status: pending

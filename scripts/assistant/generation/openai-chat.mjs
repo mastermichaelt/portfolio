@@ -314,8 +314,8 @@ export async function requestChatCompletionJson(options) {
       { role: "user", content: options.user },
     ],
     response_format: { type: "json_object" },
-    max_tokens: maxOutputTokens,
-    temperature: 0.2,
+    reasoning_effort: "none",
+    max_completion_tokens: maxOutputTokens,
   });
 
   const url = options.url ?? OPENAI_CHAT_COMPLETIONS_URL;

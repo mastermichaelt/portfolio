@@ -1,6 +1,7 @@
 import type { Pool } from "pg";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { resetEnvFileLoader } from "@/scripts/assistant/db/load-env.mjs";
 import { assembleEvidencePacket } from "@/scripts/assistant/generation/evidence-packet.mjs";
 import {
   GenerationParseError,
@@ -186,6 +187,58 @@ describe("OpenAI chat adapter", () => {
       expect(parseError.details?.max_output_tokens).toBe(2048);
       expect(parseError.details?.completion_tokens).toBe(50);
     }
+  });
+
+  describe("request contract", () => {
+    beforeEach(() => {
+      // Empty strings block .env.local reload (loadEnvFiles only fills undefined keys).
+      vi.stubEnv("ASSISTANT_GENERATION_MODEL", "");
+      vi.stubEnv("ASSISTANT_GENERATION_MAX_OUTPUT_TOKENS", "");
+      resetEnvFileLoader();
+    });
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+      resetEnvFileLoader();
+    });
+
+    async function captureRequestBody(
+      options: { maxOutputTokens?: number } = {},
+    ): Promise<Record<string, unknown>> {
+      const fetch = mockChatFetch('{"claims":[]}');
+      await requestChatCompletionJson({
+        system: "Respond in json",
+        user: "ping",
+        apiKey: "test-key",
+        fetch,
+        maxRetries: 0,
+        ...options,
+      });
+      const init = vi.mocked(fetch).mock.calls[0]?.[1];
+      return JSON.parse(String(init?.body)) as Record<string, unknown>;
+    }
+
+    it("sends the GPT-5.6 Terra parameter set by default", async () => {
+      const body = await captureRequestBody();
+      expect(body.model).toBe("gpt-5.6-terra");
+      expect(body.reasoning_effort).toBe("none");
+      expect(body.max_completion_tokens).toBe(2048);
+      expect(body.response_format).toEqual({ type: "json_object" });
+      expect(body).not.toHaveProperty("temperature");
+      expect(body).not.toHaveProperty("max_tokens");
+    });
+
+    it("sends the ASSISTANT_GENERATION_MODEL override as model", async () => {
+      vi.stubEnv("ASSISTANT_GENERATION_MODEL", "custom-model");
+      const body = await captureRequestBody();
+      expect(body.model).toBe("custom-model");
+    });
+
+    it("maps explicit maxOutputTokens to max_completion_tokens", async () => {
+      const body = await captureRequestBody({ maxOutputTokens: 512 });
+      expect(body.max_completion_tokens).toBe(512);
+      expect(body).not.toHaveProperty("max_tokens");
+    });
   });
 });
 
