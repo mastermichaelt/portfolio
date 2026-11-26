@@ -10,9 +10,25 @@ todos:
     status: completed
   - id: plan-closure
     content: "Docs-only PR after terra-migration: add # Shipped note, move plan to .cursor/plans/archive/YYYY-MM-DD-assistant-gpt-5-6-terra-migration.plan.md"
-    status: pending
+    status: completed
 isProject: false
 ---
+
+# Shipped
+
+**Archived 2026-11-26.** Plan review merged via [PR #144](https://github.com/mastermichaelt/portfolio/pull/144); implementation merged via [PR #145](https://github.com/mastermichaelt/portfolio/pull/145) (merge commit `262d120`).
+
+| Slice           | Delivered                                                                                                                                                                                                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| plan-review     | Plan artifact reviewed and merged ([PR #144](https://github.com/mastermichaelt/portfolio/pull/144))                                                                                                                                                                                                                            |
+| terra-migration | `gpt-5.6-terra` default; requests send `reasoning_effort: "none"` and `max_completion_tokens`; `temperature` and `max_tokens` removed; request-contract tests; display map, `.env.example` and docs updated; bounded three-question live smoke passed 3 of 3 ([PR #145](https://github.com/mastermichaelt/portfolio/pull/145)) |
+| plan-closure    | This archive                                                                                                                                                                                                                                                                                                                   |
+
+**Deferred / not done here:**
+
+- Enabling public generation stays gated by [`2026-10-30-assistant-04-production-reopening.plan.md`](../2026-10-30-assistant-04-production-reopening.plan.md); `ASSISTANT_PUBLIC_ENABLED` was untouched.
+- The later TypeScript port of `requestChatCompletionJson` ([`2026-10-30-assistant-02-typescript-consolidation.plan.md`](../2026-10-30-assistant-02-typescript-consolidation.plan.md)) carries the new request body with it.
+- Embeddings (`text-embedding-3-small`), fallback models, and comparative model evaluation remained out of scope.
 
 # Assistant GPT-5.6 Terra migration
 
@@ -39,7 +55,7 @@ Migrate assistant generation from `gpt-4o-mini` to `gpt-5.6-terra` ahead of the 
 | terra-migration | Open PR only          | Do not merge. Stop after opening the PR.               |
 | plan-closure    | Open PR only          | Do not merge. Stop after opening the PR.               |
 
-Repo default: **Open PR only** ([planning-standards.md](../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
+Repo default: **Open PR only** ([planning-standards.md](../../standards/planning-standards.md#repo-default-when-no-plan-slice-applies)).
 
 ---
 
@@ -59,17 +75,17 @@ The repository integration branch is `main`. Every slice starts from and targets
 
 ## Context — current implementation
 
-- **Single request builder:** `requestChatCompletionJson` in [`scripts/assistant/generation/openai-chat.mjs`](../../scripts/assistant/generation/openai-chat.mjs) is the only Chat Completions call site. `runCompletionPass` in [`run-generation.mjs`](../../scripts/assistant/generation/run-generation.mjs) uses it for both the initial pass and the corrective retry pass. The API route, the `assistant:answer` CLI, and the evaluation flow all reach it through `runRagGeneration`.
-- **Model default:** `DEFAULT_GENERATION_MODEL = "gpt-4o-mini"` in [`generation-config.mjs`](../../scripts/assistant/generation/generation-config.mjs). The `ASSISTANT_GENERATION_MODEL` override (`?.trim() || default`) is retained unchanged.
+- **Single request builder:** `requestChatCompletionJson` in [`scripts/assistant/generation/openai-chat.mjs`](../../../scripts/assistant/generation/openai-chat.mjs) is the only Chat Completions call site. `runCompletionPass` in [`run-generation.mjs`](../../../scripts/assistant/generation/run-generation.mjs) uses it for both the initial pass and the corrective retry pass. The API route, the `assistant:answer` CLI, and the evaluation flow all reach it through `runRagGeneration`.
+- **Model default:** `DEFAULT_GENERATION_MODEL = "gpt-4o-mini"` in [`generation-config.mjs`](../../../scripts/assistant/generation/generation-config.mjs). The `ASSISTANT_GENERATION_MODEL` override (`?.trim() || default`) is retained unchanged.
 - **Temperature:** only a hardcoded `temperature: 0.2` in the request body. There is no env var, config field, or parameter plumbing, so removal is a one-line delete.
 - **Output tokens:** `ASSISTANT_GENERATION_MAX_OUTPUT_TOKENS` (default 2048) flows from config to `maxOutputTokens` to the wire key `max_tokens`. Only the wire key changes. The internal name `maxOutputTokens`, the env var, and the telemetry/diagnostic property `max_output_tokens` stay, so the PostHog schema is unchanged.
 - **Keep 2048:** no evidence supports changing it. With `reasoning_effort: "none"`, reasoning tokens are negligible, and the existing `finish_reason=length` guard already maps to `output_truncated`.
 - **JSON mode:** `response_format: { type: "json_object" }` and the existing prompts are unchanged. They already satisfy the requirement that the messages mention JSON.
-- **Visitor-facing display:** [`lib/assistant/ui/format-usage-footer.ts`](../../lib/assistant/ui/format-usage-footer.ts) maps only `gpt-4o-mini` and `gpt-4o`. `completion.model` echoes the requested alias, so Terra would render as the raw `gpt-5.6-terra` without a new entry.
+- **Visitor-facing display:** [`lib/assistant/ui/format-usage-footer.ts`](../../../lib/assistant/ui/format-usage-footer.ts) maps only `gpt-4o-mini` and `gpt-4o`. `completion.model` echoes the requested alias, so Terra would render as the raw `gpt-5.6-terra` without a new entry.
 - **Tests:** no existing test asserts the request body, the model default, or the override. All chat tests use mocked `fetch`.
 - **Overlapping active plans (non-blocking):**
-  - [`2026-10-30-assistant-02-typescript-consolidation.plan.md`](2026-10-30-assistant-02-typescript-consolidation.plan.md) (pending) will later port `requestChatCompletionJson` to `lib/assistant/providers/llm.ts`, and the new request body moves with it.
-  - [`2026-10-30-assistant-04-production-reopening.plan.md`](2026-10-30-assistant-04-production-reopening.plan.md) remains the gate for re-enabling public generation.
+  - [`2026-10-30-assistant-02-typescript-consolidation.plan.md`](../2026-10-30-assistant-02-typescript-consolidation.plan.md) (pending) will later port `requestChatCompletionJson` to `lib/assistant/providers/llm.ts`, and the new request body moves with it.
+  - [`2026-10-30-assistant-04-production-reopening.plan.md`](../2026-10-30-assistant-04-production-reopening.plan.md) remains the gate for re-enabling public generation.
 
 ---
 
@@ -103,8 +119,8 @@ The repository integration branch is `main`. Every slice starts from and targets
 
 ### Changes
 
-1. [`scripts/assistant/generation/generation-config.mjs`](../../scripts/assistant/generation/generation-config.mjs): `DEFAULT_GENERATION_MODEL = "gpt-5.6-terra"` (alias, not a dated snapshot).
-2. [`scripts/assistant/generation/openai-chat.mjs`](../../scripts/assistant/generation/openai-chat.mjs): change the request body to:
+1. [`scripts/assistant/generation/generation-config.mjs`](../../../scripts/assistant/generation/generation-config.mjs): `DEFAULT_GENERATION_MODEL = "gpt-5.6-terra"` (alias, not a dated snapshot).
+2. [`scripts/assistant/generation/openai-chat.mjs`](../../../scripts/assistant/generation/openai-chat.mjs): change the request body to:
 
    ```js
    const body = JSON.stringify({
@@ -118,16 +134,16 @@ The repository integration branch is `main`. Every slice starts from and targets
 
    `reasoning_effort` is a literal: no config, env var, or per-model branch.
 
-3. [`lib/assistant/ui/format-usage-footer.ts`](../../lib/assistant/ui/format-usage-footer.ts): replace the `gpt-4o-mini` and `gpt-4o` entries with `"gpt-5.6-terra": "GPT-5.6 Terra"`. Unmapped ids still fall back to the raw id.
-4. [`tests/assistant-generation-service.test.ts`](../../tests/assistant-generation-service.test.ts), in the "OpenAI chat adapter" describe block: add request-contract tests that capture the `fetch` body and assert the following.
+3. [`lib/assistant/ui/format-usage-footer.ts`](../../../lib/assistant/ui/format-usage-footer.ts): replace the `gpt-4o-mini` and `gpt-4o` entries with `"gpt-5.6-terra": "GPT-5.6 Terra"`. Unmapped ids still fall back to the raw id.
+4. [`tests/assistant-generation-service.test.ts`](../../../tests/assistant-generation-service.test.ts), in the "OpenAI chat adapter" describe block: add request-contract tests that capture the `fetch` body and assert the following.
    - With `ASSISTANT_GENERATION_MODEL` stubbed to `""`: `model === "gpt-5.6-terra"`, `reasoning_effort === "none"`, `max_completion_tokens === 2048`, and `response_format` is `json_object`. The body has no `temperature` and no `max_tokens`.
    - With `ASSISTANT_GENERATION_MODEL` set to a custom value: that value is sent as `model` (override retained).
    - Explicit `maxOutputTokens: 512` maps to `max_completion_tokens: 512`.
-   - Use `vi.stubEnv` plus `resetEnvFileLoader()`, following [`tests/assistant-openai-request-headers.test.ts`](../../tests/assistant-openai-request-headers.test.ts), so `.env.local` cannot leak into the test.
-5. [`tests/assistant-ui.test.ts`](../../tests/assistant-ui.test.ts) ("format usage footer" describe block): update the display-name and footer-line expectations to `gpt-5.6-terra` / `GPT-5.6 Terra`.
-6. [`.env.example`](../../.env.example): change the commented `ASSISTANT_GENERATION_MODEL` default to `gpt-5.6-terra` and add a one-line note that an override must accept `reasoning_effort` and `max_completion_tokens`.
-7. [`docs/assistant/assistant-database.md`](../../docs/assistant/assistant-database.md), env table: the default becomes `gpt-5.6-terra` (reasoning effort `none`), and the max-output row describes "Chat `max_completion_tokens`".
-8. [`docs/assistant/rag-generation-direction.md`](../../docs/assistant/rag-generation-direction.md):
+   - Use `vi.stubEnv` plus `resetEnvFileLoader()`, following [`tests/assistant-openai-request-headers.test.ts`](../../../tests/assistant-openai-request-headers.test.ts), so `.env.local` cannot leak into the test.
+5. [`tests/assistant-ui.test.ts`](../../../tests/assistant-ui.test.ts) ("format usage footer" describe block): update the display-name and footer-line expectations to `gpt-5.6-terra` / `GPT-5.6 Terra`.
+6. [`.env.example`](../../../.env.example): change the commented `ASSISTANT_GENERATION_MODEL` default to `gpt-5.6-terra` and add a one-line note that an override must accept `reasoning_effort` and `max_completion_tokens`.
+7. [`docs/assistant/assistant-database.md`](../../../docs/assistant/assistant-database.md), env table: the default becomes `gpt-5.6-terra` (reasoning effort `none`), and the max-output row describes "Chat `max_completion_tokens`".
+8. [`docs/assistant/rag-generation-direction.md`](../../../docs/assistant/rag-generation-direction.md):
    - The milestone's "Locked for the current milestone" `gpt-4o-mini` line stays as history, with "superseded by `gpt-5.6-terra` (`reasoning_effort: none`), Nov 2026" appended.
    - The usage-footer example becomes `GPT-5.6 Terra · …`.
 9. This plan: mark `terra-migration` `completed` in frontmatter.
@@ -135,7 +151,7 @@ The repository integration branch is `main`. Every slice starts from and targets
 **Intentionally unchanged:**
 
 - archived plans
-- [`docs/assistant/prior-art.md`](../../docs/assistant/prior-art.md) (an external project's stack)
+- [`docs/assistant/prior-art.md`](../../../docs/assistant/prior-art.md) (an external project's stack)
 - the OKF fixture article that mentions `gpt-4o-mini` (historical content)
 - `"gpt-4o-mini"` strings used as opaque fixture data in the telemetry, API, envelope, and evaluation tests (not tied to runtime behaviour)
 - `maxOutputTokens` / `max_output_tokens` naming and the telemetry schema
@@ -164,7 +180,7 @@ ASSISTANT_GENERATION_TELEMETRY=false npm run assistant:answer -- --json "Where d
 ASSISTANT_GENERATION_TELEMETRY=false npm run assistant:answer -- --json --no-retrieval "What is a merge commit in Git?"
 ```
 
-The questions come from [`tests/fixtures/assistant-generation/eval-cases.json`](../../tests/fixtures/assistant-generation/eval-cases.json) and cover three response shapes:
+The questions come from [`tests/fixtures/assistant-generation/eval-cases.json`](../../../tests/fixtures/assistant-generation/eval-cases.json) and cover three response shapes:
 
 - grounded `full_parent` with citations
 - abstention, which exercises the `abstained` / `abstention_reason` schema
@@ -227,7 +243,7 @@ Use a **fresh Agent-mode chat** per slice. Each frontmatter todo has exactly one
 ### plan-review
 
 ```text
-@.cursor/plans/2026-11-26-assistant-gpt-5-6-terra-migration.plan.md
+@.cursor/plans/archive/2026-11-26-assistant-gpt-5-6-terra-migration.plan.md
 
 Execute only plan-review. Do not start terra-migration or plan-closure.
 
@@ -243,7 +259,7 @@ Verification: plan-validator passes; no implementation changes included.
 ### terra-migration
 
 ```text
-@.cursor/plans/2026-11-26-assistant-gpt-5-6-terra-migration.plan.md
+@.cursor/plans/archive/2026-11-26-assistant-gpt-5-6-terra-migration.plan.md
 
 Implement slice terra-migration only. Prerequisite: plan-review merged. Do not start plan-closure. Do not archive the plan.
 
@@ -259,7 +275,7 @@ Verification: npm run lint, typecheck, format:check, test, test:coverage, build;
 ### plan-closure
 
 ```text
-@.cursor/plans/2026-11-26-assistant-gpt-5-6-terra-migration.plan.md
+@.cursor/plans/archive/2026-11-26-assistant-gpt-5-6-terra-migration.plan.md
 
 Execute only plan-closure.
 
