@@ -42,6 +42,8 @@ export const PUBLISHED_ARTICLE_HUB_FILES = {
     "the-retrieval-pipeline-worked-the-product-question-remained.md",
   "records-first-chart-second-the-sankey-disagreed":
     "records-first-chart-second-the-sankey-disagreed.md",
+  "we-made-agent-session-logging-independent-of-individual-repositories":
+    "we-made-agent-session-logging-independent-of-individual-repositories.md",
   "the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed":
     "the-agent-host-didnt-have-the-lifecycle-boundaries-i-assumed.md",
   "ai-made-translation-cheap-localization-still-needed-human-judgment":

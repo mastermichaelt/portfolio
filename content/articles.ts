@@ -2,7 +2,7 @@ import type { Article } from "@/domain/article";
 
 /**
  * Curated DEV.to inventory synced from sibling hub
- * `editorial-workflow/docs/dev.to/published/` (21 posts; portfolio lists full corpus).
+ * `editorial-workflow/docs/dev.to/published/` (22 posts; portfolio lists full corpus).
  * Titles/URLs from frontmatter; summaries compressed from openings — no invented claims.
  * `featured` marks a small curated subset (three reports today) used where
  * project-tied highlights matter; it is independent of homepage routing copy.
@@ -252,6 +252,17 @@ export const articles: Article[] = [
     tags: ["ai", "agents", "workflow"],
     url: "https://dev.to/michaeltruong/one-skill-per-action-looked-like-the-safe-boundary-13pj",
     relatedProjectSlug: "editorial-workflow",
+    line: "portability",
+  },
+  {
+    slug: "we-made-agent-session-logging-independent-of-individual-repositories",
+    title:
+      "We made agent session logging independent of individual repositories",
+    summary:
+      "Moving session logging out of each repository and into shared skills let the methodology evolve without changing those repositories.",
+    year: 2026,
+    tags: ["ai", "agents", "workflow"],
+    url: "https://dev.to/michaeltruong/we-made-agent-session-logging-independent-of-individual-repositories-3mbc",
     line: "portability",
   },
   {

@@ -30,7 +30,7 @@ import { splitFrontmatter } from "@/scripts/assistant/okf/yaml.mjs";
 import { projectCases } from "@/content/project-cases";
 
 const FIXTURES_ROOT = path.join(process.cwd(), FIXTURES_DIR);
-const EXPECTED_CONCEPT_COUNT = 119;
+const EXPECTED_CONCEPT_COUNT = 122;
 
 function parseFrontmatterType(frontmatterYaml: string | null): string {
   expect(frontmatterYaml).toBeTruthy();
@@ -57,12 +57,12 @@ describe("OKF producers", () => {
     const career = produceCareerInventoryConcepts();
     const tooling = produceMarketplacePublicDocsConcepts();
 
-    expect(portfolio).toHaveLength(36);
+    expect(portfolio).toHaveLength(37);
     expect(projectCase).toHaveLength(11);
     expect(ecosystem).toHaveLength(4);
     expect(about).toHaveLength(9);
     expect(repo.length).toBeGreaterThanOrEqual(5);
-    expect(dev).toHaveLength(42);
+    expect(dev).toHaveLength(44);
     expect(career).toHaveLength(5);
     expect(tooling).toHaveLength(4);
 
@@ -101,6 +101,28 @@ describe("OKF producers", () => {
         concept.id.startsWith("portfolio/codenames-ai-"),
       ),
     ).toHaveLength(5);
+  });
+
+  it("keeps editorial HTML comments and DEV draft preview URLs out of dev concepts", () => {
+    const dev = produceDevConcepts();
+    const rendered = dev.map((concept) => renderConcept(concept));
+
+    for (const markdown of rendered) {
+      expect(markdown).not.toContain("<!--");
+      expect(markdown).not.toContain("preview=");
+      expect(markdown).not.toContain("temp-slug");
+      expect(markdown).not.toContain("devto_draft_url");
+    }
+
+    // The session logging fixture carries long drafting annotations in the pinned source.
+    const sessionLoggingArticle = dev.find(
+      (concept) =>
+        concept.id ===
+        "writing/we-made-agent-session-logging-independent-of-individual-repositories-article",
+    );
+    expect(sessionLoggingArticle).toBeTruthy();
+    expect(sessionLoggingArticle!.body).not.toContain("Governing thesis");
+    expect(sessionLoggingArticle!.body).toContain("## Composable capabilities");
   });
 
   it("preserves CaseBlock heading, body, and contract in project-case bodies", () => {

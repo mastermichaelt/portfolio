@@ -10,7 +10,7 @@ import type { ArticleLineDefinition } from "@/domain/article";
  * Classify each report by the **primary engineering lesson** (see
  * `docs/articles-team-portability-classification-audit.md`), not techniques
  * used along the way. Membership on `Article.line` in `content/articles.ts`;
- * counts are 5 / 4 / 5 / 3 / 4.
+ * counts are 5 / 4 / 5 / 3 / 5.
  */
 export const articleLines: ArticleLineDefinition[] = [
   {
