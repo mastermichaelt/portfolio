@@ -103,6 +103,28 @@ describe("OKF producers", () => {
     ).toHaveLength(5);
   });
 
+  it("keeps editorial HTML comments and DEV draft preview URLs out of dev concepts", () => {
+    const dev = produceDevConcepts();
+    const rendered = dev.map((concept) => renderConcept(concept));
+
+    for (const markdown of rendered) {
+      expect(markdown).not.toContain("<!--");
+      expect(markdown).not.toContain("preview=");
+      expect(markdown).not.toContain("temp-slug");
+      expect(markdown).not.toContain("devto_draft_url");
+    }
+
+    // The session logging fixture carries long drafting annotations in the pinned source.
+    const sessionLoggingArticle = dev.find(
+      (concept) =>
+        concept.id ===
+        "writing/we-made-agent-session-logging-independent-of-individual-repositories-article",
+    );
+    expect(sessionLoggingArticle).toBeTruthy();
+    expect(sessionLoggingArticle!.body).not.toContain("Governing thesis");
+    expect(sessionLoggingArticle!.body).toContain("## Composable capabilities");
+  });
+
   it("preserves CaseBlock heading, body, and contract in project-case bodies", () => {
     const attributionBlock = projectCases
       .find((entry) => entry.slug === "experiment-measurement")
