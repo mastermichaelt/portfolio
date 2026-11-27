@@ -2,7 +2,7 @@ import type { Article } from "@/domain/article";
 
 /**
  * Curated DEV.to inventory synced from sibling hub
- * `editorial-workflow/docs/dev.to/published/` (21 posts; portfolio lists full corpus).
+ * `editorial-workflow/docs/dev.to/published/` (22 posts; portfolio lists full corpus).
  * Titles/URLs from frontmatter; summaries compressed from openings — no invented claims.
  * `featured` marks a small curated subset (three reports today) used where
  * project-tied highlights matter; it is independent of homepage routing copy.
@@ -255,6 +255,17 @@ export const articles: Article[] = [
     line: "portability",
   },
   {
+    slug: "we-made-agent-session-logging-independent-of-individual-repositories",
+    title:
+      "We made agent session logging independent of individual repositories",
+    summary:
+      "Moving session logging out of each repository and into shared skills let the methodology evolve without changing those repositories.",
+    year: 2026,
+    tags: ["ai", "agents", "workflow"],
+    url: "https://dev.to/michaeltruong/we-made-agent-session-logging-independent-of-individual-repositories-3mbc",
+    line: "portability",
+  },
+  {
     slug: "we-made-our-agent-plans-portable-then-we-had-to-make-them-verifiable",
     title:
       "We made our agent plans portable. Then we had to make them verifiable.",
@@ -276,7 +287,7 @@ export const articlesPageFeaturedRetrospective = {
   railLabel: "Start here · Six-month retrospective",
   title: "TEAM Portability: Six Months of Rebuilding How I Work with AI",
   description:
-    "How 21 field reports became a framework for engineering with AI, and what six months of experimentation changed about the way I work.",
+    "How 22 field reports became a framework for engineering with AI, and what six months of experimentation changed about the way I work.",
   ctaLabel: "Read retrospective",
   url: "https://dev.to/michaeltruong/team-portability-six-months-of-rebuilding-how-i-work-with-ai-eo1",
 } as const;

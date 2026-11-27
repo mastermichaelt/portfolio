@@ -133,7 +133,7 @@ describe("content-foundation inventory", () => {
   });
 
   it("keeps the umbrella retrospective outside the field-report inventory", () => {
-    expect(articles).toHaveLength(21);
+    expect(articles).toHaveLength(22);
     expect(
       articles.some(
         (article) => article.url === articlesPageFeaturedRetrospective.url,
@@ -168,7 +168,7 @@ describe("content-foundation inventory", () => {
       expect(lineIds).toContain(article.line);
     }
 
-    // Membership counts are 5 / 4 / 5 / 3 / 4, and total 21.
+    // Membership counts are 5 / 4 / 5 / 3 / 5, and total 22.
     const counts = Object.fromEntries(lineIds.map((id) => [id, 0]));
     for (const article of listed) {
       counts[article.line] += 1;
@@ -178,9 +178,9 @@ describe("content-foundation inventory", () => {
       evals: 4,
       authority: 5,
       measurement: 3,
-      portability: 4,
+      portability: 5,
     });
-    expect(listed.length).toBe(21);
+    expect(listed.length).toBe(22);
 
     // Exactly one lead per line, each with a non-empty argument.
     for (const id of lineIds) {
